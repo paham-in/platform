@@ -1,6 +1,12 @@
 import { createRoute, Link } from "@tanstack/react-router"
 import { Route as RootRoute } from "./__root"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useForm } from "react-hook-form"
@@ -28,16 +34,17 @@ export const Route = createRoute({
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-        <div className="w-full max-w-sm space-y-6 rounded-xl border bg-card p-8 shadow-sm">
-          <div className="text-center">
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center">
             <Link to="/" className="mx-auto flex w-fit items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">B</div>
               <span className="text-xl font-bold">Bimbel</span>
             </Link>
-            <h1 className="mt-6 text-2xl font-bold tracking-tight">Masuk</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Belum punya akun? <Link to="/register" className="font-medium text-primary hover:underline">Daftar</Link></p>
-          </div>
+            <CardTitle className="mt-4">Masuk</CardTitle>
+            <p className="text-sm text-muted-foreground">Belum punya akun? <Link to="/register" className="font-medium text-primary hover:underline">Daftar</Link></p>
+          </CardHeader>
 
+          <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -53,7 +60,8 @@ export const Route = createRoute({
               {isSubmitting ? "Memproses..." : "Masuk"}
             </Button>
           </form>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     )
   },
