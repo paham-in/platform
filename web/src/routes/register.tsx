@@ -10,7 +10,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createRoute, Link } from "@tanstack/react-router";
+import { createRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { postRegisterMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { client } from "@/lib/api/client.gen";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Route as RootRoute } from "./__root";
@@ -34,17 +37,38 @@ export const Route = createRoute({
   getParentRoute: () => RootRoute,
   path: "/register",
   component: function RegisterPage() {
+    const navigate = useNavigate();
+    const qc = useQueryClient();
+    const reg = useMutation({
+      ...postRegisterMutation(),
+      onSuccess: (data) => {
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          client.setConfig({ auth: () => `Bearer ${data.token}` });
+        }
+        qc.setQueryData(["me"], data.user);
+        navigate({ to: "/dashboard" });
+      },
+    });
     const {
       register,
       handleSubmit,
       control,
-      formState: { errors, isSubmitting },
+      formState: { errors },
     } = useForm<RegisterForm>({
       resolver: zodResolver(registerSchema),
     });
 
     const onSubmit = (data: RegisterForm) => {
-      console.log("register", data);
+      reg.mutate({
+        body: {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          confirm_password: data.confirmPassword,
+          role: data.role,
+        },
+      });
     };
 
     return (
@@ -152,8 +176,13 @@ export const Route = createRoute({
                   </p>
                 )}
               </div>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Memproses..." : "Daftar"}
+              {reg.error && (
+                <p className="text-xs text-destructive">
+                  {reg.error.error || "Terjadi kesalahan"}
+                </p>
+              )}
+              <Button type="submit" className="w-full" disabled={reg.isPending}>
+                {reg.isPending ? "Memproses..." : "Daftar"}
               </Button>
             </form>
           </CardContent>

@@ -37,6 +37,15 @@ type UserResponse struct {
 	Role  string `json:"role"`
 }
 
+// Response types untuk dokumentasi swagger
+type ErrorResponse struct {
+	Error string `json:"error" example:"error message"`
+}
+
+type MessageResponse struct {
+	Message string `json:"message" example:"berhasil"`
+}
+
 type Service struct {
 	userRepo    *UserRepository
 	sessionRepo *SessionRepository

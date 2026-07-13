@@ -1,4 +1,4 @@
-import { createRoute, Link } from "@tanstack/react-router"
+import { createRoute, Link, useNavigate } from "@tanstack/react-router"
 import { Route as RootRoute } from "./__root"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,6 +12,9 @@ import { Label } from "@/components/ui/label"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { postLoginMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { client } from "@/lib/api/client.gen"
 
 const loginSchema = z.object({
   email: z.string().email("Email tidak valid"),
@@ -24,12 +27,25 @@ export const Route = createRoute({
   getParentRoute: () => RootRoute,
   path: "/login",
   component: function LoginPage() {
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>({
+    const navigate = useNavigate()
+    const qc = useQueryClient()
+    const login = useMutation({
+      ...postLoginMutation(),
+      onSuccess: (data) => {
+        if (data.token) {
+          localStorage.setItem("token", data.token)
+          client.setConfig({ auth: () => `Bearer ${data.token}` })
+        }
+        qc.setQueryData(["me"], data.user)
+        navigate({ to: "/dashboard" })
+      },
+    })
+    const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
       resolver: zodResolver(loginSchema),
     })
 
     const onSubmit = (data: LoginForm) => {
-      console.log("login", data)
+      login.mutate({ body: data })
     }
 
     return (
@@ -56,8 +72,9 @@ export const Route = createRoute({
               <Input id="password" type="password" placeholder="••••••" {...register("password")} />
               {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
             </div>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Memproses..." : "Masuk"}
+            {login.error && <p className="text-xs text-destructive">{login.error.error || "Terjadi kesalahan"}</p>}
+            <Button type="submit" className="w-full" disabled={login.isPending}>
+              {login.isPending ? "Memproses..." : "Masuk"}
             </Button>
           </form>
           </CardContent>
