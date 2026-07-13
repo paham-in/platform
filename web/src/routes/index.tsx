@@ -1,13 +1,18 @@
-import { createRoute } from "@tanstack/react-router"
+import { createRoute, Link } from "@tanstack/react-router"
 import { Route as RootRoute } from "./__root"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card"
 import Navbar from "@/sections/Navbar"
 import Footer from "@/sections/Footer"
-import { ArrowRight, BookOpen, MessageSquare, GraduationCap, Youtube, Users, BarChart3, Shield, UserPlus, Award } from "lucide-react"
+import { ArrowRight, BookOpen, MessageSquare, GraduationCap, Video, Users, BarChart3, Shield, UserPlus, Award } from "lucide-react"
 
 const features = [
   { icon: BookOpen, title: "Materi Interaktif", desc: "Konten belajar dengan editor WYSIWIG yang kaya akan format, gambar, dan tabel." },
-  { icon: Youtube, title: "Video Pembelajaran", desc: "Embed video YouTube langsung di materi. Belajar lewat video tanpa ganti platform." },
+  { icon: Video, title: "Video Pembelajaran", desc: "Embed video YouTube langsung di materi. Belajar lewat video tanpa ganti platform." },
   { icon: MessageSquare, title: "Forum Tanya-Jawab", desc: "Fiturnya kayak Brainly! Siswa tanya, guru jawab. Dapatkan penjelasan lengkap." },
   { icon: Users, title: "Multi Role", desc: "Tiga peran: Murid, Guru, dan Admin. Masing-masing punya akses sesuai kebutuhan." },
   { icon: BarChart3, title: "Dashboard Personal", desc: "Pantau progress belajar, materi yang sudah dibaca, dan aktivitas terbaru." },
@@ -42,19 +47,21 @@ export const Route = createRoute({
               <h1 className="animate-fade-in text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">Belajar Lebih Pintar,<br /><span className="text-primary">Bersama Bimbel</span></h1>
               <p className="mt-6 animate-fade-in text-lg text-muted-foreground [animation-delay:0.1s] md:text-xl">Platform belajar online dengan materi berkualitas, video interaktif, dan forum tanya-jawab bersama guru berpengalaman. Raih prestasi terbaikmu!</p>
               <div className="mt-8 flex animate-fade-in flex-col items-center justify-center gap-4 [animation-delay:0.2s] sm:flex-row">
-                <Button size="lg" className="h-12 w-full sm:w-auto" asChild><a href="/register">Mulai Belajar Gratis <ArrowRight className="ml-2 h-4 w-4" /></a></Button>
-                <Button variant="outline" size="lg" className="h-12 w-full sm:w-auto" asChild><a href="#features">Lihat Fitur</a></Button>
+                <Link to="/register" className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}>Mulai Belajar Gratis <ArrowRight className="h-4 w-4" /></Link>
+                <Link to="/register" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full sm:w-auto")}>Lihat Fitur</Link>
               </div>
             </div>
             <div className="mt-16 grid gap-4 sm:grid-cols-3">
               {[{ icon: BookOpen, label: "Materi Terstruktur", desc: "Belajar dengan materi yang rapi dan mudah dipahami" },
                 { icon: MessageSquare, label: "Tanya Jawab", desc: "Tanya langsung ke guru, dapatkan jawaban cepat" },
                 { icon: GraduationCap, label: "Guru Berpengalaman", desc: "Diajar oleh guru-guru terbaik di bidangnya" }].map((item) => (
-                <div key={item.label} className="group rounded-xl border bg-card p-6 transition-all hover:shadow-lg">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"><item.icon className="h-6 w-6" /></div>
-                  <h3 className="mb-2 font-semibold">{item.label}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </div>
+                <Card key={item.label} className="group transition-all hover:shadow-lg">
+                  <CardContent className="p-(--card-spacing)">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors"><item.icon className="h-6 w-6" /></div>
+                    <h3 className="mb-2 font-semibold">{item.label}</h3>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -69,11 +76,13 @@ export const Route = createRoute({
             </div>
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((f) => (
-                <div key={f.title} className="group rounded-xl border bg-card p-6 transition-all hover:shadow-md">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><f.icon className="h-5 w-5" /></div>
-                  <h3 className="mb-2 font-semibold">{f.title}</h3>
-                  <p className="text-sm text-muted-foreground">{f.desc}</p>
-                </div>
+                <Card key={f.title} className="group transition-all hover:shadow-md">
+                  <CardContent className="p-(--card-spacing)">
+                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><f.icon className="h-5 w-5" /></div>
+                    <h3 className="mb-2 font-semibold">{f.title}</h3>
+                    <p className="text-sm text-muted-foreground">{f.desc}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -101,7 +110,7 @@ export const Route = createRoute({
               <p className="mt-4 text-muted-foreground">Mulai belajar dalam 4 langkah mudah.</p>
             </div>
             <div className="relative mt-12 grid gap-8 md:grid-cols-4">
-              {steps.map((s, i) => (
+              {steps.map((s) => (
                 <div key={s.title} className="relative text-center">
                   <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary"><s.icon className="h-7 w-7" /></div>
                   <div className="mb-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">{s.step}</div>
@@ -122,13 +131,15 @@ export const Route = createRoute({
             </div>
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               {testimonials.map((t) => (
-                <div key={t.name} className="rounded-xl border bg-card p-6 transition-all hover:shadow-md">
-                  <div className="mb-4 text-lg leading-relaxed text-muted-foreground">&ldquo;{t.quote}&rdquo;</div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{t.name.charAt(0)}</div>
-                    <div><div className="text-sm font-semibold">{t.name}</div><div className="text-xs text-muted-foreground">{t.role}</div></div>
-                  </div>
-                </div>
+                <Card key={t.name} className="group transition-all hover:shadow-md">
+                  <CardContent className="p-(--card-spacing)">
+                    <div className="mb-4 text-lg leading-relaxed text-muted-foreground">&ldquo;{t.quote}&rdquo;</div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{t.name.charAt(0)}</div>
+                      <div><div className="text-sm font-semibold">{t.name}</div><div className="text-xs text-muted-foreground">{t.role}</div></div>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -143,7 +154,7 @@ export const Route = createRoute({
                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Siap Meningkatkan Prestasi?</h2>
                 <p className="mx-auto mt-4 max-w-lg text-primary-foreground/80">Gabung ribuan siswa lainnya. Mulai belajar gratis sekarang!</p>
                 <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                  <Button size="lg" variant="secondary" className="h-12 w-full sm:w-auto" asChild><a href="/register">Daftar Gratis <ArrowRight className="ml-2 h-4 w-4" /></a></Button>
+                  <Link to="/register" className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "w-full sm:w-auto")}>Daftar Gratis <ArrowRight className="h-4 w-4" /></Link>
                 </div>
               </div>
             </div>
