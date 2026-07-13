@@ -1,6 +1,12 @@
 import { createRoute, Link } from "@tanstack/react-router"
 import { Route as RootRoute } from "./__root"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { useState } from "react"
 import {
   LayoutDashboard, BookOpen, MessageSquare, Users, GraduationCap,
@@ -54,47 +60,59 @@ export const Route = createRoute({
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {statCards.student.map((s) => (
-            <div key={s.label} className="rounded-xl border bg-card p-5">
-              <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}>
-                <s.icon className="h-5 w-5" />
-              </div>
-              <div className="text-2xl font-bold">{s.value}</div>
-              <div className="text-sm text-muted-foreground">{s.label}</div>
-            </div>
+            <Card key={s.label} size="sm">
+              <CardContent className="flex flex-col gap-3 p-(--card-spacing)">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}>
+                  <s.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">{s.value}</div>
+                  <div className="text-sm text-muted-foreground">{s.label}</div>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-xl border bg-card p-6">
-            <h3 className="mb-4 font-semibold">Mata Pelajaran</h3>
-            {["Matematika", "Fisika", "Bahasa Inggris", "Biologi"].map((s) => (
-              <div key={s} className="flex items-center justify-between border-b py-3 last:border-0">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">{s[0]}</div>
-                  <span className="text-sm font-medium">{s}</span>
+          <Card>
+            <CardHeader>
+              <CardTitle>Mata Pelajaran</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {["Matematika", "Fisika", "Bahasa Inggris", "Biologi"].map((s) => (
+                <div key={s} className="flex items-center justify-between border-b py-3 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">{s[0]}</div>
+                    <span className="text-sm font-medium">{s}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">3 materi baru</span>
                 </div>
-                <span className="text-xs text-muted-foreground">3 materi baru</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </CardContent>
+          </Card>
 
-          <div className="rounded-xl border bg-card p-6">
-            <h3 className="mb-4 font-semibold">Aktivitas Terbaru</h3>
-            {[
-              { text: "Menyelesaikan materi Trigonometri", time: "2 jam lalu" },
-              { text: "Bertanya di forum Matematika", time: "5 jam lalu" },
-              { text: "Menonton video Fisika Dasar", time: "1 hari lalu" },
-              { text: "Membaca materi Aljabar Linear", time: "2 hari lalu" },
-            ].map((a, i) => (
-              <div key={i} className="flex items-start gap-3 border-b py-3 last:border-0">
-                <div className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                <div className="flex-1">
-                  <p className="text-sm">{a.text}</p>
-                  <p className="text-xs text-muted-foreground">{a.time}</p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Aktivitas Terbaru</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {[
+                { text: "Menyelesaikan materi Trigonometri", time: "2 jam lalu" },
+                { text: "Bertanya di forum Matematika", time: "5 jam lalu" },
+                { text: "Menonton video Fisika Dasar", time: "1 hari lalu" },
+                { text: "Membaca materi Aljabar Linear", time: "2 hari lalu" },
+              ].map((a, i) => (
+                <div key={i} className="flex items-start gap-3 border-b py-3 last:border-0">
+                  <div className="mt-1 h-2 w-2 rounded-full bg-primary" />
+                  <div className="flex-1">
+                    <p className="text-sm">{a.text}</p>
+                    <p className="text-xs text-muted-foreground">{a.time}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -111,53 +129,65 @@ export const Route = createRoute({
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {statCards.teacher.map((s) => (
-            <div key={s.label} className="rounded-xl border bg-card p-5">
-              <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}>
-                <s.icon className="h-5 w-5" />
-              </div>
-              <div className="text-2xl font-bold">{s.value}</div>
-              <div className="text-sm text-muted-foreground">{s.label}</div>
-            </div>
+            <Card key={s.label} size="sm">
+              <CardContent className="flex flex-col gap-3 p-(--card-spacing)">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}>
+                  <s.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">{s.value}</div>
+                  <div className="text-sm text-muted-foreground">{s.label}</div>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-xl border bg-card p-6">
-            <h3 className="mb-4 font-semibold">Materi Terbaru</h3>
-            {[
-              { title: "Trigonometri Dasar", subject: "Matematika", status: "Published" },
-              { title: "Hukum Newton", subject: "Fisika", status: "Draft" },
-              { title: "Tenses Bahasa Inggris", subject: "Bahasa Inggris", status: "Published" },
-            ].map((m, i) => (
-              <div key={i} className="flex items-center justify-between border-b py-3 last:border-0">
-                <div>
-                  <p className="text-sm font-medium">{m.title}</p>
-                  <p className="text-xs text-muted-foreground">{m.subject}</p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Materi Terbaru</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {[
+                { title: "Trigonometri Dasar", subject: "Matematika", status: "Published" },
+                { title: "Hukum Newton", subject: "Fisika", status: "Draft" },
+                { title: "Tenses Bahasa Inggris", subject: "Bahasa Inggris", status: "Published" },
+              ].map((m, i) => (
+                <div key={i} className="flex items-center justify-between border-b py-3 last:border-0">
+                  <div>
+                    <p className="text-sm font-medium">{m.title}</p>
+                    <p className="text-xs text-muted-foreground">{m.subject}</p>
+                  </div>
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    m.status === "Published" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                  }`}>{m.status}</span>
                 </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  m.status === "Published" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                }`}>{m.status}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </CardContent>
+          </Card>
 
-          <div className="rounded-xl border bg-card p-6">
-            <h3 className="mb-4 font-semibold">Pertanyaan Perlu Dijawab</h3>
-            {[
-              { q: "Bagaimana cara menghitung integral?", by: "Siswa A", subject: "Matematika" },
-              { q: "Apa itu hukum kekekalan energi?", by: "Siswa B", subject: "Fisika" },
-              { q: "Perbedaan Past Tense dan Present Perfect?", by: "Siswa C", subject: "Bahasa Inggris" },
-            ].map((q, i) => (
-              <div key={i} className="flex items-start gap-3 border-b py-3 last:border-0">
-                <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                <div className="flex-1">
-                  <p className="text-sm">{q.q}</p>
-                  <p className="text-xs text-muted-foreground">{q.by} · {q.subject}</p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Pertanyaan Perlu Dijawab</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {[
+                { q: "Bagaimana cara menghitung integral?", by: "Siswa A", subject: "Matematika" },
+                { q: "Apa itu hukum kekekalan energi?", by: "Siswa B", subject: "Fisika" },
+                { q: "Perbedaan Past Tense dan Present Perfect?", by: "Siswa C", subject: "Bahasa Inggris" },
+              ].map((q, i) => (
+                <div key={i} className="flex items-start gap-3 border-b py-3 last:border-0">
+                  <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="text-sm">{q.q}</p>
+                    <p className="text-xs text-muted-foreground">{q.by} · {q.subject}</p>
+                  </div>
+                  <Button variant="ghost" size="sm">Jawab</Button>
                 </div>
-                <Button variant="ghost" size="sm">Jawab</Button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -169,61 +199,73 @@ export const Route = createRoute({
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {statCards.admin.map((s) => (
-            <div key={s.label} className="rounded-xl border bg-card p-5">
-              <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}>
-                <s.icon className="h-5 w-5" />
-              </div>
-              <div className="text-2xl font-bold">{s.value}</div>
-              <div className="text-sm text-muted-foreground">{s.label}</div>
-            </div>
+            <Card key={s.label} size="sm">
+              <CardContent className="flex flex-col gap-3 p-(--card-spacing)">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}>
+                  <s.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">{s.value}</div>
+                  <div className="text-sm text-muted-foreground">{s.label}</div>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-xl border bg-card p-6">
-            <h3 className="mb-4 font-semibold">Pengguna Terdaftar</h3>
-            {[
-              { name: "Siti Aisyah", role: "Murid", email: "siti@email.com" },
-              { name: "Bambang Supriyadi", role: "Guru", email: "bambang@email.com" },
-              { name: "Rina Wijaya", role: "Murid", email: "rina@email.com" },
-              { name: "Ahmad Fauzi", role: "Guru", email: "ahmad@email.com" },
-            ].map((u, i) => (
-              <div key={i} className="flex items-center justify-between border-b py-3 last:border-0">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name[0]}</div>
-                  <div>
-                    <p className="text-sm font-medium">{u.name}</p>
-                    <p className="text-xs text-muted-foreground">{u.email}</p>
-                  </div>
-                </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  u.role === "Guru" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
-                }`}>{u.role}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="rounded-xl border bg-card p-6">
-            <h3 className="mb-4 font-semibold">Aksi Cepat</h3>
-            <div className="grid gap-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pengguna Terdaftar</CardTitle>
+            </CardHeader>
+            <CardContent>
               {[
-                { icon: Users, label: "Tambah User", desc: "Tambah murid atau guru baru" },
-                { icon: BookMarked, label: "Tambah Mata Pelajaran", desc: "Buka mata pelajaran baru" },
-                { icon: FileText, label: "Moderasi Konten", desc: "Tinjau materi & forum" },
-              ].map((a, i) => (
-                <div key={i} className="flex cursor-pointer items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <a.icon className="h-5 w-5" />
+                { name: "Siti Aisyah", role: "Murid", email: "siti@email.com" },
+                { name: "Bambang Supriyadi", role: "Guru", email: "bambang@email.com" },
+                { name: "Rina Wijaya", role: "Murid", email: "rina@email.com" },
+                { name: "Ahmad Fauzi", role: "Guru", email: "ahmad@email.com" },
+              ].map((u, i) => (
+                <div key={i} className="flex items-center justify-between border-b py-3 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name[0]}</div>
+                    <div>
+                      <p className="text-sm font-medium">{u.name}</p>
+                      <p className="text-xs text-muted-foreground">{u.email}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{a.label}</p>
-                    <p className="text-xs text-muted-foreground">{a.desc}</p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    u.role === "Guru" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+                  }`}>{u.role}</span>
                 </div>
               ))}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Aksi Cepat</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3">
+                {[
+                  { icon: Users, label: "Tambah User", desc: "Tambah murid atau guru baru" },
+                  { icon: BookMarked, label: "Tambah Mata Pelajaran", desc: "Buka mata pelajaran baru" },
+                  { icon: FileText, label: "Moderasi Konten", desc: "Tinjau materi & forum" },
+                ].map((a, i) => (
+                  <div key={i} className="flex cursor-pointer items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <a.icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{a.label}</p>
+                      <p className="text-xs text-muted-foreground">{a.desc}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
