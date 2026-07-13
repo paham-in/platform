@@ -1,13 +1,29 @@
 import { Button } from "@/components/ui/button";
-import { postLogoutMutation } from "@/lib/api/@tanstack/react-query.gen";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getMeOptions, postLogoutMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
   Link,
   Outlet,
   useNavigate,
 } from "@tanstack/react-router";
-import { BookMarked, LayoutDashboard, LogOut, Users } from "lucide-react";
+import {
+  BookMarked,
+  Home,
+  LayoutDashboard,
+  LogOut,
+  Users,
+} from "lucide-react";
+
+const sidebarLinks = [
+  { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard", roles: ["student", "teacher", "admin"] },
+  { label: "Mata Pelajaran", icon: BookMarked, to: "/subjects", roles: ["student", "teacher"] },
+  { label: "Pertanyaan Saya", icon: Home, to: "/forum", roles: ["student"] },
+  { label: "Materi Saya", icon: BookMarked, to: "/materials", roles: ["teacher"] },
+  { label: "Tanya Jawab", icon: Home, to: "/forum", roles: ["teacher"] },
+  { label: "Kelola User", icon: Users, to: "/admin/users", roles: ["admin"] },
+  { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects", roles: ["admin"] },
+];
 
 export const Route = createFileRoute("/_dashboard")({
   component: DashboardLayout,
@@ -16,6 +32,8 @@ export const Route = createFileRoute("/_dashboard")({
 function DashboardLayout() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { data: user, isLoading } = useQuery(getMeOptions());
+
   const logout = useMutation({
     ...postLogoutMutation(),
     onSuccess: () => {
@@ -25,6 +43,21 @@ function DashboardLayout() {
     },
   });
   const handleLogout = () => logout.mutate({});
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/20">
+        <div className="text-sm text-muted-foreground">Memuat...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    navigate({ to: "/login" });
+    return null;
+  }
+
+  const filteredLinks = sidebarLinks.filter((l) => l.roles.includes(user.role ?? ""));
 
   return (
     <div className="flex min-h-screen bg-muted/20">
@@ -37,36 +70,19 @@ function DashboardLayout() {
         </Link>
 
         <nav className="flex-1 space-y-1">
-          <Link
-            to="/dashboard"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            activeProps={{
-              className:
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted",
-            }}
-          >
-            <LayoutDashboard className="h-4 w-4" /> Dashboard
-          </Link>
-          <Link
-            to="/admin/users"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            activeProps={{
-              className:
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted",
-            }}
-          >
-            <Users className="h-4 w-4" /> Kelola User
-          </Link>
-          <Link
-            to="/admin/subjects"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            activeProps={{
-              className:
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted",
-            }}
-          >
-            <BookMarked className="h-4 w-4" /> Mata Pelajaran
-          </Link>
+          {filteredLinks.map((l) => (
+            <Link
+              key={l.to}
+              to={l.to}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              activeProps={{
+                className:
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted",
+              }}
+            >
+              <l.icon className="h-4 w-4" /> {l.label}
+            </Link>
+          ))}
         </nav>
 
         <div className="mt-auto border-t pt-4">
