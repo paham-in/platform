@@ -1,6 +1,11 @@
 import { createRoute, Link } from "@tanstack/react-router"
 import { Route as RootRoute } from "@/routes/__root"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -126,9 +131,9 @@ export const Route = createRoute({
           </header>
 
           <main className="p-6">
-            <div className="rounded-xl border bg-card">
+            <Card>
               {/* Toolbar */}
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b p-4">
+              <div className="flex flex-wrap items-center justify-between gap-4 px-(--card-spacing) py-3">
                 <div className="flex flex-1 items-center gap-3">
                   <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -150,6 +155,7 @@ export const Route = createRoute({
               </div>
 
               {/* Table */}
+              <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/30">
@@ -190,18 +196,19 @@ export const Route = createRoute({
                   )}
                 </TableBody>
               </Table>
+              </CardContent>
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between border-t p-4">
+                <CardFooter className="flex items-center justify-between border-t">
                   <p className="text-sm text-muted-foreground">Halaman {page} dari {totalPages}</p>
                   <div className="flex gap-1">
                     <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}><ChevronLeft className="h-4 w-4" /></Button>
                     <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}><ChevronRight className="h-4 w-4" /></Button>
                   </div>
-                </div>
+                </CardFooter>
               )}
-            </div>
+            </Card>
           </main>
         </div>
 
