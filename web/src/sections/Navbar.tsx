@@ -1,4 +1,6 @@
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import { Link } from "@tanstack/react-router"
 
 const navLinks = [
   { label: "Mata Pelajaran", href: "#subjects" },
@@ -30,12 +32,8 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" asChild>
-            <a href="/login">Masuk</a>
-          </Button>
-          <Button size="sm" asChild>
-            <a href="/register">Daftar</a>
-          </Button>
+          <Link to="/login" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>Masuk</Link>
+          <Link to="/register" className={cn(buttonVariants({ size: "sm" }))}>Daftar</Link>
         </div>
       </div>
     </header>

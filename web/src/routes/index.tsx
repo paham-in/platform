@@ -1,5 +1,4 @@
-import { createRoute, Link } from "@tanstack/react-router"
-import { Route as RootRoute } from "./__root"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import {
@@ -32,9 +31,7 @@ const testimonials = [
   { quote: "Anak saya semangat belajar sejak pakai Bimbel. Nilainya naik drastis dalam 2 bulan!", name: "Rina Wijaya", role: "Orang Tua Siswa" },
 ]
 
-export const Route = createRoute({
-  getParentRoute: () => RootRoute,
-  path: "/",
+export const Route = createFileRoute("/")({
   component: () => (
     <div className="flex min-h-screen flex-col">
       <Navbar />

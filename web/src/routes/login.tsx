@@ -1,5 +1,4 @@
-import { createRoute, Link, useNavigate } from "@tanstack/react-router"
-import { Route as RootRoute } from "./__root"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -80,8 +79,6 @@ function LoginPage() {
   )
 }
 
-export const Route = createRoute({
-  getParentRoute: () => RootRoute,
-  path: "/login",
+export const Route = createFileRoute("/login")({
   component: LoginPage,
 })

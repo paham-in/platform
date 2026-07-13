@@ -10,8 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate, createRoute } from "@tanstack/react-router";
-import { Route as RootRoute } from "./__root";
+import { Link, useNavigate, createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postRegisterMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { client } from "@/lib/api/client.gen";
@@ -188,8 +187,6 @@ export default function RegisterPage() {
   );
 }
 
-export const Route = createRoute({
-  getParentRoute: () => RootRoute,
-  path: "/register",
+export const Route = createFileRoute("/register")({
   component: RegisterPage,
 });
