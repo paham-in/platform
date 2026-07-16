@@ -6,7 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 import {
   BookOpen, MessageSquare, Users, GraduationCap,
   ChevronRight, HelpCircle,
@@ -14,10 +15,9 @@ import {
   BookMarked,
 } from "lucide-react"
 
-type Role = "student" | "teacher" | "admin"
-
 function DashboardPage() {
-  const [role, setRole] = useState<Role>("student")
+  const { data: user } = useQuery(getMeOptions())
+  const role = user?.role ?? "student"
 
   const statCards = {
     student: [
@@ -43,19 +43,10 @@ function DashboardPage() {
   return (
     <>
       <header className="flex items-center justify-between border-b bg-card px-6 py-3">
-        <div className="flex items-center gap-2 rounded-lg border bg-muted/30 p-1">
-          {(["student", "teacher", "admin"] as Role[]).map((r) => (
-            <button
-              key={r}
-              onClick={() => setRole(r)}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                role === r ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {r === "student" ? "Murid" : r === "teacher" ? "Guru" : "Admin"}
-            </button>
-          ))}
-        </div>
+        <h1 className="text-lg font-bold">
+          Dashboard {role === "student" ? "Murid" : role === "teacher" ? "Guru" : "Admin"}
+        </h1>
+        <p className="text-sm text-muted-foreground">{user?.name}</p>
       </header>
       <main className="p-6">
         {role === "student" && (
