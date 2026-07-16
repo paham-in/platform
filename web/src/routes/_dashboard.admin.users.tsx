@@ -2,11 +2,18 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState } from "react"
-import { Search, Plus, Pencil, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 
 type User = { id: number; name: string; email: string; role: "student" | "teacher" | "admin"; createdAt: string; materials?: number; questions?: number }
 
@@ -25,11 +32,10 @@ function AdminUsers() {
   const [users, setUsers] = useState<User[]>(mockUsers)
   const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
-  const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
+  const [newRole, setNewRole] = useState<User["role"]>("student")
   const [page, setPage] = useState(1)
   const perPage = 5
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "student" as User["role"] })
 
   const filtered = users.filter((u) => {
     const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase())
@@ -39,17 +45,20 @@ function AdminUsers() {
   const totalPages = Math.ceil(filtered.length / perPage)
   const paged = filtered.slice((page - 1) * perPage, page * perPage)
 
-  const openAdd = () => { setEditing(null); setForm({ name: "", email: "", password: "", role: "student" }); setShowModal(true) }
-  const openEdit = (u: User) => { setEditing(u); setForm({ name: u.name, email: u.email, password: "", role: u.role }); setShowModal(true) }
+  const openEdit = (u: User) => {
+    setEditing(u)
+    setNewRole(u.role)
+  }
+  const closeEdit = () => setEditing(null)
   const save = () => {
     if (editing) {
-      setUsers(users.map((u) => (u.id === editing.id ? { ...u, name: form.name, email: form.email, role: form.role } : u)))
-    } else {
-      setUsers([...users, { id: Date.now(), ...form, createdAt: new Date().toISOString().slice(0, 10) }])
+      setUsers(users.map((u) => (u.id === editing.id ? { ...u, role: newRole } : u)))
     }
-    setShowModal(false)
+    closeEdit()
   }
-  const remove = (id: number) => { if (confirm("Yakin hapus user ini?")) setUsers(users.filter((u) => u.id !== id)) }
+  const remove = (id: number) => {
+    if (confirm("Yakin hapus user ini?")) setUsers(users.filter((u) => u.id !== id))
+  }
 
   const RoleBadge = ({ role }: { role: string }) => {
     const styles = { student: "bg-green-100 text-green-700", teacher: "bg-blue-100 text-blue-700", admin: "bg-purple-100 text-purple-700" }
@@ -61,23 +70,20 @@ function AdminUsers() {
       <header className="flex items-center justify-between border-b bg-card px-6 py-3"><h1 className="text-lg font-bold">Kelola User</h1></header>
       <main className="p-6">
         <Card>
-          <div className="flex flex-wrap items-center justify-between gap-4 px-(--card-spacing) py-3">
-            <div className="flex flex-1 items-center gap-3">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Cari nama atau email..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
-              </div>
-              <Select value={roleFilter} onValueChange={(v) => { if (v) { setRoleFilter(v); setPage(1) } }}>
-                <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Role" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Role</SelectItem>
-                  <SelectItem value="student">Murid</SelectItem>
-                  <SelectItem value="teacher">Guru</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="flex flex-wrap items-center gap-4 px-(--card-spacing) py-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="Cari nama atau email..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
             </div>
-            <Button onClick={openAdd}><Plus className="mr-1 h-4 w-4" /> Tambah User</Button>
+            <Select value={roleFilter} onValueChange={(v) => { if (v) { setRoleFilter(v); setPage(1) } }}>
+              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Role" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Role</SelectItem>
+                <SelectItem value="student">Murid</SelectItem>
+                <SelectItem value="teacher">Guru</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <CardContent className="p-0">
             <Table>
@@ -120,36 +126,36 @@ function AdminUsers() {
           )}
         </Card>
       </main>
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-lg">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-lg font-bold">{editing ? "Edit User" : "Tambah User"}</h2>
-              <Button variant="ghost" size="icon" onClick={() => setShowModal(false)}><X className="h-4 w-4" /></Button>
-            </div>
-            <div className="space-y-4">
-              <div className="space-y-2"><Label htmlFor="name">Nama Lengkap</Label><Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nama lengkap" /></div>
-              <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="nama@email.com" /></div>
-              {!editing && (<div className="space-y-2"><Label htmlFor="password">Password</Label><Input id="password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Password" /></div>)}
-              <div className="space-y-2">
-                <Label>Role</Label>
-                <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as User["role"] })}>
-                  <SelectTrigger><SelectValue placeholder="Pilih role" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="student">Murid</SelectItem>
-                    <SelectItem value="teacher">Guru</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <Button variant="outline" onClick={() => setShowModal(false)}>Batal</Button>
-                <Button onClick={save}>{editing ? "Simpan" : "Tambah"}</Button>
-              </div>
-            </div>
+
+      <Dialog open={!!editing} onOpenChange={(open) => !open && closeEdit()}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Edit Role User</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1">
+            {editing && (
+              <p className="text-sm text-muted-foreground">
+                {editing.name} — {editing.email}
+              </p>
+            )}
           </div>
-        </div>
-      )}
+          <div className="space-y-2">
+            <Label>Role</Label>
+            <Select value={newRole} onValueChange={(v) => setNewRole(v as User["role"])}>
+              <SelectTrigger><SelectValue placeholder="Pilih role" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="student">Murid</SelectItem>
+                <SelectItem value="teacher">Guru</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeEdit}>Batal</Button>
+            <Button onClick={save}>Simpan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
