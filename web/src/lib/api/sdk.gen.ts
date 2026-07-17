@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetMeData, GetMeErrors, GetMeResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLoginData, PostLoginErrors, PostLoginResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostRegisterData, PostRegisterErrors, PostRegisterResponses } from './types.gen';
+import type { DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetMeData, GetMeErrors, GetMeResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLoginData, PostLoginErrors, PostLoginResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostRegisterData, PostRegisterErrors, PostRegisterResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,69 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+/**
+ * List materials
+ *
+ * Mengembalikan daftar semua materi, bisa difilter dengan subject_id
+ */
+export const getAdminMaterials = <ThrowOnError extends boolean = false>(options?: Options<GetAdminMaterialsData, ThrowOnError>): RequestResult<GetAdminMaterialsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminMaterialsResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/materials',
+    ...options
+});
+
+/**
+ * Create material
+ *
+ * Menambah materi baru
+ */
+export const postAdminMaterials = <ThrowOnError extends boolean = false>(options: Options<PostAdminMaterialsData, ThrowOnError>): RequestResult<PostAdminMaterialsResponses, PostAdminMaterialsErrors, ThrowOnError> => (options.client ?? client).post<PostAdminMaterialsResponses, PostAdminMaterialsErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/materials',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete material
+ *
+ * Menghapus materi berdasarkan ID
+ */
+export const deleteAdminMaterialsById = <ThrowOnError extends boolean = false>(options: Options<DeleteAdminMaterialsByIdData, ThrowOnError>): RequestResult<DeleteAdminMaterialsByIdResponses, unknown, ThrowOnError> => (options.client ?? client).delete<DeleteAdminMaterialsByIdResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/materials/{id}',
+    ...options
+});
+
+/**
+ * Get material
+ *
+ * Mengambil detail materi berdasarkan ID
+ */
+export const getAdminMaterialsById = <ThrowOnError extends boolean = false>(options: Options<GetAdminMaterialsByIdData, ThrowOnError>): RequestResult<GetAdminMaterialsByIdResponses, GetAdminMaterialsByIdErrors, ThrowOnError> => (options.client ?? client).get<GetAdminMaterialsByIdResponses, GetAdminMaterialsByIdErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/materials/{id}',
+    ...options
+});
+
+/**
+ * Update material
+ *
+ * Mengubah materi berdasarkan ID
+ */
+export const patchAdminMaterialsById = <ThrowOnError extends boolean = false>(options: Options<PatchAdminMaterialsByIdData, ThrowOnError>): RequestResult<PatchAdminMaterialsByIdResponses, PatchAdminMaterialsByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchAdminMaterialsByIdResponses, PatchAdminMaterialsByIdErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/materials/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Create subject

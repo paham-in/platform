@@ -41,3 +41,11 @@ func (r *Repository) Update(id uint, updates map[string]interface{}) error {
 func (r *Repository) Delete(id uint) error {
 	return r.db.Delete(&models.Subject{}, id).Error
 }
+
+func (r *Repository) MaterialCount(subjectID uint) (int64, error) {
+	var count int64
+	if err := r.db.Model(&models.Material{}).Where("subject_id = ?", subjectID).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}

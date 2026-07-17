@@ -4,6 +4,43 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:8080/' | (string & {});
 };
 
+export type MaterialCreateInput = {
+    content?: string;
+    description?: string;
+    order?: number;
+    status?: string;
+    subject_id?: number;
+    title?: string;
+};
+
+export type MaterialErrorResponse = {
+    error?: string;
+};
+
+export type MaterialMaterialResponse = {
+    content?: string;
+    description?: string;
+    id?: number;
+    order?: number;
+    slug?: string;
+    status?: string;
+    subject_id?: number;
+    subject_name?: string;
+    title?: string;
+};
+
+export type MaterialMessageResponse = {
+    message?: string;
+};
+
+export type MaterialUpdateInput = {
+    content?: string;
+    description?: string;
+    order?: number;
+    status?: string;
+    title?: string;
+};
+
 export type SubjectErrorResponse = {
     error?: string;
 };
@@ -60,6 +97,139 @@ export type UserUserResponse = {
     name?: string;
     role?: string;
 };
+
+export type GetAdminMaterialsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter by subject ID
+         */
+        subject_id?: number;
+    };
+    url: '/admin/materials';
+};
+
+export type GetAdminMaterialsResponses = {
+    /**
+     * OK
+     */
+    200: Array<MaterialMaterialResponse>;
+};
+
+export type GetAdminMaterialsResponse = GetAdminMaterialsResponses[keyof GetAdminMaterialsResponses];
+
+export type PostAdminMaterialsData = {
+    /**
+     * Data materi
+     */
+    body: MaterialCreateInput;
+    path?: never;
+    query?: never;
+    url: '/admin/materials';
+};
+
+export type PostAdminMaterialsErrors = {
+    /**
+     * Bad Request
+     */
+    400: MaterialErrorResponse;
+};
+
+export type PostAdminMaterialsError = PostAdminMaterialsErrors[keyof PostAdminMaterialsErrors];
+
+export type PostAdminMaterialsResponses = {
+    /**
+     * Created
+     */
+    201: MaterialMaterialResponse;
+};
+
+export type PostAdminMaterialsResponse = PostAdminMaterialsResponses[keyof PostAdminMaterialsResponses];
+
+export type DeleteAdminMaterialsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Material ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/materials/{id}';
+};
+
+export type DeleteAdminMaterialsByIdResponses = {
+    /**
+     * OK
+     */
+    200: MaterialMessageResponse;
+};
+
+export type DeleteAdminMaterialsByIdResponse = DeleteAdminMaterialsByIdResponses[keyof DeleteAdminMaterialsByIdResponses];
+
+export type GetAdminMaterialsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Material ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/materials/{id}';
+};
+
+export type GetAdminMaterialsByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: MaterialErrorResponse;
+};
+
+export type GetAdminMaterialsByIdError = GetAdminMaterialsByIdErrors[keyof GetAdminMaterialsByIdErrors];
+
+export type GetAdminMaterialsByIdResponses = {
+    /**
+     * OK
+     */
+    200: MaterialMaterialResponse;
+};
+
+export type GetAdminMaterialsByIdResponse = GetAdminMaterialsByIdResponses[keyof GetAdminMaterialsByIdResponses];
+
+export type PatchAdminMaterialsByIdData = {
+    /**
+     * Data update
+     */
+    body: MaterialUpdateInput;
+    path: {
+        /**
+         * Material ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/materials/{id}';
+};
+
+export type PatchAdminMaterialsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: MaterialErrorResponse;
+};
+
+export type PatchAdminMaterialsByIdError = PatchAdminMaterialsByIdErrors[keyof PatchAdminMaterialsByIdErrors];
+
+export type PatchAdminMaterialsByIdResponses = {
+    /**
+     * OK
+     */
+    200: MaterialMaterialResponse;
+};
+
+export type PatchAdminMaterialsByIdResponse = PatchAdminMaterialsByIdResponses[keyof PatchAdminMaterialsByIdResponses];
 
 export type PostAdminSubjectsData = {
     /**

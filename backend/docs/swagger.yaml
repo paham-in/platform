@@ -1,5 +1,64 @@
 basePath: /
 definitions:
+  material.CreateInput:
+    properties:
+      content:
+        type: string
+      description:
+        type: string
+      order:
+        type: integer
+      status:
+        type: string
+      subject_id:
+        type: integer
+      title:
+        type: string
+    type: object
+  material.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  material.MaterialResponse:
+    properties:
+      content:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      order:
+        type: integer
+      slug:
+        type: string
+      status:
+        type: string
+      subject_id:
+        type: integer
+      subject_name:
+        type: string
+      title:
+        type: string
+    type: object
+  material.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  material.UpdateInput:
+    properties:
+      content:
+        type: string
+      description:
+        type: string
+      order:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+    type: object
   subject.ErrorResponse:
     properties:
       error:
@@ -109,6 +168,138 @@ info:
   title: Bimbel API
   version: "1.0"
 paths:
+  /admin/materials:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar semua materi, bisa difilter dengan subject_id
+      parameters:
+      - description: Filter by subject ID
+        in: query
+        name: subject_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/material.MaterialResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List materials
+      tags:
+      - Admin
+    post:
+      consumes:
+      - application/json
+      description: Menambah materi baru
+      parameters:
+      - description: Data materi
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/material.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/material.MaterialResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/material.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create material
+      tags:
+      - Admin
+  /admin/materials/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus materi berdasarkan ID
+      parameters:
+      - description: Material ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/material.MessageResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete material
+      tags:
+      - Admin
+    get:
+      consumes:
+      - application/json
+      description: Mengambil detail materi berdasarkan ID
+      parameters:
+      - description: Material ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/material.MaterialResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/material.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get material
+      tags:
+      - Admin
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah materi berdasarkan ID
+      parameters:
+      - description: Material ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/material.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/material.MaterialResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/material.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update material
+      tags:
+      - Admin
   /admin/subjects:
     post:
       consumes:

@@ -3,8 +3,138 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { deleteAdminSubjectsById, deleteAdminUsersById, getAdminUsers, getMe, getSubjects, type Options, patchAdminSubjectsById, patchAdminUsersByIdRole, postAdminSubjects, postLogin, postLogout, postRegister } from '../sdk.gen';
-import type { DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponse, DeleteAdminUsersByIdData, DeleteAdminUsersByIdError, DeleteAdminUsersByIdResponse, GetAdminUsersData, GetAdminUsersError, GetAdminUsersResponse, GetMeData, GetMeError, GetMeResponse, GetSubjectsData, GetSubjectsResponse, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdError, PatchAdminSubjectsByIdResponse, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleError, PatchAdminUsersByIdRoleResponse, PostAdminSubjectsData, PostAdminSubjectsError, PostAdminSubjectsResponse, PostLoginData, PostLoginError, PostLoginResponse, PostLogoutData, PostLogoutError, PostLogoutResponse, PostRegisterData, PostRegisterError, PostRegisterResponse } from '../types.gen';
+import { deleteAdminMaterialsById, deleteAdminSubjectsById, deleteAdminUsersById, getAdminMaterials, getAdminMaterialsById, getAdminUsers, getMe, getSubjects, type Options, patchAdminMaterialsById, patchAdminSubjectsById, patchAdminUsersByIdRole, postAdminMaterials, postAdminSubjects, postLogin, postLogout, postRegister } from '../sdk.gen';
+import type { DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponse, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponse, DeleteAdminUsersByIdData, DeleteAdminUsersByIdError, DeleteAdminUsersByIdResponse, GetAdminMaterialsByIdData, GetAdminMaterialsByIdError, GetAdminMaterialsByIdResponse, GetAdminMaterialsData, GetAdminMaterialsResponse, GetAdminUsersData, GetAdminUsersError, GetAdminUsersResponse, GetMeData, GetMeError, GetMeResponse, GetSubjectsData, GetSubjectsResponse, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdError, PatchAdminMaterialsByIdResponse, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdError, PatchAdminSubjectsByIdResponse, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleError, PatchAdminUsersByIdRoleResponse, PostAdminMaterialsData, PostAdminMaterialsError, PostAdminMaterialsResponse, PostAdminSubjectsData, PostAdminSubjectsError, PostAdminSubjectsResponse, PostLoginData, PostLoginError, PostLoginResponse, PostLogoutData, PostLogoutError, PostLogoutResponse, PostRegisterData, PostRegisterError, PostRegisterResponse } from '../types.gen';
+
+export type QueryKey<TOptions extends Options> = [
+    Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
+        _id: string;
+        _infinite?: boolean;
+        tags?: ReadonlyArray<string>;
+    }
+];
+
+const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions, infinite?: boolean, tags?: ReadonlyArray<string>): [
+    QueryKey<TOptions>[0]
+] => {
+    const params: QueryKey<TOptions>[0] = { _id: id, baseUrl: options?.baseUrl || (options?.client ?? client).getConfig().baseUrl } as QueryKey<TOptions>[0];
+    if (infinite) {
+        params._infinite = infinite;
+    }
+    if (tags) {
+        params.tags = tags;
+    }
+    if (options?.body) {
+        params.body = options.body;
+    }
+    if (options?.headers) {
+        params.headers = options.headers;
+    }
+    if (options?.path) {
+        params.path = options.path;
+    }
+    if (options?.query) {
+        params.query = options.query;
+    }
+    return [params];
+};
+
+export const getAdminMaterialsQueryKey = (options?: Options<GetAdminMaterialsData>) => createQueryKey('getAdminMaterials', options);
+
+/**
+ * List materials
+ *
+ * Mengembalikan daftar semua materi, bisa difilter dengan subject_id
+ */
+export const getAdminMaterialsOptions = (options?: Options<GetAdminMaterialsData>) => queryOptions<GetAdminMaterialsResponse, DefaultError, GetAdminMaterialsResponse, ReturnType<typeof getAdminMaterialsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAdminMaterials({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAdminMaterialsQueryKey(options)
+});
+
+/**
+ * Create material
+ *
+ * Menambah materi baru
+ */
+export const postAdminMaterialsMutation = (options?: Partial<Options<PostAdminMaterialsData>>): UseMutationOptions<PostAdminMaterialsResponse, PostAdminMaterialsError, Options<PostAdminMaterialsData>> => {
+    const mutationOptions: UseMutationOptions<PostAdminMaterialsResponse, PostAdminMaterialsError, Options<PostAdminMaterialsData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postAdminMaterials({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete material
+ *
+ * Menghapus materi berdasarkan ID
+ */
+export const deleteAdminMaterialsByIdMutation = (options?: Partial<Options<DeleteAdminMaterialsByIdData>>): UseMutationOptions<DeleteAdminMaterialsByIdResponse, DefaultError, Options<DeleteAdminMaterialsByIdData>> => {
+    const mutationOptions: UseMutationOptions<DeleteAdminMaterialsByIdResponse, DefaultError, Options<DeleteAdminMaterialsByIdData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteAdminMaterialsById({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getAdminMaterialsByIdQueryKey = (options: Options<GetAdminMaterialsByIdData>) => createQueryKey('getAdminMaterialsById', options);
+
+/**
+ * Get material
+ *
+ * Mengambil detail materi berdasarkan ID
+ */
+export const getAdminMaterialsByIdOptions = (options: Options<GetAdminMaterialsByIdData>) => queryOptions<GetAdminMaterialsByIdResponse, GetAdminMaterialsByIdError, GetAdminMaterialsByIdResponse, ReturnType<typeof getAdminMaterialsByIdQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAdminMaterialsById({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAdminMaterialsByIdQueryKey(options)
+});
+
+/**
+ * Update material
+ *
+ * Mengubah materi berdasarkan ID
+ */
+export const patchAdminMaterialsByIdMutation = (options?: Partial<Options<PatchAdminMaterialsByIdData>>): UseMutationOptions<PatchAdminMaterialsByIdResponse, PatchAdminMaterialsByIdError, Options<PatchAdminMaterialsByIdData>> => {
+    const mutationOptions: UseMutationOptions<PatchAdminMaterialsByIdResponse, PatchAdminMaterialsByIdError, Options<PatchAdminMaterialsByIdData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await patchAdminMaterialsById({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
 
 /**
  * Create subject
@@ -61,39 +191,6 @@ export const patchAdminSubjectsByIdMutation = (options?: Partial<Options<PatchAd
         }
     };
     return mutationOptions;
-};
-
-export type QueryKey<TOptions extends Options> = [
-    Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
-        _id: string;
-        _infinite?: boolean;
-        tags?: ReadonlyArray<string>;
-    }
-];
-
-const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions, infinite?: boolean, tags?: ReadonlyArray<string>): [
-    QueryKey<TOptions>[0]
-] => {
-    const params: QueryKey<TOptions>[0] = { _id: id, baseUrl: options?.baseUrl || (options?.client ?? client).getConfig().baseUrl } as QueryKey<TOptions>[0];
-    if (infinite) {
-        params._infinite = infinite;
-    }
-    if (tags) {
-        params.tags = tags;
-    }
-    if (options?.body) {
-        params.body = options.body;
-    }
-    if (options?.headers) {
-        params.headers = options.headers;
-    }
-    if (options?.path) {
-        params.path = options.path;
-    }
-    if (options?.query) {
-        params.query = options.query;
-    }
-    return [params];
 };
 
 export const getAdminUsersQueryKey = (options?: Options<GetAdminUsersData>) => createQueryKey('getAdminUsers', options);

@@ -29,7 +29,10 @@ func (s *Service) List() ([]SubjectResponse, error) {
 	}
 	result := make([]SubjectResponse, len(subjects))
 	for i, sub := range subjects {
-		result[i] = toResponse(sub)
+		r := toResponse(sub)
+		count, _ := s.repo.MaterialCount(sub.ID)
+		r.MaterialCount = count
+		result[i] = r
 	}
 	return result, nil
 }

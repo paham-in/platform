@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import {
   BookMarked,
+  FileText,
   Home,
   LayoutDashboard,
   LogOut,
@@ -23,6 +24,7 @@ const sidebarLinks = [
   { label: "Tanya Jawab", icon: Home, to: "/forum", roles: ["teacher"] },
   { label: "Kelola User", icon: Users, to: "/admin/users", roles: ["admin"] },
   { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects", roles: ["admin"] },
+  { label: "Materi", icon: FileText, to: "/admin/materials", roles: ["admin"] },
 ];
 
 export const Route = createFileRoute("/_dashboard")({

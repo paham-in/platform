@@ -7,6 +7,7 @@ import (
 	"bimbel2/backend/internal/database"
 	"bimbel2/backend/internal/middleware"
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/material"
 	"bimbel2/backend/internal/subject"
 	"bimbel2/backend/internal/user"
 
@@ -52,6 +53,7 @@ func main() {
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)
 	subject.AdminRoutes(admin, db)
+	material.AdminRoutes(admin, db)
 
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)
