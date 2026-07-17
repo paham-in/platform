@@ -215,6 +215,8 @@ definitions:
     type: object
   user.UserResponse:
     properties:
+      avatar_url:
+        type: string
       email:
         type: string
       id:

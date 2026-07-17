@@ -17,10 +17,11 @@ type AuthResponse struct {
 }
 
 type UserResponse struct {
-	ID    uint   `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
+	ID        uint   `json:"id"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	AvatarURL string `json:"avatar_url"`
 }
 
 type AdminUserResponse struct {
@@ -48,11 +49,13 @@ func NewService(userRepo *UserRepository, sessionRepo *SessionRepository) *Servi
 	return &Service{userRepo: userRepo, sessionRepo: sessionRepo}
 }
 
-func (s *Service) LoginOrCreateWithGoogle(googleID, email, name string) (*AuthResponse, error) {
+func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL string) (*AuthResponse, error) {
 	// cari by google_id dulu
 	user, err := s.userRepo.GetByGoogleID(googleID)
 	if err == nil && user != nil {
-		// found by google_id
+		if avatarURL != "" && user.AvatarURL != avatarURL {
+			s.userRepo.UpdateAvatar(user.ID, avatarURL)
+		}
 		token, err := s.createSession(user.ID)
 		if err != nil {
 			return nil, errInternal
@@ -63,8 +66,10 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name string) (*AuthRe
 	// cari by email
 	user, err = s.userRepo.GetByEmail(email)
 	if err == nil && user != nil {
-		// existing user — link google_id
 		s.userRepo.UpdateGoogleID(user.ID, googleID)
+		if avatarURL != "" {
+			s.userRepo.UpdateAvatar(user.ID, avatarURL)
+		}
 		token, err := s.createSession(user.ID)
 		if err != nil {
 			return nil, errInternal
@@ -74,10 +79,11 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name string) (*AuthRe
 
 	// create new user
 	user = &models.User{
-		Name:     name,
-		Email:    email,
-		GoogleID: googleID,
-		Role:     "student",
+		Name:      name,
+		Email:     email,
+		GoogleID:  googleID,
+		AvatarURL: avatarURL,
+		Role:      "student",
 	}
 	if err := s.userRepo.Create(user); err != nil {
 		return nil, errInternal
@@ -160,5 +166,5 @@ func (s *Service) DeleteUser(id uint) error {
 }
 
 func toResponse(u models.User) UserResponse {
-	return UserResponse{ID: u.ID, Name: u.Name, Email: u.Email, Role: u.Role}
+	return UserResponse{ID: u.ID, Name: u.Name, Email: u.Email, Role: u.Role, AvatarURL: u.AvatarURL}
 }

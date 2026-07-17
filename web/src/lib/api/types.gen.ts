@@ -138,6 +138,7 @@ export type UserMessageResponse = {
 };
 
 export type UserUserResponse = {
+    avatar_url?: string;
     email?: string;
     id?: number;
     name?: string;

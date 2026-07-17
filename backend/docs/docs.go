@@ -1292,6 +1292,9 @@ const docTemplate = `{
         "user.UserResponse": {
             "type": "object",
             "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },

@@ -159,7 +159,16 @@ function DashboardLayout() {
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
 
-          <span className="text-sm text-muted-foreground">{user?.name}</span>
+          <div className="flex items-center gap-2">
+            {user?.avatar_url ? (
+              <img src={user.avatar_url} alt="" className="h-7 w-7 rounded-full" />
+            ) : (
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                {user?.name?.[0]}
+              </div>
+            )}
+            <span className="text-sm text-muted-foreground">{user?.name}</span>
+          </div>
         </header>
 
         <Outlet />

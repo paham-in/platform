@@ -22,9 +22,10 @@ type OAuthConfig struct {
 }
 
 type googleUserInfo struct {
-	ID    string `json:"id"`
-	Email string `json:"email"`
-	Name  string `json:"name"`
+	ID      string `json:"id"`
+	Email   string `json:"email"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
 }
 
 func NewOAuthHandler(svc *Service, cfg *config.Config) *Handler {
@@ -103,7 +104,7 @@ func (h *Handler) GoogleCallback(c *fiber.Ctx) error {
 	}
 
 	// login or create user
-	result, err := h.svc.LoginOrCreateWithGoogle(userInfo.ID, userInfo.Email, userInfo.Name)
+	result, err := h.svc.LoginOrCreateWithGoogle(userInfo.ID, userInfo.Email, userInfo.Name, userInfo.Picture)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
 	}
