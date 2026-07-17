@@ -82,7 +82,7 @@ function NewMaterial() {
                 value={classId}
                 onValueChange={(v) => { setClassId(v ?? ""); setSubjectId(""); setChapterId(""); }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Pilih kelas">
                     {classes.find((c) => String(c.id) === classId)?.name}
                   </SelectValue>
@@ -101,7 +101,7 @@ function NewMaterial() {
                 onValueChange={(v) => { setSubjectId(v ?? ""); setChapterId(""); }}
                 disabled={!classId}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={classId ? "Pilih subjek" : "Pilih kelas dulu"}>
                     {availableSubjects.find((s) => String(s.id) === subjectId)?.name}
                   </SelectValue>
@@ -120,7 +120,7 @@ function NewMaterial() {
                 onValueChange={(v) => setChapterId(v ?? "")}
                 disabled={!subjectId}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={subjectId ? "Pilih chapter" : "Pilih subjek dulu"}>
                     {availableChapters.find((c) => String(c.id) === chapterId)?.title}
                   </SelectValue>
@@ -145,7 +145,7 @@ function NewMaterial() {
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Link to="/admin/materials" className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm hover:bg-muted">Batal</Link>
+            <Link to="/admin/materials"><Button variant="outline" type="button">Batal</Button></Link>
             <Button onClick={save} disabled={!title || !chapterId || isPending}>
               {isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
               Simpan
