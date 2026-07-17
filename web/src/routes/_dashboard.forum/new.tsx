@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { TiptapEditor } from "@/components/ui/tiptap-editor"
 import {
   Select,
   SelectContent,
@@ -89,12 +89,7 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Isi Pertanyaan</Label>
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Jelaskan pertanyaanmu secara detail..."
-            rows={8}
-          />
+          <TiptapEditor content={content} onChange={setContent} />
         </div>
 
         <div className="flex justify-end gap-3">
