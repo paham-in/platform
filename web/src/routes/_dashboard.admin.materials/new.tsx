@@ -78,7 +78,9 @@ function NewMaterial() {
                 onValueChange={(v) => { setClassId(v ?? ""); setSubjectId(""); setChapterId(""); }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Pilih kelas" />
+                  <SelectValue placeholder="Pilih kelas">
+                    {classes.find((c) => String(c.id) === classId)?.name}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {classes.map((c) => (
@@ -95,7 +97,9 @@ function NewMaterial() {
                 disabled={!classId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={classId ? "Pilih subjek" : "Pilih kelas dulu"} />
+                  <SelectValue placeholder={classId ? "Pilih subjek" : "Pilih kelas dulu"}>
+                    {availableSubjects.find((s) => String(s.id) === subjectId)?.name}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {availableSubjects.map((s) => (
@@ -112,7 +116,9 @@ function NewMaterial() {
                 disabled={!subjectId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={subjectId ? "Pilih chapter" : "Pilih subjek dulu"} />
+                  <SelectValue placeholder={subjectId ? "Pilih chapter" : "Pilih subjek dulu"}>
+                    {availableChapters.find((c) => String(c.id) === chapterId)?.title}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {availableChapters.map((c) => (
