@@ -1254,6 +1254,9 @@ const docTemplate = `{
         "user.AdminUserResponse": {
             "type": "object",
             "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },

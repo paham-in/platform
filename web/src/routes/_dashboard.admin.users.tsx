@@ -104,7 +104,14 @@ function AdminUsers() {
               <TableBody>
                 {paged.map((u) => (
                   <TableRow key={u.id}>
-                    <TableCell className="pl-6"><div className="flex items-center gap-3"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div><span className="font-medium">{u.name}</span></div></TableCell>
+                    <TableCell className="pl-6"><div className="flex items-center gap-3">
+                      {u.avatar_url ? (
+                        <img src={u.avatar_url} alt="" className="h-8 w-8 rounded-full" />
+                      ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
+                      )}
+                      <span className="font-medium">{u.name}</span>
+                    </div></TableCell>
                     <TableCell className="text-muted-foreground">{u.email}</TableCell>
                     <TableCell><RoleBadge role={u.role ?? ""} /></TableCell>
                     <TableCell className="text-muted-foreground">{u.created_at}</TableCell>

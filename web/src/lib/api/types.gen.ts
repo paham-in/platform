@@ -122,6 +122,7 @@ export type SubjectUpdateInput = {
 };
 
 export type UserAdminUserResponse = {
+    avatar_url?: string;
     created_at?: string;
     email?: string;
     id?: number;

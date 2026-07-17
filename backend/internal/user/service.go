@@ -29,6 +29,7 @@ type AdminUserResponse struct {
 	Name      string `json:"name"`
 	Email     string `json:"email"`
 	Role      string `json:"role"`
+	AvatarURL string `json:"avatar_url"`
 	CreatedAt string `json:"created_at"`
 }
 
@@ -147,7 +148,8 @@ func (s *Service) ListUsers() ([]AdminUserResponse, error) {
 			Name:      u.Name,
 			Email:     u.Email,
 			Role:      u.Role,
-			CreatedAt: u.CreatedAt.Format("2006-01-02"),
+			AvatarURL: u.AvatarURL,
+					CreatedAt: u.CreatedAt.Format("2006-01-02"),
 		}
 	}
 	return result, nil
