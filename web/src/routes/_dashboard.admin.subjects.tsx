@@ -10,6 +10,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -156,21 +163,20 @@ function AdminSubjects() {
                   }}
                 />
               </div>
-              <select
-                className="h-10 rounded-md border border-input bg-transparent px-3 text-sm"
+              <Select
                 value={classFilter}
-                onChange={(e) => {
-                  setClassFilter(e.target.value);
-                  setPage(1);
-                }}
+                onValueChange={(v) => { setClassFilter(v ?? "all"); setPage(1); }}
               >
-                <option value="all">Semua Kelas</option>
-                {classes.map((c) => (
-                  <option key={c.id} value={String(c.id)}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter Kelas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Kelas</SelectItem>
+                  {classes.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <Button onClick={openAdd}>
