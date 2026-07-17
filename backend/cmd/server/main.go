@@ -41,6 +41,7 @@ func main() {
 
 	app := fiber.New()
 	app.Use(cors.New())
+	app.Use(middleware.RequestLogger())
 
 	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 	app.Get("/health", func(c *fiber.Ctx) error {
