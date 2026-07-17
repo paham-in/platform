@@ -23,6 +23,13 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "@/components/theme-provider";
+import {
+  AlertDialog,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
 
 const sidebarLinks = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard", roles: ["student", "teacher", "admin"] },
@@ -46,6 +53,7 @@ function DashboardLayout() {
   const qc = useQueryClient();
   const { data: user, isLoading } = useQuery(getMeOptions());
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   const logout = useMutation({
     ...postLogoutMutation(),
@@ -56,7 +64,10 @@ function DashboardLayout() {
     },
   });
   const { theme, setTheme } = useTheme();
-  const handleLogout = () => logout.mutate({});
+  const confirmLogout = () => {
+    setLogoutConfirmOpen(false);
+    logout.mutate({});
+  };
 
   if (isLoading) {
     return (
@@ -128,7 +139,7 @@ function DashboardLayout() {
             variant="ghost"
             size="sm"
             className="w-full justify-start gap-3 text-muted-foreground"
-            onClick={handleLogout}
+            onClick={() => setLogoutConfirmOpen(true)}
             disabled={logout.isPending}
           >
             <LogOut className="h-4 w-4" /> {logout.isPending ? "..." : "Keluar"}
@@ -173,6 +184,23 @@ function DashboardLayout() {
 
         <Outlet />
       </div>
+
+      <AlertDialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Yakin mau logout?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Kamu akan keluar dari akun ini dan perlu login lagi untuk mengakses dashboard.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button variant="outline" onClick={() => setLogoutConfirmOpen(false)}>
+            Batal
+          </Button>
+          <Button variant="destructive" onClick={confirmLogout}>
+            Logout
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialog>
     </div>
   );
 }
