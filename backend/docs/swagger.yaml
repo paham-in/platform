@@ -124,6 +124,8 @@ definitions:
     type: object
   material.UpdateInput:
     properties:
+      chapter_id:
+        type: integer
       content:
         type: string
       description:

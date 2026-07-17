@@ -87,6 +87,7 @@ func (s *Service) Create(input CreateInput) (*MaterialResponse, error) {
 
 type UpdateInput struct {
 	Title       *string `json:"title"`
+	ChapterID   *uint   `json:"chapter_id"`
 	Description *string `json:"description"`
 	Content     *string `json:"content"`
 	Status      *string `json:"status"`
@@ -110,6 +111,9 @@ func (s *Service) Update(id uint, input UpdateInput) (*MaterialResponse, error) 
 	}
 	if input.Order != nil {
 		updates["order"] = *input.Order
+	}
+	if input.ChapterID != nil {
+		updates["chapter_id"] = *input.ChapterID
 	}
 	if err := s.repo.Update(id, updates); err != nil {
 		return nil, err

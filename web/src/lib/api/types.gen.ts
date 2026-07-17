@@ -84,6 +84,7 @@ export type MaterialMessageResponse = {
 };
 
 export type MaterialUpdateInput = {
+    chapter_id?: number;
     content?: string;
     description?: string;
     order?: number;

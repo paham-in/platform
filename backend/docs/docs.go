@@ -1211,6 +1211,9 @@ const docTemplate = `{
         "material.UpdateInput": {
             "type": "object",
             "properties": {
+                "chapter_id": {
+                    "type": "integer"
+                },
                 "content": {
                     "type": "string"
                 },
