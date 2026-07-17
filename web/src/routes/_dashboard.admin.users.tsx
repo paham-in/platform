@@ -3,6 +3,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
+  AlertDialog,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Dialog,
   DialogContent,
   DialogFooter,
@@ -16,7 +23,13 @@ import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getAdminUsersOptions, getAdminUsersQueryKey, deleteAdminUsersByIdMutation, patchAdminUsersByIdRoleMutation, patchAdminUsersByIdPaymentMutation } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
-import { Search, Pencil, Trash2, ChevronLeft, ChevronRight, Loader2, CreditCard } from "lucide-react"
+import { Search, MoreVertical, CreditCard, Shield, Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
 
 function AdminUsers() {
   const qc = useQueryClient()
@@ -29,6 +42,7 @@ function AdminUsers() {
   const perPage = 5
   const [paymentDialog, setPaymentDialog] = useState<UserAdminUserResponse | null>(null)
   const [paymentStatus, setPaymentStatus] = useState("pending")
+  const [deleteConfirm, setDeleteConfirm] = useState<UserAdminUserResponse | null>(null)
 
   const { mutate: deleteUser } = useMutation({
     ...deleteAdminUsersByIdMutation(),
@@ -140,15 +154,26 @@ function AdminUsers() {
                     <TableCell><RoleBadge role={u.role ?? ""} /></TableCell>
                     <TableCell><PaymentBadge status={u.payment_status} role={u.role} /></TableCell>
                     <TableCell className="text-muted-foreground">{u.created_at}</TableCell>
-                    <TableCell className="pr-6 text-right"><div className="flex justify-end gap-1">
-                      {u.role === "student" && (
-                        <Button variant="ghost" size="icon" onClick={() => openPayment(u)}>
-                          <CreditCard className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(u)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => deleteUser({ path: { id: u.id! } })}><Trash2 className="h-4 w-4" /></Button>
-                    </div></TableCell>
+                    <TableCell className="pr-6 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+                            <MoreVertical className="h-4 w-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {u.role === "student" && (
+                            <DropdownMenuItem onClick={() => openPayment(u)}>
+                              <CreditCard className="h-4 w-4" /> {u.payment_status === "paid" ? "Pending" : "Lunas"}
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => openEdit(u)}>
+                            <Shield className="h-4 w-4" /> Ganti Role
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDeleteConfirm(u)}>
+                            <Trash2 className="h-4 w-4" /> Hapus
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {paged.length === 0 && (<TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Tidak ada user ditemukan</TableCell></TableRow>)}
@@ -167,7 +192,6 @@ function AdminUsers() {
         </Card>
       </main>
 
-      {/* Payment Dialog */}
       <Dialog open={!!paymentDialog} onOpenChange={(open) => !open && setPaymentDialog(null)}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
@@ -201,7 +225,6 @@ function AdminUsers() {
         </DialogContent>
       </Dialog>
 
-      {/* Role Dialog */}
       <Dialog open={!!editing} onOpenChange={(open) => !open && closeEdit()}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
@@ -231,6 +254,29 @@ function AdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setDeleteConfirm(null)} />
+          <div className="relative z-50 w-full max-w-md rounded-lg border bg-card p-6 shadow-lg">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus User</AlertDialogTitle>
+              <AlertDialogDescription>
+                Apakah kamu yakin ingin menghapus <strong>{deleteConfirm?.name}</strong>? Aksi ini tidak dapat dibatalkan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
+              <Button variant="destructive" onClick={() => {
+                if (deleteConfirm) {
+                  deleteUser({ path: { id: deleteConfirm.id! } })
+                  setDeleteConfirm(null)
+                }
+              }}>Hapus</Button>
+            </AlertDialogFooter>
+          </div>
+        </div>
+      </AlertDialog>
     </>
   )
 }

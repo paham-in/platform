@@ -24,6 +24,10 @@ export function AlertDialogHeader({ children }: { children: React.ReactNode }) {
   return <div className="mb-2 space-y-1">{children}</div>
 }
 
+export function AlertDialogContent({ children }: { children: React.ReactNode }) {
+  return <div>{children}</div>
+}
+
 export function AlertDialogTitle({ children }: { children: React.ReactNode }) {
   return <h2 className="text-lg font-semibold">{children}</h2>
 }
