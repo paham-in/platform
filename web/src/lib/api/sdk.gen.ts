@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetMeData, GetMeErrors, GetMeResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLoginData, PostLoginErrors, PostLoginResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostRegisterData, PostRegisterErrors, PostRegisterResponses } from './types.gen';
+import type { DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponses, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, GetAdminClassesData, GetAdminClassesResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetMeData, GetMeErrors, GetMeResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminClassesByIdData, PatchAdminClassesByIdErrors, PatchAdminClassesByIdResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PostAdminClassesData, PostAdminClassesErrors, PostAdminClassesResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLoginData, PostLoginErrors, PostLoginResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostRegisterData, PostRegisterErrors, PostRegisterResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,58 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+/**
+ * List classes
+ *
+ * Mengembalikan daftar semua kelas
+ */
+export const getAdminClasses = <ThrowOnError extends boolean = false>(options?: Options<GetAdminClassesData, ThrowOnError>): RequestResult<GetAdminClassesResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminClassesResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/classes',
+    ...options
+});
+
+/**
+ * Create class
+ *
+ * Menambah kelas baru
+ */
+export const postAdminClasses = <ThrowOnError extends boolean = false>(options: Options<PostAdminClassesData, ThrowOnError>): RequestResult<PostAdminClassesResponses, PostAdminClassesErrors, ThrowOnError> => (options.client ?? client).post<PostAdminClassesResponses, PostAdminClassesErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/classes',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete class
+ *
+ * Menghapus kelas
+ */
+export const deleteAdminClassesById = <ThrowOnError extends boolean = false>(options: Options<DeleteAdminClassesByIdData, ThrowOnError>): RequestResult<DeleteAdminClassesByIdResponses, unknown, ThrowOnError> => (options.client ?? client).delete<DeleteAdminClassesByIdResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/classes/{id}',
+    ...options
+});
+
+/**
+ * Update class
+ *
+ * Mengubah kelas
+ */
+export const patchAdminClassesById = <ThrowOnError extends boolean = false>(options: Options<PatchAdminClassesByIdData, ThrowOnError>): RequestResult<PatchAdminClassesByIdResponses, PatchAdminClassesByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchAdminClassesByIdResponses, PatchAdminClassesByIdErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/classes/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * List materials

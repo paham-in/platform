@@ -30,6 +30,6 @@ func Connect(cfg *config.Config) *gorm.DB {
 }
 
 func Migrate(db *gorm.DB) {
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Subject{}, &models.Material{})
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.Material{})
 	log.Println("Migration completed")
 }

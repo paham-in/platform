@@ -4,6 +4,21 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:8080/' | (string & {});
 };
 
+export type ClassClassResponse = {
+    description?: string;
+    id?: number;
+    name?: string;
+    slug?: string;
+};
+
+export type ClassErrorResponse = {
+    error?: string;
+};
+
+export type ClassMessageResponse = {
+    message?: string;
+};
+
 export type MaterialCreateInput = {
     content?: string;
     description?: string;
@@ -97,6 +112,108 @@ export type UserUserResponse = {
     name?: string;
     role?: string;
 };
+
+export type GetAdminClassesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/classes';
+};
+
+export type GetAdminClassesResponses = {
+    /**
+     * OK
+     */
+    200: Array<ClassClassResponse>;
+};
+
+export type GetAdminClassesResponse = GetAdminClassesResponses[keyof GetAdminClassesResponses];
+
+export type PostAdminClassesData = {
+    /**
+     * Data kelas
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path?: never;
+    query?: never;
+    url: '/admin/classes';
+};
+
+export type PostAdminClassesErrors = {
+    /**
+     * Bad Request
+     */
+    400: ClassErrorResponse;
+};
+
+export type PostAdminClassesError = PostAdminClassesErrors[keyof PostAdminClassesErrors];
+
+export type PostAdminClassesResponses = {
+    /**
+     * Created
+     */
+    201: ClassClassResponse;
+};
+
+export type PostAdminClassesResponse = PostAdminClassesResponses[keyof PostAdminClassesResponses];
+
+export type DeleteAdminClassesByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Class ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/classes/{id}';
+};
+
+export type DeleteAdminClassesByIdResponses = {
+    /**
+     * OK
+     */
+    200: ClassMessageResponse;
+};
+
+export type DeleteAdminClassesByIdResponse = DeleteAdminClassesByIdResponses[keyof DeleteAdminClassesByIdResponses];
+
+export type PatchAdminClassesByIdData = {
+    /**
+     * Data update
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        /**
+         * Class ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/classes/{id}';
+};
+
+export type PatchAdminClassesByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: ClassErrorResponse;
+};
+
+export type PatchAdminClassesByIdError = PatchAdminClassesByIdErrors[keyof PatchAdminClassesByIdErrors];
+
+export type PatchAdminClassesByIdResponses = {
+    /**
+     * OK
+     */
+    200: ClassClassResponse;
+};
+
+export type PatchAdminClassesByIdResponse = PatchAdminClassesByIdResponses[keyof PatchAdminClassesByIdResponses];
 
 export type GetAdminMaterialsData = {
     body?: never;

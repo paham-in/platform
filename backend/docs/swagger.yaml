@@ -1,5 +1,26 @@
 basePath: /
 definitions:
+  class.ClassResponse:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+  class.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  class.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
   material.CreateInput:
     properties:
       content:
@@ -168,6 +189,107 @@ info:
   title: Bimbel API
   version: "1.0"
 paths:
+  /admin/classes:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar semua kelas
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/class.ClassResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List classes
+      tags:
+      - Admin
+    post:
+      consumes:
+      - application/json
+      description: Menambah kelas baru
+      parameters:
+      - description: Data kelas
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/class.ClassResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/class.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create class
+      tags:
+      - Admin
+  /admin/classes/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus kelas
+      parameters:
+      - description: Class ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/class.MessageResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete class
+      tags:
+      - Admin
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah kelas
+      parameters:
+      - description: Class ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data update
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/class.ClassResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/class.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update class
+      tags:
+      - Admin
   /admin/materials:
     get:
       consumes:

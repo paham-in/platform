@@ -17,6 +17,7 @@ import { Route as DashboardDashboardRouteImport } from './routes/_dashboard.dash
 import { Route as DashboardAdminUsersRouteImport } from './routes/_dashboard.admin.users'
 import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard.admin.subjects'
 import { Route as DashboardAdminMaterialsRouteImport } from './routes/_dashboard.admin.materials'
+import { Route as DashboardAdminClassesRouteImport } from './routes/_dashboard.admin.classes'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -57,12 +58,18 @@ const DashboardAdminMaterialsRoute = DashboardAdminMaterialsRouteImport.update({
   path: '/admin/materials',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAdminClassesRoute = DashboardAdminClassesRouteImport.update({
+  id: '/admin/classes',
+  path: '/admin/classes',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/dashboard': typeof DashboardDashboardRoute
+  '/admin/classes': typeof DashboardAdminClassesRoute
   '/admin/materials': typeof DashboardAdminMaterialsRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/users': typeof DashboardAdminUsersRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/dashboard': typeof DashboardDashboardRoute
+  '/admin/classes': typeof DashboardAdminClassesRoute
   '/admin/materials': typeof DashboardAdminMaterialsRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/users': typeof DashboardAdminUsersRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/_dashboard/dashboard': typeof DashboardDashboardRoute
+  '/_dashboard/admin/classes': typeof DashboardAdminClassesRoute
   '/_dashboard/admin/materials': typeof DashboardAdminMaterialsRoute
   '/_dashboard/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/_dashboard/admin/users': typeof DashboardAdminUsersRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/dashboard'
+    | '/admin/classes'
     | '/admin/materials'
     | '/admin/subjects'
     | '/admin/users'
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/dashboard'
+    | '/admin/classes'
     | '/admin/materials'
     | '/admin/subjects'
     | '/admin/users'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/_dashboard/dashboard'
+    | '/_dashboard/admin/classes'
     | '/_dashboard/admin/materials'
     | '/_dashboard/admin/subjects'
     | '/_dashboard/admin/users'
@@ -183,11 +195,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminMaterialsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/admin/classes': {
+      id: '/_dashboard/admin/classes'
+      path: '/admin/classes'
+      fullPath: '/admin/classes'
+      preLoaderRoute: typeof DashboardAdminClassesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
 interface DashboardRouteChildren {
   DashboardDashboardRoute: typeof DashboardDashboardRoute
+  DashboardAdminClassesRoute: typeof DashboardAdminClassesRoute
   DashboardAdminMaterialsRoute: typeof DashboardAdminMaterialsRoute
   DashboardAdminSubjectsRoute: typeof DashboardAdminSubjectsRoute
   DashboardAdminUsersRoute: typeof DashboardAdminUsersRoute
@@ -195,6 +215,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardDashboardRoute: DashboardDashboardRoute,
+  DashboardAdminClassesRoute: DashboardAdminClassesRoute,
   DashboardAdminMaterialsRoute: DashboardAdminMaterialsRoute,
   DashboardAdminSubjectsRoute: DashboardAdminSubjectsRoute,
   DashboardAdminUsersRoute: DashboardAdminUsersRoute,
