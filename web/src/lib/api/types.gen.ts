@@ -127,6 +127,7 @@ export type UserAdminUserResponse = {
     email?: string;
     id?: number;
     name?: string;
+    payment_status?: string;
     role?: string;
 };
 
@@ -143,6 +144,7 @@ export type UserUserResponse = {
     email?: string;
     id?: number;
     name?: string;
+    payment_status?: string;
     role?: string;
 };
 
@@ -628,6 +630,41 @@ export type DeleteAdminUsersByIdResponses = {
 };
 
 export type DeleteAdminUsersByIdResponse = DeleteAdminUsersByIdResponses[keyof DeleteAdminUsersByIdResponses];
+
+export type PatchAdminUsersByIdPaymentData = {
+    /**
+     * Status
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        /**
+         * User ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/users/{id}/payment';
+};
+
+export type PatchAdminUsersByIdPaymentErrors = {
+    /**
+     * Bad Request
+     */
+    400: UserErrorResponse;
+};
+
+export type PatchAdminUsersByIdPaymentError = PatchAdminUsersByIdPaymentErrors[keyof PatchAdminUsersByIdPaymentErrors];
+
+export type PatchAdminUsersByIdPaymentResponses = {
+    /**
+     * OK
+     */
+    200: UserMessageResponse;
+};
+
+export type PatchAdminUsersByIdPaymentResponse = PatchAdminUsersByIdPaymentResponses[keyof PatchAdminUsersByIdPaymentResponses];
 
 export type PatchAdminUsersByIdRoleData = {
     /**

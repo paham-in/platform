@@ -14,9 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getAdminUsersOptions, getAdminUsersQueryKey, deleteAdminUsersByIdMutation, patchAdminUsersByIdRoleMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminUsersOptions, getAdminUsersQueryKey, deleteAdminUsersByIdMutation, patchAdminUsersByIdRoleMutation, patchAdminUsersByIdPaymentMutation } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
-import { Search, Pencil, Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { Search, Pencil, Trash2, ChevronLeft, ChevronRight, Loader2, CreditCard } from "lucide-react"
 
 function AdminUsers() {
   const qc = useQueryClient()
@@ -27,6 +27,8 @@ function AdminUsers() {
   const [newRole, setNewRole] = useState("student")
   const [page, setPage] = useState(1)
   const perPage = 5
+  const [paymentDialog, setPaymentDialog] = useState<UserAdminUserResponse | null>(null)
+  const [paymentStatus, setPaymentStatus] = useState("pending")
 
   const { mutate: deleteUser } = useMutation({
     ...deleteAdminUsersByIdMutation(),
@@ -36,6 +38,14 @@ function AdminUsers() {
   const { mutate: updateRole } = useMutation({
     ...patchAdminUsersByIdRoleMutation(),
     onSuccess: () => { closeEdit(); qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }) },
+  })
+
+  const { mutate: updatePayment } = useMutation({
+    ...patchAdminUsersByIdPaymentMutation(),
+    onSuccess: () => {
+      setPaymentDialog(null)
+      qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() })
+    },
   })
 
   const filtered = users.filter((u) => {
@@ -57,9 +67,22 @@ function AdminUsers() {
     }
   }
 
+  const openPayment = (u: UserAdminUserResponse) => {
+    setPaymentDialog(u)
+    setPaymentStatus(u.payment_status ?? "pending")
+  }
+
   const RoleBadge = ({ role }: { role: string }) => {
-    const styles = { student: "bg-green-100 text-green-700", teacher: "bg-blue-100 text-blue-700", admin: "bg-purple-100 text-purple-700" }
+    const styles: Record<string, string> = { student: "bg-green-100 text-green-700", teacher: "bg-blue-100 text-blue-700", admin: "bg-purple-100 text-purple-700" }
     return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[role as keyof typeof styles] || ""}`}>{role}</span>
+  }
+
+  const PaymentBadge = ({ status, role }: { status: string | undefined; role: string | undefined }) => {
+    if (role !== "student") return <span className="text-muted-foreground">-</span>
+    if (status === "paid") {
+      return <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Lunas</span>
+    }
+    return <span className="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">Pending</span>
   }
 
   if (isLoading) {
@@ -97,6 +120,7 @@ function AdminUsers() {
                   <TableHead className="pl-6">Nama</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Pembayaran</TableHead>
                   <TableHead>Tanggal Daftar</TableHead>
                   <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
@@ -114,14 +138,20 @@ function AdminUsers() {
                     </div></TableCell>
                     <TableCell className="text-muted-foreground">{u.email}</TableCell>
                     <TableCell><RoleBadge role={u.role ?? ""} /></TableCell>
+                    <TableCell><PaymentBadge status={u.payment_status} role={u.role} /></TableCell>
                     <TableCell className="text-muted-foreground">{u.created_at}</TableCell>
                     <TableCell className="pr-6 text-right"><div className="flex justify-end gap-1">
+                      {u.role === "student" && (
+                        <Button variant="ghost" size="icon" onClick={() => openPayment(u)}>
+                          <CreditCard className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button variant="ghost" size="icon" onClick={() => openEdit(u)}><Pencil className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => deleteUser({ path: { id: u.id! } })}><Trash2 className="h-4 w-4" /></Button>
                     </div></TableCell>
                   </TableRow>
                 ))}
-                {paged.length === 0 && (<TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Tidak ada user ditemukan</TableCell></TableRow>)}
+                {paged.length === 0 && (<TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Tidak ada user ditemukan</TableCell></TableRow>)}
               </TableBody>
             </Table>
           </CardContent>
@@ -137,6 +167,41 @@ function AdminUsers() {
         </Card>
       </main>
 
+      {/* Payment Dialog */}
+      <Dialog open={!!paymentDialog} onOpenChange={(open) => !open && setPaymentDialog(null)}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Ubah Status Pembayaran</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1">
+            {paymentDialog && (
+              <p className="text-sm text-muted-foreground">
+                {paymentDialog.name} — {paymentDialog.email}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select value={paymentStatus} onValueChange={(v) => v && setPaymentStatus(v)}>
+              <SelectTrigger><SelectValue placeholder="Pilih status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="paid">Lunas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPaymentDialog(null)}>Batal</Button>
+            <Button onClick={() => {
+              if (paymentDialog) {
+                updatePayment({ path: { id: paymentDialog.id! }, body: { status: paymentStatus } })
+              }
+            }}>Simpan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Role Dialog */}
       <Dialog open={!!editing} onOpenChange={(open) => !open && closeEdit()}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>

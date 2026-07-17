@@ -141,6 +141,35 @@ func (h *Handler) AdminDeleteUser(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "user berhasil dihapus"})
 }
 
+// AdminTogglePayment mengubah status pembayaran user
+// @Summary      Toggle payment status
+// @Description  Mengubah status pembayaran user (pending/paid)
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path     int    true "User ID"
+// @Param        body body    object true "Status"
+// @Success      200  {object} MessageResponse
+// @Failure      400  {object} ErrorResponse
+// @Router       /admin/users/{id}/payment [patch]
+func (h *Handler) AdminTogglePayment(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input struct {
+		Status string `json:"status"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	if err := h.svc.UpdatePaymentStatus(uint(id), input.Status); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(MessageResponse{Message: "status berhasil diubah"})
+}
+
 func extractToken(c *fiber.Ctx) string {
 	auth := c.Get("Authorization")
 	if len(auth) > 7 && auth[:7] == "Bearer " {
@@ -177,5 +206,6 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 
 	admin.Get("/users", h.AdminListUsers)
 	admin.Patch("/users/:id/role", h.AdminUpdateRole)
+	admin.Patch("/users/:id/payment", h.AdminTogglePayment)
 	admin.Delete("/users/:id", h.AdminDeleteUser)
 }

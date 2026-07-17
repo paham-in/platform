@@ -60,5 +60,10 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE materials ADD COLUMN author_id BIGINT NOT NULL DEFAULT 0")
 	}
 
+	// migrate existing users — add payment_status
+	if !db.Migrator().HasColumn(&models.User{}, "payment_status") {
+		db.Exec("ALTER TABLE users ADD COLUMN payment_status VARCHAR(20) DEFAULT 'pending'")
+	}
+
 	log.Println("Migration completed")
 }

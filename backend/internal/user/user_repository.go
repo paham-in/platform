@@ -46,6 +46,10 @@ func (r *UserRepository) UpdateRole(id uint, role string) error {
 	return r.db.Model(&models.User{}).Where("id = ?", id).Update("role", role).Error
 }
 
+func (r *UserRepository) UpdatePaymentStatus(id uint, status string) error {
+	return r.db.Model(&models.User{}).Where("id = ?", id).Update("payment_status", status).Error
+}
+
 func (r *UserRepository) Delete(id uint) error {
 	return r.db.Delete(&models.User{}, id).Error
 }

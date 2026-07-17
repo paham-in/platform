@@ -17,20 +17,22 @@ type AuthResponse struct {
 }
 
 type UserResponse struct {
-	ID        uint   `json:"id"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Role      string `json:"role"`
-	AvatarURL string `json:"avatar_url"`
+	ID            uint   `json:"id"`
+	Name          string `json:"name"`
+	Email         string `json:"email"`
+	Role          string `json:"role"`
+	AvatarURL     string `json:"avatar_url"`
+	PaymentStatus string `json:"payment_status"`
 }
 
 type AdminUserResponse struct {
-	ID        uint   `json:"id"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Role      string `json:"role"`
-	AvatarURL string `json:"avatar_url"`
-	CreatedAt string `json:"created_at"`
+	ID            uint   `json:"id"`
+	Name          string `json:"name"`
+	Email         string `json:"email"`
+	Role          string `json:"role"`
+	AvatarURL     string `json:"avatar_url"`
+	PaymentStatus string `json:"payment_status"`
+	CreatedAt     string `json:"created_at"`
 }
 
 type ErrorResponse struct {
@@ -148,7 +150,8 @@ func (s *Service) ListUsers() ([]AdminUserResponse, error) {
 			Name:      u.Name,
 			Email:     u.Email,
 			Role:      u.Role,
-			AvatarURL: u.AvatarURL,
+			AvatarURL:     u.AvatarURL,
+			PaymentStatus: u.PaymentStatus,
 					CreatedAt: u.CreatedAt.Format("2006-01-02"),
 		}
 	}
@@ -163,10 +166,25 @@ func (s *Service) UpdateUserRole(id uint, role string) error {
 	return s.userRepo.UpdateRole(id, role)
 }
 
+func (s *Service) UpdatePaymentStatus(id uint, status string) error {
+	valid := map[string]bool{"pending": true, "paid": true}
+	if !valid[status] {
+		return errors.New("status tidak valid")
+	}
+	return s.userRepo.UpdatePaymentStatus(id, status)
+}
+
 func (s *Service) DeleteUser(id uint) error {
 	return s.userRepo.Delete(id)
 }
 
 func toResponse(u models.User) UserResponse {
-	return UserResponse{ID: u.ID, Name: u.Name, Email: u.Email, Role: u.Role, AvatarURL: u.AvatarURL}
+	return UserResponse{
+		ID:            u.ID,
+		Name:          u.Name,
+		Email:         u.Email,
+		Role:          u.Role,
+		AvatarURL:     u.AvatarURL,
+		PaymentStatus: u.PaymentStatus,
+	}
 }
