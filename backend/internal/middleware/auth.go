@@ -21,25 +21,42 @@ func SessionRequired() fiber.Handler {
 	}
 }
 
-// SessionResolver loads user from session token into c.Locals("role") and c.Locals("user_id").
-// Must be called after SessionRequired.
 func SessionResolver(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		token, ok := c.Locals("token").(string)
 		if !ok || token == "" {
 			return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
 		}
-
 		var session models.Session
 		if err := db.Where("token = ? AND expires_at > ?", token, time.Now().Unix()).First(&session).Error; err != nil {
 			return c.Status(401).JSON(fiber.Map{"error": "session tidak valid atau expired"})
 		}
-
 		var user models.User
 		if err := db.First(&user, session.UserID).Error; err != nil {
 			return c.Status(401).JSON(fiber.Map{"error": "user tidak ditemukan"})
 		}
+		c.Locals("user_id", user.ID)
+		c.Locals("role", user.Role)
+		c.Locals("user", &user)
+		return c.Next()
+	}
+}
 
+func OptionalSessionResolver(db *gorm.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		auth := c.Get("Authorization")
+		if auth == "" || !strings.HasPrefix(auth, "Bearer ") {
+			return c.Next()
+		}
+		token := strings.TrimPrefix(auth, "Bearer ")
+		var session models.Session
+		if err := db.Where("token = ? AND expires_at > ?", token, time.Now().Unix()).First(&session).Error; err != nil {
+			return c.Next()
+		}
+		var user models.User
+		if err := db.First(&user, session.UserID).Error; err != nil {
+			return c.Next()
+		}
 		c.Locals("user_id", user.ID)
 		c.Locals("role", user.Role)
 		c.Locals("user", &user)

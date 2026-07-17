@@ -14,7 +14,6 @@ import {
   getQuestionsQueryKey,
   deleteQuestionsByIdMutation,
   getSubjectsOptions,
-  postQuestionsMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
@@ -34,6 +33,7 @@ function ForumPage() {
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [search, setSearch] = useState("")
   const [subjectFilter, setSubjectFilter] = useState("all")
+  const [mineOnly, setMineOnly] = useState(false)
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
   const { mutate: deleteQuestion } = useMutation({
@@ -108,6 +108,9 @@ function ForumPage() {
             ))}
           </SelectContent>
         </Select>
+        <Button variant={mineOnly ? "default" : "outline"} size="sm" onClick={() => setMineOnly(!mineOnly)}>
+          {mineOnly ? "Punya Saya" : "Semua"}
+        </Button>
       </div>
 
       <div className="space-y-4">

@@ -86,7 +86,6 @@ function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen bg-muted/20">
-      {/* Mobile overlay */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 md:hidden"
@@ -94,7 +93,6 @@ function DashboardLayout() {
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 flex-col border-r bg-card p-4 transition-transform md:static md:flex md:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
@@ -102,17 +100,10 @@ function DashboardLayout() {
       >
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-              B
-            </div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">B</div>
             <span className="text-lg font-bold">Bimbel</span>
           </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileOpen(false)}
-          >
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(false)}>
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -123,10 +114,7 @@ function DashboardLayout() {
               key={l.to}
               to={l.to}
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              activeProps={{
-                className:
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted",
-              }}
+              activeProps={{ className: "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted" }}
               onClick={() => setMobileOpen(false)}
             >
               <l.icon className="h-4 w-4" /> {l.label}
@@ -135,53 +123,30 @@ function DashboardLayout() {
         </nav>
 
         <div className="mt-auto space-y-1 border-t pt-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start gap-3 text-muted-foreground"
-            onClick={() => setLogoutConfirmOpen(true)}
-            disabled={logout.isPending}
-          >
+          <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-muted-foreground" onClick={() => setLogoutConfirmOpen(true)} disabled={logout.isPending}>
             <LogOut className="h-4 w-4" /> {logout.isPending ? "..." : "Keluar"}
           </Button>
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="flex flex-1 flex-col">
-        {/* Top navbar */}
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-card px-4 shadow-sm">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileOpen(true)}
-          >
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
-
           <div className="flex-1" />
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
+          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
-
           <div className="flex items-center gap-2">
             {user?.avatar_url ? (
               <img src={user.avatar_url} alt="" className="h-7 w-7 rounded-full" />
             ) : (
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                {user?.name?.[0]}
-              </div>
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{user?.name?.[0]}</div>
             )}
             <span className="text-sm text-muted-foreground">{user?.name}</span>
           </div>
         </header>
-
         <Outlet />
       </div>
 
@@ -193,12 +158,8 @@ function DashboardLayout() {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <Button variant="outline" onClick={() => setLogoutConfirmOpen(false)}>
-            Batal
-          </Button>
-          <Button variant="destructive" onClick={confirmLogout}>
-            Logout
-          </Button>
+          <Button variant="outline" onClick={() => setLogoutConfirmOpen(false)}>Batal</Button>
+          <Button variant="destructive" onClick={confirmLogout}>Logout</Button>
         </AlertDialogFooter>
       </AlertDialog>
     </div>

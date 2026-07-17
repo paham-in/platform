@@ -46,6 +46,7 @@ func userIDFrom(c *fiber.Ctx) uint {
 // @Router       /questions [get]
 func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 	subjectID := c.Query("subject_id")
+	mine := c.Query("mine")
 	var sid *uint
 	if subjectID != "" {
 		id, err := strconv.ParseUint(subjectID, 10, 64)
@@ -55,7 +56,15 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 		}
 	}
 
-	questions, err := h.svc.List(sid)
+	var userID *uint
+	if mine == "true" {
+		uid := userIDFrom(c)
+		if uid != 0 {
+			userID = &uid
+		}
+	}
+
+	questions, err := h.svc.List(sid, userID)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
@@ -175,7 +184,7 @@ func Routes(app fiber.Router, db *gorm.DB) {
 	svc := NewService(repo)
 	h := NewHandler(svc)
 
-	app.Get("/questions", h.ListQuestions)
+	app.Get("/questions", middleware.OptionalSessionResolver(db), h.ListQuestions)
 
 	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))
 	auth.Post("/questions", h.CreateQuestion)
