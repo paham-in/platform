@@ -1,3 +1,4 @@
+import { AlertDialog, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import {
   getAdminMaterialsOptions,
   getAdminMaterialsQueryKey,
   getSubjectsOptions,
+  patchAdminMaterialsByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -30,6 +32,8 @@ import { toast } from "sonner";
 import {
   ChevronLeft,
   ChevronRight,
+  Eye,
+  EyeOff,
   Loader2,
   Pencil,
   Plus,
@@ -48,6 +52,8 @@ function AdminMaterials() {
   const [classFilter, setClassFilter] = useState("all");
   const [page, setPage] = useState(1);
   const perPage = 5;
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<{ id: number; status: string } | null>(null);
 
   const { mutate: deleteMaterial } = useMutation({
     ...deleteAdminMaterialsByIdMutation(),
@@ -57,6 +63,16 @@ function AdminMaterials() {
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal menghapus materi");
+    },
+  });
+
+  const { mutate: toggleStatus } = useMutation({
+    ...patchAdminMaterialsByIdMutation(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
+    },
+    onError: (err: any) => {
+      toast.error(err?.error || err?.message || "Gagal mengubah status");
     },
   });
 
@@ -146,6 +162,15 @@ function AdminMaterials() {
                       </TableCell>
                       <TableCell className="pr-6 text-right">
                         <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost" size="icon"
+                            onClick={() => {
+                              setPendingStatus({ id: m.id!, status: m.status === "published" ? "draft" : "published" });
+                              setConfirmOpen(true);
+                            }}
+                          >
+                            {m.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
                           <Link to="/admin/materials/$id/edit" params={{ id: String(m.id!) }}>
                             <Button variant="ghost" size="icon">
                               <Pencil className="h-4 w-4" />
@@ -188,6 +213,28 @@ function AdminMaterials() {
           )}
         </Card>
       </main>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Konfirmasi Status</AlertDialogTitle>
+          <AlertDialogDescription>
+            {pendingStatus?.status === "published"
+              ? "Publikasikan materi ini agar bisa dilihat oleh murid?"
+              : "Ubah materi menjadi draft (tidak tampil di murid)?"}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button variant="outline" onClick={() => setConfirmOpen(false)}>Batal</Button>
+          <Button onClick={() => {
+            if (pendingStatus) {
+              toggleStatus({ path: { id: pendingStatus.id }, body: { status: pendingStatus.status } });
+            }
+            setConfirmOpen(false);
+          }}>
+            {pendingStatus?.status === "published" ? "Publikasikan" : "Draft"}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialog>
     </>
   );
 }
