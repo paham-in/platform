@@ -43,7 +43,7 @@ func (r *Repository) Create(subject *models.Subject) error {
 }
 
 func (r *Repository) SetClasses(subjectID uint, classIDs []uint) error {
-	if err := r.db.Where("subject_id = ?", subjectID).Delete(&models.ClassSubject{}).Error; err != nil {
+	if err := r.db.Unscoped().Where("subject_id = ?", subjectID).Delete(&models.ClassSubject{}).Error; err != nil {
 		return err
 	}
 	if len(classIDs) == 0 {
@@ -61,7 +61,7 @@ func (r *Repository) Update(id uint, updates map[string]any) error {
 }
 
 func (r *Repository) Delete(id uint) error {
-	r.db.Where("subject_id = ?", id).Delete(&models.ClassSubject{})
+	r.db.Unscoped().Where("subject_id = ?", id).Delete(&models.ClassSubject{})
 	return r.db.Delete(&models.Subject{}, id).Error
 }
 
