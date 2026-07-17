@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponses, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponses, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, GetAdminChaptersData, GetAdminChaptersResponses, GetAdminClassesData, GetAdminClassesResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetMeData, GetMeErrors, GetMeResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminChaptersByIdData, PatchAdminChaptersByIdErrors, PatchAdminChaptersByIdResponses, PatchAdminClassesByIdData, PatchAdminClassesByIdErrors, PatchAdminClassesByIdResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PostAdminChaptersData, PostAdminChaptersErrors, PostAdminChaptersResponses, PostAdminClassesData, PostAdminClassesErrors, PostAdminClassesResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLoginData, PostLoginErrors, PostLoginResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostRegisterData, PostRegisterErrors, PostRegisterResponses } from './types.gen';
+import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponses, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponses, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, GetAdminChaptersData, GetAdminChaptersResponses, GetAdminClassesData, GetAdminClassesResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetAuthGoogleCallbackData, GetAuthGoogleData, GetMeData, GetMeErrors, GetMeResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminChaptersByIdData, PatchAdminChaptersByIdErrors, PatchAdminChaptersByIdResponses, PatchAdminClassesByIdData, PatchAdminClassesByIdErrors, PatchAdminClassesByIdResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PostAdminChaptersData, PostAdminChaptersErrors, PostAdminChaptersResponses, PostAdminClassesData, PostAdminClassesErrors, PostAdminClassesResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -264,18 +264,18 @@ export const patchAdminUsersByIdRole = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Login user
+ * Login with Google
  *
- * Login dengan email dan password, mengembalikan token session
+ * Redirect to Google OAuth consent screen
  */
-export const postLogin = <ThrowOnError extends boolean = false>(options: Options<PostLoginData, ThrowOnError>): RequestResult<PostLoginResponses, PostLoginErrors, ThrowOnError> => (options.client ?? client).post<PostLoginResponses, PostLoginErrors, ThrowOnError>({
-    url: '/login',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
+export const getAuthGoogle = <ThrowOnError extends boolean = false>(options?: Options<GetAuthGoogleData, ThrowOnError>): RequestResult<unknown, unknown, ThrowOnError> => (options?.client ?? client).get<unknown, unknown, ThrowOnError>({ url: '/auth/google', ...options });
+
+/**
+ * Google OAuth callback
+ *
+ * Exchange code for token, get user info, create session
+ */
+export const getAuthGoogleCallback = <ThrowOnError extends boolean = false>(options?: Options<GetAuthGoogleCallbackData, ThrowOnError>): RequestResult<unknown, unknown, ThrowOnError> => (options?.client ?? client).get<unknown, unknown, ThrowOnError>({ url: '/auth/google/callback', ...options });
 
 /**
  * Logout user
@@ -297,20 +297,6 @@ export const getMe = <ThrowOnError extends boolean = false>(options?: Options<Ge
     security: [{ name: 'Authorization', type: 'apiKey' }],
     url: '/me',
     ...options
-});
-
-/**
- * Register user
- *
- * Mendaftarkan akun baru sebagai murid atau guru
- */
-export const postRegister = <ThrowOnError extends boolean = false>(options: Options<PostRegisterData, ThrowOnError>): RequestResult<PostRegisterResponses, PostRegisterErrors, ThrowOnError> => (options.client ?? client).post<PostRegisterResponses, PostRegisterErrors, ThrowOnError>({
-    url: '/register',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
 });
 
 /**

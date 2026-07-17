@@ -129,30 +129,12 @@ export type UserAdminUserResponse = {
     role?: string;
 };
 
-export type UserAuthResponse = {
-    token?: string;
-    user?: UserUserResponse;
-};
-
 export type UserErrorResponse = {
     error?: string;
 };
 
-export type UserLoginInput = {
-    email: string;
-    password: string;
-};
-
 export type UserMessageResponse = {
     message?: string;
-};
-
-export type UserRegisterInput = {
-    confirm_password: string;
-    email: string;
-    name: string;
-    password: string;
-    role: 'student' | 'teacher';
 };
 
 export type UserUserResponse = {
@@ -684,33 +666,19 @@ export type PatchAdminUsersByIdRoleResponses = {
 
 export type PatchAdminUsersByIdRoleResponse = PatchAdminUsersByIdRoleResponses[keyof PatchAdminUsersByIdRoleResponses];
 
-export type PostLoginData = {
-    /**
-     * Data login
-     */
-    body: UserLoginInput;
+export type GetAuthGoogleData = {
+    body?: never;
     path?: never;
     query?: never;
-    url: '/login';
+    url: '/auth/google';
 };
 
-export type PostLoginErrors = {
-    /**
-     * Unauthorized
-     */
-    401: UserErrorResponse;
+export type GetAuthGoogleCallbackData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/auth/google/callback';
 };
-
-export type PostLoginError = PostLoginErrors[keyof PostLoginErrors];
-
-export type PostLoginResponses = {
-    /**
-     * OK
-     */
-    200: UserAuthResponse;
-};
-
-export type PostLoginResponse = PostLoginResponses[keyof PostLoginResponses];
 
 export type PostLogoutData = {
     body?: never;
@@ -761,38 +729,6 @@ export type GetMeResponses = {
 };
 
 export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
-
-export type PostRegisterData = {
-    /**
-     * Data registrasi
-     */
-    body: UserRegisterInput;
-    path?: never;
-    query?: never;
-    url: '/register';
-};
-
-export type PostRegisterErrors = {
-    /**
-     * Bad Request
-     */
-    400: UserErrorResponse;
-    /**
-     * Internal Server Error
-     */
-    500: UserErrorResponse;
-};
-
-export type PostRegisterError = PostRegisterErrors[keyof PostRegisterErrors];
-
-export type PostRegisterResponses = {
-    /**
-     * Created
-     */
-    201: UserAuthResponse;
-};
-
-export type PostRegisterResponse = PostRegisterResponses[keyof PostRegisterResponses];
 
 export type GetSubjectsData = {
     body?: never;

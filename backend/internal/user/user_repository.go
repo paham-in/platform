@@ -49,3 +49,15 @@ func (r *UserRepository) UpdateRole(id uint, role string) error {
 func (r *UserRepository) Delete(id uint) error {
 	return r.db.Delete(&models.User{}, id).Error
 }
+
+func (r *UserRepository) UpdateGoogleID(id uint, googleID string) error {
+	return r.db.Model(&models.User{}).Where("id = ?", id).Update("google_id", googleID).Error
+}
+
+func (r *UserRepository) GetByGoogleID(googleID string) (*models.User, error) {
+	var user models.User
+	if err := r.db.Where("google_id = ?", googleID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}

@@ -9,10 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as DashboardDashboardRouteImport } from './routes/_dashboard.dashboard'
 import { Route as DashboardAdminUsersRouteImport } from './routes/_dashboard.admin.users'
 import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard.admin.subjects'
@@ -22,11 +22,6 @@ import { Route as DashboardAdminMaterialsIndexRouteImport } from './routes/_dash
 import { Route as DashboardAdminMaterialsNewRouteImport } from './routes/_dashboard.admin.materials/new'
 import { Route as DashboardAdminMaterialsIdEditRouteImport } from './routes/_dashboard.admin.materials/$id/edit'
 
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -39,6 +34,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardDashboardRoute = DashboardDashboardRouteImport.update({
@@ -88,8 +88,8 @@ const DashboardAdminMaterialsIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
   '/dashboard': typeof DashboardDashboardRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/admin/chapters': typeof DashboardAdminChaptersRoute
   '/admin/classes': typeof DashboardAdminClassesRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
@@ -101,8 +101,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
   '/dashboard': typeof DashboardDashboardRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/admin/chapters': typeof DashboardAdminChaptersRoute
   '/admin/classes': typeof DashboardAdminClassesRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
@@ -116,8 +116,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
   '/_dashboard/dashboard': typeof DashboardDashboardRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/_dashboard/admin/chapters': typeof DashboardAdminChaptersRoute
   '/_dashboard/admin/classes': typeof DashboardAdminClassesRoute
   '/_dashboard/admin/subjects': typeof DashboardAdminSubjectsRoute
@@ -131,8 +131,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/register'
     | '/dashboard'
+    | '/auth/callback'
     | '/admin/chapters'
     | '/admin/classes'
     | '/admin/subjects'
@@ -144,8 +144,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
-    | '/register'
     | '/dashboard'
+    | '/auth/callback'
     | '/admin/chapters'
     | '/admin/classes'
     | '/admin/subjects'
@@ -158,8 +158,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_dashboard'
     | '/login'
-    | '/register'
     | '/_dashboard/dashboard'
+    | '/auth/callback'
     | '/_dashboard/admin/chapters'
     | '/_dashboard/admin/classes'
     | '/_dashboard/admin/subjects'
@@ -173,18 +173,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
-  RegisterRoute: typeof RegisterRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -204,6 +197,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_dashboard/dashboard': {
@@ -295,7 +295,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
-  RegisterRoute: RegisterRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

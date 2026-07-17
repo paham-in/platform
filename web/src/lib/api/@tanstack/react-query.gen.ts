@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { deleteAdminChaptersById, deleteAdminClassesById, deleteAdminMaterialsById, deleteAdminSubjectsById, deleteAdminUsersById, getAdminChapters, getAdminClasses, getAdminMaterials, getAdminMaterialsById, getAdminUsers, getMe, getSubjects, type Options, patchAdminChaptersById, patchAdminClassesById, patchAdminMaterialsById, patchAdminSubjectsById, patchAdminUsersByIdRole, postAdminChapters, postAdminClasses, postAdminMaterials, postAdminSubjects, postLogin, postLogout, postRegister } from '../sdk.gen';
-import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponse, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponse, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponse, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponse, DeleteAdminUsersByIdData, DeleteAdminUsersByIdError, DeleteAdminUsersByIdResponse, GetAdminChaptersData, GetAdminChaptersResponse, GetAdminClassesData, GetAdminClassesResponse, GetAdminMaterialsByIdData, GetAdminMaterialsByIdError, GetAdminMaterialsByIdResponse, GetAdminMaterialsData, GetAdminMaterialsResponse, GetAdminUsersData, GetAdminUsersError, GetAdminUsersResponse, GetMeData, GetMeError, GetMeResponse, GetSubjectsData, GetSubjectsResponse, PatchAdminChaptersByIdData, PatchAdminChaptersByIdError, PatchAdminChaptersByIdResponse, PatchAdminClassesByIdData, PatchAdminClassesByIdError, PatchAdminClassesByIdResponse, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdError, PatchAdminMaterialsByIdResponse, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdError, PatchAdminSubjectsByIdResponse, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleError, PatchAdminUsersByIdRoleResponse, PostAdminChaptersData, PostAdminChaptersError, PostAdminChaptersResponse, PostAdminClassesData, PostAdminClassesError, PostAdminClassesResponse, PostAdminMaterialsData, PostAdminMaterialsError, PostAdminMaterialsResponse, PostAdminSubjectsData, PostAdminSubjectsError, PostAdminSubjectsResponse, PostLoginData, PostLoginError, PostLoginResponse, PostLogoutData, PostLogoutError, PostLogoutResponse, PostRegisterData, PostRegisterError, PostRegisterResponse } from '../types.gen';
+import { deleteAdminChaptersById, deleteAdminClassesById, deleteAdminMaterialsById, deleteAdminSubjectsById, deleteAdminUsersById, getAdminChapters, getAdminClasses, getAdminMaterials, getAdminMaterialsById, getAdminUsers, getAuthGoogle, getAuthGoogleCallback, getMe, getSubjects, type Options, patchAdminChaptersById, patchAdminClassesById, patchAdminMaterialsById, patchAdminSubjectsById, patchAdminUsersByIdRole, postAdminChapters, postAdminClasses, postAdminMaterials, postAdminSubjects, postLogout } from '../sdk.gen';
+import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponse, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponse, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponse, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponse, DeleteAdminUsersByIdData, DeleteAdminUsersByIdError, DeleteAdminUsersByIdResponse, GetAdminChaptersData, GetAdminChaptersResponse, GetAdminClassesData, GetAdminClassesResponse, GetAdminMaterialsByIdData, GetAdminMaterialsByIdError, GetAdminMaterialsByIdResponse, GetAdminMaterialsData, GetAdminMaterialsResponse, GetAdminUsersData, GetAdminUsersError, GetAdminUsersResponse, GetAuthGoogleCallbackData, GetAuthGoogleData, GetMeData, GetMeError, GetMeResponse, GetSubjectsData, GetSubjectsResponse, PatchAdminChaptersByIdData, PatchAdminChaptersByIdError, PatchAdminChaptersByIdResponse, PatchAdminClassesByIdData, PatchAdminClassesByIdError, PatchAdminClassesByIdResponse, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdError, PatchAdminMaterialsByIdResponse, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdError, PatchAdminSubjectsByIdResponse, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleError, PatchAdminUsersByIdRoleResponse, PostAdminChaptersData, PostAdminChaptersError, PostAdminChaptersResponse, PostAdminClassesData, PostAdminClassesError, PostAdminClassesResponse, PostAdminMaterialsData, PostAdminMaterialsError, PostAdminMaterialsResponse, PostAdminSubjectsData, PostAdminSubjectsError, PostAdminSubjectsResponse, PostLogoutData, PostLogoutError, PostLogoutResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -405,24 +405,45 @@ export const patchAdminUsersByIdRoleMutation = (options?: Partial<Options<PatchA
     return mutationOptions;
 };
 
+export const getAuthGoogleQueryKey = (options?: Options<GetAuthGoogleData>) => createQueryKey('getAuthGoogle', options);
+
 /**
- * Login user
+ * Login with Google
  *
- * Login dengan email dan password, mengembalikan token session
+ * Redirect to Google OAuth consent screen
  */
-export const postLoginMutation = (options?: Partial<Options<PostLoginData>>): UseMutationOptions<PostLoginResponse, PostLoginError, Options<PostLoginData>> => {
-    const mutationOptions: UseMutationOptions<PostLoginResponse, PostLoginError, Options<PostLoginData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postLogin({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
+export const getAuthGoogleOptions = (options?: Options<GetAuthGoogleData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getAuthGoogleQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAuthGoogle({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAuthGoogleQueryKey(options)
+});
+
+export const getAuthGoogleCallbackQueryKey = (options?: Options<GetAuthGoogleCallbackData>) => createQueryKey('getAuthGoogleCallback', options);
+
+/**
+ * Google OAuth callback
+ *
+ * Exchange code for token, get user info, create session
+ */
+export const getAuthGoogleCallbackOptions = (options?: Options<GetAuthGoogleCallbackData>) => queryOptions<unknown, DefaultError, unknown, ReturnType<typeof getAuthGoogleCallbackQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAuthGoogleCallback({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAuthGoogleCallbackQueryKey(options)
+});
 
 /**
  * Logout user
@@ -462,25 +483,6 @@ export const getMeOptions = (options?: Options<GetMeData>) => queryOptions<GetMe
     },
     queryKey: getMeQueryKey(options)
 });
-
-/**
- * Register user
- *
- * Mendaftarkan akun baru sebagai murid atau guru
- */
-export const postRegisterMutation = (options?: Partial<Options<PostRegisterData>>): UseMutationOptions<PostRegisterResponse, PostRegisterError, Options<PostRegisterData>> => {
-    const mutationOptions: UseMutationOptions<PostRegisterResponse, PostRegisterError, Options<PostRegisterData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postRegister({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
 
 export const getSubjectsQueryKey = (options?: Options<GetSubjectsData>) => createQueryKey('getSubjects', options);
 

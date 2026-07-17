@@ -50,6 +50,7 @@ func main() {
 	})
 
 	user.Routes(app, db)
+	user.OAuthRoutes(app, db, cfg)
 	subject.Routes(app, db)
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
@@ -76,10 +77,11 @@ func seedAdmin(db *gorm.DB, cfg *config.Config) {
 		log.Fatal("Failed to hash password:", err)
 	}
 
+	hashStr := string(hash)
 	admin := models.User{
 		Name:     cfg.AdminName,
 		Email:    cfg.AdminEmail,
-		Password: string(hash),
+		Password: &hashStr,
 		Role:     "admin",
 	}
 

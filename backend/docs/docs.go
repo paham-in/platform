@@ -837,42 +837,30 @@ const docTemplate = `{
                 }
             }
         },
-        "/login": {
-            "post": {
-                "description": "Login dengan email dan password, mengembalikan token session",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
+        "/auth/google": {
+            "get": {
+                "description": "Redirect to Google OAuth consent screen",
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Login user",
-                "parameters": [
-                    {
-                        "description": "Data login",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/user.LoginInput"
-                        }
-                    }
-                ],
+                "summary": "Login with Google",
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/user.AuthResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/user.ErrorResponse"
-                        }
+                    "302": {
+                        "description": "Found"
+                    }
+                }
+            }
+        },
+        "/auth/google/callback": {
+            "get": {
+                "description": "Exchange code for token, get user info, create session",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Google OAuth callback",
+                "responses": {
+                    "302": {
+                        "description": "Found"
                     }
                 }
             }
@@ -938,52 +926,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/user.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/register": {
-            "post": {
-                "description": "Mendaftarkan akun baru sebagai murid atau guru",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Auth"
-                ],
-                "summary": "Register user",
-                "parameters": [
-                    {
-                        "description": "Data registrasi",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/user.RegisterInput"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/user.AuthResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/user.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/user.ErrorResponse"
                         }
@@ -1329,17 +1271,6 @@ const docTemplate = `{
                 }
             }
         },
-        "user.AuthResponse": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/user.UserResponse"
-                }
-            }
-        },
         "user.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -1349,60 +1280,12 @@ const docTemplate = `{
                 }
             }
         },
-        "user.LoginInput": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
         "user.MessageResponse": {
             "type": "object",
             "properties": {
                 "message": {
                     "type": "string",
                     "example": "berhasil"
-                }
-            }
-        },
-        "user.RegisterInput": {
-            "type": "object",
-            "required": [
-                "confirm_password",
-                "email",
-                "name",
-                "password",
-                "role"
-            ],
-            "properties": {
-                "confirm_password": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string",
-                    "minLength": 3
-                },
-                "password": {
-                    "type": "string",
-                    "minLength": 6
-                },
-                "role": {
-                    "type": "string",
-                    "enum": [
-                        "student",
-                        "teacher"
-                    ]
                 }
             }
         },

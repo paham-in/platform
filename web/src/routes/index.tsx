@@ -44,8 +44,8 @@ export const Route = createFileRoute("/")({
               <h1 className="animate-fade-in text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">Belajar Lebih Pintar,<br /><span className="text-primary">Bersama Bimbel</span></h1>
               <p className="mt-6 animate-fade-in text-lg text-muted-foreground [animation-delay:0.1s] md:text-xl">Platform belajar online dengan materi berkualitas, video interaktif, dan forum tanya-jawab bersama guru berpengalaman. Raih prestasi terbaikmu!</p>
               <div className="mt-8 flex animate-fade-in flex-col items-center justify-center gap-4 [animation-delay:0.2s] sm:flex-row">
-                <Link to="/register" className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}>Mulai Belajar Gratis <ArrowRight className="h-4 w-4" /></Link>
-                <Link to="/register" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full sm:w-auto")}>Lihat Fitur</Link>
+                <Link to="/login" className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}>Mulai Belajar <ArrowRight className="h-4 w-4" /></Link>
+                <Link to="/login" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full sm:w-auto")}>Lihat Fitur</Link>
               </div>
             </div>
             <div className="mt-16 grid gap-4 sm:grid-cols-3">
@@ -151,7 +151,7 @@ export const Route = createFileRoute("/")({
                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Siap Meningkatkan Prestasi?</h2>
                 <p className="mx-auto mt-4 max-w-lg text-primary-foreground/80">Gabung ribuan siswa lainnya. Mulai belajar gratis sekarang!</p>
                 <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                  <Link to="/register" className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "w-full sm:w-auto")}>Daftar Gratis <ArrowRight className="h-4 w-4" /></Link>
+                  <Link to="/login" className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "w-full sm:w-auto")}>Masuk Sekarang <ArrowRight className="h-4 w-4" /></Link>
                 </div>
               </div>
             </div>

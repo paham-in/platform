@@ -7,24 +7,9 @@ import (
 	"time"
 
 	"bimbel2/backend/internal/models"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 const sessionDuration = 30 * 24 * time.Hour // 1 bulan
-
-type RegisterInput struct {
-	Name            string `json:"name" validate:"required,min=3"`
-	Email           string `json:"email" validate:"required,email"`
-	Password        string `json:"password" validate:"required,min=6"`
-	ConfirmPassword string `json:"confirm_password" validate:"required"`
-	Role            string `json:"role" validate:"required,oneof=student teacher"`
-}
-
-type LoginInput struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-}
 
 type AuthResponse struct {
 	Token string       `json:"token"`
@@ -46,7 +31,6 @@ type AdminUserResponse struct {
 	CreatedAt string `json:"created_at"`
 }
 
-// Response types untuk dokumentasi swagger
 type ErrorResponse struct {
 	Error string `json:"error" example:"error message"`
 }
@@ -64,28 +48,38 @@ func NewService(userRepo *UserRepository, sessionRepo *SessionRepository) *Servi
 	return &Service{userRepo: userRepo, sessionRepo: sessionRepo}
 }
 
-func (s *Service) Register(input RegisterInput) (*AuthResponse, error) {
-	if input.Password != input.ConfirmPassword {
-		return nil, errPasswordMismatch
+func (s *Service) LoginOrCreateWithGoogle(googleID, email, name string) (*AuthResponse, error) {
+	// cari by google_id dulu
+	user, err := s.userRepo.GetByGoogleID(googleID)
+	if err == nil && user != nil {
+		// found by google_id
+		token, err := s.createSession(user.ID)
+		if err != nil {
+			return nil, errInternal
+		}
+		return &AuthResponse{Token: token, User: toResponse(*user)}, nil
 	}
 
-	existing, _ := s.userRepo.GetByEmail(input.Email)
-	if existing != nil {
-		return nil, errEmailExists
+	// cari by email
+	user, err = s.userRepo.GetByEmail(email)
+	if err == nil && user != nil {
+		// existing user — link google_id
+		s.userRepo.UpdateGoogleID(user.ID, googleID)
+		token, err := s.createSession(user.ID)
+		if err != nil {
+			return nil, errInternal
+		}
+		return &AuthResponse{Token: token, User: toResponse(*user)}, nil
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, errInternal
+	// create new user
+	user = &models.User{
+		Name:     name,
+		Email:    email,
+		GoogleID: googleID,
+		Role:     "student",
 	}
-
-	user := models.User{
-		Name:     input.Name,
-		Email:    input.Email,
-		Password: string(hash),
-		Role:     input.Role,
-	}
-	if err := s.userRepo.Create(&user); err != nil {
+	if err := s.userRepo.Create(user); err != nil {
 		return nil, errInternal
 	}
 
@@ -93,25 +87,6 @@ func (s *Service) Register(input RegisterInput) (*AuthResponse, error) {
 	if err != nil {
 		return nil, errInternal
 	}
-
-	return &AuthResponse{Token: token, User: toResponse(user)}, nil
-}
-
-func (s *Service) Login(input LoginInput) (*AuthResponse, error) {
-	user, err := s.userRepo.GetByEmail(input.Email)
-	if err != nil {
-		return nil, errInvalidCreds
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
-		return nil, errInvalidCreds
-	}
-
-	token, err := s.createSession(user.ID)
-	if err != nil {
-		return nil, errInternal
-	}
-
 	return &AuthResponse{Token: token, User: toResponse(*user)}, nil
 }
 

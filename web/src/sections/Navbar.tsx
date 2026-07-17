@@ -33,7 +33,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-3">
           <Link to="/login" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>Masuk</Link>
-          <Link to="/register" className={cn(buttonVariants({ size: "sm" }))}>Daftar</Link>
+          <Link to="/login" className={cn(buttonVariants({ size: "sm" }))}>Masuk</Link>
         </div>
       </div>
     </header>

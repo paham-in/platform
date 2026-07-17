@@ -3,73 +3,19 @@ package user
 import (
 	"strconv"
 
+	"bimbel2/backend/internal/config"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
 type Handler struct {
-	svc *Service
+	svc      *Service
+	oauthCfg *OAuthConfig
 }
 
 func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
-}
-
-// Register mendaftarkan akun baru
-// @Summary      Register user
-// @Description  Mendaftarkan akun baru sebagai murid atau guru
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Param        body body RegisterInput true "Data registrasi"
-// @Success      201 {object} AuthResponse
-// @Failure      400 {object} ErrorResponse
-// @Failure      500 {object} ErrorResponse
-// @Router       /register [post]
-func (h *Handler) Register(c *fiber.Ctx) error {
-	var input RegisterInput
-	if err := c.BodyParser(&input); err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
-	}
-
-	result, err := h.svc.Register(input)
-	if err != nil {
-		status := 500
-		if err == errPasswordMismatch || err == errEmailExists {
-			status = 400
-		}
-		return c.Status(status).JSON(ErrorResponse{Error: err.Error()})
-	}
-
-	return c.Status(201).JSON(result)
-}
-
-// Login masuk ke akun
-// @Summary      Login user
-// @Description  Login dengan email dan password, mengembalikan token session
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Param        body body LoginInput true "Data login"
-// @Success      200 {object} AuthResponse
-// @Failure      401 {object} ErrorResponse
-// @Router       /login [post]
-func (h *Handler) Login(c *fiber.Ctx) error {
-	var input LoginInput
-	if err := c.BodyParser(&input); err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
-	}
-
-	result, err := h.svc.Login(input)
-	if err != nil {
-		status := 500
-		if err == errInvalidCreds {
-			status = 401
-		}
-		return c.Status(status).JSON(ErrorResponse{Error: err.Error()})
-	}
-
-	return c.JSON(result)
 }
 
 // Logout keluar dari sesi
@@ -209,10 +155,18 @@ func Routes(app fiber.Router, db *gorm.DB) {
 	svc := NewService(userRepo, sessionRepo)
 	h := NewHandler(svc)
 
-	app.Post("/register", h.Register)
-	app.Post("/login", h.Login)
 	app.Post("/logout", h.Logout)
 	app.Get("/me", h.Me)
+}
+
+func OAuthRoutes(app fiber.Router, db *gorm.DB, cfg *config.Config) {
+	userRepo := NewUserRepository(db)
+	sessionRepo := NewSessionRepository(db)
+	svc := NewService(userRepo, sessionRepo)
+	h := NewOAuthHandler(svc, cfg)
+
+	app.Get("/auth/google", h.GoogleLogin)
+	app.Get("/auth/google/callback", h.GoogleCallback)
 }
 
 func AdminRoutes(admin fiber.Router, db *gorm.DB) {
