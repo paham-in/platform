@@ -411,7 +411,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/subject.CreateInput"
                         }
                     }
                 ],
@@ -498,7 +498,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/subject.UpdateInput"
                         }
                     }
                 ],
@@ -968,6 +968,23 @@ const docTemplate = `{
                 }
             }
         },
+        "subject.CreateInput": {
+            "type": "object",
+            "properties": {
+                "class_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "subject.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -989,6 +1006,12 @@ const docTemplate = `{
         "subject.SubjectResponse": {
             "type": "object",
             "properties": {
+                "class_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "description": {
                     "type": "string"
                 },
@@ -1002,6 +1025,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "slug": {
+                    "type": "string"
+                }
+            }
+        },
+        "subject.UpdateInput": {
+            "type": "object",
+            "properties": {
+                "class_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

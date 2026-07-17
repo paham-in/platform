@@ -408,7 +408,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/subject.CreateInput"
                         }
                     }
                 ],
@@ -495,7 +495,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/subject.UpdateInput"
                         }
                     }
                 ],
@@ -965,6 +965,23 @@
                 }
             }
         },
+        "subject.CreateInput": {
+            "type": "object",
+            "properties": {
+                "class_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "subject.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -986,6 +1003,12 @@
         "subject.SubjectResponse": {
             "type": "object",
             "properties": {
+                "class_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "description": {
                     "type": "string"
                 },
@@ -999,6 +1022,23 @@
                     "type": "string"
                 },
                 "slug": {
+                    "type": "string"
+                }
+            }
+        },
+        "subject.UpdateInput": {
+            "type": "object",
+            "properties": {
+                "class_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

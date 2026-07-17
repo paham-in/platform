@@ -80,6 +80,17 @@ definitions:
       title:
         type: string
     type: object
+  subject.CreateInput:
+    properties:
+      class_ids:
+        items:
+          type: integer
+        type: array
+      description:
+        type: string
+      name:
+        type: string
+    type: object
   subject.ErrorResponse:
     properties:
       error:
@@ -94,6 +105,10 @@ definitions:
     type: object
   subject.SubjectResponse:
     properties:
+      class_ids:
+        items:
+          type: integer
+        type: array
       description:
         type: string
       id:
@@ -103,6 +118,17 @@ definitions:
       name:
         type: string
       slug:
+        type: string
+    type: object
+  subject.UpdateInput:
+    properties:
+      class_ids:
+        items:
+          type: integer
+        type: array
+      description:
+        type: string
+      name:
         type: string
     type: object
   user.AdminUserResponse:
@@ -433,7 +459,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/subject.CreateInput'
       produces:
       - application/json
       responses:
@@ -488,7 +514,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/subject.UpdateInput'
       produces:
       - application/json
       responses:

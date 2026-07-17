@@ -7,12 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// ErrorResponse represents an error response
 type ErrorResponse struct {
 	Error string `json:"error" example:"error message"`
 }
 
-// MessageResponse represents a success message
 type MessageResponse struct {
 	Message string `json:"message" example:"berhasil"`
 }
@@ -48,15 +46,12 @@ func (h *Handler) ListSubjects(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body body object true "Data subject"
+// @Param        body body CreateInput true "Data subject"
 // @Success      201 {object} SubjectResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /admin/subjects [post]
 func (h *Handler) AdminCreateSubject(c *fiber.Ctx) error {
-	var input struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-	}
+	var input CreateInput
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -64,7 +59,7 @@ func (h *Handler) AdminCreateSubject(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "nama wajib diisi"})
 	}
 
-	subject, err := h.svc.Create(input.Name, input.Description)
+	subject, err := h.svc.Create(input)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menyimpan data"})
 	}
@@ -79,7 +74,7 @@ func (h *Handler) AdminCreateSubject(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path int    true "Subject ID"
-// @Param        body body object true "Data update"
+// @Param        body body UpdateInput true "Data update"
 // @Success      200 {object} SubjectResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /admin/subjects/{id} [patch]
@@ -89,15 +84,12 @@ func (h *Handler) AdminUpdateSubject(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
 
-	var input struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-	}
+	var input UpdateInput
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 
-	subject, err := h.svc.Update(uint(id), input.Name, input.Description)
+	subject, err := h.svc.Update(uint(id), input)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengupdate data"})
 	}

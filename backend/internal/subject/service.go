@@ -15,11 +15,12 @@ func NewService(repo *Repository) *Service {
 }
 
 type SubjectResponse struct {
-	ID             uint   `json:"id"`
-	Name           string `json:"name"`
-	Slug           string `json:"slug"`
-	Description    string `json:"description"`
-	MaterialCount  int64  `json:"material_count"`
+	ID            uint   `json:"id"`
+	Name          string `json:"name"`
+	Slug          string `json:"slug"`
+	Description   string `json:"description"`
+	MaterialCount int64  `json:"material_count"`
+	ClassIDs      []uint `json:"class_ids"`
 }
 
 func (s *Service) List() ([]SubjectResponse, error) {
@@ -29,10 +30,8 @@ func (s *Service) List() ([]SubjectResponse, error) {
 	}
 	result := make([]SubjectResponse, len(subjects))
 	for i, sub := range subjects {
-		r := toResponse(sub)
-		count, _ := s.repo.MaterialCount(sub.ID)
-		r.MaterialCount = count
-		result[i] = r
+		r, _ := s.buildResponse(sub)
+		result[i] = *r
 	}
 	return result, nil
 }
@@ -42,35 +41,57 @@ func (s *Service) Get(id uint) (*SubjectResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	r := toResponse(*sub)
-	return &r, nil
+	return s.buildResponse(*sub)
 }
 
-func (s *Service) Create(name, description string) (*SubjectResponse, error) {
-	slug := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
+type CreateInput struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	ClassIDs    []uint `json:"class_ids"`
+}
+
+func (s *Service) Create(input CreateInput) (*SubjectResponse, error) {
+	slug := strings.ToLower(strings.ReplaceAll(input.Name, " ", "-"))
 	subject := models.Subject{
-		Name:        name,
+		Name:        input.Name,
 		Slug:        slug,
-		Description: description,
+		Description: input.Description,
 	}
 	if err := s.repo.Create(&subject); err != nil {
 		return nil, err
 	}
-	r := toResponse(subject)
-	return &r, nil
+	if len(input.ClassIDs) > 0 {
+		if err := s.repo.SetClasses(subject.ID, input.ClassIDs); err != nil {
+			return nil, err
+		}
+	}
+	return s.Get(subject.ID)
 }
 
-func (s *Service) Update(id uint, name, description string) (*SubjectResponse, error) {
-	updates := map[string]interface{}{}
-	if name != "" {
-		updates["name"] = name
-		updates["slug"] = strings.ToLower(strings.ReplaceAll(name, " ", "-"))
+type UpdateInput struct {
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
+	ClassIDs    *[]uint `json:"class_ids"`
+}
+
+func (s *Service) Update(id uint, input UpdateInput) (*SubjectResponse, error) {
+	updates := map[string]any{}
+	if input.Name != nil {
+		updates["name"] = *input.Name
+		updates["slug"] = strings.ToLower(strings.ReplaceAll(*input.Name, " ", "-"))
 	}
-	if description != "" {
-		updates["description"] = description
+	if input.Description != nil {
+		updates["description"] = *input.Description
 	}
-	if err := s.repo.Update(id, updates); err != nil {
-		return nil, err
+	if len(updates) > 0 {
+		if err := s.repo.Update(id, updates); err != nil {
+			return nil, err
+		}
+	}
+	if input.ClassIDs != nil {
+		if err := s.repo.SetClasses(id, *input.ClassIDs); err != nil {
+			return nil, err
+		}
 	}
 	return s.Get(id)
 }
@@ -79,11 +100,15 @@ func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-func toResponse(sub models.Subject) SubjectResponse {
-	return SubjectResponse{
-		ID:          sub.ID,
-		Name:        sub.Name,
-		Slug:        sub.Slug,
-		Description: sub.Description,
-	}
+func (s *Service) buildResponse(sub models.Subject) (*SubjectResponse, error) {
+	classIDs, _ := s.repo.GetClassIDs(sub.ID)
+	count, _ := s.repo.MaterialCount(sub.ID)
+	return &SubjectResponse{
+		ID:            sub.ID,
+		Name:          sub.Name,
+		Slug:          sub.Slug,
+		Description:   sub.Description,
+		MaterialCount: count,
+		ClassIDs:      classIDs,
+	}, nil
 }

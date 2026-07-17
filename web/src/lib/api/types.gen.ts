@@ -56,6 +56,12 @@ export type MaterialUpdateInput = {
     title?: string;
 };
 
+export type SubjectCreateInput = {
+    class_ids?: Array<number>;
+    description?: string;
+    name?: string;
+};
+
 export type SubjectErrorResponse = {
     error?: string;
 };
@@ -65,11 +71,18 @@ export type SubjectMessageResponse = {
 };
 
 export type SubjectSubjectResponse = {
+    class_ids?: Array<number>;
     description?: string;
     id?: number;
     material_count?: number;
     name?: string;
     slug?: string;
+};
+
+export type SubjectUpdateInput = {
+    class_ids?: Array<number>;
+    description?: string;
+    name?: string;
 };
 
 export type UserAdminUserResponse = {
@@ -352,9 +365,7 @@ export type PostAdminSubjectsData = {
     /**
      * Data subject
      */
-    body: {
-        [key: string]: unknown;
-    };
+    body: SubjectCreateInput;
     path?: never;
     query?: never;
     url: '/admin/subjects';
@@ -403,9 +414,7 @@ export type PatchAdminSubjectsByIdData = {
     /**
      * Data update
      */
-    body: {
-        [key: string]: unknown;
-    };
+    body: SubjectUpdateInput;
     path: {
         /**
          * Subject ID

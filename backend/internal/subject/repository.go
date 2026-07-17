@@ -30,15 +30,38 @@ func (r *Repository) Get(id uint) (*models.Subject, error) {
 	return &subject, nil
 }
 
+func (r *Repository) GetClassIDs(subjectID uint) ([]uint, error) {
+	var classIDs []uint
+	if err := r.db.Model(&models.ClassSubject{}).Where("subject_id = ?", subjectID).Pluck("class_id", &classIDs).Error; err != nil {
+		return nil, err
+	}
+	return classIDs, nil
+}
+
 func (r *Repository) Create(subject *models.Subject) error {
 	return r.db.Create(subject).Error
 }
 
-func (r *Repository) Update(id uint, updates map[string]interface{}) error {
+func (r *Repository) SetClasses(subjectID uint, classIDs []uint) error {
+	if err := r.db.Where("subject_id = ?", subjectID).Delete(&models.ClassSubject{}).Error; err != nil {
+		return err
+	}
+	if len(classIDs) == 0 {
+		return nil
+	}
+	pivots := make([]models.ClassSubject, len(classIDs))
+	for i, cid := range classIDs {
+		pivots[i] = models.ClassSubject{ClassID: cid, SubjectID: subjectID}
+	}
+	return r.db.Create(&pivots).Error
+}
+
+func (r *Repository) Update(id uint, updates map[string]any) error {
 	return r.db.Model(&models.Subject{}).Where("id = ?", id).Updates(updates).Error
 }
 
 func (r *Repository) Delete(id uint) error {
+	r.db.Where("subject_id = ?", id).Delete(&models.ClassSubject{})
 	return r.db.Delete(&models.Subject{}, id).Error
 }
 

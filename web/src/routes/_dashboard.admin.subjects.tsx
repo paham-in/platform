@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import {
   deleteAdminSubjectsByIdMutation,
+  getAdminClassesOptions,
   getSubjectsOptions,
   getSubjectsQueryKey,
   patchAdminSubjectsByIdMutation,
@@ -40,11 +42,13 @@ import { useState } from "react";
 function AdminSubjects() {
   const qc = useQueryClient();
   const { data: subjects = [], isLoading } = useQuery(getSubjectsOptions());
+  const { data: classes = [] } = useQuery(getAdminClassesOptions());
   const [search, setSearch] = useState("");
+  const [classFilter, setClassFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<SubjectSubjectResponse | null>(null);
-  const [form, setForm] = useState({ name: "", description: "" });
+  const [form, setForm] = useState({ name: "", description: "", class_ids: [] as number[] });
   const perPage = 5;
 
   const { mutate: createSubject } = useMutation({
@@ -66,34 +70,64 @@ function AdminSubjects() {
     onSuccess: () => qc.invalidateQueries({ queryKey: getSubjectsQueryKey() }),
   });
 
-  const filtered = subjects.filter((s) =>
-    (s.name ?? "").toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = subjects.filter((s) => {
+    const matchSearch = (s.name ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchClass =
+      classFilter === "all" || (s.class_ids ?? []).includes(Number(classFilter));
+    return matchSearch && matchClass;
+  });
   const totalPages = Math.ceil(filtered.length / perPage);
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
+  const toggleClass = (classId: number) => {
+    setForm((prev) => ({
+      ...prev,
+      class_ids: prev.class_ids.includes(classId)
+        ? prev.class_ids.filter((id) => id !== classId)
+        : [...prev.class_ids, classId],
+    }));
+  };
+
   const openAdd = () => {
     setEditing(null);
-    setForm({ name: "", description: "" });
+    setForm({ name: "", description: "", class_ids: [] });
     setDialogOpen(true);
   };
   const openEdit = (s: SubjectSubjectResponse) => {
     setEditing(s);
-    setForm({ name: s.name ?? "", description: s.description ?? "" });
+    setForm({
+      name: s.name ?? "",
+      description: s.description ?? "",
+      class_ids: s.class_ids ?? [],
+    });
     setDialogOpen(true);
   };
   const save = () => {
     if (editing) {
       updateSubject({
         path: { id: editing.id! },
-        body: { name: form.name, description: form.description },
+        body: {
+          name: form.name || undefined,
+          description: form.description || undefined,
+          class_ids: form.class_ids,
+        },
       });
     } else {
       createSubject({
-        body: { name: form.name, description: form.description },
+        body: {
+          name: form.name,
+          description: form.description,
+          class_ids: form.class_ids,
+        },
       });
     }
   };
+
+  const classNames = (classIds: number[] | undefined) =>
+    classIds
+      ?.map((id) => classes.find((c) => c.id === id)?.name)
+      .filter(Boolean)
+      .join(", ") ?? "-";
 
   if (isLoading) {
     return (
@@ -111,23 +145,40 @@ function AdminSubjects() {
       <main className="p-6">
         <Card>
           <div className="flex flex-wrap items-center justify-between gap-4 px-(--card-spacing) py-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Cari mata pelajaran..."
-                className="pl-9"
-                value={search}
+            <div className="flex flex-1 flex-wrap items-center gap-4">
+              <div className="relative max-w-sm flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Cari mata pelajaran..."
+                  className="pl-9"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+              <select
+                className="h-10 rounded-md border border-input bg-transparent px-3 text-sm"
+                value={classFilter}
                 onChange={(e) => {
-                  setSearch(e.target.value);
+                  setClassFilter(e.target.value);
                   setPage(1);
                 }}
-              />
+              >
+                <option value="all">Semua Kelas</option>
+                {classes.map((c) => (
+                  <option key={c.id} value={String(c.id)}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <Button onClick={openAdd}>
                 <Plus className="mr-1 h-4 w-4" /> Tambah
               </Button>
-              <DialogContent>
+              <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle>
                     {editing ? "Edit Mata Pelajaran" : "Tambah Mata Pelajaran"}
@@ -156,6 +207,28 @@ function AdminSubjects() {
                       placeholder="Deskripsi singkat"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Kelas</Label>
+                    <div className="max-h-[200px] space-y-2 overflow-y-auto rounded-md border p-3">
+                      {classes.map((c) => (
+                        <label
+                          key={c.id}
+                          className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+                        >
+                          <Checkbox
+                            checked={form.class_ids.includes(c.id!)}
+                            onChange={() => toggleClass(c.id!)}
+                          />
+                          {c.name}
+                        </label>
+                      ))}
+                      {classes.length === 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          Belum ada kelas. Buat kelas dulu.
+                        </p>
+                      )}
+                    </div>
+                  </div>
                   <div className="flex justify-end gap-3 pt-2">
                     <Button
                       variant="outline"
@@ -178,6 +251,7 @@ function AdminSubjects() {
                   <TableHead className="pl-6">Nama</TableHead>
                   <TableHead>Slug</TableHead>
                   <TableHead>Deskripsi</TableHead>
+                  <TableHead>Kelas</TableHead>
                   <TableHead>Jumlah Materi</TableHead>
                   <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
@@ -191,6 +265,9 @@ function AdminSubjects() {
                     </TableCell>
                     <TableCell className="max-w-xs truncate text-muted-foreground">
                       {s.description}
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate text-muted-foreground">
+                      {classNames(s.class_ids)}
                     </TableCell>
                     <TableCell>{s.material_count}</TableCell>
                     <TableCell className="pr-6 text-right">
@@ -217,7 +294,7 @@ function AdminSubjects() {
                 {paged.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       className="p-8 text-center text-muted-foreground"
                     >
                       Tidak ada mata pelajaran ditemukan
