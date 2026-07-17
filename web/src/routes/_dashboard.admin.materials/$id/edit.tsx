@@ -91,14 +91,11 @@ function EditMaterial() {
 
   return (
     <>
-      <header className="flex items-center gap-4 border-b bg-card px-6 py-3">
-        <Link to="/admin/materials" className="text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <h1 className="text-lg font-bold">Edit Materi</h1>
-      </header>
       <main className="p-6">
         <div className="mx-auto max-w-4xl space-y-6">
+          <Link to="/admin/materials" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" /> Kembali
+          </Link>
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Kelas</Label>

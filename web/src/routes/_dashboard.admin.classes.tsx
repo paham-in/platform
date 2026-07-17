@@ -105,10 +105,8 @@ function AdminClasses() {
 
   return (
     <>
-      <header className="flex items-center justify-between border-b bg-card px-6 py-3">
-        <h1 className="text-lg font-bold">Kelas</h1>
-      </header>
       <main className="p-6">
+        <h1 className="mb-4 text-2xl font-bold tracking-tight">Kelas</h1>
         <Card>
           <div className="flex flex-wrap items-center justify-between gap-4 px-(--card-spacing) py-3">
             <div className="relative flex-1 max-w-sm">

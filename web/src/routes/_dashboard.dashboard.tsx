@@ -42,12 +42,6 @@ function DashboardPage() {
 
   return (
     <>
-      <header className="flex items-center justify-between border-b bg-card px-6 py-3">
-        <h1 className="text-lg font-bold">
-          Dashboard {role === "student" ? "Murid" : role === "teacher" ? "Guru" : "Admin"}
-        </h1>
-        <p className="text-sm text-muted-foreground">{user?.name}</p>
-      </header>
       <main className="p-6">
         {role === "student" && (
           <div className="space-y-6">
