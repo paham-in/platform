@@ -20,6 +20,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 function NewMaterial() {
   const qc = useQueryClient();
@@ -45,7 +46,11 @@ function NewMaterial() {
     ...postAdminMaterialsMutation(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
+      toast.success("Materi berhasil dibuat");
       navigate({ to: "/admin/materials" });
+    },
+    onError: (err: any) => {
+      toast.error(err?.error || err?.message || "Gagal membuat materi");
     },
   });
 

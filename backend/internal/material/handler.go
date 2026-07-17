@@ -102,7 +102,7 @@ func (h *Handler) AdminCreateMaterial(c *fiber.Ctx) error {
 
 	material, err := h.svc.Create(input)
 	if err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal menyimpan data"})
+		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.Status(201).JSON(material)
 }
@@ -132,7 +132,7 @@ func (h *Handler) AdminUpdateMaterial(c *fiber.Ctx) error {
 
 	material, err := h.svc.Update(uint(id), input)
 	if err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengupdate data"})
+		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(material)
 }
@@ -154,7 +154,7 @@ func (h *Handler) AdminDeleteMaterial(c *fiber.Ctx) error {
 	}
 
 	if err := h.svc.Delete(uint(id)); err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus data"})
+		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(MessageResponse{Message: "berhasil dihapus"})
 }

@@ -18,6 +18,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 function EditMaterial() {
   const { id } = useParams({ from: "/_dashboard/admin/materials/$id/edit" });
@@ -48,7 +49,11 @@ function EditMaterial() {
     ...patchAdminMaterialsByIdMutation(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
+      toast.success("Materi berhasil disimpan");
       navigate({ to: "/admin/materials" });
+    },
+    onError: (err: any) => {
+      toast.error(err?.error || err?.message || "Gagal menyimpan materi");
     },
   });
 

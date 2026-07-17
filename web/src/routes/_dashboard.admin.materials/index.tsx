@@ -26,6 +26,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 import {
   ChevronLeft,
   ChevronRight,
@@ -50,7 +51,13 @@ function AdminMaterials() {
 
   const { mutate: deleteMaterial } = useMutation({
     ...deleteAdminMaterialsByIdMutation(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
+      toast.success("Materi berhasil dihapus");
+    },
+    onError: (err: any) => {
+      toast.error(err?.error || err?.message || "Gagal menghapus materi");
+    },
   });
 
   const filtered = materials.filter((m) => {
