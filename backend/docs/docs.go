@@ -15,6 +15,181 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/chapters": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar semua chapter, bisa difilter dengan class_id \u0026 subject_id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "List chapters",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Filter by class ID",
+                        "name": "class_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by subject ID",
+                        "name": "subject_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/chapter.ChapterResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menambah chapter baru",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Create chapter",
+                "parameters": [
+                    {
+                        "description": "Data chapter",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chapter.CreateInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/chapter.ChapterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/chapter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/chapters/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus chapter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Delete chapter",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Chapter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/chapter.MessageResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengubah chapter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update chapter",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Chapter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Data update",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chapter.UpdateInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/chapter.ChapterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/chapter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/classes": {
             "get": {
                 "security": [
@@ -183,7 +358,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan daftar semua materi, bisa difilter dengan subject_id",
+                "description": "Mengembalikan daftar semua materi, bisa difilter dengan chapter_id",
                 "consumes": [
                     "application/json"
                 ],
@@ -197,8 +372,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Filter by subject ID",
-                        "name": "subject_id",
+                        "description": "Filter by chapter ID",
+                        "name": "chapter_id",
                         "in": "query"
                     }
                 ],
@@ -844,6 +1019,91 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "chapter.ChapterResponse": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "class_name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "material_count": {
+                    "type": "integer"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "subject_name": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "chapter.CreateInput": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "chapter.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "chapter.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "chapter.UpdateInput": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "class.ClassResponse": {
             "type": "object",
             "properties": {
@@ -880,6 +1140,9 @@ const docTemplate = `{
         "material.CreateInput": {
             "type": "object",
             "properties": {
+                "chapter_id": {
+                    "type": "integer"
+                },
                 "content": {
                     "type": "string"
                 },
@@ -891,9 +1154,6 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
-                },
-                "subject_id": {
-                    "type": "integer"
                 },
                 "title": {
                     "type": "string"
@@ -911,6 +1171,12 @@ const docTemplate = `{
         "material.MaterialResponse": {
             "type": "object",
             "properties": {
+                "chapter_id": {
+                    "type": "integer"
+                },
+                "chapter_name": {
+                    "type": "string"
+                },
                 "content": {
                     "type": "string"
                 },
@@ -927,12 +1193,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
-                },
-                "subject_id": {
-                    "type": "integer"
-                },
-                "subject_name": {
                     "type": "string"
                 },
                 "title": {

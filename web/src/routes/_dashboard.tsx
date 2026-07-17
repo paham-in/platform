@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import {
   BookMarked,
+  BookOpen,
   FileText,
   GraduationCap,
   Home,
@@ -26,6 +27,7 @@ const sidebarLinks = [
   { label: "Kelola User", icon: Users, to: "/admin/users", roles: ["admin"] },
   { label: "Kelas", icon: GraduationCap, to: "/admin/classes", roles: ["admin"] },
   { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects", roles: ["admin"] },
+  { label: "Chapter", icon: BookOpen, to: "/admin/chapters", roles: ["admin"] },
   { label: "Materi", icon: FileText, to: "/admin/materials", roles: ["admin"] },
 ];
 

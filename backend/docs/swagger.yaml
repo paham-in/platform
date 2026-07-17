@@ -1,5 +1,60 @@
 basePath: /
 definitions:
+  chapter.ChapterResponse:
+    properties:
+      class_id:
+        type: integer
+      class_name:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      material_count:
+        type: integer
+      order:
+        type: integer
+      slug:
+        type: string
+      subject_id:
+        type: integer
+      subject_name:
+        type: string
+      title:
+        type: string
+    type: object
+  chapter.CreateInput:
+    properties:
+      class_id:
+        type: integer
+      description:
+        type: string
+      order:
+        type: integer
+      subject_id:
+        type: integer
+      title:
+        type: string
+    type: object
+  chapter.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  chapter.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  chapter.UpdateInput:
+    properties:
+      description:
+        type: string
+      order:
+        type: integer
+      title:
+        type: string
+    type: object
   class.ClassResponse:
     properties:
       description:
@@ -23,6 +78,8 @@ definitions:
     type: object
   material.CreateInput:
     properties:
+      chapter_id:
+        type: integer
       content:
         type: string
       description:
@@ -31,8 +88,6 @@ definitions:
         type: integer
       status:
         type: string
-      subject_id:
-        type: integer
       title:
         type: string
     type: object
@@ -43,6 +98,10 @@ definitions:
     type: object
   material.MaterialResponse:
     properties:
+      chapter_id:
+        type: integer
+      chapter_name:
+        type: string
       content:
         type: string
       description:
@@ -54,10 +113,6 @@ definitions:
       slug:
         type: string
       status:
-        type: string
-      subject_id:
-        type: integer
-      subject_name:
         type: string
       title:
         type: string
@@ -215,6 +270,117 @@ info:
   title: Bimbel API
   version: "1.0"
 paths:
+  /admin/chapters:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar semua chapter, bisa difilter dengan class_id
+        & subject_id
+      parameters:
+      - description: Filter by class ID
+        in: query
+        name: class_id
+        type: integer
+      - description: Filter by subject ID
+        in: query
+        name: subject_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/chapter.ChapterResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List chapters
+      tags:
+      - Admin
+    post:
+      consumes:
+      - application/json
+      description: Menambah chapter baru
+      parameters:
+      - description: Data chapter
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/chapter.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/chapter.ChapterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/chapter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create chapter
+      tags:
+      - Admin
+  /admin/chapters/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus chapter
+      parameters:
+      - description: Chapter ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chapter.MessageResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete chapter
+      tags:
+      - Admin
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah chapter
+      parameters:
+      - description: Chapter ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/chapter.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chapter.ChapterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/chapter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update chapter
+      tags:
+      - Admin
   /admin/classes:
     get:
       consumes:
@@ -320,11 +486,11 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar semua materi, bisa difilter dengan subject_id
+      description: Mengembalikan daftar semua materi, bisa difilter dengan chapter_id
       parameters:
-      - description: Filter by subject ID
+      - description: Filter by chapter ID
         in: query
-        name: subject_id
+        name: chapter_id
         type: integer
       produces:
       - application/json

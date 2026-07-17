@@ -16,8 +16,8 @@ func NewService(repo *Repository) *Service {
 
 type MaterialResponse struct {
 	ID          uint   `json:"id"`
-	SubjectID   uint   `json:"subject_id"`
-	SubjectName string `json:"subject_name"`
+	ChapterID   uint   `json:"chapter_id"`
+	ChapterName string `json:"chapter_name"`
 	Title       string `json:"title"`
 	Slug        string `json:"slug"`
 	Description string `json:"description"`
@@ -34,8 +34,8 @@ func (s *Service) List() ([]MaterialResponse, error) {
 	return toResponses(materials), nil
 }
 
-func (s *Service) ListBySubject(subjectID uint) ([]MaterialResponse, error) {
-	materials, err := s.repo.ListBySubject(subjectID)
+func (s *Service) ListByChapter(chapterID uint) ([]MaterialResponse, error) {
+	materials, err := s.repo.ListByChapter(chapterID)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (s *Service) Get(id uint) (*MaterialResponse, error) {
 }
 
 type CreateInput struct {
-	SubjectID   uint   `json:"subject_id"`
+	ChapterID   uint   `json:"chapter_id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Content     string `json:"content"`
@@ -63,7 +63,7 @@ type CreateInput struct {
 func (s *Service) Create(input CreateInput) (*MaterialResponse, error) {
 	slug := strings.ToLower(strings.ReplaceAll(input.Title, " ", "-"))
 	material := models.Material{
-		SubjectID:   input.SubjectID,
+		ChapterID:   input.ChapterID,
 		Title:       input.Title,
 		Slug:        slug,
 		Description: input.Description,
@@ -77,7 +77,6 @@ func (s *Service) Create(input CreateInput) (*MaterialResponse, error) {
 	if err := s.repo.Create(&material); err != nil {
 		return nil, err
 	}
-	// reload with preloaded Subject
 	created, err := s.repo.Get(material.ID)
 	if err != nil {
 		return nil, err
@@ -95,7 +94,7 @@ type UpdateInput struct {
 }
 
 func (s *Service) Update(id uint, input UpdateInput) (*MaterialResponse, error) {
-	updates := map[string]interface{}{}
+	updates := map[string]any{}
 	if input.Title != nil {
 		updates["title"] = *input.Title
 		updates["slug"] = strings.ToLower(strings.ReplaceAll(*input.Title, " ", "-"))
@@ -122,19 +121,15 @@ func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-func (s *Service) CountBySubject(subjectID uint) (int64, error) {
-	return s.repo.CountBySubject(subjectID)
-}
-
 func toResponse(m models.Material) MaterialResponse {
-	subjectName := ""
-	if m.Subject.ID != 0 {
-		subjectName = m.Subject.Name
+	chapterName := ""
+	if m.Chapter.ID != 0 {
+		chapterName = m.Chapter.Title
 	}
 	return MaterialResponse{
 		ID:          m.ID,
-		SubjectID:   m.SubjectID,
-		SubjectName: subjectName,
+		ChapterID:   m.ChapterID,
+		ChapterName: chapterName,
 		Title:       m.Title,
 		Slug:        m.Slug,
 		Description: m.Description,

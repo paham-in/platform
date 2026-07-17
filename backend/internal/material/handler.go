@@ -25,21 +25,21 @@ func NewHandler(svc *Service) *Handler {
 
 // AdminListMaterials mengembalikan daftar semua materi (admin only)
 // @Summary      List materials
-// @Description  Mengembalikan daftar semua materi, bisa difilter dengan subject_id
+// @Description  Mengembalikan daftar semua materi, bisa difilter dengan chapter_id
 // @Tags         Admin
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        subject_id query int false "Filter by subject ID"
+// @Param        chapter_id query int false "Filter by chapter ID"
 // @Success      200 {array} MaterialResponse
 // @Router       /admin/materials [get]
 func (h *Handler) AdminListMaterials(c *fiber.Ctx) error {
-	if subjectIDStr := c.Query("subject_id"); subjectIDStr != "" {
-		subjectID, err := strconv.ParseUint(subjectIDStr, 10, 64)
+	if chapterIDStr := c.Query("chapter_id"); chapterIDStr != "" {
+		chapterID, err := strconv.ParseUint(chapterIDStr, 10, 64)
 		if err != nil {
-			return c.Status(400).JSON(ErrorResponse{Error: "subject_id tidak valid"})
+			return c.Status(400).JSON(ErrorResponse{Error: "chapter_id tidak valid"})
 		}
-		materials, err := h.svc.ListBySubject(uint(subjectID))
+		materials, err := h.svc.ListByChapter(uint(chapterID))
 		if err != nil {
 			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 		}
@@ -96,8 +96,8 @@ func (h *Handler) AdminCreateMaterial(c *fiber.Ctx) error {
 	if input.Title == "" {
 		return c.Status(400).JSON(ErrorResponse{Error: "title wajib diisi"})
 	}
-	if input.SubjectID == 0 {
-		return c.Status(400).JSON(ErrorResponse{Error: "subject_id wajib diisi"})
+	if input.ChapterID == 0 {
+		return c.Status(400).JSON(ErrorResponse{Error: "chapter_id wajib diisi"})
 	}
 
 	material, err := h.svc.Create(input)

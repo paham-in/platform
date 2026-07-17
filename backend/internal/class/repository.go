@@ -39,5 +39,5 @@ func (r *Repository) Update(id uint, updates map[string]interface{}) error {
 }
 
 func (r *Repository) Delete(id uint) error {
-	return r.db.Delete(&models.Class{}, id).Error
+	return r.db.Unscoped().Delete(&models.Class{}, id).Error
 }

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponses, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, GetAdminClassesData, GetAdminClassesResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetMeData, GetMeErrors, GetMeResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminClassesByIdData, PatchAdminClassesByIdErrors, PatchAdminClassesByIdResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PostAdminClassesData, PostAdminClassesErrors, PostAdminClassesResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLoginData, PostLoginErrors, PostLoginResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostRegisterData, PostRegisterErrors, PostRegisterResponses } from './types.gen';
+import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponses, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponses, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, GetAdminChaptersData, GetAdminChaptersResponses, GetAdminClassesData, GetAdminClassesResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetMeData, GetMeErrors, GetMeResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminChaptersByIdData, PatchAdminChaptersByIdErrors, PatchAdminChaptersByIdResponses, PatchAdminClassesByIdData, PatchAdminClassesByIdErrors, PatchAdminClassesByIdResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PostAdminChaptersData, PostAdminChaptersErrors, PostAdminChaptersResponses, PostAdminClassesData, PostAdminClassesErrors, PostAdminClassesResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLoginData, PostLoginErrors, PostLoginResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostRegisterData, PostRegisterErrors, PostRegisterResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,58 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+/**
+ * List chapters
+ *
+ * Mengembalikan daftar semua chapter, bisa difilter dengan class_id & subject_id
+ */
+export const getAdminChapters = <ThrowOnError extends boolean = false>(options?: Options<GetAdminChaptersData, ThrowOnError>): RequestResult<GetAdminChaptersResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminChaptersResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/chapters',
+    ...options
+});
+
+/**
+ * Create chapter
+ *
+ * Menambah chapter baru
+ */
+export const postAdminChapters = <ThrowOnError extends boolean = false>(options: Options<PostAdminChaptersData, ThrowOnError>): RequestResult<PostAdminChaptersResponses, PostAdminChaptersErrors, ThrowOnError> => (options.client ?? client).post<PostAdminChaptersResponses, PostAdminChaptersErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/chapters',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete chapter
+ *
+ * Menghapus chapter
+ */
+export const deleteAdminChaptersById = <ThrowOnError extends boolean = false>(options: Options<DeleteAdminChaptersByIdData, ThrowOnError>): RequestResult<DeleteAdminChaptersByIdResponses, unknown, ThrowOnError> => (options.client ?? client).delete<DeleteAdminChaptersByIdResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/chapters/{id}',
+    ...options
+});
+
+/**
+ * Update chapter
+ *
+ * Mengubah chapter
+ */
+export const patchAdminChaptersById = <ThrowOnError extends boolean = false>(options: Options<PatchAdminChaptersByIdData, ThrowOnError>): RequestResult<PatchAdminChaptersByIdResponses, PatchAdminChaptersByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchAdminChaptersByIdResponses, PatchAdminChaptersByIdErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/chapters/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * List classes
@@ -73,7 +125,7 @@ export const patchAdminClassesById = <ThrowOnError extends boolean = false>(opti
 /**
  * List materials
  *
- * Mengembalikan daftar semua materi, bisa difilter dengan subject_id
+ * Mengembalikan daftar semua materi, bisa difilter dengan chapter_id
  */
 export const getAdminMaterials = <ThrowOnError extends boolean = false>(options?: Options<GetAdminMaterialsData, ThrowOnError>): RequestResult<GetAdminMaterialsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminMaterialsResponses, unknown, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],

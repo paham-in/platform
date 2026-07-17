@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -25,14 +24,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  deleteAdminMaterialsByIdMutation,
+  deleteAdminChaptersByIdMutation,
   getAdminChaptersOptions,
-  getAdminMaterialsOptions,
-  getAdminMaterialsQueryKey,
+  getAdminChaptersQueryKey,
+  getAdminClassesOptions,
   getSubjectsOptions,
-  patchAdminMaterialsByIdMutation,
-  postAdminMaterialsMutation,
+  patchAdminChaptersByIdMutation,
+  postAdminChaptersMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
+import type { ChapterChapterResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -46,128 +46,94 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-type MaterialItem = {
-  id?: number;
-  title?: string;
-  slug?: string;
-  description?: string;
-  content?: string;
-  status?: string;
-  order?: number;
-  chapter_id?: number;
-  chapter_name?: string;
-};
-
-function AdminMaterials() {
+function AdminChapters() {
   const qc = useQueryClient();
-  const { data: materials = [], isLoading } = useQuery(getAdminMaterialsOptions());
+  const { data: chapters = [], isLoading } = useQuery(getAdminChaptersOptions());
   const { data: subjects = [] } = useQuery(getSubjectsOptions());
-  const { data: allChapters = [] } = useQuery(getAdminChaptersOptions());
+  const { data: classes = [] } = useQuery(getAdminClassesOptions());
   const [search, setSearch] = useState("");
-  const [chapterFilter, setChapterFilter] = useState("all");
+  const [classFilter, setClassFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<MaterialItem | null>(null);
+  const [editing, setEditing] = useState<ChapterChapterResponse | null>(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
-    content: "",
-    status: "draft",
     order: 0,
-    chapter_id: "",
+    class_id: "",
     subject_id: "",
   });
   const perPage = 5;
 
-  const chapters = form.subject_id
-    ? allChapters.filter((c) => String(c.subject_id) === form.subject_id)
-    : allChapters;
-
-  const { mutate: createMaterial } = useMutation({
-    ...postAdminMaterialsMutation(),
+  const { mutate: createChapter } = useMutation({
+    ...postAdminChaptersMutation(),
     onSuccess: () => {
       setDialogOpen(false);
-      qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
+      qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() });
     },
   });
-  const { mutate: updateMaterial } = useMutation({
-    ...patchAdminMaterialsByIdMutation(),
+  const { mutate: updateChapter } = useMutation({
+    ...patchAdminChaptersByIdMutation(),
     onSuccess: () => {
       setDialogOpen(false);
-      qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
+      qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() });
     },
   });
-  const { mutate: deleteMaterial } = useMutation({
-    ...deleteAdminMaterialsByIdMutation(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() }),
+  const { mutate: deleteChapter } = useMutation({
+    ...deleteAdminChaptersByIdMutation(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() }),
   });
 
-  const filtered = materials.filter((m) => {
-    const matchSearch = (m.title ?? "").toLowerCase().includes(search.toLowerCase());
-    const matchChapter =
-      chapterFilter === "all" || String(m.chapter_id) === chapterFilter;
-    return matchSearch && matchChapter;
+  // subjects filtered by form.class_id
+  const availableSubjects = form.class_id
+    ? subjects.filter((s) => (s.class_ids ?? []).includes(Number(form.class_id)))
+    : [];
+
+  const filtered = chapters.filter((c) => {
+    const matchSearch = (c.title ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchClass = classFilter === "all" || String(c.class_id) === classFilter;
+    return matchSearch && matchClass;
   });
   const totalPages = Math.ceil(filtered.length / perPage);
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
   const openAdd = () => {
     setEditing(null);
-    setForm({ title: "", description: "", content: "", status: "draft", order: 0, chapter_id: "", subject_id: "" });
+    setForm({ title: "", description: "", order: 0, class_id: "", subject_id: "" });
     setDialogOpen(true);
   };
-  const openEdit = (m: MaterialItem) => {
-    const ch = allChapters.find((c) => c.id === m.chapter_id);
-    setEditing(m);
+  const openEdit = (c: ChapterChapterResponse) => {
+    setEditing(c);
     setForm({
-      title: m.title ?? "",
-      description: m.description ?? "",
-      content: m.content ?? "",
-      status: m.status ?? "draft",
-      order: m.order ?? 0,
-      chapter_id: String(m.chapter_id ?? ""),
-      subject_id: String(ch?.subject_id ?? ""),
+      title: c.title ?? "",
+      description: c.description ?? "",
+      order: c.order ?? 0,
+      class_id: String(c.class_id ?? ""),
+      subject_id: String(c.subject_id ?? ""),
     });
     setDialogOpen(true);
   };
   const save = () => {
     if (editing) {
-      updateMaterial({
+      updateChapter({
         path: { id: editing.id! },
         body: {
           title: form.title || undefined,
           description: form.description || undefined,
-          content: form.content || undefined,
-          status: form.status || undefined,
           order: form.order,
         },
       });
     } else {
-      createMaterial({
+      createChapter({
         body: {
           title: form.title,
           description: form.description,
-          content: form.content,
-          status: form.status,
           order: form.order,
-          chapter_id: Number(form.chapter_id),
+          class_id: Number(form.class_id),
+          subject_id: Number(form.subject_id),
         },
       });
     }
-  };
-
-  const StatusBadge = ({ status }: { status: string }) => {
-    const styles: Record<string, string> = {
-      draft: "bg-yellow-100 text-yellow-700",
-      published: "bg-green-100 text-green-700",
-    };
-    return (
-      <span
-        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status] || "bg-gray-100 text-gray-700"}`}
-      >
-        {status === "draft" ? "Draft" : "Published"}
-      </span>
-    );
   };
 
   if (isLoading) {
@@ -181,7 +147,7 @@ function AdminMaterials() {
   return (
     <>
       <header className="flex items-center justify-between border-b bg-card px-6 py-3">
-        <h1 className="text-lg font-bold">Materi</h1>
+        <h1 className="text-lg font-bold">Chapter</h1>
       </header>
       <main className="p-6">
         <Card>
@@ -190,7 +156,7 @@ function AdminMaterials() {
               <div className="relative max-w-sm flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Cari materi..."
+                  placeholder="Cari chapter..."
                   className="pl-9"
                   value={search}
                   onChange={(e) => {
@@ -200,20 +166,20 @@ function AdminMaterials() {
                 />
               </div>
               <Select
-                value={chapterFilter}
+                value={classFilter}
                 onValueChange={(v) => {
-                  setChapterFilter(v ?? "all");
+                  setClassFilter(v ?? "all");
                   setPage(1);
                 }}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter Chapter" />
+                  <SelectValue placeholder="Filter Kelas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Chapter</SelectItem>
-                  {allChapters.map((c) => (
+                  <SelectItem value="all">Semua Kelas</SelectItem>
+                  {classes.map((c) => (
                     <SelectItem key={c.id} value={String(c.id)}>
-                      {c.title}
+                      {c.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -226,7 +192,7 @@ function AdminMaterials() {
               <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                   <DialogTitle>
-                    {editing ? "Edit Materi" : "Tambah Materi"}
+                    {editing ? "Edit Chapter" : "Tambah Chapter"}
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
@@ -238,49 +204,50 @@ function AdminMaterials() {
                       onChange={(e) =>
                         setForm({ ...form, title: e.target.value })
                       }
-                      placeholder="Judul materi"
+                      placeholder="Judul chapter"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Subjek</Label>
+                    <Label>Kelas</Label>
                     <Select
-                      value={form.subject_id}
+                      value={form.class_id}
                       onValueChange={(v) =>
-                        setForm({ ...form, subject_id: v ?? "", chapter_id: "" })
+                        setForm({ ...form, class_id: v ?? "", subject_id: "" })
                       }
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Pilih subjek">
-                          {subjects.find((s) => String(s.id) === form.subject_id)?.name}
+                        <SelectValue placeholder="Pilih kelas">
+                          {classes.find((c) => String(c.id) === form.class_id)?.name}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {subjects.map((s) => (
-                          <SelectItem key={s.id} value={String(s.id)}>
-                            {s.name}
+                        {classes.map((c) => (
+                          <SelectItem key={c.id} value={String(c.id)}>
+                            {c.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Chapter</Label>
+                    <Label>Subjek</Label>
                     <Select
-                      key={`chapter-${editing?.id ?? "new"}`}
-                      value={form.chapter_id}
+                      key={`subject-${form.class_id}`}
+                      value={form.subject_id}
                       onValueChange={(v) =>
-                        setForm({ ...form, chapter_id: v ?? "" })
+                        setForm({ ...form, subject_id: v ?? "" })
                       }
+                      disabled={!form.class_id}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Pilih chapter">
-                          {chapters.find((c) => String(c.id) === form.chapter_id)?.title}
+                        <SelectValue placeholder={form.class_id ? "Pilih subjek" : "Pilih kelas dulu"}>
+                          {availableSubjects.find((s) => String(s.id) === form.subject_id)?.name}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {chapters.map((c) => (
-                          <SelectItem key={c.id} value={String(c.id)}>
-                            {c.title}
+                        {availableSubjects.map((s) => (
+                          <SelectItem key={s.id} value={String(s.id)}>
+                            {s.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -298,49 +265,15 @@ function AdminMaterials() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="content">Konten</Label>
-                    <Textarea
-                      id="content"
-                      value={form.content}
+                    <Label htmlFor="order">Urutan</Label>
+                    <Input
+                      id="order"
+                      type="number"
+                      value={form.order}
                       onChange={(e) =>
-                        setForm({ ...form, content: e.target.value })
+                        setForm({ ...form, order: Number(e.target.value) })
                       }
-                      placeholder="Konten materi"
-                      rows={6}
                     />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="status">Status</Label>
-                      <Select
-                        key={`status-${editing?.id ?? "new"}`}
-                        value={form.status}
-                        onValueChange={(v) =>
-                          setForm({ ...form, status: v ?? "draft" })
-                        }
-                      >
-                        <SelectTrigger id="status" className="w-full">
-                          <SelectValue>
-                            {form.status === "draft" ? "Draft" : "Published"}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="draft">Draft</SelectItem>
-                          <SelectItem value="published">Published</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="order">Urutan</Label>
-                      <Input
-                        id="order"
-                        type="number"
-                        value={form.order}
-                        onChange={(e) =>
-                          setForm({ ...form, order: Number(e.target.value) })
-                        }
-                      />
-                    </div>
                   </div>
                   <div className="flex justify-end gap-3 pt-2">
                     <Button
@@ -349,7 +282,7 @@ function AdminMaterials() {
                     >
                       Batal
                     </Button>
-                    <Button onClick={save} disabled={!form.title || !form.chapter_id}>
+                    <Button onClick={save} disabled={!form.title || !form.class_id || !form.subject_id}>
                       {editing ? "Simpan" : "Tambah"}
                     </Button>
                   </div>
@@ -362,33 +295,37 @@ function AdminMaterials() {
               <TableHeader>
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Judul</TableHead>
-                  <TableHead>Chapter</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Kelas</TableHead>
+                  <TableHead>Subjek</TableHead>
+                  <TableHead>Deskripsi</TableHead>
                   <TableHead>Urutan</TableHead>
+                  <TableHead>Jumlah Materi</TableHead>
                   <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paged.map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell className="pl-6 font-medium">
-                      {m.title}
+                {paged.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell className="pl-6 font-medium">{c.title}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {c.class_name}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {m.chapter_name}
+                      {c.subject_name}
                     </TableCell>
-                    <TableCell>
-                      <StatusBadge status={m.status ?? ""} />
+                    <TableCell className="max-w-xs truncate text-muted-foreground">
+                      {c.description}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {m.order}
+                      {c.order}
                     </TableCell>
+                    <TableCell>{c.material_count}</TableCell>
                     <TableCell className="pr-6 text-right">
                       <div className="flex justify-end gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => openEdit(m)}
+                          onClick={() => openEdit(c)}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -396,9 +333,7 @@ function AdminMaterials() {
                           variant="ghost"
                           size="icon"
                           className="text-destructive hover:text-destructive"
-                          onClick={() =>
-                            deleteMaterial({ path: { id: m.id! } })
-                          }
+                          onClick={() => deleteChapter({ path: { id: c.id! } })}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -409,10 +344,10 @@ function AdminMaterials() {
                 {paged.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={7}
                       className="p-8 text-center text-muted-foreground"
                     >
-                      Tidak ada materi ditemukan
+                      Tidak ada chapter ditemukan
                     </TableCell>
                   </TableRow>
                 )}
@@ -450,6 +385,6 @@ function AdminMaterials() {
   );
 }
 
-export const Route = createFileRoute("/_dashboard/admin/materials")({
-  component: AdminMaterials,
+export const Route = createFileRoute("/_dashboard/admin/chapters")({
+  component: AdminChapters,
 });

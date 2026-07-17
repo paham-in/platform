@@ -62,12 +62,15 @@ func (r *Repository) Update(id uint, updates map[string]any) error {
 
 func (r *Repository) Delete(id uint) error {
 	r.db.Unscoped().Where("subject_id = ?", id).Delete(&models.ClassSubject{})
-	return r.db.Delete(&models.Subject{}, id).Error
+	return r.db.Unscoped().Delete(&models.Subject{}, id).Error
 }
 
 func (r *Repository) MaterialCount(subjectID uint) (int64, error) {
 	var count int64
-	if err := r.db.Model(&models.Material{}).Where("subject_id = ?", subjectID).Count(&count).Error; err != nil {
+	if err := r.db.Model(&models.Material{}).
+		Joins("JOIN chapters ON chapters.id = materials.chapter_id").
+		Where("chapters.subject_id = ?", subjectID).
+		Count(&count).Error; err != nil {
 		return 0, err
 	}
 	return count, nil

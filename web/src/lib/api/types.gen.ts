@@ -4,6 +4,41 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:8080/' | (string & {});
 };
 
+export type ChapterChapterResponse = {
+    class_id?: number;
+    class_name?: string;
+    description?: string;
+    id?: number;
+    material_count?: number;
+    order?: number;
+    slug?: string;
+    subject_id?: number;
+    subject_name?: string;
+    title?: string;
+};
+
+export type ChapterCreateInput = {
+    class_id?: number;
+    description?: string;
+    order?: number;
+    subject_id?: number;
+    title?: string;
+};
+
+export type ChapterErrorResponse = {
+    error?: string;
+};
+
+export type ChapterMessageResponse = {
+    message?: string;
+};
+
+export type ChapterUpdateInput = {
+    description?: string;
+    order?: number;
+    title?: string;
+};
+
 export type ClassClassResponse = {
     description?: string;
     id?: number;
@@ -20,11 +55,11 @@ export type ClassMessageResponse = {
 };
 
 export type MaterialCreateInput = {
+    chapter_id?: number;
     content?: string;
     description?: string;
     order?: number;
     status?: string;
-    subject_id?: number;
     title?: string;
 };
 
@@ -33,14 +68,14 @@ export type MaterialErrorResponse = {
 };
 
 export type MaterialMaterialResponse = {
+    chapter_id?: number;
+    chapter_name?: string;
     content?: string;
     description?: string;
     id?: number;
     order?: number;
     slug?: string;
     status?: string;
-    subject_id?: number;
-    subject_name?: string;
     title?: string;
 };
 
@@ -125,6 +160,113 @@ export type UserUserResponse = {
     name?: string;
     role?: string;
 };
+
+export type GetAdminChaptersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter by class ID
+         */
+        class_id?: number;
+        /**
+         * Filter by subject ID
+         */
+        subject_id?: number;
+    };
+    url: '/admin/chapters';
+};
+
+export type GetAdminChaptersResponses = {
+    /**
+     * OK
+     */
+    200: Array<ChapterChapterResponse>;
+};
+
+export type GetAdminChaptersResponse = GetAdminChaptersResponses[keyof GetAdminChaptersResponses];
+
+export type PostAdminChaptersData = {
+    /**
+     * Data chapter
+     */
+    body: ChapterCreateInput;
+    path?: never;
+    query?: never;
+    url: '/admin/chapters';
+};
+
+export type PostAdminChaptersErrors = {
+    /**
+     * Bad Request
+     */
+    400: ChapterErrorResponse;
+};
+
+export type PostAdminChaptersError = PostAdminChaptersErrors[keyof PostAdminChaptersErrors];
+
+export type PostAdminChaptersResponses = {
+    /**
+     * Created
+     */
+    201: ChapterChapterResponse;
+};
+
+export type PostAdminChaptersResponse = PostAdminChaptersResponses[keyof PostAdminChaptersResponses];
+
+export type DeleteAdminChaptersByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Chapter ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/chapters/{id}';
+};
+
+export type DeleteAdminChaptersByIdResponses = {
+    /**
+     * OK
+     */
+    200: ChapterMessageResponse;
+};
+
+export type DeleteAdminChaptersByIdResponse = DeleteAdminChaptersByIdResponses[keyof DeleteAdminChaptersByIdResponses];
+
+export type PatchAdminChaptersByIdData = {
+    /**
+     * Data update
+     */
+    body: ChapterUpdateInput;
+    path: {
+        /**
+         * Chapter ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/chapters/{id}';
+};
+
+export type PatchAdminChaptersByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: ChapterErrorResponse;
+};
+
+export type PatchAdminChaptersByIdError = PatchAdminChaptersByIdErrors[keyof PatchAdminChaptersByIdErrors];
+
+export type PatchAdminChaptersByIdResponses = {
+    /**
+     * OK
+     */
+    200: ChapterChapterResponse;
+};
+
+export type PatchAdminChaptersByIdResponse = PatchAdminChaptersByIdResponses[keyof PatchAdminChaptersByIdResponses];
 
 export type GetAdminClassesData = {
     body?: never;
@@ -233,9 +375,9 @@ export type GetAdminMaterialsData = {
     path?: never;
     query?: {
         /**
-         * Filter by subject ID
+         * Filter by chapter ID
          */
-        subject_id?: number;
+        chapter_id?: number;
     };
     url: '/admin/materials';
 };

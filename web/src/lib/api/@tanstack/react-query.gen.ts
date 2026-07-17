@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { deleteAdminClassesById, deleteAdminMaterialsById, deleteAdminSubjectsById, deleteAdminUsersById, getAdminClasses, getAdminMaterials, getAdminMaterialsById, getAdminUsers, getMe, getSubjects, type Options, patchAdminClassesById, patchAdminMaterialsById, patchAdminSubjectsById, patchAdminUsersByIdRole, postAdminClasses, postAdminMaterials, postAdminSubjects, postLogin, postLogout, postRegister } from '../sdk.gen';
-import type { DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponse, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponse, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponse, DeleteAdminUsersByIdData, DeleteAdminUsersByIdError, DeleteAdminUsersByIdResponse, GetAdminClassesData, GetAdminClassesResponse, GetAdminMaterialsByIdData, GetAdminMaterialsByIdError, GetAdminMaterialsByIdResponse, GetAdminMaterialsData, GetAdminMaterialsResponse, GetAdminUsersData, GetAdminUsersError, GetAdminUsersResponse, GetMeData, GetMeError, GetMeResponse, GetSubjectsData, GetSubjectsResponse, PatchAdminClassesByIdData, PatchAdminClassesByIdError, PatchAdminClassesByIdResponse, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdError, PatchAdminMaterialsByIdResponse, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdError, PatchAdminSubjectsByIdResponse, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleError, PatchAdminUsersByIdRoleResponse, PostAdminClassesData, PostAdminClassesError, PostAdminClassesResponse, PostAdminMaterialsData, PostAdminMaterialsError, PostAdminMaterialsResponse, PostAdminSubjectsData, PostAdminSubjectsError, PostAdminSubjectsResponse, PostLoginData, PostLoginError, PostLoginResponse, PostLogoutData, PostLogoutError, PostLogoutResponse, PostRegisterData, PostRegisterError, PostRegisterResponse } from '../types.gen';
+import { deleteAdminChaptersById, deleteAdminClassesById, deleteAdminMaterialsById, deleteAdminSubjectsById, deleteAdminUsersById, getAdminChapters, getAdminClasses, getAdminMaterials, getAdminMaterialsById, getAdminUsers, getMe, getSubjects, type Options, patchAdminChaptersById, patchAdminClassesById, patchAdminMaterialsById, patchAdminSubjectsById, patchAdminUsersByIdRole, postAdminChapters, postAdminClasses, postAdminMaterials, postAdminSubjects, postLogin, postLogout, postRegister } from '../sdk.gen';
+import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponse, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponse, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponse, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponse, DeleteAdminUsersByIdData, DeleteAdminUsersByIdError, DeleteAdminUsersByIdResponse, GetAdminChaptersData, GetAdminChaptersResponse, GetAdminClassesData, GetAdminClassesResponse, GetAdminMaterialsByIdData, GetAdminMaterialsByIdError, GetAdminMaterialsByIdResponse, GetAdminMaterialsData, GetAdminMaterialsResponse, GetAdminUsersData, GetAdminUsersError, GetAdminUsersResponse, GetMeData, GetMeError, GetMeResponse, GetSubjectsData, GetSubjectsResponse, PatchAdminChaptersByIdData, PatchAdminChaptersByIdError, PatchAdminChaptersByIdResponse, PatchAdminClassesByIdData, PatchAdminClassesByIdError, PatchAdminClassesByIdResponse, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdError, PatchAdminMaterialsByIdResponse, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdError, PatchAdminSubjectsByIdResponse, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleError, PatchAdminUsersByIdRoleResponse, PostAdminChaptersData, PostAdminChaptersError, PostAdminChaptersResponse, PostAdminClassesData, PostAdminClassesError, PostAdminClassesResponse, PostAdminMaterialsData, PostAdminMaterialsError, PostAdminMaterialsResponse, PostAdminSubjectsData, PostAdminSubjectsError, PostAdminSubjectsResponse, PostLoginData, PostLoginError, PostLoginResponse, PostLogoutData, PostLogoutError, PostLogoutResponse, PostRegisterData, PostRegisterError, PostRegisterResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -37,6 +37,83 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
         params.query = options.query;
     }
     return [params];
+};
+
+export const getAdminChaptersQueryKey = (options?: Options<GetAdminChaptersData>) => createQueryKey('getAdminChapters', options);
+
+/**
+ * List chapters
+ *
+ * Mengembalikan daftar semua chapter, bisa difilter dengan class_id & subject_id
+ */
+export const getAdminChaptersOptions = (options?: Options<GetAdminChaptersData>) => queryOptions<GetAdminChaptersResponse, DefaultError, GetAdminChaptersResponse, ReturnType<typeof getAdminChaptersQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAdminChapters({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAdminChaptersQueryKey(options)
+});
+
+/**
+ * Create chapter
+ *
+ * Menambah chapter baru
+ */
+export const postAdminChaptersMutation = (options?: Partial<Options<PostAdminChaptersData>>): UseMutationOptions<PostAdminChaptersResponse, PostAdminChaptersError, Options<PostAdminChaptersData>> => {
+    const mutationOptions: UseMutationOptions<PostAdminChaptersResponse, PostAdminChaptersError, Options<PostAdminChaptersData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postAdminChapters({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete chapter
+ *
+ * Menghapus chapter
+ */
+export const deleteAdminChaptersByIdMutation = (options?: Partial<Options<DeleteAdminChaptersByIdData>>): UseMutationOptions<DeleteAdminChaptersByIdResponse, DefaultError, Options<DeleteAdminChaptersByIdData>> => {
+    const mutationOptions: UseMutationOptions<DeleteAdminChaptersByIdResponse, DefaultError, Options<DeleteAdminChaptersByIdData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteAdminChaptersById({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Update chapter
+ *
+ * Mengubah chapter
+ */
+export const patchAdminChaptersByIdMutation = (options?: Partial<Options<PatchAdminChaptersByIdData>>): UseMutationOptions<PatchAdminChaptersByIdResponse, PatchAdminChaptersByIdError, Options<PatchAdminChaptersByIdData>> => {
+    const mutationOptions: UseMutationOptions<PatchAdminChaptersByIdResponse, PatchAdminChaptersByIdError, Options<PatchAdminChaptersByIdData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await patchAdminChaptersById({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
 };
 
 export const getAdminClassesQueryKey = (options?: Options<GetAdminClassesData>) => createQueryKey('getAdminClasses', options);
@@ -121,7 +198,7 @@ export const getAdminMaterialsQueryKey = (options?: Options<GetAdminMaterialsDat
 /**
  * List materials
  *
- * Mengembalikan daftar semua materi, bisa difilter dengan subject_id
+ * Mengembalikan daftar semua materi, bisa difilter dengan chapter_id
  */
 export const getAdminMaterialsOptions = (options?: Options<GetAdminMaterialsData>) => queryOptions<GetAdminMaterialsResponse, DefaultError, GetAdminMaterialsResponse, ReturnType<typeof getAdminMaterialsQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
