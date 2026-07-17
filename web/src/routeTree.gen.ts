@@ -16,9 +16,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardDashboardRouteImport } from './routes/_dashboard.dashboard'
 import { Route as DashboardAdminUsersRouteImport } from './routes/_dashboard.admin.users'
 import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard.admin.subjects'
-import { Route as DashboardAdminMaterialsRouteImport } from './routes/_dashboard.admin.materials'
 import { Route as DashboardAdminClassesRouteImport } from './routes/_dashboard.admin.classes'
 import { Route as DashboardAdminChaptersRouteImport } from './routes/_dashboard.admin.chapters'
+import { Route as DashboardAdminMaterialsIndexRouteImport } from './routes/_dashboard.admin.materials/index'
+import { Route as DashboardAdminMaterialsNewRouteImport } from './routes/_dashboard.admin.materials/new'
+import { Route as DashboardAdminMaterialsIdEditRouteImport } from './routes/_dashboard.admin.materials/$id/edit'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -54,11 +56,6 @@ const DashboardAdminSubjectsRoute = DashboardAdminSubjectsRouteImport.update({
   path: '/admin/subjects',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardAdminMaterialsRoute = DashboardAdminMaterialsRouteImport.update({
-  id: '/admin/materials',
-  path: '/admin/materials',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const DashboardAdminClassesRoute = DashboardAdminClassesRouteImport.update({
   id: '/admin/classes',
   path: '/admin/classes',
@@ -69,6 +66,24 @@ const DashboardAdminChaptersRoute = DashboardAdminChaptersRouteImport.update({
   path: '/admin/chapters',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAdminMaterialsIndexRoute =
+  DashboardAdminMaterialsIndexRouteImport.update({
+    id: '/admin/materials/',
+    path: '/admin/materials/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAdminMaterialsNewRoute =
+  DashboardAdminMaterialsNewRouteImport.update({
+    id: '/admin/materials/new',
+    path: '/admin/materials/new',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAdminMaterialsIdEditRoute =
+  DashboardAdminMaterialsIdEditRouteImport.update({
+    id: '/admin/materials/$id/edit',
+    path: '/admin/materials/$id/edit',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -77,9 +92,11 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardDashboardRoute
   '/admin/chapters': typeof DashboardAdminChaptersRoute
   '/admin/classes': typeof DashboardAdminClassesRoute
-  '/admin/materials': typeof DashboardAdminMaterialsRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/users': typeof DashboardAdminUsersRoute
+  '/admin/materials/new': typeof DashboardAdminMaterialsNewRoute
+  '/admin/materials/': typeof DashboardAdminMaterialsIndexRoute
+  '/admin/materials/$id/edit': typeof DashboardAdminMaterialsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -88,9 +105,11 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardDashboardRoute
   '/admin/chapters': typeof DashboardAdminChaptersRoute
   '/admin/classes': typeof DashboardAdminClassesRoute
-  '/admin/materials': typeof DashboardAdminMaterialsRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/users': typeof DashboardAdminUsersRoute
+  '/admin/materials/new': typeof DashboardAdminMaterialsNewRoute
+  '/admin/materials': typeof DashboardAdminMaterialsIndexRoute
+  '/admin/materials/$id/edit': typeof DashboardAdminMaterialsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -101,9 +120,11 @@ export interface FileRoutesById {
   '/_dashboard/dashboard': typeof DashboardDashboardRoute
   '/_dashboard/admin/chapters': typeof DashboardAdminChaptersRoute
   '/_dashboard/admin/classes': typeof DashboardAdminClassesRoute
-  '/_dashboard/admin/materials': typeof DashboardAdminMaterialsRoute
   '/_dashboard/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/_dashboard/admin/users': typeof DashboardAdminUsersRoute
+  '/_dashboard/admin/materials/new': typeof DashboardAdminMaterialsNewRoute
+  '/_dashboard/admin/materials/': typeof DashboardAdminMaterialsIndexRoute
+  '/_dashboard/admin/materials/$id/edit': typeof DashboardAdminMaterialsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -114,9 +135,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/admin/chapters'
     | '/admin/classes'
-    | '/admin/materials'
     | '/admin/subjects'
     | '/admin/users'
+    | '/admin/materials/new'
+    | '/admin/materials/'
+    | '/admin/materials/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -125,9 +148,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/admin/chapters'
     | '/admin/classes'
-    | '/admin/materials'
     | '/admin/subjects'
     | '/admin/users'
+    | '/admin/materials/new'
+    | '/admin/materials'
+    | '/admin/materials/$id/edit'
   id:
     | '__root__'
     | '/'
@@ -137,9 +162,11 @@ export interface FileRouteTypes {
     | '/_dashboard/dashboard'
     | '/_dashboard/admin/chapters'
     | '/_dashboard/admin/classes'
-    | '/_dashboard/admin/materials'
     | '/_dashboard/admin/subjects'
     | '/_dashboard/admin/users'
+    | '/_dashboard/admin/materials/new'
+    | '/_dashboard/admin/materials/'
+    | '/_dashboard/admin/materials/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -200,13 +227,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminSubjectsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/admin/materials': {
-      id: '/_dashboard/admin/materials'
-      path: '/admin/materials'
-      fullPath: '/admin/materials'
-      preLoaderRoute: typeof DashboardAdminMaterialsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/_dashboard/admin/classes': {
       id: '/_dashboard/admin/classes'
       path: '/admin/classes'
@@ -221,6 +241,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminChaptersRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/admin/materials/': {
+      id: '/_dashboard/admin/materials/'
+      path: '/admin/materials'
+      fullPath: '/admin/materials/'
+      preLoaderRoute: typeof DashboardAdminMaterialsIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/materials/new': {
+      id: '/_dashboard/admin/materials/new'
+      path: '/admin/materials/new'
+      fullPath: '/admin/materials/new'
+      preLoaderRoute: typeof DashboardAdminMaterialsNewRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/materials/$id/edit': {
+      id: '/_dashboard/admin/materials/$id/edit'
+      path: '/admin/materials/$id/edit'
+      fullPath: '/admin/materials/$id/edit'
+      preLoaderRoute: typeof DashboardAdminMaterialsIdEditRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
@@ -228,18 +269,22 @@ interface DashboardRouteChildren {
   DashboardDashboardRoute: typeof DashboardDashboardRoute
   DashboardAdminChaptersRoute: typeof DashboardAdminChaptersRoute
   DashboardAdminClassesRoute: typeof DashboardAdminClassesRoute
-  DashboardAdminMaterialsRoute: typeof DashboardAdminMaterialsRoute
   DashboardAdminSubjectsRoute: typeof DashboardAdminSubjectsRoute
   DashboardAdminUsersRoute: typeof DashboardAdminUsersRoute
+  DashboardAdminMaterialsNewRoute: typeof DashboardAdminMaterialsNewRoute
+  DashboardAdminMaterialsIndexRoute: typeof DashboardAdminMaterialsIndexRoute
+  DashboardAdminMaterialsIdEditRoute: typeof DashboardAdminMaterialsIdEditRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardDashboardRoute: DashboardDashboardRoute,
   DashboardAdminChaptersRoute: DashboardAdminChaptersRoute,
   DashboardAdminClassesRoute: DashboardAdminClassesRoute,
-  DashboardAdminMaterialsRoute: DashboardAdminMaterialsRoute,
   DashboardAdminSubjectsRoute: DashboardAdminSubjectsRoute,
   DashboardAdminUsersRoute: DashboardAdminUsersRoute,
+  DashboardAdminMaterialsNewRoute: DashboardAdminMaterialsNewRoute,
+  DashboardAdminMaterialsIndexRoute: DashboardAdminMaterialsIndexRoute,
+  DashboardAdminMaterialsIdEditRoute: DashboardAdminMaterialsIdEditRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(

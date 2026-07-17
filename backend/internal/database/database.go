@@ -48,5 +48,17 @@ func Migrate(db *gorm.DB) {
 	db.Unscoped().Where("deleted_at IS NOT NULL").Delete(&models.Subject{})
 	db.Unscoped().Where("deleted_at IS NOT NULL").Delete(&models.Material{})
 
+	// migrate existing materials table -- add chapter_id, fix old subject_id
+	if !db.Migrator().HasColumn(&models.Material{}, "chapter_id") {
+		db.Exec("ALTER TABLE materials ADD COLUMN chapter_id BIGINT NOT NULL DEFAULT 0")
+		db.Exec("CREATE INDEX idx_materials_chapter_id ON materials(chapter_id)")
+	}
+	if db.Migrator().HasColumn(&models.Material{}, "subject_id") {
+		db.Exec("ALTER TABLE materials DROP COLUMN subject_id")
+	}
+	if !db.Migrator().HasColumn(&models.Material{}, "author_id") {
+		db.Exec("ALTER TABLE materials ADD COLUMN author_id BIGINT NOT NULL DEFAULT 0")
+	}
+
 	log.Println("Migration completed")
 }
