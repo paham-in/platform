@@ -55,6 +55,12 @@ func main() {
 	subject.Routes(app, db)
 	forum.Routes(app, db)
 
+	// Authenticated routes (any role with valid session)
+	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))
+	class.PublicRoutes(auth, db)
+	chapter.PublicRoutes(auth, db)
+	material.PublicRoutes(auth, db)
+
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)
 	class.AdminRoutes(admin, db)

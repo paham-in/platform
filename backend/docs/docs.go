@@ -917,6 +917,82 @@ const docTemplate = `{
                 }
             }
         },
+        "/chapters": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar semua chapter untuk user yang sudah login",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chapters"
+                ],
+                "summary": "List chapters",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Filter by class ID",
+                        "name": "class_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by subject ID",
+                        "name": "subject_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/chapter.ChapterResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/classes": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar semua kelas untuk user yang sudah login",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Classes"
+                ],
+                "summary": "List classes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/class.ClassResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/logout": {
             "post": {
                 "security": [
@@ -946,6 +1022,88 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/user.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/materials": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar semua materi untuk user yang sudah login",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Materials"
+                ],
+                "summary": "List materials",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Filter by chapter ID",
+                        "name": "chapter_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/material.MaterialResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/materials/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil detail materi berdasarkan ID untuk user yang sudah login",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Materials"
+                ],
+                "summary": "Get material",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Material ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/material.MaterialResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/material.ErrorResponse"
                         }
                     }
                 }

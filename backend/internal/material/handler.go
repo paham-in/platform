@@ -170,3 +170,41 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	admin.Patch("/materials/:id", h.AdminUpdateMaterial)
 	admin.Delete("/materials/:id", h.AdminDeleteMaterial)
 }
+
+// ListMaterials mengembalikan daftar materi (memerlukan login)
+// @Summary      List materials
+// @Description  Mengembalikan daftar semua materi untuk user yang sudah login
+// @Tags         Materials
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        chapter_id query int false "Filter by chapter ID"
+// @Success      200 {array} MaterialResponse
+// @Router       /materials [get]
+func (h *Handler) ListMaterials(c *fiber.Ctx) error {
+	return h.AdminListMaterials(c)
+}
+
+// GetMaterial mengambil detail materi (memerlukan login)
+// @Summary      Get material
+// @Description  Mengambil detail materi berdasarkan ID untuk user yang sudah login
+// @Tags         Materials
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Material ID"
+// @Success      200 {object} MaterialResponse
+// @Failure      404 {object} ErrorResponse
+// @Router       /materials/{id} [get]
+func (h *Handler) GetMaterial(c *fiber.Ctx) error {
+	return h.AdminGetMaterial(c)
+}
+
+func PublicRoutes(app fiber.Router, db *gorm.DB) {
+	repo := NewRepository(db)
+	svc := NewService(repo)
+	h := NewHandler(svc)
+
+	app.Get("/materials", h.ListMaterials)
+	app.Get("/materials/:id", h.GetMaterial)
+}

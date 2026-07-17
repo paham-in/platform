@@ -156,3 +156,26 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	admin.Patch("/chapters/:id", h.AdminUpdateChapter)
 	admin.Delete("/chapters/:id", h.AdminDeleteChapter)
 }
+
+// ListChapters mengembalikan daftar chapter (memerlukan login)
+// @Summary      List chapters
+// @Description  Mengembalikan daftar semua chapter untuk user yang sudah login
+// @Tags         Chapters
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        class_id query int false "Filter by class ID"
+// @Param        subject_id query int false "Filter by subject ID"
+// @Success      200 {array} ChapterResponse
+// @Router       /chapters [get]
+func (h *Handler) ListChapters(c *fiber.Ctx) error {
+	return h.AdminListChapters(c)
+}
+
+func PublicRoutes(app fiber.Router, db *gorm.DB) {
+	repo := NewRepository(db)
+	svc := NewService(repo)
+	h := NewHandler(svc)
+
+	app.Get("/chapters", h.ListChapters)
+}

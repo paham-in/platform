@@ -852,6 +852,53 @@ paths:
       summary: Google OAuth callback
       tags:
       - Auth
+  /chapters:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar semua chapter untuk user yang sudah login
+      parameters:
+      - description: Filter by class ID
+        in: query
+        name: class_id
+        type: integer
+      - description: Filter by subject ID
+        in: query
+        name: subject_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/chapter.ChapterResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List chapters
+      tags:
+      - Chapters
+  /classes:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar semua kelas untuk user yang sudah login
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/class.ClassResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List classes
+      tags:
+      - Classes
   /logout:
     post:
       consumes:
@@ -873,6 +920,57 @@ paths:
       summary: Logout user
       tags:
       - Auth
+  /materials:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar semua materi untuk user yang sudah login
+      parameters:
+      - description: Filter by chapter ID
+        in: query
+        name: chapter_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/material.MaterialResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List materials
+      tags:
+      - Materials
+  /materials/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil detail materi berdasarkan ID untuk user yang sudah login
+      parameters:
+      - description: Material ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/material.MaterialResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/material.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get material
+      tags:
+      - Materials
   /me:
     get:
       consumes:

@@ -747,6 +747,47 @@ export type GetAuthGoogleCallbackData = {
     url: '/auth/google/callback';
 };
 
+export type GetChaptersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter by class ID
+         */
+        class_id?: number;
+        /**
+         * Filter by subject ID
+         */
+        subject_id?: number;
+    };
+    url: '/chapters';
+};
+
+export type GetChaptersResponses = {
+    /**
+     * OK
+     */
+    200: Array<ChapterChapterResponse>;
+};
+
+export type GetChaptersResponse = GetChaptersResponses[keyof GetChaptersResponses];
+
+export type GetClassesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/classes';
+};
+
+export type GetClassesResponses = {
+    /**
+     * OK
+     */
+    200: Array<ClassClassResponse>;
+};
+
+export type GetClassesResponse = GetClassesResponses[keyof GetClassesResponses];
+
 export type PostLogoutData = {
     body?: never;
     path?: never;
@@ -771,6 +812,57 @@ export type PostLogoutResponses = {
 };
 
 export type PostLogoutResponse = PostLogoutResponses[keyof PostLogoutResponses];
+
+export type GetMaterialsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter by chapter ID
+         */
+        chapter_id?: number;
+    };
+    url: '/materials';
+};
+
+export type GetMaterialsResponses = {
+    /**
+     * OK
+     */
+    200: Array<MaterialMaterialResponse>;
+};
+
+export type GetMaterialsResponse = GetMaterialsResponses[keyof GetMaterialsResponses];
+
+export type GetMaterialsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Material ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/materials/{id}';
+};
+
+export type GetMaterialsByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: MaterialErrorResponse;
+};
+
+export type GetMaterialsByIdError = GetMaterialsByIdErrors[keyof GetMaterialsByIdErrors];
+
+export type GetMaterialsByIdResponses = {
+    /**
+     * OK
+     */
+    200: MaterialMaterialResponse;
+};
+
+export type GetMaterialsByIdResponse = GetMaterialsByIdResponses[keyof GetMaterialsByIdResponses];
 
 export type GetMeData = {
     body?: never;

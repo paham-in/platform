@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { deleteAdminChaptersById, deleteAdminClassesById, deleteAdminMaterialsById, deleteAdminSubjectsById, deleteAdminUsersById, deleteQuestionsById, getAdminChapters, getAdminClasses, getAdminMaterials, getAdminMaterialsById, getAdminUsers, getAuthGoogle, getAuthGoogleCallback, getMe, getQuestions, getSubjects, type Options, patchAdminChaptersById, patchAdminClassesById, patchAdminMaterialsById, patchAdminSubjectsById, patchAdminUsersByIdPayment, patchAdminUsersByIdRole, postAdminChapters, postAdminClasses, postAdminMaterials, postAdminSubjects, postLogout, postQuestions } from '../sdk.gen';
-import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponse, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponse, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponse, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponse, DeleteAdminUsersByIdData, DeleteAdminUsersByIdError, DeleteAdminUsersByIdResponse, DeleteQuestionsByIdData, DeleteQuestionsByIdResponse, GetAdminChaptersData, GetAdminChaptersResponse, GetAdminClassesData, GetAdminClassesResponse, GetAdminMaterialsByIdData, GetAdminMaterialsByIdError, GetAdminMaterialsByIdResponse, GetAdminMaterialsData, GetAdminMaterialsResponse, GetAdminUsersData, GetAdminUsersError, GetAdminUsersResponse, GetAuthGoogleCallbackData, GetAuthGoogleData, GetMeData, GetMeError, GetMeResponse, GetQuestionsData, GetQuestionsResponse, GetSubjectsData, GetSubjectsResponse, PatchAdminChaptersByIdData, PatchAdminChaptersByIdError, PatchAdminChaptersByIdResponse, PatchAdminClassesByIdData, PatchAdminClassesByIdError, PatchAdminClassesByIdResponse, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdError, PatchAdminMaterialsByIdResponse, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdError, PatchAdminSubjectsByIdResponse, PatchAdminUsersByIdPaymentData, PatchAdminUsersByIdPaymentError, PatchAdminUsersByIdPaymentResponse, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleError, PatchAdminUsersByIdRoleResponse, PostAdminChaptersData, PostAdminChaptersError, PostAdminChaptersResponse, PostAdminClassesData, PostAdminClassesError, PostAdminClassesResponse, PostAdminMaterialsData, PostAdminMaterialsError, PostAdminMaterialsResponse, PostAdminSubjectsData, PostAdminSubjectsError, PostAdminSubjectsResponse, PostLogoutData, PostLogoutError, PostLogoutResponse, PostQuestionsData, PostQuestionsError, PostQuestionsResponse } from '../types.gen';
+import { deleteAdminChaptersById, deleteAdminClassesById, deleteAdminMaterialsById, deleteAdminSubjectsById, deleteAdminUsersById, deleteQuestionsById, getAdminChapters, getAdminClasses, getAdminMaterials, getAdminMaterialsById, getAdminUsers, getAuthGoogle, getAuthGoogleCallback, getChapters, getClasses, getMaterials, getMaterialsById, getMe, getQuestions, getSubjects, type Options, patchAdminChaptersById, patchAdminClassesById, patchAdminMaterialsById, patchAdminSubjectsById, patchAdminUsersByIdPayment, patchAdminUsersByIdRole, postAdminChapters, postAdminClasses, postAdminMaterials, postAdminSubjects, postLogout, postQuestions } from '../sdk.gen';
+import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponse, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponse, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponse, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponse, DeleteAdminUsersByIdData, DeleteAdminUsersByIdError, DeleteAdminUsersByIdResponse, DeleteQuestionsByIdData, DeleteQuestionsByIdResponse, GetAdminChaptersData, GetAdminChaptersResponse, GetAdminClassesData, GetAdminClassesResponse, GetAdminMaterialsByIdData, GetAdminMaterialsByIdError, GetAdminMaterialsByIdResponse, GetAdminMaterialsData, GetAdminMaterialsResponse, GetAdminUsersData, GetAdminUsersError, GetAdminUsersResponse, GetAuthGoogleCallbackData, GetAuthGoogleData, GetChaptersData, GetChaptersResponse, GetClassesData, GetClassesResponse, GetMaterialsByIdData, GetMaterialsByIdError, GetMaterialsByIdResponse, GetMaterialsData, GetMaterialsResponse, GetMeData, GetMeError, GetMeResponse, GetQuestionsData, GetQuestionsResponse, GetSubjectsData, GetSubjectsResponse, PatchAdminChaptersByIdData, PatchAdminChaptersByIdError, PatchAdminChaptersByIdResponse, PatchAdminClassesByIdData, PatchAdminClassesByIdError, PatchAdminClassesByIdResponse, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdError, PatchAdminMaterialsByIdResponse, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdError, PatchAdminSubjectsByIdResponse, PatchAdminUsersByIdPaymentData, PatchAdminUsersByIdPaymentError, PatchAdminUsersByIdPaymentResponse, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleError, PatchAdminUsersByIdRoleResponse, PostAdminChaptersData, PostAdminChaptersError, PostAdminChaptersResponse, PostAdminClassesData, PostAdminClassesError, PostAdminClassesResponse, PostAdminMaterialsData, PostAdminMaterialsError, PostAdminMaterialsResponse, PostAdminSubjectsData, PostAdminSubjectsError, PostAdminSubjectsResponse, PostLogoutData, PostLogoutError, PostLogoutResponse, PostQuestionsData, PostQuestionsError, PostQuestionsResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -464,6 +464,46 @@ export const getAuthGoogleCallbackOptions = (options?: Options<GetAuthGoogleCall
     queryKey: getAuthGoogleCallbackQueryKey(options)
 });
 
+export const getChaptersQueryKey = (options?: Options<GetChaptersData>) => createQueryKey('getChapters', options);
+
+/**
+ * List chapters
+ *
+ * Mengembalikan daftar semua chapter untuk user yang sudah login
+ */
+export const getChaptersOptions = (options?: Options<GetChaptersData>) => queryOptions<GetChaptersResponse, DefaultError, GetChaptersResponse, ReturnType<typeof getChaptersQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getChapters({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getChaptersQueryKey(options)
+});
+
+export const getClassesQueryKey = (options?: Options<GetClassesData>) => createQueryKey('getClasses', options);
+
+/**
+ * List classes
+ *
+ * Mengembalikan daftar semua kelas untuk user yang sudah login
+ */
+export const getClassesOptions = (options?: Options<GetClassesData>) => queryOptions<GetClassesResponse, DefaultError, GetClassesResponse, ReturnType<typeof getClassesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getClasses({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getClassesQueryKey(options)
+});
+
 /**
  * Logout user
  *
@@ -482,6 +522,46 @@ export const postLogoutMutation = (options?: Partial<Options<PostLogoutData>>): 
     };
     return mutationOptions;
 };
+
+export const getMaterialsQueryKey = (options?: Options<GetMaterialsData>) => createQueryKey('getMaterials', options);
+
+/**
+ * List materials
+ *
+ * Mengembalikan daftar semua materi untuk user yang sudah login
+ */
+export const getMaterialsOptions = (options?: Options<GetMaterialsData>) => queryOptions<GetMaterialsResponse, DefaultError, GetMaterialsResponse, ReturnType<typeof getMaterialsQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getMaterials({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getMaterialsQueryKey(options)
+});
+
+export const getMaterialsByIdQueryKey = (options: Options<GetMaterialsByIdData>) => createQueryKey('getMaterialsById', options);
+
+/**
+ * Get material
+ *
+ * Mengambil detail materi berdasarkan ID untuk user yang sudah login
+ */
+export const getMaterialsByIdOptions = (options: Options<GetMaterialsByIdData>) => queryOptions<GetMaterialsByIdResponse, GetMaterialsByIdError, GetMaterialsByIdResponse, ReturnType<typeof getMaterialsByIdQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getMaterialsById({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getMaterialsByIdQueryKey(options)
+});
 
 export const getMeQueryKey = (options?: Options<GetMeData>) => createQueryKey('getMe', options);
 

@@ -135,3 +135,24 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	admin.Patch("/classes/:id", h.AdminUpdateClass)
 	admin.Delete("/classes/:id", h.AdminDeleteClass)
 }
+
+// ListClasses mengembalikan daftar kelas (memerlukan login)
+// @Summary      List classes
+// @Description  Mengembalikan daftar semua kelas untuk user yang sudah login
+// @Tags         Classes
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} ClassResponse
+// @Router       /classes [get]
+func (h *Handler) ListClasses(c *fiber.Ctx) error {
+	return h.AdminListClasses(c)
+}
+
+func PublicRoutes(app fiber.Router, db *gorm.DB) {
+	repo := NewRepository(db)
+	svc := NewService(repo)
+	h := NewHandler(svc)
+
+	app.Get("/classes", h.ListClasses)
+}
