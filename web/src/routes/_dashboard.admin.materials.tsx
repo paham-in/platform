@@ -235,13 +235,16 @@ function AdminMaterials() {
                   <div className="space-y-2">
                     <Label htmlFor="subject">Subjek</Label>
                     <Select
+                      key={`subject-${editing?.id ?? "new"}`}
                       value={form.subject_id}
                       onValueChange={(v) =>
                         setForm({ ...form, subject_id: v ?? "" })
                       }
                     >
-                      <SelectTrigger id="subject">
-                        <SelectValue placeholder="Pilih subjek" />
+                      <SelectTrigger id="subject" className="w-full">
+                        <SelectValue placeholder="Pilih subjek">
+                          {subjects.find((s) => String(s.id) === form.subject_id)?.name}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {subjects.map((s) => (
@@ -279,13 +282,16 @@ function AdminMaterials() {
                     <div className="space-y-2">
                       <Label htmlFor="status">Status</Label>
                       <Select
+                        key={`status-${editing?.id ?? "new"}`}
                         value={form.status}
                         onValueChange={(v) =>
                           setForm({ ...form, status: v ?? "draft" })
                         }
                       >
-                        <SelectTrigger id="status">
-                          <SelectValue />
+                        <SelectTrigger id="status" className="w-full">
+                          <SelectValue>
+                            {form.status === "draft" ? "Draft" : "Published"}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="draft">Draft</SelectItem>
