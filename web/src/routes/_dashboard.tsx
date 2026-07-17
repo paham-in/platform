@@ -34,7 +34,7 @@ import {
 const sidebarLinks = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard", roles: ["student", "teacher", "admin"] },
   { label: "Mata Pelajaran", icon: BookMarked, to: "/subjects", roles: ["student", "teacher"] },
-  { label: "Pertanyaan Saya", icon: Home, to: "/forum", roles: ["student"] },
+  { label: "Forum", icon: Home, to: "/forum", roles: ["student"] },
   { label: "Materi Saya", icon: BookMarked, to: "/materials", roles: ["teacher"] },
   { label: "Tanya Jawab", icon: Home, to: "/forum", roles: ["teacher"] },
   { label: "Kelola User", icon: Users, to: "/admin/users", roles: ["admin"] },

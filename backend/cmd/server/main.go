@@ -9,6 +9,7 @@ import (
 	"bimbel2/backend/internal/models"
 	"bimbel2/backend/internal/chapter"
 	"bimbel2/backend/internal/class"
+	"bimbel2/backend/internal/forum"
 	"bimbel2/backend/internal/material"
 	"bimbel2/backend/internal/subject"
 	"bimbel2/backend/internal/user"
@@ -52,6 +53,7 @@ func main() {
 	user.Routes(app, db)
 	user.OAuthRoutes(app, db, cfg)
 	subject.Routes(app, db)
+	forum.Routes(app, db)
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)

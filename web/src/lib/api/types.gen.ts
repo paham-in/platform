@@ -54,6 +54,34 @@ export type ClassMessageResponse = {
     message?: string;
 };
 
+export type ForumCreateQuestionInput = {
+    content?: string;
+    subject_id?: number;
+    title?: string;
+};
+
+export type ForumErrorResponse = {
+    error?: string;
+};
+
+export type ForumMessageResponse = {
+    message?: string;
+};
+
+export type ForumQuestionResponse = {
+    content?: string;
+    created_at?: string;
+    id?: number;
+    is_owner?: boolean;
+    status?: string;
+    subject_id?: number;
+    subject_name?: string;
+    title?: string;
+    upvotes?: number;
+    user_avatar?: string;
+    user_name?: string;
+};
+
 export type MaterialCreateInput = {
     chapter_id?: number;
     content?: string;
@@ -768,6 +796,76 @@ export type GetMeResponses = {
 };
 
 export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
+
+export type GetQuestionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter by subject
+         */
+        subject_id?: number;
+    };
+    url: '/questions';
+};
+
+export type GetQuestionsResponses = {
+    /**
+     * OK
+     */
+    200: Array<ForumQuestionResponse>;
+};
+
+export type GetQuestionsResponse = GetQuestionsResponses[keyof GetQuestionsResponses];
+
+export type PostQuestionsData = {
+    /**
+     * Data pertanyaan
+     */
+    body: ForumCreateQuestionInput;
+    path?: never;
+    query?: never;
+    url: '/questions';
+};
+
+export type PostQuestionsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ForumErrorResponse;
+};
+
+export type PostQuestionsError = PostQuestionsErrors[keyof PostQuestionsErrors];
+
+export type PostQuestionsResponses = {
+    /**
+     * Created
+     */
+    201: ForumQuestionResponse;
+};
+
+export type PostQuestionsResponse = PostQuestionsResponses[keyof PostQuestionsResponses];
+
+export type DeleteQuestionsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Question ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/questions/{id}';
+};
+
+export type DeleteQuestionsByIdResponses = {
+    /**
+     * OK
+     */
+    200: ForumMessageResponse;
+};
+
+export type DeleteQuestionsByIdResponse = DeleteQuestionsByIdResponses[keyof DeleteQuestionsByIdResponses];
 
 export type GetSubjectsData = {
     body?: never;
