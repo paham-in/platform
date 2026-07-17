@@ -33,3 +33,19 @@ func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
 func (r *UserRepository) Create(user *models.User) error {
 	return r.db.Create(user).Error
 }
+
+func (r *UserRepository) List() ([]models.User, error) {
+	var users []models.User
+	if err := r.db.Order("created_at desc").Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (r *UserRepository) UpdateRole(id uint, role string) error {
+	return r.db.Model(&models.User{}).Where("id = ?", id).Update("role", role).Error
+}
+
+func (r *UserRepository) Delete(id uint) error {
+	return r.db.Delete(&models.User{}, id).Error
+}

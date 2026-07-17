@@ -1,6 +1,8 @@
 package user
 
 import (
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -117,6 +119,82 @@ func (h *Handler) Me(c *fiber.Ctx) error {
 	return c.JSON(toResponse(*user))
 }
 
+// AdminListUsers mengembalikan daftar semua user (admin only)
+// @Summary      List all users
+// @Description  Mengembalikan daftar semua user (admin only)
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} AdminUserResponse
+// @Failure      500 {object} ErrorResponse
+// @Router       /admin/users [get]
+func (h *Handler) AdminListUsers(c *fiber.Ctx) error {
+	users, err := h.svc.ListUsers()
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data user"})
+	}
+	return c.JSON(users)
+}
+
+// AdminUpdateRole mengubah role user (admin only)
+// @Summary      Update user role
+// @Description  Mengubah role user (admin only)
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int    true "User ID"
+// @Param        body body      object true "Role baru"
+// @Success      200  {object}  MessageResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /admin/users/{id}/role [patch]
+func (h *Handler) AdminUpdateRole(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+
+	var input struct {
+		Role string `json:"role"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+
+	if err := h.svc.UpdateUserRole(uint(id), input.Role); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+
+	return c.JSON(MessageResponse{Message: "role berhasil diubah"})
+}
+
+// AdminDeleteUser menghapus user (admin only)
+// @Summary      Delete user
+// @Description  Menghapus user berdasarkan ID (admin only)
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true "User ID"
+// @Success      200  {object}  MessageResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /admin/users/{id} [delete]
+func (h *Handler) AdminDeleteUser(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+
+	if err := h.svc.DeleteUser(uint(id)); err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus user"})
+	}
+
+	return c.JSON(MessageResponse{Message: "user berhasil dihapus"})
+}
+
 func extractToken(c *fiber.Ctx) string {
 	auth := c.Get("Authorization")
 	if len(auth) > 7 && auth[:7] == "Bearer " {
@@ -135,4 +213,15 @@ func Routes(app fiber.Router, db *gorm.DB) {
 	app.Post("/login", h.Login)
 	app.Post("/logout", h.Logout)
 	app.Get("/me", h.Me)
+}
+
+func AdminRoutes(admin fiber.Router, db *gorm.DB) {
+	userRepo := NewUserRepository(db)
+	sessionRepo := NewSessionRepository(db)
+	svc := NewService(userRepo, sessionRepo)
+	h := NewHandler(svc)
+
+	admin.Get("/users", h.AdminListUsers)
+	admin.Patch("/users/:id/role", h.AdminUpdateRole)
+	admin.Delete("/users/:id", h.AdminDeleteUser)
 }

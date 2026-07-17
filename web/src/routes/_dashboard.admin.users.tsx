@@ -13,56 +13,61 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState } from "react"
-import { Search, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
-
-type User = { id: number; name: string; email: string; role: "student" | "teacher" | "admin"; createdAt: string; materials?: number; questions?: number }
-
-const mockUsers: User[] = [
-  { id: 1, name: "Siti Aisyah", email: "siti@email.com", role: "student", createdAt: "2025-01-15", questions: 12 },
-  { id: 2, name: "Bambang Supriyadi", email: "bambang@email.com", role: "teacher", createdAt: "2024-11-20", materials: 24 },
-  { id: 3, name: "Rina Wijaya", email: "rina@email.com", role: "student", createdAt: "2025-02-03", questions: 5 },
-  { id: 4, name: "Ahmad Fauzi", email: "ahmad@email.com", role: "teacher", createdAt: "2024-09-10", materials: 18 },
-  { id: 5, name: "Dewi Sartika", email: "dewi@email.com", role: "student", createdAt: "2025-03-22", questions: 8 },
-  { id: 6, name: "Hadi Prasetyo", email: "hadi@email.com", role: "admin", createdAt: "2024-06-01" },
-  { id: 7, name: "Citra Lestari", email: "citra@email.com", role: "student", createdAt: "2025-04-11", questions: 3 },
-  { id: 8, name: "Dodi Firmansyah", email: "dodi@email.com", role: "teacher", createdAt: "2024-08-05", materials: 31 },
-]
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { getAdminUsersOptions, getAdminUsersQueryKey, deleteAdminUsersByIdMutation, patchAdminUsersByIdRoleMutation } from "@/lib/api/@tanstack/react-query.gen"
+import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import { Search, Pencil, Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 
 function AdminUsers() {
-  const [users, setUsers] = useState<User[]>(mockUsers)
+  const qc = useQueryClient()
+  const { data: users = [], isLoading } = useQuery(getAdminUsersOptions())
   const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
-  const [editing, setEditing] = useState<User | null>(null)
-  const [newRole, setNewRole] = useState<User["role"]>("student")
+  const [editing, setEditing] = useState<UserAdminUserResponse | null>(null)
+  const [newRole, setNewRole] = useState("student")
   const [page, setPage] = useState(1)
   const perPage = 5
 
+  const { mutate: deleteUser } = useMutation({
+    ...deleteAdminUsersByIdMutation(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }),
+  })
+
+  const { mutate: updateRole } = useMutation({
+    ...patchAdminUsersByIdRoleMutation(),
+    onSuccess: () => { closeEdit(); qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }) },
+  })
+
   const filtered = users.filter((u) => {
-    const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase())
+    const matchSearch = (u.name ?? "").toLowerCase().includes(search.toLowerCase()) || (u.email ?? "").toLowerCase().includes(search.toLowerCase())
     const matchRole = roleFilter === "all" || u.role === roleFilter
     return matchSearch && matchRole
   })
   const totalPages = Math.ceil(filtered.length / perPage)
   const paged = filtered.slice((page - 1) * perPage, page * perPage)
 
-  const openEdit = (u: User) => {
+  const openEdit = (u: UserAdminUserResponse) => {
     setEditing(u)
-    setNewRole(u.role)
+    setNewRole(u.role ?? "student")
   }
   const closeEdit = () => setEditing(null)
   const save = () => {
     if (editing) {
-      setUsers(users.map((u) => (u.id === editing.id ? { ...u, role: newRole } : u)))
+      updateRole({ path: { id: editing.id! }, body: { role: newRole } })
     }
-    closeEdit()
-  }
-  const remove = (id: number) => {
-    if (confirm("Yakin hapus user ini?")) setUsers(users.filter((u) => u.id !== id))
   }
 
   const RoleBadge = ({ role }: { role: string }) => {
     const styles = { student: "bg-green-100 text-green-700", teacher: "bg-blue-100 text-blue-700", admin: "bg-purple-100 text-purple-700" }
     return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[role as keyof typeof styles] || ""}`}>{role}</span>
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    )
   }
 
   return (
@@ -92,7 +97,6 @@ function AdminUsers() {
                   <TableHead className="pl-6">Nama</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Info</TableHead>
                   <TableHead>Tanggal Daftar</TableHead>
                   <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
@@ -100,18 +104,17 @@ function AdminUsers() {
               <TableBody>
                 {paged.map((u) => (
                   <TableRow key={u.id}>
-                    <TableCell className="pl-6"><div className="flex items-center gap-3"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name[0]}</div><span className="font-medium">{u.name}</span></div></TableCell>
+                    <TableCell className="pl-6"><div className="flex items-center gap-3"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div><span className="font-medium">{u.name}</span></div></TableCell>
                     <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                    <TableCell><RoleBadge role={u.role} /></TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{u.role === "teacher" && `${u.materials} materi`}{u.role === "student" && `${u.questions} pertanyaan`}</TableCell>
-                    <TableCell className="text-muted-foreground">{u.createdAt}</TableCell>
+                    <TableCell><RoleBadge role={u.role ?? ""} /></TableCell>
+                    <TableCell className="text-muted-foreground">{u.created_at}</TableCell>
                     <TableCell className="pr-6 text-right"><div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(u)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => remove(u.id)}><Trash2 className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => deleteUser({ path: { id: u.id! } })}><Trash2 className="h-4 w-4" /></Button>
                     </div></TableCell>
                   </TableRow>
                 ))}
-                {paged.length === 0 && (<TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Tidak ada user ditemukan</TableCell></TableRow>)}
+                {paged.length === 0 && (<TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Tidak ada user ditemukan</TableCell></TableRow>)}
               </TableBody>
             </Table>
           </CardContent>
@@ -141,7 +144,7 @@ function AdminUsers() {
           </div>
           <div className="space-y-2">
             <Label>Role</Label>
-            <Select value={newRole} onValueChange={(v) => setNewRole(v as User["role"])}>
+            <Select value={newRole} onValueChange={(v) => v && setNewRole(v)}>
               <SelectTrigger><SelectValue placeholder="Pilih role" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="student">Murid</SelectItem>

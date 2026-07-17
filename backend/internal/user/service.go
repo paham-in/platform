@@ -3,6 +3,7 @@ package user
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"time"
 
 	"bimbel2/backend/internal/models"
@@ -35,6 +36,14 @@ type UserResponse struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
 	Role  string `json:"role"`
+}
+
+type AdminUserResponse struct {
+	ID        uint   `json:"id"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	CreatedAt string `json:"created_at"`
 }
 
 // Response types untuk dokumentasi swagger
@@ -143,6 +152,36 @@ func generateToken() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(b), nil
+}
+
+func (s *Service) ListUsers() ([]AdminUserResponse, error) {
+	users, err := s.userRepo.List()
+	if err != nil {
+		return nil, err
+	}
+	result := make([]AdminUserResponse, len(users))
+	for i, u := range users {
+		result[i] = AdminUserResponse{
+			ID:        u.ID,
+			Name:      u.Name,
+			Email:     u.Email,
+			Role:      u.Role,
+			CreatedAt: u.CreatedAt.Format("2006-01-02"),
+		}
+	}
+	return result, nil
+}
+
+func (s *Service) UpdateUserRole(id uint, role string) error {
+	validRoles := map[string]bool{"student": true, "teacher": true, "admin": true}
+	if !validRoles[role] {
+		return errors.New("role tidak valid")
+	}
+	return s.userRepo.UpdateRole(id, role)
+}
+
+func (s *Service) DeleteUser(id uint) error {
+	return s.userRepo.Delete(id)
 }
 
 func toResponse(u models.User) UserResponse {

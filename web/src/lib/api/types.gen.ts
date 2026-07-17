@@ -4,6 +4,30 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:8080/' | (string & {});
 };
 
+export type SubjectErrorResponse = {
+    error?: string;
+};
+
+export type SubjectMessageResponse = {
+    message?: string;
+};
+
+export type SubjectSubjectResponse = {
+    description?: string;
+    id?: number;
+    material_count?: number;
+    name?: string;
+    slug?: string;
+};
+
+export type UserAdminUserResponse = {
+    created_at?: string;
+    email?: string;
+    id?: number;
+    name?: string;
+    role?: string;
+};
+
 export type UserAuthResponse = {
     token?: string;
     user?: UserUserResponse;
@@ -36,6 +60,190 @@ export type UserUserResponse = {
     name?: string;
     role?: string;
 };
+
+export type PostAdminSubjectsData = {
+    /**
+     * Data subject
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path?: never;
+    query?: never;
+    url: '/admin/subjects';
+};
+
+export type PostAdminSubjectsErrors = {
+    /**
+     * Bad Request
+     */
+    400: SubjectErrorResponse;
+};
+
+export type PostAdminSubjectsError = PostAdminSubjectsErrors[keyof PostAdminSubjectsErrors];
+
+export type PostAdminSubjectsResponses = {
+    /**
+     * Created
+     */
+    201: SubjectSubjectResponse;
+};
+
+export type PostAdminSubjectsResponse = PostAdminSubjectsResponses[keyof PostAdminSubjectsResponses];
+
+export type DeleteAdminSubjectsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Subject ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/subjects/{id}';
+};
+
+export type DeleteAdminSubjectsByIdResponses = {
+    /**
+     * OK
+     */
+    200: SubjectMessageResponse;
+};
+
+export type DeleteAdminSubjectsByIdResponse = DeleteAdminSubjectsByIdResponses[keyof DeleteAdminSubjectsByIdResponses];
+
+export type PatchAdminSubjectsByIdData = {
+    /**
+     * Data update
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        /**
+         * Subject ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/subjects/{id}';
+};
+
+export type PatchAdminSubjectsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: SubjectErrorResponse;
+};
+
+export type PatchAdminSubjectsByIdError = PatchAdminSubjectsByIdErrors[keyof PatchAdminSubjectsByIdErrors];
+
+export type PatchAdminSubjectsByIdResponses = {
+    /**
+     * OK
+     */
+    200: SubjectSubjectResponse;
+};
+
+export type PatchAdminSubjectsByIdResponse = PatchAdminSubjectsByIdResponses[keyof PatchAdminSubjectsByIdResponses];
+
+export type GetAdminUsersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/users';
+};
+
+export type GetAdminUsersErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: UserErrorResponse;
+};
+
+export type GetAdminUsersError = GetAdminUsersErrors[keyof GetAdminUsersErrors];
+
+export type GetAdminUsersResponses = {
+    /**
+     * OK
+     */
+    200: Array<UserAdminUserResponse>;
+};
+
+export type GetAdminUsersResponse = GetAdminUsersResponses[keyof GetAdminUsersResponses];
+
+export type DeleteAdminUsersByIdData = {
+    body?: never;
+    path: {
+        /**
+         * User ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/users/{id}';
+};
+
+export type DeleteAdminUsersByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: UserErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: UserErrorResponse;
+};
+
+export type DeleteAdminUsersByIdError = DeleteAdminUsersByIdErrors[keyof DeleteAdminUsersByIdErrors];
+
+export type DeleteAdminUsersByIdResponses = {
+    /**
+     * OK
+     */
+    200: UserMessageResponse;
+};
+
+export type DeleteAdminUsersByIdResponse = DeleteAdminUsersByIdResponses[keyof DeleteAdminUsersByIdResponses];
+
+export type PatchAdminUsersByIdRoleData = {
+    /**
+     * Role baru
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        /**
+         * User ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/users/{id}/role';
+};
+
+export type PatchAdminUsersByIdRoleErrors = {
+    /**
+     * Bad Request
+     */
+    400: UserErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: UserErrorResponse;
+};
+
+export type PatchAdminUsersByIdRoleError = PatchAdminUsersByIdRoleErrors[keyof PatchAdminUsersByIdRoleErrors];
+
+export type PatchAdminUsersByIdRoleResponses = {
+    /**
+     * OK
+     */
+    200: UserMessageResponse;
+};
+
+export type PatchAdminUsersByIdRoleResponse = PatchAdminUsersByIdRoleResponses[keyof PatchAdminUsersByIdRoleResponses];
 
 export type PostLoginData = {
     /**
@@ -146,3 +354,19 @@ export type PostRegisterResponses = {
 };
 
 export type PostRegisterResponse = PostRegisterResponses[keyof PostRegisterResponses];
+
+export type GetSubjectsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/subjects';
+};
+
+export type GetSubjectsResponses = {
+    /**
+     * OK
+     */
+    200: Array<SubjectSubjectResponse>;
+};
+
+export type GetSubjectsResponse = GetSubjectsResponses[keyof GetSubjectsResponses];

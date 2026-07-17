@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetMeData, GetMeErrors, GetMeResponses, PostLoginData, PostLoginErrors, PostLoginResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostRegisterData, PostRegisterErrors, PostRegisterResponses } from './types.gen';
+import type { DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetMeData, GetMeErrors, GetMeResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLoginData, PostLoginErrors, PostLoginResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostRegisterData, PostRegisterErrors, PostRegisterResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,84 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+/**
+ * Create subject
+ *
+ * Menambah mata pelajaran baru (admin only)
+ */
+export const postAdminSubjects = <ThrowOnError extends boolean = false>(options: Options<PostAdminSubjectsData, ThrowOnError>): RequestResult<PostAdminSubjectsResponses, PostAdminSubjectsErrors, ThrowOnError> => (options.client ?? client).post<PostAdminSubjectsResponses, PostAdminSubjectsErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/subjects',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete subject
+ *
+ * Menghapus mata pelajaran (admin only)
+ */
+export const deleteAdminSubjectsById = <ThrowOnError extends boolean = false>(options: Options<DeleteAdminSubjectsByIdData, ThrowOnError>): RequestResult<DeleteAdminSubjectsByIdResponses, unknown, ThrowOnError> => (options.client ?? client).delete<DeleteAdminSubjectsByIdResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/subjects/{id}',
+    ...options
+});
+
+/**
+ * Update subject
+ *
+ * Mengubah mata pelajaran (admin only)
+ */
+export const patchAdminSubjectsById = <ThrowOnError extends boolean = false>(options: Options<PatchAdminSubjectsByIdData, ThrowOnError>): RequestResult<PatchAdminSubjectsByIdResponses, PatchAdminSubjectsByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchAdminSubjectsByIdResponses, PatchAdminSubjectsByIdErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/subjects/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List all users
+ *
+ * Mengembalikan daftar semua user (admin only)
+ */
+export const getAdminUsers = <ThrowOnError extends boolean = false>(options?: Options<GetAdminUsersData, ThrowOnError>): RequestResult<GetAdminUsersResponses, GetAdminUsersErrors, ThrowOnError> => (options?.client ?? client).get<GetAdminUsersResponses, GetAdminUsersErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/users',
+    ...options
+});
+
+/**
+ * Delete user
+ *
+ * Menghapus user berdasarkan ID (admin only)
+ */
+export const deleteAdminUsersById = <ThrowOnError extends boolean = false>(options: Options<DeleteAdminUsersByIdData, ThrowOnError>): RequestResult<DeleteAdminUsersByIdResponses, DeleteAdminUsersByIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteAdminUsersByIdResponses, DeleteAdminUsersByIdErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/users/{id}',
+    ...options
+});
+
+/**
+ * Update user role
+ *
+ * Mengubah role user (admin only)
+ */
+export const patchAdminUsersByIdRole = <ThrowOnError extends boolean = false>(options: Options<PatchAdminUsersByIdRoleData, ThrowOnError>): RequestResult<PatchAdminUsersByIdRoleResponses, PatchAdminUsersByIdRoleErrors, ThrowOnError> => (options.client ?? client).patch<PatchAdminUsersByIdRoleResponses, PatchAdminUsersByIdRoleErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/users/{id}/role',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Login user
@@ -67,3 +145,10 @@ export const postRegister = <ThrowOnError extends boolean = false>(options: Opti
         ...options.headers
     }
 });
+
+/**
+ * List subjects
+ *
+ * Mengembalikan daftar semua mata pelajaran
+ */
+export const getSubjects = <ThrowOnError extends boolean = false>(options?: Options<GetSubjectsData, ThrowOnError>): RequestResult<GetSubjectsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetSubjectsResponses, unknown, ThrowOnError>({ url: '/subjects', ...options });
