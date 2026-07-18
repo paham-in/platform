@@ -68,9 +68,10 @@ function ForumDetail() {
       </div>
 
       {question.content && (
-        <article className="prose prose-sm dark:prose-invert mt-6 max-w-none">
-          {question.content}
-        </article>
+        <article
+          className="prose prose-sm dark:prose-invert mt-6 max-w-none"
+          dangerouslySetInnerHTML={{ __html: question.content }}
+        />
       )}
     </main>
   )

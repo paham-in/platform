@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
   AlertDialog,
+  AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
@@ -192,17 +193,15 @@ function AdminUsers() {
         </Card>
       </main>
 
-      <Dialog open={!!paymentDialog} onOpenChange={(open) => !open && setPaymentDialog(null)}>
+      {paymentDialog && <Dialog open onOpenChange={(open) => !open && setPaymentDialog(null)}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Ubah Status Pembayaran</DialogTitle>
           </DialogHeader>
           <div className="space-y-1">
-            {paymentDialog && (
-              <p className="text-sm text-muted-foreground">
-                {paymentDialog.name} — {paymentDialog.email}
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground">
+              {paymentDialog.name} — {paymentDialog.email}
+            </p>
           </div>
           <div className="space-y-2">
             <Label>Status</Label>
@@ -217,25 +216,21 @@ function AdminUsers() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setPaymentDialog(null)}>Batal</Button>
             <Button onClick={() => {
-              if (paymentDialog) {
-                updatePayment({ path: { id: paymentDialog.id! }, body: { status: paymentStatus } })
-              }
+              updatePayment({ path: { id: paymentDialog.id! }, body: { status: paymentStatus } })
             }}>Simpan</Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog>}
 
-      <Dialog open={!!editing} onOpenChange={(open) => !open && closeEdit()}>
+      {editing && <Dialog open onOpenChange={(open) => !open && closeEdit()}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Edit Role User</DialogTitle>
           </DialogHeader>
           <div className="space-y-1">
-            {editing && (
-              <p className="text-sm text-muted-foreground">
-                {editing.name} — {editing.email}
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground">
+              {editing.name} — {editing.email}
+            </p>
           </div>
           <div className="space-y-2">
             <Label>Role</Label>
@@ -253,30 +248,25 @@ function AdminUsers() {
             <Button onClick={save}>Simpan</Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog>}
 
-      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setDeleteConfirm(null)} />
-          <div className="relative z-50 w-full max-w-md rounded-lg border bg-card p-6 shadow-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Hapus User</AlertDialogTitle>
-              <AlertDialogDescription>
-                Apakah kamu yakin ingin menghapus <strong>{deleteConfirm?.name}</strong>? Aksi ini tidak dapat dibatalkan.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
-              <Button variant="destructive" onClick={() => {
-                if (deleteConfirm) {
-                  deleteUser({ path: { id: deleteConfirm.id! } })
-                  setDeleteConfirm(null)
-                }
-              }}>Hapus</Button>
-            </AlertDialogFooter>
-          </div>
-        </div>
-      </AlertDialog>
+      {deleteConfirm && <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus User</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah kamu yakin ingin menghapus <strong>{deleteConfirm.name}</strong>? Aksi ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
+            <Button variant="destructive" onClick={() => {
+              deleteUser({ path: { id: deleteConfirm.id! } })
+              setDeleteConfirm(null)
+            }}>Hapus</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>}
     </>
   )
 }

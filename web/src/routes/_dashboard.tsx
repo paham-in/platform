@@ -26,6 +26,7 @@ import { useState } from "react";
 import { useTheme } from "@/components/theme-provider";
 import {
   AlertDialog,
+  AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogDescription,
@@ -160,16 +161,18 @@ function DashboardLayout() {
       </div>
 
       <AlertDialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Yakin mau logout?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Kamu akan keluar dari akun ini dan perlu login lagi untuk mengakses dashboard.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <Button variant="outline" onClick={() => setLogoutConfirmOpen(false)}>Batal</Button>
-          <Button variant="destructive" onClick={confirmLogout}>Logout</Button>
-        </AlertDialogFooter>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Yakin mau logout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Kamu akan keluar dari akun ini dan perlu login lagi untuk mengakses dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setLogoutConfirmOpen(false)}>Batal</Button>
+            <Button variant="destructive" onClick={confirmLogout}>Logout</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </div>
   );

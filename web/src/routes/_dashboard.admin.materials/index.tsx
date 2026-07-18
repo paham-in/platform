@@ -1,4 +1,4 @@
-import { AlertDialog, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -215,25 +215,27 @@ function AdminMaterials() {
       </main>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Konfirmasi Status</AlertDialogTitle>
-          <AlertDialogDescription>
-            {pendingStatus?.status === "published"
-              ? "Publikasikan materi ini agar bisa dilihat oleh murid?"
-              : "Ubah materi menjadi draft (tidak tampil di murid)?"}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <Button variant="outline" onClick={() => setConfirmOpen(false)}>Batal</Button>
-          <Button onClick={() => {
-            if (pendingStatus) {
-              toggleStatus({ path: { id: pendingStatus.id }, body: { status: pendingStatus.status } });
-            }
-            setConfirmOpen(false);
-          }}>
-            {pendingStatus?.status === "published" ? "Publikasikan" : "Draft"}
-          </Button>
-        </AlertDialogFooter>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Status</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingStatus?.status === "published"
+                ? "Publikasikan materi ini agar bisa dilihat oleh murid?"
+                : "Ubah materi menjadi draft (tidak tampil di murid)?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Batal</Button>
+            <Button onClick={() => {
+              if (pendingStatus) {
+                toggleStatus({ path: { id: pendingStatus.id }, body: { status: pendingStatus.status } });
+              }
+              setConfirmOpen(false);
+            }}>
+              {pendingStatus?.status === "published" ? "Publikasikan" : "Draft"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </>
   );
