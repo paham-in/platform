@@ -30,8 +30,15 @@ function SettingsPage() {
 
   if (user && !initialized) {
     setName(user.name ?? "")
-    setClassId(user.class_id ? String(user.class_id) : "none")
-    setInitialized(true)
+    if (user.class_id) {
+      const found = classes.find((c) => c.id === user.class_id)
+      setClassId(String(user.class_id))
+      // only mark init after classes loaded so SelectItem exists
+      if (found || classes.length === 0) setInitialized(true)
+    } else {
+      setClassId("none")
+      setInitialized(true)
+    }
   }
 
   const updateProfile = useMutation({
@@ -75,7 +82,7 @@ function SettingsPage() {
           <div className="space-y-2">
             <Label htmlFor="class">Kelas</Label>
             <Select value={classId} onValueChange={(v) => setClassId(v ?? "none")}>
-              <SelectTrigger id="class">
+              <SelectTrigger id="class" className="w-full">
                 <SelectValue placeholder="Pilih kelas" />
               </SelectTrigger>
               <SelectContent>
