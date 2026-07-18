@@ -169,6 +169,7 @@ export type UserMessageResponse = {
 
 export type UserUserResponse = {
     avatar_url?: string;
+    class_id?: number;
     email?: string;
     id?: number;
     name?: string;
@@ -888,6 +889,36 @@ export type GetMeResponses = {
 };
 
 export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
+
+export type PatchMeData = {
+    /**
+     * Data profile
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path?: never;
+    query?: never;
+    url: '/me';
+};
+
+export type PatchMeErrors = {
+    /**
+     * Bad Request
+     */
+    400: UserErrorResponse;
+};
+
+export type PatchMeError = PatchMeErrors[keyof PatchMeErrors];
+
+export type PatchMeResponses = {
+    /**
+     * OK
+     */
+    200: UserUserResponse;
+};
+
+export type PatchMeResponse = PatchMeResponses[keyof PatchMeResponses];
 
 export type GetQuestionsData = {
     body?: never;

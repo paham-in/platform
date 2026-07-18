@@ -10,12 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { getClassesOptions, getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
+import {
+  getClassesOptions,
+  getMeOptions,
+  patchMeMutation,
+} from "@/lib/api/@tanstack/react-query.gen"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { Loader2, Save } from "lucide-react"
 
-// ponyTail: replace with generated `patchMeMutation()` after `npx @hey-api/openapi-ts`
 function SettingsPage() {
   const qc = useQueryClient()
   const { data: user, isLoading: userLoading } = useQuery(getMeOptions())
@@ -27,24 +30,12 @@ function SettingsPage() {
 
   if (user && !initialized) {
     setName(user.name ?? "")
-    setClassId((user as any).class_id ? String((user as any).class_id) : "none")
+    setClassId(user.class_id ? String(user.class_id) : "none")
     setInitialized(true)
   }
 
   const updateProfile = useMutation({
-    mutationFn: async (body: { name?: string; class_id?: number | null }) => {
-      const token = localStorage.getItem("token")
-      const res = await fetch("http://localhost:8080/me", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
-      })
-      if (!res.ok) throw new Error("gagal update profile")
-      return res.json()
-    },
+    ...patchMeMutation(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["me"] })
     },
@@ -59,12 +50,12 @@ function SettingsPage() {
   }
 
   const handleSave = () => {
-    const body: { name?: string; class_id?: number | null } = {}
+    const body: Record<string, unknown> = {}
     if (name !== user?.name) body.name = name
     const parsedClassId = classId === "none" ? null : Number(classId)
     if (parsedClassId !== (user as any)?.class_id) body.class_id = parsedClassId
     if (Object.keys(body).length === 0) return
-    updateProfile.mutate(body)
+    updateProfile.mutate({ body })
   }
 
   return (
