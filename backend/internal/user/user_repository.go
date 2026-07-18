@@ -62,6 +62,14 @@ func (r *UserRepository) UpdateGoogleID(id uint, googleID string) error {
 	return r.db.Model(&models.User{}).Where("id = ?", id).Update("google_id", googleID).Error
 }
 
+func (r *UserRepository) UpdateName(id uint, name string) error {
+	return r.db.Model(&models.User{}).Where("id = ?", id).Update("name", name).Error
+}
+
+func (r *UserRepository) UpdateClassID(id uint, classID uint) error {
+	return r.db.Model(&models.User{}).Where("id = ?", id).Update("class_id", classID).Error
+}
+
 func (r *UserRepository) GetByGoogleID(googleID string) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("google_id = ?", googleID).First(&user).Error; err != nil {

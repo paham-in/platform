@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
@@ -11,6 +11,7 @@ import {
 import {
   getChaptersOptions,
   getClassesOptions,
+  getMeOptions,
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
@@ -21,9 +22,20 @@ function MaterialsPage() {
   const { data: chapters = [], isLoading } = useQuery(getChaptersOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const { data: classes = [] } = useQuery(getClassesOptions())
+  const { data: user } = useQuery(getMeOptions())
   const [search, setSearch] = useState("")
   const [classFilter, setClassFilter] = useState("all")
   const [subjectFilter, setSubjectFilter] = useState("all")
+  const [filterInited, setFilterInited] = useState(false)
+
+  useEffect(() => {
+    if (filterInited) return
+    const cid = (user as any)?.class_id
+    if (cid) {
+      setClassFilter(String(cid))
+      setFilterInited(true)
+    }
+  }, [user, filterInited])
 
   const filtered = chapters.filter((c) => {
     const matchSearch = (c.title ?? "").toLowerCase().includes(search.toLowerCase())

@@ -58,6 +58,7 @@ func main() {
 
 	// Authenticated routes (any role with valid session)
 	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))
+	user.AuthRoutes(auth, db)
 	class.PublicRoutes(auth, db)
 	chapter.PublicRoutes(auth, db)
 	material.PublicRoutes(auth, db)

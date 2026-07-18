@@ -17,6 +17,7 @@ import {
   LogOut,
   Menu,
   Moon,
+  Settings,
   Sun,
   Users,
   X,
@@ -123,6 +124,14 @@ function DashboardLayout() {
         </nav>
 
         <div className="mt-auto space-y-1 border-t pt-4">
+          <Link
+            to="/settings"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            activeProps={{ className: "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted" }}
+            onClick={() => setMobileOpen(false)}
+          >
+            <Settings className="h-4 w-4" /> Pengaturan
+          </Link>
           <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-muted-foreground" onClick={() => setLogoutConfirmOpen(true)} disabled={logout.isPending}>
             <LogOut className="h-4 w-4" /> {logout.isPending ? "..." : "Keluar"}
           </Button>

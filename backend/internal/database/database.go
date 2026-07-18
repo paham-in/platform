@@ -1,4 +1,4 @@
-package database
+﻿package database
 
 import (
 	"fmt"
@@ -32,13 +32,13 @@ func Connect(cfg *config.Config) *gorm.DB {
 func Migrate(db *gorm.DB) {
 	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{})
 
-	// migrate existing chapters table — add class_id column
+	// migrate existing chapters table â€” add class_id column
 	if !db.Migrator().HasColumn(&models.Chapter{}, "class_id") {
 		db.Exec("ALTER TABLE chapters ADD COLUMN class_id BIGINT NOT NULL DEFAULT 0")
 		db.Exec("CREATE INDEX idx_chapters_class_id ON chapters(class_id)")
 	}
 
-	// migrate unique index — from slug-only to composite (class_id, subject_id, slug)
+	// migrate unique index â€” from slug-only to composite (class_id, subject_id, slug)
 	if db.Migrator().HasIndex(&models.Chapter{}, "idx_chapters_slug") {
 		db.Migrator().DropIndex(&models.Chapter{}, "idx_chapters_slug")
 	}
@@ -60,10 +60,11 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE materials ADD COLUMN author_id BIGINT NOT NULL DEFAULT 0")
 	}
 
-	// migrate existing users — add payment_status
+	// migrate existing users â€” add payment_status
 	if !db.Migrator().HasColumn(&models.User{}, "payment_status") {
 		db.Exec("ALTER TABLE users ADD COLUMN payment_status VARCHAR(20) DEFAULT 'pending'")
 	}
 
 	log.Println("Migration completed")
 }
+

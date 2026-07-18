@@ -141,6 +141,39 @@ func (h *Handler) AdminDeleteUser(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "user berhasil dihapus"})
 }
 
+// UpdateProfile mengubah nama dan kelas user saat ini
+// @Summary      Update profile
+// @Description  Mengubah nama dan/atau kelas user yang sedang login
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body body object true "Data profile"
+// @Success      200 {object} UserResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /me [patch]
+func (h *Handler) UpdateProfile(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok {
+		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
+	}
+
+	var input struct {
+		Name    *string `json:"name"`
+		ClassID *uint   `json:"class_id"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+
+	user, err := h.svc.UpdateProfile(userID, UpdateProfileInput{Name: input.Name, ClassID: input.ClassID})
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+
+	return c.JSON(user)
+}
+
 // AdminTogglePayment mengubah status pembayaran user
 // @Summary      Toggle payment status
 // @Description  Mengubah status pembayaran user (pending/paid)
@@ -186,6 +219,15 @@ func Routes(app fiber.Router, db *gorm.DB) {
 
 	app.Post("/logout", h.Logout)
 	app.Get("/me", h.Me)
+}
+
+func AuthRoutes(auth fiber.Router, db *gorm.DB) {
+	userRepo := NewUserRepository(db)
+	sessionRepo := NewSessionRepository(db)
+	svc := NewService(userRepo, sessionRepo)
+	h := NewHandler(svc)
+
+	auth.Patch("/me", h.UpdateProfile)
 }
 
 func OAuthRoutes(app fiber.Router, db *gorm.DB, cfg *config.Config) {

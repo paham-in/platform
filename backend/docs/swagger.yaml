@@ -265,6 +265,8 @@ definitions:
     properties:
       avatar_url:
         type: string
+      class_id:
+        type: integer
       email:
         type: string
       id:
@@ -990,6 +992,33 @@ paths:
       security:
       - BearerAuth: []
       summary: Current user
+      tags:
+      - Auth
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah nama dan/atau kelas user yang sedang login
+      parameters:
+      - description: Data profile
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update profile
       tags:
       - Auth
   /questions:

@@ -23,6 +23,7 @@ type UserResponse struct {
 	Role          string `json:"role"`
 	AvatarURL     string `json:"avatar_url"`
 	PaymentStatus string `json:"payment_status"`
+	ClassID       *uint  `json:"class_id"`
 }
 
 type AdminUserResponse struct {
@@ -174,6 +175,31 @@ func (s *Service) UpdatePaymentStatus(id uint, status string) error {
 	return s.userRepo.UpdatePaymentStatus(id, status)
 }
 
+type UpdateProfileInput struct {
+	Name    *string `json:"name"`
+	ClassID *uint   `json:"class_id"`
+}
+
+func (s *Service) UpdateProfile(id uint, input UpdateProfileInput) (*UserResponse, error) {
+	if input.Name != nil {
+		if err := s.userRepo.UpdateName(id, *input.Name); err != nil {
+			return nil, errInternal
+		}
+	}
+	if input.ClassID != nil {
+		if err := s.userRepo.UpdateClassID(id, *input.ClassID); err != nil {
+			return nil, errInternal
+		}
+	}
+
+	user, err := s.userRepo.Get(id)
+	if err != nil {
+		return nil, errNotFound
+	}
+	resp := toResponse(*user)
+	return &resp, nil
+}
+
 func (s *Service) DeleteUser(id uint) error {
 	return s.userRepo.Delete(id)
 }
@@ -186,5 +212,6 @@ func toResponse(u models.User) UserResponse {
 		Role:          u.Role,
 		AvatarURL:     u.AvatarURL,
 		PaymentStatus: u.PaymentStatus,
+		ClassID:       u.ClassID,
 	}
 }
