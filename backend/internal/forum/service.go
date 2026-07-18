@@ -43,6 +43,10 @@ func (s *Service) Delete(id, userID uint) error {
 	return s.repo.Delete(id)
 }
 
+func (s *Service) GetByID(id uint) (*models.Question, error) {
+	return s.repo.GetByID(id)
+}
+
 func (s *Service) GetUser(userID uint) (*models.User, error) {
 	return s.repo.GetUserByID(userID)
 }

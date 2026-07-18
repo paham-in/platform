@@ -92,6 +92,46 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
+// GetQuestion mengambil detail pertanyaan
+// @Summary      Get question
+// @Description  Mengembalikan detail pertanyaan berdasarkan ID
+// @Tags         Forum
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "Question ID"
+// @Success      200 {object} QuestionResponse
+// @Failure      404 {object} ErrorResponse
+// @Router       /questions/{id} [get]
+func (h *Handler) GetQuestion(c *fiber.Ctx) error {
+	userID := userIDFrom(c)
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+
+	question, err := h.svc.GetByID(uint(id))
+	if err != nil {
+		return c.Status(404).JSON(ErrorResponse{Error: "pertanyaan tidak ditemukan"})
+	}
+
+	r := QuestionResponse{
+		ID:        question.ID,
+		Title:     question.Title,
+		Content:   question.Content,
+		Status:    question.Status,
+		Upvotes:   question.Upvotes,
+		UserName:  question.User.Name,
+		UserAvatar: question.User.AvatarURL,
+		SubjectID: question.SubjectID,
+		IsOwner:   question.UserID == userID,
+		CreatedAt: question.CreatedAt.Format("2006-01-02 15:04"),
+	}
+	if question.Subject.Name != "" {
+		r.SubjectName = question.Subject.Name
+	}
+	return c.JSON(r)
+}
+
 // CreateQuestion membuat pertanyaan baru
 // @Summary      Create question
 // @Description  Membuat pertanyaan baru
@@ -185,6 +225,7 @@ func Routes(app fiber.Router, db *gorm.DB) {
 	h := NewHandler(svc)
 
 	app.Get("/questions", middleware.OptionalSessionResolver(db), h.ListQuestions)
+	app.Get("/questions/:id", middleware.OptionalSessionResolver(db), h.GetQuestion)
 
 	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))
 	auth.Post("/questions", h.CreateQuestion)

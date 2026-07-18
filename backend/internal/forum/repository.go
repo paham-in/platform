@@ -31,7 +31,7 @@ func (r *Repository) List(subjectID, userID *uint) ([]models.Question, error) {
 
 func (r *Repository) GetByID(id uint) (*models.Question, error) {
 	var q models.Question
-	if err := r.db.First(&q, id).Error; err != nil {
+	if err := r.db.Preload("User").Preload("Subject").First(&q, id).Error; err != nil {
 		return nil, err
 	}
 	return &q, nil

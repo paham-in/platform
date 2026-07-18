@@ -23,7 +23,6 @@ import {
   Plus,
   Search,
   MessageSquare,
-  ChevronDown,
   Trash2,
 } from "lucide-react"
 
@@ -34,7 +33,6 @@ function ForumPage() {
   const [search, setSearch] = useState("")
   const [subjectFilter, setSubjectFilter] = useState("all")
   const [mineOnly, setMineOnly] = useState(false)
-  const [expandedId, setExpandedId] = useState<number | null>(null)
 
   const { mutate: deleteQuestion } = useMutation({
     ...deleteQuestionsByIdMutation(),
@@ -113,7 +111,7 @@ function ForumPage() {
         </Button>
       </div>
 
-      <div className="space-y-4">
+      <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
         {filtered.length === 0 && (
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground">
@@ -122,71 +120,53 @@ function ForumPage() {
           </Card>
         )}
         {filtered.map((q) => (
-          <Card key={q.id} className="overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="mb-2 flex items-center gap-2">
+          <Link key={q.id} to="/forum/$id" params={{ id: String(q.id!) }}>
+            <Card className="overflow-hidden transition-colors hover:bg-muted/50">
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     <StatusBadge status={q.status ?? "open"} />
                     {q.subject_name && (
-                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                         {q.subject_name}
                       </span>
                     )}
                   </div>
-                  <h3
-                    className="cursor-pointer text-lg font-semibold hover:text-primary"
-                    onClick={() => setExpandedId(expandedId === q.id ? null : q.id!)}
-                  >
-                    {q.title}
-                  </h3>
-                  <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground">
-                    {q.user_avatar ? (
-                      <img src={q.user_avatar} alt="" className="h-5 w-5 rounded-full" />
-                    ) : (
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                        {q.user_name?.[0]}
-                      </div>
-                    )}
-                    <span>{q.user_name}</span>
-                    <span>•</span>
-                    <span>{q.created_at}</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <MessageSquare className="h-3 w-3" />
-                      {q.upvotes}
-                    </span>
-                  </div>
-                  {expandedId === q.id && (
-                    <div className="mt-4 rounded-lg bg-muted/50 p-4 text-sm">
-                      {q.content}
-                    </div>
+                  {q.is_owner && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="mt-0.5 h-6 w-6 shrink-0 text-destructive hover:text-destructive"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        deleteQuestion({ path: { id: q.id! } })
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   )}
                 </div>
-                {q.is_owner && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive shrink-0"
-                    onClick={() => deleteQuestion({ path: { id: q.id! } })}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              {expandedId !== q.id && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mt-2 text-muted-foreground"
-                  onClick={() => setExpandedId(q.id!)}
-                >
-                  <ChevronDown className="mr-1 h-4 w-4" />
-                  Tampilkan jawaban
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+
+                <h3 className="mt-3 font-semibold leading-snug">{q.title}</h3>
+
+                <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                  {q.user_avatar ? (
+                    <img src={q.user_avatar} alt="" className="h-4 w-4 rounded-full" />
+                  ) : (
+                    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                      {q.user_name?.[0]}
+                    </div>
+                  )}
+                  <span className="truncate">{q.user_name}</span>
+                  <span>•</span>
+                  <span className="flex items-center gap-0.5">
+                    <MessageSquare className="h-3 w-3" />
+                    {q.upvotes}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
     </main>

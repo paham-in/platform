@@ -990,6 +990,36 @@ export type DeleteQuestionsByIdResponses = {
 
 export type DeleteQuestionsByIdResponse = DeleteQuestionsByIdResponses[keyof DeleteQuestionsByIdResponses];
 
+export type GetQuestionsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Question ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/questions/{id}';
+};
+
+export type GetQuestionsByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: ForumErrorResponse;
+};
+
+export type GetQuestionsByIdError = GetQuestionsByIdErrors[keyof GetQuestionsByIdErrors];
+
+export type GetQuestionsByIdResponses = {
+    /**
+     * OK
+     */
+    200: ForumQuestionResponse;
+};
+
+export type GetQuestionsByIdResponse = GetQuestionsByIdResponses[keyof GetQuestionsByIdResponses];
+
 export type GetSubjectsData = {
     body?: never;
     path?: never;

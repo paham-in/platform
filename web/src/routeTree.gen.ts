@@ -18,6 +18,7 @@ import { Route as DashboardDashboardRouteImport } from './routes/_dashboard.dash
 import { Route as DashboardMaterialsIndexRouteImport } from './routes/_dashboard.materials/index'
 import { Route as DashboardForumIndexRouteImport } from './routes/_dashboard.forum/index'
 import { Route as DashboardForumNewRouteImport } from './routes/_dashboard.forum/new'
+import { Route as DashboardForumIdRouteImport } from './routes/_dashboard.forum/$id'
 import { Route as DashboardAdminUsersRouteImport } from './routes/_dashboard.admin.users'
 import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard.admin.subjects'
 import { Route as DashboardAdminClassesRouteImport } from './routes/_dashboard.admin.classes'
@@ -70,6 +71,11 @@ const DashboardForumIndexRoute = DashboardForumIndexRouteImport.update({
 const DashboardForumNewRoute = DashboardForumNewRouteImport.update({
   id: '/forum/new',
   path: '/forum/new',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardForumIdRoute = DashboardForumIdRouteImport.update({
+  id: '/forum/$id',
+  path: '/forum/$id',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAdminUsersRoute = DashboardAdminUsersRouteImport.update({
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/admin/classes': typeof DashboardAdminClassesRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/users': typeof DashboardAdminUsersRoute
+  '/forum/$id': typeof DashboardForumIdRoute
   '/forum/new': typeof DashboardForumNewRoute
   '/forum/': typeof DashboardForumIndexRoute
   '/materials/': typeof DashboardMaterialsIndexRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/admin/classes': typeof DashboardAdminClassesRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/users': typeof DashboardAdminUsersRoute
+  '/forum/$id': typeof DashboardForumIdRoute
   '/forum/new': typeof DashboardForumNewRoute
   '/forum': typeof DashboardForumIndexRoute
   '/materials': typeof DashboardMaterialsIndexRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/_dashboard/admin/classes': typeof DashboardAdminClassesRoute
   '/_dashboard/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/_dashboard/admin/users': typeof DashboardAdminUsersRoute
+  '/_dashboard/forum/$id': typeof DashboardForumIdRoute
   '/_dashboard/forum/new': typeof DashboardForumNewRoute
   '/_dashboard/forum/': typeof DashboardForumIndexRoute
   '/_dashboard/materials/': typeof DashboardMaterialsIndexRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/admin/classes'
     | '/admin/subjects'
     | '/admin/users'
+    | '/forum/$id'
     | '/forum/new'
     | '/forum/'
     | '/materials/'
@@ -213,6 +223,7 @@ export interface FileRouteTypes {
     | '/admin/classes'
     | '/admin/subjects'
     | '/admin/users'
+    | '/forum/$id'
     | '/forum/new'
     | '/forum'
     | '/materials'
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/_dashboard/admin/classes'
     | '/_dashboard/admin/subjects'
     | '/_dashboard/admin/users'
+    | '/_dashboard/forum/$id'
     | '/_dashboard/forum/new'
     | '/_dashboard/forum/'
     | '/_dashboard/materials/'
@@ -315,6 +327,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardForumNewRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/forum/$id': {
+      id: '/_dashboard/forum/$id'
+      path: '/forum/$id'
+      fullPath: '/forum/$id'
+      preLoaderRoute: typeof DashboardForumIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/admin/users': {
       id: '/_dashboard/admin/users'
       path: '/admin/users'
@@ -388,6 +407,7 @@ interface DashboardRouteChildren {
   DashboardAdminClassesRoute: typeof DashboardAdminClassesRoute
   DashboardAdminSubjectsRoute: typeof DashboardAdminSubjectsRoute
   DashboardAdminUsersRoute: typeof DashboardAdminUsersRoute
+  DashboardForumIdRoute: typeof DashboardForumIdRoute
   DashboardForumNewRoute: typeof DashboardForumNewRoute
   DashboardForumIndexRoute: typeof DashboardForumIndexRoute
   DashboardMaterialsIndexRoute: typeof DashboardMaterialsIndexRoute
@@ -405,6 +425,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminClassesRoute: DashboardAdminClassesRoute,
   DashboardAdminSubjectsRoute: DashboardAdminSubjectsRoute,
   DashboardAdminUsersRoute: DashboardAdminUsersRoute,
+  DashboardForumIdRoute: DashboardForumIdRoute,
   DashboardForumNewRoute: DashboardForumNewRoute,
   DashboardForumIndexRoute: DashboardForumIndexRoute,
   DashboardMaterialsIndexRoute: DashboardMaterialsIndexRoute,

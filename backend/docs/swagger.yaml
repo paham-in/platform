@@ -1093,6 +1093,30 @@ paths:
       summary: Delete question
       tags:
       - Forum
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan detail pertanyaan berdasarkan ID
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/forum.QuestionResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/forum.ErrorResponse'
+      summary: Get question
+      tags:
+      - Forum
   /subjects:
     get:
       consumes:
