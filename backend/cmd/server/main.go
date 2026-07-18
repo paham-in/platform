@@ -69,6 +69,7 @@ func main() {
 	chapter.AdminRoutes(admin, db)
 	subject.AdminRoutes(admin, db)
 	material.AdminRoutes(admin, db)
+	forum.AdminRoutes(admin, db)
 
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)

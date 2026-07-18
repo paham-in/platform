@@ -43,6 +43,14 @@ func (s *Service) Delete(id, userID uint) error {
 	return s.repo.Delete(id)
 }
 
+func (s *Service) AdminDelete(id uint) error {
+	_, err := s.repo.GetByID(id)
+	if err != nil {
+		return errors.New("pertanyaan tidak ditemukan")
+	}
+	return s.repo.Delete(id)
+}
+
 func (s *Service) GetByID(id uint) (*models.Question, error) {
 	return s.repo.GetByID(id)
 }

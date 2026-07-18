@@ -519,6 +519,61 @@ export type PatchAdminMaterialsByIdResponses = {
 
 export type PatchAdminMaterialsByIdResponse = PatchAdminMaterialsByIdResponses[keyof PatchAdminMaterialsByIdResponses];
 
+export type GetAdminQuestionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/questions';
+};
+
+export type GetAdminQuestionsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ForumErrorResponse;
+};
+
+export type GetAdminQuestionsError = GetAdminQuestionsErrors[keyof GetAdminQuestionsErrors];
+
+export type GetAdminQuestionsResponses = {
+    /**
+     * OK
+     */
+    200: Array<ForumQuestionResponse>;
+};
+
+export type GetAdminQuestionsResponse = GetAdminQuestionsResponses[keyof GetAdminQuestionsResponses];
+
+export type DeleteAdminQuestionsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Question ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/questions/{id}';
+};
+
+export type DeleteAdminQuestionsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: ForumErrorResponse;
+};
+
+export type DeleteAdminQuestionsByIdError = DeleteAdminQuestionsByIdErrors[keyof DeleteAdminQuestionsByIdErrors];
+
+export type DeleteAdminQuestionsByIdResponses = {
+    /**
+     * OK
+     */
+    200: Array<ForumQuestionResponse>;
+};
+
+export type DeleteAdminQuestionsByIdResponse = DeleteAdminQuestionsByIdResponses[keyof DeleteAdminQuestionsByIdResponses];
+
 export type PostAdminSubjectsData = {
     /**
      * Data subject

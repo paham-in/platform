@@ -629,6 +629,70 @@ paths:
       summary: Update material
       tags:
       - Admin
+  /admin/questions:
+    get:
+      consumes:
+      - application/json
+      - application/json
+      description: |-
+        Menghapus pertanyaan (admin)
+        Mengembalikan daftar semua pertanyaan (admin)
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/forum.QuestionResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/forum.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Admin list questions
+      tags:
+      - Admin
+      - Admin
+  /admin/questions/{id}:
+    delete:
+      consumes:
+      - application/json
+      - application/json
+      description: |-
+        Menghapus pertanyaan (admin)
+        Mengembalikan daftar semua pertanyaan (admin)
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/forum.QuestionResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/forum.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Admin list questions
+      tags:
+      - Admin
+      - Admin
   /admin/subjects:
     post:
       consumes:

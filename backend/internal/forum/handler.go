@@ -219,6 +219,51 @@ type CreateQuestionInput struct {
 	SubjectID *uint  `json:"subject_id,omitempty"`
 }
 
+// AdminDeleteQuestion menghapus pertanyaan (admin)
+// @Summary      Admin delete question
+// @Description  Menghapus pertanyaan (admin)
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Question ID"
+// @Success      200 {object} MessageResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/questions/{id} [delete]
+// AdminListQuestions mengembalikan daftar pertanyaan (admin)
+// @Summary      Admin list questions
+// @Description  Mengembalikan daftar semua pertanyaan (admin)
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} QuestionResponse
+// @Router       /admin/questions [get]
+func (h *Handler) AdminListQuestions(c *fiber.Ctx) error {
+	return h.ListQuestions(c)
+}
+
+func (h *Handler) AdminDeleteQuestion(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+
+	if err := h.svc.AdminDelete(uint(id)); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(MessageResponse{Message: "berhasil dihapus"})
+}
+
+func AdminRoutes(admin fiber.Router, db *gorm.DB) {
+	repo := NewRepository(db)
+	svc := NewService(repo)
+	h := NewHandler(svc)
+
+	admin.Get("/questions", h.AdminListQuestions)
+	admin.Delete("/questions/:id", h.AdminDeleteQuestion)
+}
+
 func Routes(app fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	svc := NewService(repo)

@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquare,
   Moon,
   Settings,
   Sun,
@@ -44,6 +45,7 @@ const sidebarLinks = [
   { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects", roles: ["admin"] },
   { label: "Chapter", icon: BookOpen, to: "/admin/chapters", roles: ["admin"] },
   { label: "Materi", icon: FileText, to: "/admin/materials", roles: ["admin"] },
+  { label: "Forum", icon: MessageSquare, to: "/admin/forum", roles: ["admin"] },
 ];
 
 export const Route = createFileRoute("/_dashboard")({
