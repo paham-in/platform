@@ -70,7 +70,7 @@ export function TiptapEditor({
       <Toolbar editor={editor} />
       <EditorContent
         editor={editor}
-        className="prose prose-sm max-w-none p-4 focus:outline-none [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:outline-none"
+        className="prose prose-sm dark:prose-invert max-w-none p-4 focus:outline-none [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:outline-none"
       />
     </div>
   );

@@ -36,7 +36,7 @@ function MaterialDetail() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
+    <main className="w-full max-w-3xl p-6">
       <Link
         to="/materials/chapters/$id"
         params={{ id: chapterId }}
@@ -57,7 +57,7 @@ function MaterialDetail() {
 
       {material.content && (
         <article
-          className="prose prose-sm max-w-none"
+          className="prose prose-sm dark:prose-invert max-w-none"
           dangerouslySetInnerHTML={{ __html: material.content }}
         />
       )}
