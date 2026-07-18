@@ -16,7 +16,8 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Loader2, Search, BookOpen, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Loader2, Search, BookOpen, ChevronRight, GraduationCap, Layers } from "lucide-react"
 
 function MaterialsPage() {
   const { data: chapters = [], isLoading } = useQuery(getChaptersOptions())
@@ -108,20 +109,31 @@ function MaterialsPage() {
         {filtered.map((c) => (
           <Link key={c.id} to="/materials/chapters/$id" params={{ id: String(c.id!) }}>
             <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <CardContent className="p-5">
+                <div className="flex gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                     <BookOpen className="h-5 w-5 text-primary" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h3 className="font-semibold">{c.title}</h3>
-                    <p className="mt-0.5 text-sm text-muted-foreground">
-                      {className(c.class_id)} • {subjectName(c.subject_id)}
-                      {c.material_count ? ` • ${c.material_count} materi` : ""}
-                    </p>
+                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1">
+                        <GraduationCap className="h-3 w-3" />
+                        {className(c.class_id)}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Layers className="h-3 w-3" />
+                        {subjectName(c.subject_id)}
+                      </span>
+                      {c.material_count ? (
+                        <span>{c.material_count} materi</span>
+                      ) : null}
+                    </div>
+                    <Button variant="link" size="sm" className="mt-2 h-auto p-0 text-xs">
+                      Lihat <ChevronRight className="ml-0.5 h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </CardContent>
             </Card>
           </Link>
