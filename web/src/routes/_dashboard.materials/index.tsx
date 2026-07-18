@@ -71,7 +71,9 @@ function MaterialsPage() {
         </div>
         <Select value={classFilter} onValueChange={(v) => { setClassFilter(v ?? "all"); setSubjectFilter("all") }}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter Kelas" />
+            <SelectValue placeholder="Filter Kelas">
+              {classFilter === "all" ? "Semua Kelas" : classes.find((c) => String(c.id) === classFilter)?.name}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Semua Kelas</SelectItem>
@@ -82,7 +84,9 @@ function MaterialsPage() {
         </Select>
         <Select value={subjectFilter} onValueChange={(v) => setSubjectFilter(v ?? "all")}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter Subjek" />
+            <SelectValue placeholder="Filter Subjek">
+              {subjectFilter === "all" ? "Semua Subjek" : subjects.find((s) => String(s.id) === subjectFilter)?.name}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Semua Subjek</SelectItem>
@@ -93,7 +97,7 @@ function MaterialsPage() {
         </Select>
       </div>
 
-      <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.length === 0 && (
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground">
