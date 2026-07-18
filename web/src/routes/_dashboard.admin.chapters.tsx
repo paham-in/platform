@@ -1,6 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -39,12 +47,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  MoreVertical,
   Pencil,
   Plus,
   Search,
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 function AdminChapters() {
   const qc = useQueryClient();
@@ -56,6 +71,7 @@ function AdminChapters() {
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<ChapterChapterResponse | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<ChapterChapterResponse | null>(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -319,23 +335,19 @@ function AdminChapters() {
                     </TableCell>
                     <TableCell>{c.material_count}</TableCell>
                     <TableCell className="pr-6 text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEdit(c)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => deleteChapter({ path: { id: c.id! } })}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
+                            <MoreVertical className="h-4 w-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => openEdit(c)}>
+                            <Pencil className="h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDeleteConfirm(c)}>
+                            <Trash2 className="h-4 w-4" /> Hapus
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -379,6 +391,24 @@ function AdminChapters() {
           )}
         </Card>
       </main>
+
+      {deleteConfirm && <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Chapter</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah kamu yakin ingin menghapus <strong>{deleteConfirm.title}</strong>? Aksi ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
+            <Button variant="destructive" onClick={() => {
+              deleteChapter({ path: { id: deleteConfirm.id! } })
+              setDeleteConfirm(null)
+            }}>Hapus</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>}
     </>
   );
 }

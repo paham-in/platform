@@ -159,7 +159,7 @@ function AdminUsers() {
                     <TableCell className="text-muted-foreground">{u.created_at}</TableCell>
                     <TableCell className="pr-6 text-right">
                       <DropdownMenu>
-                        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+                        <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
                             <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>

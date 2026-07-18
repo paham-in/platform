@@ -35,12 +35,19 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  MoreVertical,
   Pencil,
   Plus,
   Search,
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 function AdminMaterials() {
   const qc = useQueryClient();
@@ -54,6 +61,7 @@ function AdminMaterials() {
   const perPage = 5;
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<{ id: number; status: string } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
 
   const { mutate: deleteMaterial } = useMutation({
     ...deleteAdminMaterialsByIdMutation(),
@@ -161,29 +169,27 @@ function AdminMaterials() {
                         </span>
                       </TableCell>
                       <TableCell className="pr-6 text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost" size="icon"
-                            onClick={() => {
+                        <DropdownMenu>
+                          <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
+                              <MoreVertical className="h-4 w-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => {
                               setPendingStatus({ id: m.id!, status: m.status === "published" ? "draft" : "published" });
                               setConfirmOpen(true);
-                            }}
-                          >
-                            {m.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </Button>
-                          <Link to="/admin/materials/$id/edit" params={{ id: String(m.id!) }}>
-                            <Button variant="ghost" size="icon">
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                          <Button
-                            variant="ghost" size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => deleteMaterial({ path: { id: m.id! } })}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                            }}>
+                              {m.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {m.status === "published" ? "Draft" : "Publikasikan"}
+                            </DropdownMenuItem>
+                            <Link to="/admin/materials/$id/edit" params={{ id: String(m.id!) }}>
+                              <DropdownMenuItem>
+                                <Pencil className="h-4 w-4" /> Edit
+                              </DropdownMenuItem>
+                            </Link>
+                            <DropdownMenuItem onClick={() => setDeleteConfirm({ id: m.id!, name: m.title! })}>
+                              <Trash2 className="h-4 w-4" /> Hapus
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   );
@@ -213,6 +219,24 @@ function AdminMaterials() {
           )}
         </Card>
       </main>
+
+      {deleteConfirm && <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Materi</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah kamu yakin ingin menghapus <strong>{deleteConfirm.name}</strong>? Aksi ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
+            <Button variant="destructive" onClick={() => {
+              deleteMaterial({ path: { id: deleteConfirm.id } })
+              setDeleteConfirm(null)
+            }}>Hapus</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
