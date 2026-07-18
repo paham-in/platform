@@ -148,146 +148,146 @@ function AdminChapters() {
     <>
       <main className="p-6">
         <h1 className="mb-4 text-2xl font-bold tracking-tight">Chapter</h1>
-        <Card>
-          <div className="flex flex-wrap items-center justify-between gap-4 px-(--card-spacing) py-3">
-            <div className="flex flex-1 flex-wrap items-center gap-4">
-              <div className="relative max-w-sm flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Cari chapter..."
-                  className="pl-9"
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                />
-              </div>
-              <Select
-                value={classFilter}
-                onValueChange={(v) => {
-                  setClassFilter(v ?? "all");
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-1 flex-wrap items-center gap-4">
+            <div className="relative max-w-sm flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Cari chapter..."
+                className="pl-9"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
                   setPage(1);
                 }}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter Kelas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Kelas</SelectItem>
-                  {classes.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <Button onClick={openAdd}>
-                <Plus className="mr-1 h-4 w-4" /> Tambah
-              </Button>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editing ? "Edit Chapter" : "Tambah Chapter"}
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Judul</Label>
-                    <Input
-                      id="title"
-                      value={form.title}
-                      onChange={(e) =>
-                        setForm({ ...form, title: e.target.value })
-                      }
-                      placeholder="Judul chapter"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Kelas</Label>
-                    <Select
-                      value={form.class_id}
-                      onValueChange={(v) =>
-                        setForm({ ...form, class_id: v ?? "", subject_id: "" })
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Pilih kelas">
-                          {classes.find((c) => String(c.id) === form.class_id)?.name}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {classes.map((c) => (
-                          <SelectItem key={c.id} value={String(c.id)}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Subjek</Label>
-                    <Select
-                      key={`subject-${form.class_id}`}
-                      value={form.subject_id}
-                      onValueChange={(v) =>
-                        setForm({ ...form, subject_id: v ?? "" })
-                      }
-                      disabled={!form.class_id}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={form.class_id ? "Pilih subjek" : "Pilih kelas dulu"}>
-                          {availableSubjects.find((s) => String(s.id) === form.subject_id)?.name}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableSubjects.map((s) => (
-                          <SelectItem key={s.id} value={String(s.id)}>
-                            {s.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="desc">Deskripsi</Label>
-                    <Input
-                      id="desc"
-                      value={form.description}
-                      onChange={(e) =>
-                        setForm({ ...form, description: e.target.value })
-                      }
-                      placeholder="Deskripsi singkat"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="order">Urutan</Label>
-                    <Input
-                      id="order"
-                      type="number"
-                      value={form.order}
-                      onChange={(e) =>
-                        setForm({ ...form, order: Number(e.target.value) })
-                      }
-                    />
-                  </div>
-                  <div className="flex justify-end gap-3 pt-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setDialogOpen(false)}
-                    >
-                      Batal
-                    </Button>
-                    <Button onClick={save} disabled={!form.title || !form.class_id || !form.subject_id}>
-                      {editing ? "Simpan" : "Tambah"}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Select
+              value={classFilter}
+              onValueChange={(v) => {
+                setClassFilter(v ?? "all");
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter Kelas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Kelas</SelectItem>
+                {classes.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Button onClick={openAdd}>
+              <Plus className="mr-1 h-4 w-4" /> Tambah
+            </Button>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {editing ? "Edit Chapter" : "Tambah Chapter"}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Judul</Label>
+                  <Input
+                    id="title"
+                    value={form.title}
+                    onChange={(e) =>
+                      setForm({ ...form, title: e.target.value })
+                    }
+                    placeholder="Judul chapter"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Kelas</Label>
+                  <Select
+                    value={form.class_id}
+                    onValueChange={(v) =>
+                      setForm({ ...form, class_id: v ?? "", subject_id: "" })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Pilih kelas">
+                        {classes.find((c) => String(c.id) === form.class_id)?.name}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes.map((c) => (
+                        <SelectItem key={c.id} value={String(c.id)}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Subjek</Label>
+                  <Select
+                    key={`subject-${form.class_id}`}
+                    value={form.subject_id}
+                    onValueChange={(v) =>
+                      setForm({ ...form, subject_id: v ?? "" })
+                    }
+                    disabled={!form.class_id}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={form.class_id ? "Pilih subjek" : "Pilih kelas dulu"}>
+                        {availableSubjects.find((s) => String(s.id) === form.subject_id)?.name}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSubjects.map((s) => (
+                        <SelectItem key={s.id} value={String(s.id)}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="desc">Deskripsi</Label>
+                  <Input
+                    id="desc"
+                    value={form.description}
+                    onChange={(e) =>
+                      setForm({ ...form, description: e.target.value })
+                    }
+                    placeholder="Deskripsi singkat"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="order">Urutan</Label>
+                  <Input
+                    id="order"
+                    type="number"
+                    value={form.order}
+                    onChange={(e) =>
+                      setForm({ ...form, order: Number(e.target.value) })
+                    }
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    Batal
+                  </Button>
+                  <Button onClick={save} disabled={!form.title || !form.class_id || !form.subject_id}>
+                    {editing ? "Simpan" : "Tambah"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <Card className="pt-0 gap-0 pb-0">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

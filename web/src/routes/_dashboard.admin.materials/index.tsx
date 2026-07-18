@@ -97,39 +97,39 @@ function AdminMaterials() {
     <>
       <main className="p-6">
         <h1 className="mb-4 text-2xl font-bold tracking-tight">Materi</h1>
-        <Card>
-          <div className="flex flex-wrap items-center justify-between gap-4 px-(--card-spacing) py-3">
-            <div className="flex flex-1 flex-wrap items-center gap-4">
-              <div className="relative max-w-sm flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Cari materi..."
-                  className="pl-9"
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                />
-              </div>
-              <Select
-                value={classFilter}
-                onValueChange={(v) => { setClassFilter(v ?? "all"); setPage(1); }}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter Kelas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Kelas</SelectItem>
-                  {classes.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-1 flex-wrap items-center gap-4">
+            <div className="relative max-w-sm flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Cari materi..."
+                className="pl-9"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              />
             </div>
-            <Link to="/admin/materials/new">
-              <Button>
-                <Plus className="mr-1 h-4 w-4" /> Tambah
-              </Button>
-            </Link>
+            <Select
+              value={classFilter}
+              onValueChange={(v) => { setClassFilter(v ?? "all"); setPage(1); }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter Kelas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Kelas</SelectItem>
+                {classes.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          <Link to="/admin/materials/new">
+            <Button>
+              <Plus className="mr-1 h-4 w-4" /> Tambah
+            </Button>
+          </Link>
+        </div>
+        <Card className="pt-0 gap-0 pb-0">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

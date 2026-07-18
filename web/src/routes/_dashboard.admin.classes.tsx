@@ -107,68 +107,68 @@ function AdminClasses() {
     <>
       <main className="p-6">
         <h1 className="mb-4 text-2xl font-bold tracking-tight">Kelas</h1>
-        <Card>
-          <div className="flex flex-wrap items-center justify-between gap-4 px-(--card-spacing) py-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Cari kelas..."
-                className="pl-9"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-              />
-            </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <Button onClick={openAdd}>
-                <Plus className="mr-1 h-4 w-4" /> Tambah
-              </Button>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {editing ? "Edit Kelas" : "Tambah Kelas"}
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nama</Label>
-                    <Input
-                      id="name"
-                      value={form.name}
-                      onChange={(e) =>
-                        setForm({ ...form, name: e.target.value })
-                      }
-                      placeholder="Nama kelas (cth: Kelas 10 IPA)"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="desc">Deskripsi</Label>
-                    <Input
-                      id="desc"
-                      value={form.description}
-                      onChange={(e) =>
-                        setForm({ ...form, description: e.target.value })
-                      }
-                      placeholder="Deskripsi singkat"
-                    />
-                  </div>
-                  <div className="flex justify-end gap-3 pt-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setDialogOpen(false)}
-                    >
-                      Batal
-                    </Button>
-                    <Button onClick={save}>
-                      {editing ? "Simpan" : "Tambah"}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Cari kelas..."
+              className="pl-9"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
           </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Button onClick={openAdd}>
+              <Plus className="mr-1 h-4 w-4" /> Tambah
+            </Button>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {editing ? "Edit Kelas" : "Tambah Kelas"}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nama</Label>
+                  <Input
+                    id="name"
+                    value={form.name}
+                    onChange={(e) =>
+                      setForm({ ...form, name: e.target.value })
+                    }
+                    placeholder="Nama kelas (cth: Kelas 10 IPA)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="desc">Deskripsi</Label>
+                  <Input
+                    id="desc"
+                    value={form.description}
+                    onChange={(e) =>
+                      setForm({ ...form, description: e.target.value })
+                    }
+                    placeholder="Deskripsi singkat"
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    Batal
+                  </Button>
+                  <Button onClick={save}>
+                    {editing ? "Simpan" : "Tambah"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <Card className="pt-0 gap-0 pb-0">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

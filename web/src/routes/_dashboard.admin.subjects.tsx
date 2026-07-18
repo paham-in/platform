@@ -148,106 +148,106 @@ function AdminSubjects() {
     <>
       <main className="p-6">
         <h1 className="mb-4 text-2xl font-bold tracking-tight">Mata Pelajaran</h1>
-        <Card>
-          <div className="flex flex-wrap items-center justify-between gap-4 px-(--card-spacing) py-3">
-            <div className="flex flex-1 flex-wrap items-center gap-4">
-              <div className="relative max-w-sm flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Cari mata pelajaran..."
-                  className="pl-9"
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                />
-              </div>
-              <Select
-                value={classFilter}
-                onValueChange={(v) => { setClassFilter(v ?? "all"); setPage(1); }}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter Kelas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Kelas</SelectItem>
-                  {classes.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-1 flex-wrap items-center gap-4">
+            <div className="relative max-w-sm flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Cari mata pelajaran..."
+                className="pl-9"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+              />
             </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <Button onClick={openAdd}>
-                <Plus className="mr-1 h-4 w-4" /> Tambah
-              </Button>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editing ? "Edit Mata Pelajaran" : "Tambah Mata Pelajaran"}
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nama</Label>
-                    <Input
-                      id="name"
-                      value={form.name}
-                      onChange={(e) =>
-                        setForm({ ...form, name: e.target.value })
-                      }
-                      placeholder="Nama mata pelajaran"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="desc">Deskripsi</Label>
-                    <Input
-                      id="desc"
-                      value={form.description}
-                      onChange={(e) =>
-                        setForm({ ...form, description: e.target.value })
-                      }
-                      placeholder="Deskripsi singkat"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Kelas</Label>
-                    <div className="max-h-[200px] space-y-2 overflow-y-auto rounded-md border p-3">
-                      {classes.map((c) => (
-                        <label
-                          key={c.id}
-                          className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
-                        >
-                          <Checkbox
-                            checked={form.class_ids.includes(c.id!)}
-                            onChange={() => toggleClass(c.id!)}
-                          />
-                          {c.name}
-                        </label>
-                      ))}
-                      {classes.length === 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          Belum ada kelas. Buat kelas dulu.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-3 pt-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setDialogOpen(false)}
-                    >
-                      Batal
-                    </Button>
-                    <Button onClick={save}>
-                      {editing ? "Simpan" : "Tambah"}
-                    </Button>
+            <Select
+              value={classFilter}
+              onValueChange={(v) => { setClassFilter(v ?? "all"); setPage(1); }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter Kelas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Kelas</SelectItem>
+                {classes.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Button onClick={openAdd}>
+              <Plus className="mr-1 h-4 w-4" /> Tambah
+            </Button>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {editing ? "Edit Mata Pelajaran" : "Tambah Mata Pelajaran"}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nama</Label>
+                  <Input
+                    id="name"
+                    value={form.name}
+                    onChange={(e) =>
+                      setForm({ ...form, name: e.target.value })
+                    }
+                    placeholder="Nama mata pelajaran"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="desc">Deskripsi</Label>
+                  <Input
+                    id="desc"
+                    value={form.description}
+                    onChange={(e) =>
+                      setForm({ ...form, description: e.target.value })
+                    }
+                    placeholder="Deskripsi singkat"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Kelas</Label>
+                  <div className="max-h-[200px] space-y-2 overflow-y-auto rounded-md border p-3">
+                    {classes.map((c) => (
+                      <label
+                        key={c.id}
+                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+                      >
+                        <Checkbox
+                          checked={form.class_ids.includes(c.id!)}
+                          onChange={() => toggleClass(c.id!)}
+                        />
+                        {c.name}
+                      </label>
+                    ))}
+                    {classes.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        Belum ada kelas. Buat kelas dulu.
+                      </p>
+                    )}
                   </div>
                 </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    Batal
+                  </Button>
+                  <Button onClick={save}>
+                    {editing ? "Simpan" : "Tambah"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <Card className="pt-0 gap-0 pb-0">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

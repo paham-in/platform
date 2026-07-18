@@ -112,22 +112,24 @@ function AdminUsers() {
     <>
       <main className="p-6">
         <h1 className="mb-4 text-2xl font-bold tracking-tight">Kelola User</h1>
-        <Card>
-          <div className="flex flex-wrap items-center gap-4 px-(--card-spacing) py-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Cari nama atau email..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
-            </div>
-            <Select value={roleFilter} onValueChange={(v) => { if (v) { setRoleFilter(v); setPage(1) } }}>
-              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Role" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Role</SelectItem>
-                <SelectItem value="student">Murid</SelectItem>
-                <SelectItem value="teacher">Guru</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
+
+        <div className="mb-4 flex flex-wrap items-center gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="Cari nama atau email..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
           </div>
+          <Select value={roleFilter} onValueChange={(v) => { if (v) { setRoleFilter(v); setPage(1) } }}>
+            <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Role" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Role</SelectItem>
+              <SelectItem value="student">Murid</SelectItem>
+              <SelectItem value="teacher">Guru</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Card className="pt-0 gap-0 pb-0">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

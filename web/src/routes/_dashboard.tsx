@@ -140,7 +140,7 @@ function DashboardLayout() {
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-card px-4 shadow-sm">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-card px-4">
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
