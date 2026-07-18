@@ -18,6 +18,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { Loader2, Save } from "lucide-react"
+import { toast } from "sonner"
 
 function SettingsPage() {
   const qc = useQueryClient()
@@ -45,6 +46,10 @@ function SettingsPage() {
     ...patchMeMutation(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["me"] })
+      toast.success("Profil berhasil disimpan")
+    },
+    onError: () => {
+      toast.error("Gagal menyimpan profil")
     },
   })
 
@@ -110,13 +115,6 @@ function SettingsPage() {
             )}
             Simpan
           </Button>
-
-          {updateProfile.isSuccess && (
-            <p className="text-sm text-green-600">Profil berhasil disimpan</p>
-          )}
-          {updateProfile.isError && (
-            <p className="text-sm text-red-600">Gagal menyimpan profil</p>
-          )}
         </CardContent>
       </Card>
     </main>
