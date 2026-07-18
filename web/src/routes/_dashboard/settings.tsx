@@ -83,7 +83,9 @@ function SettingsPage() {
             <Label htmlFor="class">Kelas</Label>
             <Select value={classId} onValueChange={(v) => setClassId(v ?? "none")}>
               <SelectTrigger id="class" className="w-full">
-                <SelectValue placeholder="Pilih kelas" />
+                <SelectValue placeholder="Pilih kelas">
+                  {classId === "none" ? "Tidak ada" : classes.find((c) => String(c.id) === classId)?.name ?? classId}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Tidak ada</SelectItem>
