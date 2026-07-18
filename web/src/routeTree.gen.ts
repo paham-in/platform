@@ -25,6 +25,7 @@ import { Route as DashboardAdminChaptersRouteImport } from './routes/_dashboard.
 import { Route as DashboardAdminMaterialsIndexRouteImport } from './routes/_dashboard.admin.materials/index'
 import { Route as DashboardMaterialsChaptersIdRouteImport } from './routes/_dashboard.materials/chapters/$id'
 import { Route as DashboardAdminMaterialsNewRouteImport } from './routes/_dashboard.admin.materials/new'
+import { Route as DashboardMaterialsChaptersChapterIdMaterialIdRouteImport } from './routes/_dashboard.materials/chapters/$chapterId/$materialId'
 import { Route as DashboardAdminMaterialsIdEditRouteImport } from './routes/_dashboard.admin.materials/$id/edit'
 
 const LoginRoute = LoginRouteImport.update({
@@ -109,6 +110,12 @@ const DashboardAdminMaterialsNewRoute =
     path: '/admin/materials/new',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardMaterialsChaptersChapterIdMaterialIdRoute =
+  DashboardMaterialsChaptersChapterIdMaterialIdRouteImport.update({
+    id: '/materials/chapters/$chapterId/$materialId',
+    path: '/materials/chapters/$chapterId/$materialId',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardAdminMaterialsIdEditRoute =
   DashboardAdminMaterialsIdEditRouteImport.update({
     id: '/admin/materials/$id/edit',
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/materials/chapters/$id': typeof DashboardMaterialsChaptersIdRoute
   '/admin/materials/': typeof DashboardAdminMaterialsIndexRoute
   '/admin/materials/$id/edit': typeof DashboardAdminMaterialsIdEditRoute
+  '/materials/chapters/$chapterId/$materialId': typeof DashboardMaterialsChaptersChapterIdMaterialIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -151,6 +159,7 @@ export interface FileRoutesByTo {
   '/materials/chapters/$id': typeof DashboardMaterialsChaptersIdRoute
   '/admin/materials': typeof DashboardAdminMaterialsIndexRoute
   '/admin/materials/$id/edit': typeof DashboardAdminMaterialsIdEditRoute
+  '/materials/chapters/$chapterId/$materialId': typeof DashboardMaterialsChaptersChapterIdMaterialIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -171,6 +180,7 @@ export interface FileRoutesById {
   '/_dashboard/materials/chapters/$id': typeof DashboardMaterialsChaptersIdRoute
   '/_dashboard/admin/materials/': typeof DashboardAdminMaterialsIndexRoute
   '/_dashboard/admin/materials/$id/edit': typeof DashboardAdminMaterialsIdEditRoute
+  '/_dashboard/materials/chapters/$chapterId/$materialId': typeof DashboardMaterialsChaptersChapterIdMaterialIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/materials/chapters/$id'
     | '/admin/materials/'
     | '/admin/materials/$id/edit'
+    | '/materials/chapters/$chapterId/$materialId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -209,6 +220,7 @@ export interface FileRouteTypes {
     | '/materials/chapters/$id'
     | '/admin/materials'
     | '/admin/materials/$id/edit'
+    | '/materials/chapters/$chapterId/$materialId'
   id:
     | '__root__'
     | '/'
@@ -228,6 +240,7 @@ export interface FileRouteTypes {
     | '/_dashboard/materials/chapters/$id'
     | '/_dashboard/admin/materials/'
     | '/_dashboard/admin/materials/$id/edit'
+    | '/_dashboard/materials/chapters/$chapterId/$materialId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -351,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminMaterialsNewRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/materials/chapters/$chapterId/$materialId': {
+      id: '/_dashboard/materials/chapters/$chapterId/$materialId'
+      path: '/materials/chapters/$chapterId/$materialId'
+      fullPath: '/materials/chapters/$chapterId/$materialId'
+      preLoaderRoute: typeof DashboardMaterialsChaptersChapterIdMaterialIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/admin/materials/$id/edit': {
       id: '/_dashboard/admin/materials/$id/edit'
       path: '/admin/materials/$id/edit'
@@ -375,6 +395,7 @@ interface DashboardRouteChildren {
   DashboardMaterialsChaptersIdRoute: typeof DashboardMaterialsChaptersIdRoute
   DashboardAdminMaterialsIndexRoute: typeof DashboardAdminMaterialsIndexRoute
   DashboardAdminMaterialsIdEditRoute: typeof DashboardAdminMaterialsIdEditRoute
+  DashboardMaterialsChaptersChapterIdMaterialIdRoute: typeof DashboardMaterialsChaptersChapterIdMaterialIdRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -391,6 +412,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardMaterialsChaptersIdRoute: DashboardMaterialsChaptersIdRoute,
   DashboardAdminMaterialsIndexRoute: DashboardAdminMaterialsIndexRoute,
   DashboardAdminMaterialsIdEditRoute: DashboardAdminMaterialsIdEditRoute,
+  DashboardMaterialsChaptersChapterIdMaterialIdRoute:
+    DashboardMaterialsChaptersChapterIdMaterialIdRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
