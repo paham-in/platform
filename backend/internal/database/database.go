@@ -78,5 +78,10 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE questions DROP COLUMN upvotes")
 	}
 
+	// migrate question_images -- drop url column
+	if db.Migrator().HasColumn(&models.QuestionImage{}, "url") {
+		db.Exec("ALTER TABLE question_images DROP COLUMN url")
+	}
+
 	log.Println("Migration completed")
 }

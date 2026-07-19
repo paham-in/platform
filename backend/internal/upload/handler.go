@@ -89,7 +89,6 @@ func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 	img := models.QuestionImage{
 		QuestionID: uint(questionID),
 		FileName:   objectName,
-		URL:        objectName,
 	}
 	if err := h.db.Create(&img).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan data"})
