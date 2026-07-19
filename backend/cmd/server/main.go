@@ -47,7 +47,9 @@ func main() {
 		log.Printf("Warning: MinIO not available: %v", err)
 	}
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 6 * 1024 * 1024,
+	})
 	app.Use(cors.New())
 	app.Use(middleware.RequestLogger())
 

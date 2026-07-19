@@ -1,12 +1,17 @@
 package upload
 
 import (
+	"bytes"
+	"image/jpeg"
+	"io"
 	"strconv"
+	"strings"
 	"time"
 
 	"bimbel2/backend/internal/models"
 	"bimbel2/backend/internal/storage"
 
+	"github.com/disintegration/imaging"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -81,21 +86,55 @@ func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 	}
 	defer f.Close()
 
-	objectName, err := h.minio.Upload(c.Context(), f, file)
+	// read all bytes
+	srcBytes, err := io.ReadAll(f)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "gagal membaca file"})
+	}
+
+	// decode
+	img, err := imaging.Decode(bytes.NewReader(srcBytes))
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "format gambar tidak didukung"})
+	}
+
+	// resize if wider than 1920px
+	if img.Bounds().Dx() > 1920 {
+		img = imaging.Resize(img, 1920, 0, imaging.Lanczos)
+	}
+
+	// encode as JPEG quality 80
+	var buf bytes.Buffer
+	err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 80})
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "gagal mengompres gambar"})
+	}
+
+	compressed := buf.Bytes()
+
+	// preserve original extension hint for object name
+	ext := ".jpg"
+	if strings.HasSuffix(strings.ToLower(file.Filename), ".png") {
+		ext = ".png"
+	}
+
+	objectName := h.minio.GenerateObjectName("img" + ext)
+
+	err = h.minio.UploadReader(c.Context(), objectName, "image/jpeg", bytes.NewReader(compressed), int64(len(compressed)))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal mengunggah file"})
 	}
 
-	img := models.QuestionImage{
+	imgRecord := models.QuestionImage{
 		QuestionID: uint(questionID),
 		FileName:   objectName,
 	}
-	if err := h.db.Create(&img).Error; err != nil {
+	if err := h.db.Create(&imgRecord).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan data"})
 	}
 
 	return c.Status(201).JSON(UploadResponse{
-		ID:       img.ID,
+		ID:       imgRecord.ID,
 		URL:      objectName,
 		FileName: file.Filename,
 	})

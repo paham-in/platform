@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"mime/multipart"
 	"time"
@@ -69,6 +70,16 @@ func (m *MinioClient) Upload(ctx context.Context, file multipart.File, header *m
 	return objectName, nil
 }
 
+func (m *MinioClient) UploadReader(ctx context.Context, objectName, contentType string, reader io.Reader, size int64) error {
+	_, err := m.client.PutObject(ctx, m.bucket, objectName, reader, size, minio.PutObjectOptions{
+		ContentType: contentType,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to upload: %w", err)
+	}
+	return nil
+}
+
 func (m *MinioClient) PresignedURL(ctx context.Context, objectName string, expiry time.Duration) (string, error) {
 	url, err := m.client.PresignedGetObject(ctx, m.bucket, objectName, expiry, nil)
 	if err != nil {
@@ -80,3 +91,15 @@ func (m *MinioClient) PresignedURL(ctx context.Context, objectName string, expir
 func (m *MinioClient) Delete(ctx context.Context, objectName string) error {
 	return m.client.RemoveObject(ctx, m.bucket, objectName, minio.RemoveObjectOptions{})
 }
+
+func (m *MinioClient) GenerateObjectName(filename string) string {
+	ext := ""
+	for i := len(filename) - 1; i >= 0; i-- {
+		if filename[i] == '.' {
+			ext = filename[i:]
+			break
+		}
+	}
+	return fmt.Sprintf("forum/%s%s", uuid.NewString(), ext)
+}
+

@@ -80,7 +80,16 @@ function NewQuestion() {
 
   const addFiles = (files: FileList | null) => {
     if (!files) return
-    setImages((prev) => [...prev, ...Array.from(files)])
+    const maxSize = 5 * 1024 * 1024
+    const valid: File[] = []
+    for (const f of files) {
+      if (f.size > maxSize) {
+        toast.error(`${f.name} terlalu besar (maks 5MB)`)
+      } else {
+        valid.push(f)
+      }
+    }
+    setImages((prev) => [...prev, ...valid])
   }
 
   return (
@@ -119,6 +128,7 @@ function NewQuestion() {
         {/* Images */}
         <div className="space-y-2">
           <Label>Gambar Pendukung (opsional)</Label>
+          <p className="text-xs text-muted-foreground">Format: JPG, PNG, GIF, WebP. Maks 5MB per file.</p>
           <input
             ref={fileRef}
             type="file"
