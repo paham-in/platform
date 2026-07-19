@@ -4,6 +4,7 @@ import {
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
+  ImageIcon,
   ItalicIcon,
   ListIcon,
   ListOrderedIcon,
@@ -17,10 +18,12 @@ import { useEditor, EditorContent, type Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Underline from "@tiptap/extension-underline"
 import TextAlign from "@tiptap/extension-text-align"
+import Image from "@tiptap/extension-image"
 import { Mathematics } from "@tiptap/extension-mathematics"
 import "katex/dist/katex.min.css"
 import { cn } from "@/lib/utils"
 import { MathInputDialog } from "./math-input-dialog"
+import { GalleryPicker } from "./gallery-picker"
 
 const ToolbarButton = ({
   active,
@@ -57,6 +60,7 @@ export function TiptapEditor({
 }) {
   const [mathOpen, setMathOpen] = useState(false)
   const [editLatex, setEditLatex] = useState<string | null>(null)
+  const [galleryOpen, setGalleryOpen] = useState(false)
   const editorElRef = useRef<HTMLDivElement>(null)
 
   const editor = useEditor({
@@ -67,6 +71,7 @@ export function TiptapEditor({
       Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Mathematics,
+      Image,
     ],
     content,
     editable,
@@ -106,7 +111,7 @@ export function TiptapEditor({
 
   return (
     <div className="rounded-md border">
-      <Toolbar editor={editor} onOpenMath={openMathForInsert} />
+      <Toolbar editor={editor} onOpenMath={openMathForInsert} onOpenGallery={() => setGalleryOpen(true)} />
       <div ref={editorElRef}>
         <EditorContent
           editor={editor}
@@ -119,11 +124,16 @@ export function TiptapEditor({
         onOpenChange={(v) => { setMathOpen(v); if (!v) setEditLatex(null) }}
         onInsert={handleMathInsert}
       />
+      <GalleryPicker
+        open={galleryOpen}
+        onOpenChange={setGalleryOpen}
+        onInsert={(url) => editor.chain().focus().setImage({ src: url }).run()}
+      />
     </div>
   );
 }
 
-function Toolbar({ editor, onOpenMath }: { editor: Editor; onOpenMath: () => void }) {
+function Toolbar({ editor, onOpenMath, onOpenGallery }: { editor: Editor; onOpenMath: () => void; onOpenGallery: () => void }) {
   const items = [
     { icon: UndoIcon, action: () => editor.chain().focus().undo().run(), active: false },
     { icon: RedoIcon, action: () => editor.chain().focus().redo().run(), active: false },
@@ -142,6 +152,7 @@ function Toolbar({ editor, onOpenMath }: { editor: Editor; onOpenMath: () => voi
     { icon: QuoteIcon, action: () => editor.chain().focus().toggleBlockquote().run(), active: editor.isActive("blockquote") },
     { type: "sep" as const },
     { icon: Sigma, action: onOpenMath, active: editor.isActive("blockMath") },
+    { icon: ImageIcon, action: onOpenGallery, active: false },
   ];
 
   return (
