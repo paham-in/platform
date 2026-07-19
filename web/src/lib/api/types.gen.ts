@@ -4,6 +4,23 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:8080/' | (string & {});
 };
 
+export type AnswerAnswerResponse = {
+    content?: string;
+    created_at?: string;
+    id?: number;
+    plain_content?: string;
+    user_avatar?: string;
+    user_name?: string;
+};
+
+export type AnswerCreateAnswerInput = {
+    content?: string;
+};
+
+export type AnswerErrorResponse = {
+    error?: string;
+};
+
 export type ChapterChapterResponse = {
     class_id?: number;
     class_name?: string;
@@ -1077,6 +1094,60 @@ export type GetQuestionsByIdResponses = {
 };
 
 export type GetQuestionsByIdResponse = GetQuestionsByIdResponses[keyof GetQuestionsByIdResponses];
+
+export type GetQuestionsByQuestionIdAnswersData = {
+    body?: never;
+    path: {
+        /**
+         * Question ID
+         */
+        question_id: number;
+    };
+    query?: never;
+    url: '/questions/{question_id}/answers';
+};
+
+export type GetQuestionsByQuestionIdAnswersResponses = {
+    /**
+     * OK
+     */
+    200: Array<AnswerAnswerResponse>;
+};
+
+export type GetQuestionsByQuestionIdAnswersResponse = GetQuestionsByQuestionIdAnswersResponses[keyof GetQuestionsByQuestionIdAnswersResponses];
+
+export type PostQuestionsByQuestionIdAnswersData = {
+    /**
+     * Data jawaban
+     */
+    body: AnswerCreateAnswerInput;
+    path: {
+        /**
+         * Question ID
+         */
+        question_id: number;
+    };
+    query?: never;
+    url: '/questions/{question_id}/answers';
+};
+
+export type PostQuestionsByQuestionIdAnswersErrors = {
+    /**
+     * Bad Request
+     */
+    400: AnswerErrorResponse;
+};
+
+export type PostQuestionsByQuestionIdAnswersError = PostQuestionsByQuestionIdAnswersErrors[keyof PostQuestionsByQuestionIdAnswersErrors];
+
+export type PostQuestionsByQuestionIdAnswersResponses = {
+    /**
+     * Created
+     */
+    201: AnswerAnswerResponse;
+};
+
+export type PostQuestionsByQuestionIdAnswersResponse = PostQuestionsByQuestionIdAnswersResponses[keyof PostQuestionsByQuestionIdAnswersResponses];
 
 export type GetSubjectsData = {
     body?: never;

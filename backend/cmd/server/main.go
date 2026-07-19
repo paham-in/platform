@@ -5,6 +5,7 @@ import (
 
 	"bimbel2/backend/internal/config"
 	"bimbel2/backend/internal/database"
+	"bimbel2/backend/internal/answer"
 	"bimbel2/backend/internal/middleware"
 	"bimbel2/backend/internal/models"
 	"bimbel2/backend/internal/chapter"
@@ -55,6 +56,7 @@ func main() {
 	user.OAuthRoutes(app, db, cfg)
 	subject.Routes(app, db)
 	forum.Routes(app, db)
+	answer.Routes(app, db)
 
 	// Authenticated routes (any role with valid session)
 	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))

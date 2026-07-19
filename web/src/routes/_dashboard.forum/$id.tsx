@@ -1,11 +1,39 @@
-import { useQuery } from "@tanstack/react-query"
-import { getQuestionsByIdOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { TiptapEditor } from "@/components/ui/tiptap-editor"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  getQuestionsByIdOptions,
+  getQuestionsByQuestionIdAnswersOptions,
+  getQuestionsByQuestionIdAnswersQueryKey,
+  postQuestionsByQuestionIdAnswersMutation,
+} from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
-import { Loader2, ArrowLeft, MessageSquare } from "lucide-react"
+import { toast } from "sonner"
+import { Loader2, ArrowLeft, MessageSquare, Send } from "lucide-react"
 
 function ForumDetail() {
+  const qc = useQueryClient()
   const { id } = useParams({ from: "/_dashboard/forum/$id" })
-  const { data: question, isLoading } = useQuery(getQuestionsByIdOptions({ path: { id: Number(id) } }))
+  const questionId = Number(id)
+
+  const { data: question, isLoading } = useQuery(getQuestionsByIdOptions({ path: { id: questionId } }))
+  const { data: answers = [] } = useQuery(
+    getQuestionsByQuestionIdAnswersOptions({ path: { question_id: questionId } })
+  )
+  const [answerContent, setAnswerContent] = useState("")
+
+  const { mutate: submitAnswer, isPending } = useMutation({
+    ...postQuestionsByQuestionIdAnswersMutation(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getQuestionsByQuestionIdAnswersQueryKey({ path: { question_id: questionId } }) })
+      setAnswerContent("")
+      toast.success("Jawaban berhasil dikirim")
+    },
+    onError: (err: any) => {
+      toast.error(err?.error || err?.message || "Gagal mengirim jawaban")
+    },
+  })
 
   if (isLoading) {
     return (
@@ -22,6 +50,8 @@ function ForumDetail() {
       </main>
     )
   }
+
+  const isOwner = question.is_owner
 
   return (
     <main className="mx-auto w-full max-w-3xl p-6">
@@ -72,6 +102,53 @@ function ForumDetail() {
           className="prose prose-sm dark:prose-invert mt-6 max-w-none"
           dangerouslySetInnerHTML={{ __html: question.content }}
         />
+      )}
+
+      {/* Answers */}
+      <section className="mt-10 space-y-4">
+        <h2 className="text-lg font-semibold">Jawaban ({answers.length})</h2>
+
+        {answers.length === 0 && (
+          <p className="text-sm text-muted-foreground">Belum ada jawaban.</p>
+        )}
+
+        {answers.map((a) => (
+          <div key={a.id} className="rounded-lg border p-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {a.user_avatar ? (
+                <img src={a.user_avatar} alt="" className="h-5 w-5 rounded-full" />
+              ) : (
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  {a.user_name?.[0]}
+                </div>
+              )}
+              <span className="font-medium text-foreground">{a.user_name}</span>
+              <span>•</span>
+              <span>{a.created_at}</span>
+            </div>
+            <div
+              className="prose prose-sm dark:prose-invert mt-2 max-w-none"
+              dangerouslySetInnerHTML={{ __html: a.content ?? "" }}
+            />
+          </div>
+        ))}
+      </section>
+
+      {/* Answer form — hide if owner */}
+      {!isOwner && (
+        <section className="mt-6 space-y-3 rounded-lg border p-4">
+          <h3 className="text-sm font-semibold">Tulis Jawaban</h3>
+          <TiptapEditor content={answerContent} onChange={setAnswerContent} />
+          <div className="flex justify-end">
+            <Button
+              onClick={() => submitAnswer({ path: { question_id: questionId }, body: { content: answerContent } })}
+              disabled={!answerContent || isPending}
+            >
+              {isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              <Send className="mr-1 h-4 w-4" /> Kirim Jawaban
+            </Button>
+          </div>
+        </section>
       )}
     </main>
   )
