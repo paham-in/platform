@@ -83,5 +83,11 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE question_images DROP COLUMN url")
 	}
 
+	// migrate subject_images -- add user_id column
+	if !db.Migrator().HasColumn(&models.SubjectImage{}, "user_id") {
+		db.Exec("ALTER TABLE subject_images ADD COLUMN user_id BIGINT NOT NULL DEFAULT 0")
+		db.Exec("CREATE INDEX idx_subject_images_user_id ON subject_images(user_id)")
+	}
+
 	log.Println("Migration completed")
 }

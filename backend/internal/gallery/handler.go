@@ -29,22 +29,24 @@ type ImageResponse struct {
 	URL          string `json:"url"`
 	OriginalName string `json:"original_name"`
 	Title        string `json:"title"`
+	IsOwner      bool   `json:"is_owner"`
 	CreatedAt    string `json:"created_at"`
 }
 
-// UploadSubjectImage mengunggah gambar ke gallery subject
-// @Summary      Upload subject image
-// @Description  Mengunggah gambar ke gallery subject
-// @Tags         Gallery
-// @Accept       multipart/form-data
-// @Produce      json
-// @Security     BearerAuth
-// @Param        subject_id path int true "Subject ID"
-// @Param        image formData file true "File gambar"
-// @Success      201 {object} ImageResponse
-// @Failure      400 {object} map[string]string
-// @Router       /admin/subjects/{subject_id}/images [post]
+func userIDFrom(c *fiber.Ctx) uint {
+	u, ok := c.Locals("user").(*models.User)
+	if !ok || u == nil {
+		return 0
+	}
+	return u.ID
+}
+
 func (h *Handler) Upload(c *fiber.Ctx) error {
+	userID := userIDFrom(c)
+	if userID == 0 {
+		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
 	subjectID, err := strconv.ParseUint(c.Params("subject_id"), 10, 64)
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "id tidak valid"})
@@ -104,6 +106,7 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 
 	rec := models.SubjectImage{
 		SubjectID:    uint(subjectID),
+		UserID:       userID,
 		FileName:     objectName,
 		OriginalName: file.Filename,
 		Title:        title,
@@ -117,18 +120,11 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 		URL:          objectName,
 		OriginalName: file.Filename,
 		Title:        title,
+		IsOwner:      true,
 		CreatedAt:    rec.CreatedAt.Format("2006-01-02 15:04"),
 	})
 }
 
-// ListSubjectImages mengembalikan daftar gambar gallery subject
-// @Summary      List subject images
-// @Description  Mengembalikan daftar gambar gallery subject
-// @Tags         Gallery
-// @Produce      json
-// @Param        subject_id path int true "Subject ID"
-// @Success      200 {array} ImageResponse
-// @Router       /admin/subjects/{subject_id}/images [get]
 func (h *Handler) List(c *fiber.Ctx) error {
 	subjectID, err := strconv.ParseUint(c.Params("subject_id"), 10, 64)
 	if err != nil {
@@ -145,6 +141,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal mengambil data"})
 	}
 
+	currentUser := userIDFrom(c)
 	result := make([]ImageResponse, len(images))
 	for i, img := range images {
 		presignedURL, err := h.minio.PresignedURL(c.Context(), img.FileName, 24*time.Hour)
@@ -157,22 +154,19 @@ func (h *Handler) List(c *fiber.Ctx) error {
 			URL:          url,
 			OriginalName: img.OriginalName,
 			Title:        img.Title,
+			IsOwner:      img.UserID == currentUser,
 			CreatedAt:    img.CreatedAt.Format("2006-01-02 15:04"),
 		}
 	}
 	return c.JSON(result)
 }
 
-// DeleteSubjectImage menghapus gambar dari gallery
-// @Summary      Delete subject image
-// @Description  Menghapus gambar dari gallery subject
-// @Tags         Gallery
-// @Security     BearerAuth
-// @Param        subject_id path int true "Subject ID"
-// @Param        id path int true "Image ID"
-// @Success      200 {object} map[string]string
-// @Router       /admin/subjects/{subject_id}/images/{id} [delete]
 func (h *Handler) Delete(c *fiber.Ctx) error {
+	userID := userIDFrom(c)
+	if userID == 0 {
+		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
 	imageID, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "id tidak valid"})
@@ -183,6 +177,10 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"error": "gambar tidak ditemukan"})
 	}
 
+	if img.UserID != userID {
+		return c.Status(403).JSON(fiber.Map{"error": "bukan pemilik gambar"})
+	}
+
 	_ = h.minio.Delete(c.Context(), img.FileName)
 	h.db.Delete(&img)
 
@@ -191,7 +189,6 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 
 func Routes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClient) {
 	h := NewHandler(db, minioClient)
-
 	admin.Get("/subjects/:subject_id/images", h.List)
 	admin.Post("/subjects/:subject_id/images", h.Upload)
 	admin.Delete("/subjects/:subject_id/images/:id", h.Delete)

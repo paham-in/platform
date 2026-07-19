@@ -15,13 +15,24 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Loader2, SearchIcon, Upload, X } from "lucide-react"
+import { Loader2, SearchIcon, Trash2, Upload, X } from "lucide-react"
 
-type GalleryImage = { id: number; url: string; title: string }
+type GalleryImage = { id: number; url: string; title: string; is_owner?: boolean }
 
 export function GalleryPicker({
   open,
@@ -37,6 +48,8 @@ export function GalleryPicker({
   const [images, setImages] = useState<GalleryImage[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState("")
+  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -65,6 +78,20 @@ export function GalleryPicker({
 
   const handleSearch = () => {
     if (subjectId) loadImages(subjectId, search)
+  }
+
+  const deleteImage = async () => {
+    if (!deleteId || !subjectId) return
+    setDeleting(true)
+    const res = await fetch(`http://localhost:8080/admin/subjects/${subjectId}/images/${deleteId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    })
+    setDeleting(false)
+    setDeleteId(null)
+    if (res.ok) toast.success("Gambar berhasil dihapus")
+    else toast.error("Gagal menghapus gambar")
+    loadImages(subjectId)
   }
 
   return (
@@ -129,15 +156,47 @@ export function GalleryPicker({
           ) : (
             <div className="grid grid-cols-2 gap-3 overflow-y-auto" style={{ maxHeight: "calc(100vh - 340px)" }}>
               {images.map((img) => (
-                <button
-                  key={img.id}
-                  type="button"
-                  className="overflow-hidden rounded-lg border text-left transition-opacity hover:opacity-80"
-                  onClick={() => { onInsert(img.url); onOpenChange(false) }}
-                >
-                  <img src={img.url} alt={img.title} className="h-24 w-full object-cover" />
-                  <p className="truncate px-2 py-1.5 text-xs text-muted-foreground">{img.title}</p>
-                </button>
+                <div key={img.id} className="group relative overflow-hidden rounded-lg border">
+                  <button
+                    type="button"
+                    className="w-full text-left"
+                    onClick={() => { onInsert(img.url); onOpenChange(false) }}
+                  >
+                    <img src={img.url} alt={img.title} className="h-24 w-full object-cover" />
+                    <p className="truncate px-2 py-1.5 text-xs text-muted-foreground">{img.title}</p>
+                  </button>
+                  {img.is_owner && (
+                    <AlertDialog>
+                      <AlertDialogTrigger render={
+                        <button
+                          type="button"
+                          className="absolute right-1 top-1 hidden h-6 w-6 items-center justify-center rounded bg-black/50 text-white group-hover:flex hover:bg-black/70"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      } />
+                      <AlertDialogContent size="sm">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Hapus Gambar</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Yakin ingin menghapus gambar ini?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Batal</AlertDialogCancel>
+                          <AlertDialogAction
+                            variant="destructive"
+                            disabled={deleting}
+                            onClick={() => { setDeleteId(img.id); deleteImage() }}
+                          >
+                            {deleting && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                            Hapus
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
               ))}
             </div>
           )}
