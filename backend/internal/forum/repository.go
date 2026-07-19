@@ -52,3 +52,15 @@ func (r *Repository) GetUserByID(id uint) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func (r *Repository) GetQuestionImages(questionID uint) ([]models.QuestionImage, error) {
+	var images []models.QuestionImage
+	if err := r.db.Where("question_id = ?", questionID).Find(&images).Error; err != nil {
+		return nil, err
+	}
+	return images, nil
+}
+
+func (r *Repository) DeleteQuestionImage(fileName string) error {
+	return r.db.Where("file_name = ?", fileName).Delete(&models.QuestionImage{}).Error
+}
