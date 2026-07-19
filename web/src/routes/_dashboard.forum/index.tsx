@@ -105,6 +105,9 @@ function ForumPage() {
             ))}
           </SelectContent>
         </Select>
+        <Link to="/forum/mine">
+          <Button variant="outline" size="sm">Pertanyaan Saya</Button>
+        </Link>
       </div>
 
       <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">

@@ -38,7 +38,6 @@ const sidebarLinks = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard", roles: ["student", "teacher", "admin"] },
   { label: "Materi", icon: BookMarked, to: "/materials", roles: ["student"] },
   { label: "Forum", icon: Home, to: "/forum", roles: ["student"] },
-  { label: "Pertanyaan Saya", icon: MessageSquare, to: "/forum/mine", roles: ["student"] },
   { label: "Materi Saya", icon: BookMarked, to: "/materials", roles: ["teacher"] },
   { label: "Tanya Jawab", icon: Home, to: "/forum", roles: ["teacher"] },
   { label: "Kelola User", icon: Users, to: "/admin/users", roles: ["admin"] },
@@ -48,10 +47,6 @@ const sidebarLinks = [
   { label: "Materi", icon: FileText, to: "/admin/materials", roles: ["admin"] },
   { label: "Forum", icon: MessageSquare, to: "/admin/forum", roles: ["admin"] },
 ];
-
-export const Route = createFileRoute("/_dashboard")({
-  component: DashboardLayout,
-});
 
 function DashboardLayout() {
   const navigate = useNavigate();
@@ -180,3 +175,7 @@ function DashboardLayout() {
     </div>
   );
 }
+
+export const Route = createFileRoute("/_dashboard")({
+  component: DashboardLayout,
+});
