@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { RichContent } from "@/components/ui/rich-content"
 import { TiptapEditor } from "@/components/ui/tiptap-editor"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import "katex/dist/katex.min.css"
@@ -94,10 +95,7 @@ function ForumDetail() {
       </div>
 
       {question.content && (
-        <article
-          className="prose prose-sm dark:prose-invert mt-6 max-w-none"
-          dangerouslySetInnerHTML={{ __html: question.content }}
-        />
+        <RichContent html={question.content} />
       )}
 
       {/* Answers */}
@@ -122,10 +120,7 @@ function ForumDetail() {
               <span>•</span>
               <span>{a.created_at}</span>
             </div>
-            <div
-              className="prose prose-sm dark:prose-invert mt-2 max-w-none"
-              dangerouslySetInnerHTML={{ __html: a.content ?? "" }}
-            />
+            <RichContent html={a.content ?? ""} />
           </div>
         ))}
       </section>
