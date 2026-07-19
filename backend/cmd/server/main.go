@@ -62,7 +62,7 @@ func main() {
 	user.Routes(app, db)
 	user.OAuthRoutes(app, db, cfg)
 	subject.Routes(app, db)
-	forum.Routes(app, db, minioClient)
+	forum.Routes(app, db)
 	answer.PublicRoutes(app, db)
 	if minioClient != nil {
 		upload.PublicRoutes(app, db, minioClient)
@@ -85,7 +85,7 @@ func main() {
 	chapter.AdminRoutes(admin, db)
 	subject.AdminRoutes(admin, db)
 	material.AdminRoutes(admin, db)
-	forum.AdminRoutes(admin, db, minioClient)
+	forum.AdminRoutes(admin, db)
 
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)
