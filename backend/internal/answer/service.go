@@ -32,6 +32,17 @@ func (s *Service) ListByQuestion(questionID uint) ([]models.Answer, error) {
 	return s.repo.ListByQuestion(questionID)
 }
 
+func (s *Service) Delete(id, userID uint) error {
+	a, err := s.repo.GetByID(id)
+	if err != nil {
+		return errors.New("jawaban tidak ditemukan")
+	}
+	if a.UserID != userID {
+		return errors.New("bukan pemilik jawaban")
+	}
+	return s.repo.Delete(id)
+}
+
 func (s *Service) Create(questionID, userID uint, content string) (*models.Answer, error) {
 	question, err := s.questionRepo.GetByID(questionID)
 	if err != nil {

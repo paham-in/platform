@@ -29,3 +29,15 @@ func (r *Repository) Create(a *models.Answer) error {
 func (r *Repository) ReloadWithUser(a *models.Answer) error {
 	return r.db.Preload("User").First(a, a.ID).Error
 }
+
+func (r *Repository) GetByID(id uint) (*models.Answer, error) {
+	var a models.Answer
+	if err := r.db.First(&a, id).Error; err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (r *Repository) Delete(id uint) error {
+	return r.db.Delete(&models.Answer{}, id).Error
+}

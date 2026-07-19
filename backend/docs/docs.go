@@ -1439,6 +1439,11 @@ const docTemplate = `{
         },
         "/questions/{question_id}/answers": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengembalikan daftar jawaban berdasarkan ID pertanyaan",
                 "consumes": [
                     "application/json"
@@ -1522,6 +1527,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/questions/{question_id}/answers/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus jawaban (hanya milik sendiri)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Forum"
+                ],
+                "summary": "Delete answer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Question ID",
+                        "name": "question_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Answer ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/answer.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/answer.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/subjects": {
             "get": {
                 "description": "Mengembalikan daftar semua mata pelajaran",
@@ -1562,6 +1617,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "is_owner": {
+                    "type": "boolean"
+                },
                 "plain_content": {
                     "type": "string"
                 },
@@ -1585,6 +1643,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "answer.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
                     "type": "string"
                 }
             }

@@ -8,6 +8,7 @@ export type AnswerAnswerResponse = {
     content?: string;
     created_at?: string;
     id?: number;
+    is_owner?: boolean;
     plain_content?: string;
     user_avatar?: string;
     user_name?: string;
@@ -19,6 +20,10 @@ export type AnswerCreateAnswerInput = {
 
 export type AnswerErrorResponse = {
     error?: string;
+};
+
+export type AnswerMessageResponse = {
+    message?: string;
 };
 
 export type ChapterChapterResponse = {
@@ -1147,6 +1152,40 @@ export type PostQuestionsByQuestionIdAnswersResponses = {
 };
 
 export type PostQuestionsByQuestionIdAnswersResponse = PostQuestionsByQuestionIdAnswersResponses[keyof PostQuestionsByQuestionIdAnswersResponses];
+
+export type DeleteQuestionsByQuestionIdAnswersByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Question ID
+         */
+        question_id: number;
+        /**
+         * Answer ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/questions/{question_id}/answers/{id}';
+};
+
+export type DeleteQuestionsByQuestionIdAnswersByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: AnswerErrorResponse;
+};
+
+export type DeleteQuestionsByQuestionIdAnswersByIdError = DeleteQuestionsByQuestionIdAnswersByIdErrors[keyof DeleteQuestionsByQuestionIdAnswersByIdErrors];
+
+export type DeleteQuestionsByQuestionIdAnswersByIdResponses = {
+    /**
+     * OK
+     */
+    200: AnswerMessageResponse;
+};
+
+export type DeleteQuestionsByQuestionIdAnswersByIdResponse = DeleteQuestionsByQuestionIdAnswersByIdResponses[keyof DeleteQuestionsByQuestionIdAnswersByIdResponses];
 
 export type GetSubjectsData = {
     body?: never;

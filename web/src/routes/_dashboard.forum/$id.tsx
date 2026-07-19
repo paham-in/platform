@@ -9,10 +9,22 @@ import {
   getQuestionsByQuestionIdAnswersOptions,
   getQuestionsByQuestionIdAnswersQueryKey,
   postQuestionsByQuestionIdAnswersMutation,
+  deleteQuestionsByQuestionIdAnswersByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Loader2, ArrowLeft, Send } from "lucide-react"
+import { Loader2, ArrowLeft, Send, Trash2 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
 
 function ForumDetail() {
   const qc = useQueryClient()
@@ -34,6 +46,17 @@ function ForumDetail() {
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal mengirim jawaban")
+    },
+  })
+
+  const { mutate: deleteAnswer } = useMutation({
+    ...deleteQuestionsByQuestionIdAnswersByIdMutation(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getQuestionsByQuestionIdAnswersQueryKey({ path: { question_id: questionId } }) })
+      toast.success("Jawaban berhasil dihapus")
+    },
+    onError: (err: any) => {
+      toast.error(err?.error || err?.message || "Gagal menghapus jawaban")
     },
   })
 
@@ -119,6 +142,33 @@ function ForumDetail() {
               <span className="font-medium text-foreground">{a.user_name}</span>
               <span>•</span>
               <span>{a.created_at}</span>
+
+              {a.is_owner && (
+                <div className="ml-auto">
+                  <AlertDialog>
+                    <AlertDialogTrigger render={<Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" />}>
+                      <Trash2 className="h-4 w-4" />
+                    </AlertDialogTrigger>
+                    <AlertDialogContent size="sm">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Hapus Jawaban</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Yakin ingin menghapus jawaban ini? Tindakan ini tidak bisa dibatalkan.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction
+                          variant="destructive"
+                          onClick={() => deleteAnswer({ path: { question_id: questionId, id: a.id! } })}
+                        >
+                          Hapus
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
             </div>
             <RichContent html={a.content ?? ""} />
           </div>

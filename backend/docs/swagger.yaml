@@ -8,6 +8,8 @@ definitions:
         type: string
       id:
         type: integer
+      is_owner:
+        type: boolean
       plain_content:
         type: string
       user_avatar:
@@ -23,6 +25,11 @@ definitions:
   answer.ErrorResponse:
     properties:
       error:
+        type: string
+    type: object
+  answer.MessageResponse:
+    properties:
+      message:
         type: string
     type: object
   chapter.ChapterResponse:
@@ -1226,6 +1233,8 @@ paths:
             items:
               $ref: '#/definitions/answer.AnswerResponse'
             type: array
+      security:
+      - BearerAuth: []
       summary: List answers
       tags:
       - Forum
@@ -1259,6 +1268,38 @@ paths:
       security:
       - BearerAuth: []
       summary: Create answer
+      tags:
+      - Forum
+  /questions/{question_id}/answers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus jawaban (hanya milik sendiri)
+      parameters:
+      - description: Question ID
+        in: path
+        name: question_id
+        required: true
+        type: integer
+      - description: Answer ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/answer.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/answer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete answer
       tags:
       - Forum
   /subjects:

@@ -29,11 +29,16 @@ type AnswerResponse struct {
 	PlainContent string `json:"plain_content"`
 	UserName     string `json:"user_name"`
 	UserAvatar   string `json:"user_avatar,omitempty"`
+	IsOwner      bool   `json:"is_owner"`
 	CreatedAt    string `json:"created_at"`
 }
 
 type CreateAnswerInput struct {
 	Content string `json:"content"`
+}
+
+type MessageResponse struct {
+	Message string `json:"message"`
 }
 
 func userIDFrom(c *fiber.Ctx) uint {
@@ -50,6 +55,7 @@ func userIDFrom(c *fiber.Ctx) uint {
 // @Tags         Forum
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        question_id path int true "Question ID"
 // @Success      200 {array} AnswerResponse
 // @Router       /questions/{question_id}/answers [get]
@@ -64,6 +70,7 @@ func (h *Handler) ListAnswers(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
 
+	currentUser := userIDFrom(c)
 	result := make([]AnswerResponse, len(answers))
 	for i, a := range answers {
 		result[i] = AnswerResponse{
@@ -72,6 +79,7 @@ func (h *Handler) ListAnswers(c *fiber.Ctx) error {
 			PlainContent: a.PlainContent,
 			UserName:     a.User.Name,
 			UserAvatar:   a.User.AvatarURL,
+			IsOwner:      a.UserID == currentUser,
 			CreatedAt:    a.CreatedAt.Format("2006-01-02 15:04"),
 		}
 	}
@@ -120,8 +128,38 @@ func (h *Handler) CreateAnswer(c *fiber.Ctx) error {
 		PlainContent: answer.PlainContent,
 		UserName:     answer.User.Name,
 		UserAvatar:   answer.User.AvatarURL,
+		IsOwner:      true,
 		CreatedAt:    time.Now().Format("2006-01-02 15:04"),
 	})
+}
+
+// DeleteAnswer menghapus jawaban
+// @Summary      Delete answer
+// @Description  Menghapus jawaban (hanya milik sendiri)
+// @Tags         Forum
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        question_id path int true "Question ID"
+// @Param        id path int true "Answer ID"
+// @Success      200 {object} MessageResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /questions/{question_id}/answers/{id} [delete]
+func (h *Handler) DeleteAnswer(c *fiber.Ctx) error {
+	userID := userIDFrom(c)
+	if userID == 0 {
+		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
+	}
+
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+
+	if err := h.svc.Delete(uint(id), userID); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(MessageResponse{Message: "berhasil dihapus"})
 }
 
 func PublicRoutes(app fiber.Router, db *gorm.DB) {
@@ -139,5 +177,6 @@ func AuthRoutes(app fiber.Router, db *gorm.DB) {
 	svc := NewService(repo, questionRepo)
 	h := NewHandler(svc)
 
-	app.Post("/questions/:question_id/answers", middleware.SessionRequired(), middleware.SessionResolver(db), h.CreateAnswer)
+	app.Post("/questions/:question_id/answers", h.CreateAnswer)
+	app.Delete("/questions/:question_id/answers/:id", h.DeleteAnswer)
 }
