@@ -85,7 +85,7 @@ function DashboardLayout() {
   const filteredLinks = sidebarLinks.filter((l) => l.roles.includes(user.role ?? ""));
 
   return (
-    <div className="flex min-h-screen bg-muted/20">
+    <div className="min-h-screen bg-muted/20">
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 md:hidden"
@@ -94,51 +94,53 @@ function DashboardLayout() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 flex-col border-r bg-card p-4 transition-transform md:static md:flex md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 flex-col border-r bg-card p-4 transition-transform ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } md:translate-x-0 md:flex`}
       >
-        <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">B</div>
-            <span className="text-lg font-bold">Bimbel</span>
-          </Link>
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(false)}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">B</div>
+              <span className="text-lg font-bold">Bimbel</span>
+            </Link>
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(false)}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
 
-        <nav className="mt-8 flex-1 space-y-1">
-          {filteredLinks.map((l) => (
+          <nav className="mt-8 flex-1 space-y-1 overflow-y-auto">
+            {filteredLinks.map((l) => (
+              <Link
+                key={l.to}
+                to={l.to}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                activeProps={{ className: "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted" }}
+                onClick={() => setMobileOpen(false)}
+              >
+                <l.icon className="h-4 w-4" /> {l.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="space-y-1 border-t pt-4">
             <Link
-              key={l.to}
-              to={l.to}
+              to="/settings"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               activeProps={{ className: "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted" }}
               onClick={() => setMobileOpen(false)}
             >
-              <l.icon className="h-4 w-4" /> {l.label}
+              <Settings className="h-4 w-4" /> Pengaturan
             </Link>
-          ))}
-        </nav>
-
-        <div className="mt-auto space-y-1 border-t pt-4">
-          <Link
-            to="/settings"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            activeProps={{ className: "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted" }}
-            onClick={() => setMobileOpen(false)}
-          >
-            <Settings className="h-4 w-4" /> Pengaturan
-          </Link>
-          <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-muted-foreground" onClick={() => setLogoutConfirmOpen(true)} disabled={logout.isPending}>
-            <LogOut className="h-4 w-4" /> {logout.isPending ? "..." : "Keluar"}
-          </Button>
+            <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-muted-foreground" onClick={() => setLogoutConfirmOpen(true)} disabled={logout.isPending}>
+              <LogOut className="h-4 w-4" /> {logout.isPending ? "..." : "Keluar"}
+            </Button>
+          </div>
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-card px-4">
+      <div className="flex flex-col md:ml-64 h-screen overflow-y-auto">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-card px-4 shrink-0">
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
@@ -155,7 +157,9 @@ function DashboardLayout() {
             <span className="text-sm text-muted-foreground">{user?.name}</span>
           </div>
         </header>
-        <Outlet />
+        <div className="flex-1">
+          <Outlet />
+        </div>
       </div>
 
       <AlertDialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
