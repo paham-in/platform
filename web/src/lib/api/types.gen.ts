@@ -169,6 +169,12 @@ export type SubjectUpdateInput = {
     name?: string;
 };
 
+export type UploadUploadResponse = {
+    file_name?: string;
+    id?: number;
+    url?: string;
+};
+
 export type UserAdminUserResponse = {
     avatar_url?: string;
     created_at?: string;
@@ -1186,6 +1192,64 @@ export type DeleteQuestionsByQuestionIdAnswersByIdResponses = {
 };
 
 export type DeleteQuestionsByQuestionIdAnswersByIdResponse = DeleteQuestionsByQuestionIdAnswersByIdResponses[keyof DeleteQuestionsByQuestionIdAnswersByIdResponses];
+
+export type GetQuestionsByQuestionIdImagesData = {
+    body?: never;
+    path: {
+        /**
+         * Question ID
+         */
+        question_id: number;
+    };
+    query?: never;
+    url: '/questions/{question_id}/images';
+};
+
+export type GetQuestionsByQuestionIdImagesResponses = {
+    /**
+     * OK
+     */
+    200: Array<UploadUploadResponse>;
+};
+
+export type GetQuestionsByQuestionIdImagesResponse = GetQuestionsByQuestionIdImagesResponses[keyof GetQuestionsByQuestionIdImagesResponses];
+
+export type PostQuestionsByQuestionIdImagesData = {
+    body: {
+        /**
+         * File gambar
+         */
+        image: Blob | File;
+    };
+    path: {
+        /**
+         * Question ID
+         */
+        question_id: number;
+    };
+    query?: never;
+    url: '/questions/{question_id}/images';
+};
+
+export type PostQuestionsByQuestionIdImagesErrors = {
+    /**
+     * Bad Request
+     */
+    400: {
+        [key: string]: string;
+    };
+};
+
+export type PostQuestionsByQuestionIdImagesError = PostQuestionsByQuestionIdImagesErrors[keyof PostQuestionsByQuestionIdImagesErrors];
+
+export type PostQuestionsByQuestionIdImagesResponses = {
+    /**
+     * Created
+     */
+    201: UploadUploadResponse;
+};
+
+export type PostQuestionsByQuestionIdImagesResponse = PostQuestionsByQuestionIdImagesResponses[keyof PostQuestionsByQuestionIdImagesResponses];
 
 export type GetSubjectsData = {
     body?: never;

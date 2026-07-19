@@ -7,19 +7,24 @@ import (
 )
 
 type Config struct {
-	Port              string
-	DBHost            string
-	DBPort            string
-	DBUser            string
-	DBPass            string
-	DBName            string
-	AdminName         string
-	AdminEmail        string
-	AdminPass         string
-	GoogleClientID    string
+	Port               string
+	DBHost             string
+	DBPort             string
+	DBUser             string
+	DBPass             string
+	DBName             string
+	AdminName          string
+	AdminEmail         string
+	AdminPass          string
+	GoogleClientID     string
 	GoogleClientSecret string
-	GoogleCallbackURL string
-	AppURL            string
+	GoogleCallbackURL  string
+	AppURL             string
+	MinioEndpoint      string
+	MinioAccessKey     string
+	MinioSecretKey     string
+	MinioBucket        string
+	MinioUseSSL        bool
 }
 
 func Load() *Config {
@@ -39,6 +44,11 @@ func Load() *Config {
 		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
 		GoogleCallbackURL:  getEnv("GOOGLE_CALLBACK_URL", "http://localhost:8080/auth/google/callback"),
 		AppURL:             getEnv("APP_URL", "http://localhost:5173"),
+		MinioEndpoint:      getEnv("MINIO_ENDPOINT", "stb:9000"),
+		MinioAccessKey:     getEnv("MINIO_ACCESS_KEY", "minioadmin"),
+		MinioSecretKey:     getEnv("MINIO_SECRET_KEY", "minioadmin"),
+		MinioBucket:        getEnv("MINIO_BUCKET", "bimbel"),
+		MinioUseSSL:        false,
 	}
 }
 

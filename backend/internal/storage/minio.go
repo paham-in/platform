@@ -1,0 +1,74 @@
+package storage
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"mime/multipart"
+
+	"bimbel2/backend/internal/config"
+
+	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
+)
+
+type MinioClient struct {
+	client *minio.Client
+	bucket string
+}
+
+func NewMinioClient(cfg *config.Config) (*MinioClient, error) {
+	client, err := minio.New(cfg.MinioEndpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(cfg.MinioAccessKey, cfg.MinioSecretKey, ""),
+		Secure: cfg.MinioUseSSL,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to minio: %w", err)
+	}
+
+	ctx := context.Background()
+	bucket := cfg.MinioBucket
+
+	exists, err := client.BucketExists(ctx, bucket)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check bucket: %w", err)
+	}
+	if !exists {
+		err = client.MakeBucket(ctx, bucket, minio.MakeBucketOptions{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create bucket: %w", err)
+		}
+		log.Printf("MinIO bucket '%s' created", bucket)
+	}
+
+	return &MinioClient{client: client, bucket: bucket}, nil
+}
+
+func (m *MinioClient) Upload(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, string, error) {
+	ext := ""
+	if header.Filename != "" {
+		for i := len(header.Filename) - 1; i >= 0; i-- {
+			if header.Filename[i] == '.' {
+				ext = header.Filename[i:]
+				break
+			}
+		}
+	}
+
+	objectName := fmt.Sprintf("forum/%s%s", uuid.NewString(), ext)
+
+	_, err := m.client.PutObject(ctx, m.bucket, objectName, file, header.Size, minio.PutObjectOptions{
+		ContentType: header.Header.Get("Content-Type"),
+	})
+	if err != nil {
+		return "", "", fmt.Errorf("failed to upload: %w", err)
+	}
+
+	url := fmt.Sprintf("http://%s/%s/%s", m.client.EndpointURL().Host, m.bucket, objectName)
+	return objectName, url, nil
+}
+
+func (m *MinioClient) Delete(ctx context.Context, objectName string) error {
+	return m.client.RemoveObject(ctx, m.bucket, objectName, minio.RemoveObjectOptions{})
+}

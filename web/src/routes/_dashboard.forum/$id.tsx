@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { RichContent } from "@/components/ui/rich-content"
 import { TiptapEditor } from "@/components/ui/tiptap-editor"
@@ -26,6 +26,8 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 
+type QuestionImage = { id: number; url: string; file_name: string }
+
 function ForumDetail() {
   const qc = useQueryClient()
   const { id } = useParams({ from: "/_dashboard/forum/$id" })
@@ -35,7 +37,15 @@ function ForumDetail() {
   const { data: answers = [] } = useQuery(
     getQuestionsByQuestionIdAnswersOptions({ path: { question_id: questionId } })
   )
+  const [images, setImages] = useState<QuestionImage[]>([])
   const [answerContent, setAnswerContent] = useState("")
+
+  useEffect(() => {
+    fetch(`http://localhost:8080/questions/${questionId}/images`)
+      .then((r) => r.json())
+      .then(setImages)
+      .catch(() => {})
+  }, [questionId])
 
   const { mutate: submitAnswer, isPending } = useMutation({
     ...postQuestionsByQuestionIdAnswersMutation(),
@@ -119,6 +129,21 @@ function ForumDetail() {
 
       {question.content && (
         <RichContent html={question.content} />
+      )}
+
+      {/* Images */}
+      {images.length > 0 && (
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {images.map((img) => (
+            <a key={img.id} href={img.url} target="_blank" rel="noreferrer">
+              <img
+                src={img.url}
+                alt=""
+                className="h-40 w-full rounded-lg border object-cover transition-opacity hover:opacity-80"
+              />
+            </a>
+          ))}
+        </div>
       )}
 
       {/* Answers */}

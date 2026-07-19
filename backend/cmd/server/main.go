@@ -12,7 +12,9 @@ import (
 	"bimbel2/backend/internal/class"
 	"bimbel2/backend/internal/forum"
 	"bimbel2/backend/internal/material"
+	"bimbel2/backend/internal/storage"
 	"bimbel2/backend/internal/subject"
+	"bimbel2/backend/internal/upload"
 	"bimbel2/backend/internal/user"
 
 	"github.com/gofiber/fiber/v2"
@@ -40,6 +42,11 @@ func main() {
 	database.Migrate(db)
 	seedAdmin(db, cfg)
 
+	minioClient, err := storage.NewMinioClient(cfg)
+	if err != nil {
+		log.Printf("Warning: MinIO not available: %v", err)
+	}
+
 	app := fiber.New()
 	app.Use(cors.New())
 	app.Use(middleware.RequestLogger())
@@ -57,6 +64,9 @@ func main() {
 	subject.Routes(app, db)
 	forum.Routes(app, db)
 	answer.PublicRoutes(app, db)
+	if minioClient != nil {
+		upload.PublicRoutes(app, db, minioClient)
+	}
 
 	// Authenticated routes (any role with valid session)
 	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))
@@ -65,6 +75,9 @@ func main() {
 	chapter.PublicRoutes(auth, db)
 	material.PublicRoutes(auth, db)
 	answer.AuthRoutes(auth, db)
+	if minioClient != nil {
+		upload.AuthRoutes(auth, db, minioClient)
+	}
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)
