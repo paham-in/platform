@@ -26,7 +26,7 @@ export function RichContent({ html }: { html: string }) {
   return (
     <div
       ref={ref}
-      className="prose prose-sm dark:prose-invert max-w-none"
+      className="prose prose-sm dark:prose-invert max-w-none prose-img:mx-auto prose-img:block"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

@@ -18,12 +18,19 @@ import { useEditor, EditorContent, type Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Underline from "@tiptap/extension-underline"
 import TextAlign from "@tiptap/extension-text-align"
-import Image from "@tiptap/extension-image"
+import ImageExt from "@tiptap/extension-image"
 import { Mathematics } from "@tiptap/extension-mathematics"
 import "katex/dist/katex.min.css"
 import { cn } from "@/lib/utils"
 import { MathInputDialog } from "./math-input-dialog"
 import { GalleryPicker } from "./gallery-picker"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
 const ToolbarButton = ({
   active,
@@ -61,6 +68,7 @@ export function TiptapEditor({
   const [mathOpen, setMathOpen] = useState(false)
   const [editLatex, setEditLatex] = useState<string | null>(null)
   const [galleryOpen, setGalleryOpen] = useState(false)
+  const [resizeOpen, setResizeOpen] = useState(false)
   const editorElRef = useRef<HTMLDivElement>(null)
 
   const editor = useEditor({
@@ -71,24 +79,44 @@ export function TiptapEditor({
       Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Mathematics,
-      Image,
+      ImageExt,
     ],
     content,
     editable,
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
   });
 
-  // click handler on math nodes
+  // click handler on math nodes + images
   useEffect(() => {
     const el = editorElRef.current
     if (!el || !editable) return
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement
+      // check math node first
       const mathEl = target.closest('[data-type="inline-math"], [data-type="block-math"]')
-      if (!mathEl || !editor) return
-      const latex = mathEl.getAttribute("data-latex") || ""
-      setEditLatex(latex)
-      setMathOpen(true)
+      if (mathEl && editor) {
+        const latex = mathEl.getAttribute("data-latex") || ""
+        setEditLatex(latex)
+        setMathOpen(true)
+        return
+      }
+      // check image
+      const img = target.closest("img[src]")
+      if (img && editor) {
+        if (!editorElRef.current?.contains(img as Node)) return
+        const pos = editor.view.posAtDOM(img as Node, 0)
+        if (pos != null) {
+          const resolved = editor.state.doc.resolve(pos)
+          for (let d = resolved.depth; d >= 0; d--) {
+            if (resolved.node(d).type.name === "image") {
+              editor.commands.setNodeSelection(d === 0 ? pos : resolved.before(d))
+              break
+            }
+          }
+          setResizeOpen(true)
+        }
+        return
+      }
     }
     el.addEventListener("click", handler)
     return () => el.removeEventListener("click", handler)
@@ -109,13 +137,18 @@ export function TiptapEditor({
     setMathOpen(true)
   }
 
+  const handleResize = (pct: number) => {
+    editor.chain().focus().updateAttributes("image", { width: `${pct}%` }).run()
+    setResizeOpen(false)
+  }
+
   return (
     <div className="rounded-md border">
       <Toolbar editor={editor} onOpenMath={openMathForInsert} onOpenGallery={() => setGalleryOpen(true)} />
       <div ref={editorElRef}>
         <EditorContent
           editor={editor}
-          className="prose prose-sm dark:prose-invert max-w-none p-4 focus:outline-none [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:outline-none"
+          className="prose prose-sm dark:prose-invert max-w-none p-4 focus:outline-none [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:outline-none [&_.ProseMirror_img]:mx-auto [&_.ProseMirror_img]:block"
         />
       </div>
       <MathInputDialog
@@ -129,6 +162,21 @@ export function TiptapEditor({
         onOpenChange={setGalleryOpen}
         onInsert={(url) => editor.chain().focus().setImage({ src: url }).run()}
       />
+
+      <Dialog open={resizeOpen} onOpenChange={setResizeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ukuran Gambar</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-wrap gap-2">
+            {[25, 50, 75, 100].map((pct) => (
+              <Button key={pct} variant="outline" className="flex-1" onClick={() => handleResize(pct)}>
+                {pct}%
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

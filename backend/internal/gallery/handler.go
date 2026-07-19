@@ -28,6 +28,7 @@ type ImageResponse struct {
 	ID           uint   `json:"id"`
 	URL          string `json:"url"`
 	OriginalName string `json:"original_name"`
+	Title        string `json:"title"`
 	CreatedAt    string `json:"created_at"`
 }
 
@@ -99,10 +100,13 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal mengunggah file"})
 	}
 
+	title := c.FormValue("title", "")
+
 	rec := models.SubjectImage{
 		SubjectID:    uint(subjectID),
 		FileName:     objectName,
 		OriginalName: file.Filename,
+		Title:        title,
 	}
 	if err := h.db.Create(&rec).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan data"})
@@ -112,6 +116,7 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 		ID:           rec.ID,
 		URL:          objectName,
 		OriginalName: file.Filename,
+		Title:        title,
 		CreatedAt:    rec.CreatedAt.Format("2006-01-02 15:04"),
 	})
 }
@@ -130,8 +135,13 @@ func (h *Handler) List(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "id tidak valid"})
 	}
 
+	q := c.Query("q", "")
 	var images []models.SubjectImage
-	if err := h.db.Where("subject_id = ?", subjectID).Order("created_at desc").Find(&images).Error; err != nil {
+	query := h.db.Where("subject_id = ?", subjectID)
+	if q != "" {
+		query = query.Where("title ILIKE ?", "%"+q+"%")
+	}
+	if err := query.Order("created_at desc").Find(&images).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal mengambil data"})
 	}
 
@@ -146,6 +156,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 			ID:           img.ID,
 			URL:          url,
 			OriginalName: img.OriginalName,
+			Title:        img.Title,
 			CreatedAt:    img.CreatedAt.Format("2006-01-02 15:04"),
 		}
 	}
