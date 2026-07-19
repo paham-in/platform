@@ -51,6 +51,11 @@ func (s *Service) Create(questionID, userID uint, content string) (*models.Answe
 	if err := s.repo.Create(&answer); err != nil {
 		return nil, err
 	}
+
+	// reload with User preloaded
+	if err := s.repo.ReloadWithUser(&answer); err != nil {
+		return nil, err
+	}
 	return &answer, nil
 }
 

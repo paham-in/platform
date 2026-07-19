@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
+	"bimbel2/backend/internal/answer"
 	"bimbel2/backend/internal/config"
 	"bimbel2/backend/internal/database"
-	"bimbel2/backend/internal/answer"
 	"bimbel2/backend/internal/middleware"
 	"bimbel2/backend/internal/models"
 	"bimbel2/backend/internal/chapter"
@@ -56,7 +56,7 @@ func main() {
 	user.OAuthRoutes(app, db, cfg)
 	subject.Routes(app, db)
 	forum.Routes(app, db)
-	answer.Routes(app, db)
+	answer.PublicRoutes(app, db)
 
 	// Authenticated routes (any role with valid session)
 	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))
@@ -64,6 +64,7 @@ func main() {
 	class.PublicRoutes(auth, db)
 	chapter.PublicRoutes(auth, db)
 	material.PublicRoutes(auth, db)
+	answer.AuthRoutes(auth, db)
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)

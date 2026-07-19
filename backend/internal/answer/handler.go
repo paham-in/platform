@@ -124,14 +124,20 @@ func (h *Handler) CreateAnswer(c *fiber.Ctx) error {
 	})
 }
 
-func Routes(app fiber.Router, db *gorm.DB) {
+func PublicRoutes(app fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	questionRepo := NewQuestionRepository(db)
 	svc := NewService(repo, questionRepo)
 	h := NewHandler(svc)
 
 	app.Get("/questions/:question_id/answers", middleware.OptionalSessionResolver(db), h.ListAnswers)
+}
 
-	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))
-	auth.Post("/questions/:question_id/answers", h.CreateAnswer)
+func AuthRoutes(app fiber.Router, db *gorm.DB) {
+	repo := NewRepository(db)
+	questionRepo := NewQuestionRepository(db)
+	svc := NewService(repo, questionRepo)
+	h := NewHandler(svc)
+
+	app.Post("/questions/:question_id/answers", middleware.SessionRequired(), middleware.SessionResolver(db), h.CreateAnswer)
 }

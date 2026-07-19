@@ -25,3 +25,7 @@ func (r *Repository) ListByQuestion(questionID uint) ([]models.Answer, error) {
 func (r *Repository) Create(a *models.Answer) error {
 	return r.db.Create(a).Error
 }
+
+func (r *Repository) ReloadWithUser(a *models.Answer) error {
+	return r.db.Preload("User").First(a, a.ID).Error
+}

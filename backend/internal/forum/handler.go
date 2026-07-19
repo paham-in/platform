@@ -271,8 +271,6 @@ func Routes(app fiber.Router, db *gorm.DB) {
 
 	app.Get("/questions", middleware.OptionalSessionResolver(db), h.ListQuestions)
 	app.Get("/questions/:id", middleware.OptionalSessionResolver(db), h.GetQuestion)
-
-	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))
-	auth.Post("/questions", h.CreateQuestion)
-	auth.Delete("/questions/:id", h.DeleteQuestion)
+	app.Post("/questions", middleware.SessionRequired(), middleware.SessionResolver(db), h.CreateQuestion)
+	app.Delete("/questions/:id", middleware.SessionRequired(), middleware.SessionResolver(db), h.DeleteQuestion)
 }
