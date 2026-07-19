@@ -982,6 +982,10 @@ export type GetQuestionsData = {
          * Filter by subject
          */
         subject_id?: number;
+        /**
+         * Filter by current user
+         */
+        mine?: boolean;
     };
     url: '/questions';
 };

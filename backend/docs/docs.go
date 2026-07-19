@@ -1300,6 +1300,12 @@ const docTemplate = `{
                         "description": "Filter by subject",
                         "name": "subject_id",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by current user",
+                        "name": "mine",
+                        "in": "query"
                     }
                 ],
                 "responses": {

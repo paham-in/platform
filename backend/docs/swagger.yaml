@@ -1093,6 +1093,10 @@ paths:
         in: query
         name: subject_id
         type: integer
+      - description: Filter by current user
+        in: query
+        name: mine
+        type: boolean
       produces:
       - application/json
       responses:

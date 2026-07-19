@@ -42,6 +42,7 @@ func userIDFrom(c *fiber.Ctx) uint {
 // @Accept       json
 // @Produce      json
 // @Param        subject_id query int false "Filter by subject"
+// @Param        mine query bool false "Filter by current user"
 // @Success      200 {array} QuestionResponse
 // @Router       /questions [get]
 func (h *Handler) ListQuestions(c *fiber.Ctx) error {

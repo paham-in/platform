@@ -1,37 +1,20 @@
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   getQuestionsOptions,
   getQuestionsQueryKey,
   deleteQuestionsByIdMutation,
-  getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { toast } from "sonner"
-import {
-  Loader2,
-  Plus,
-  Search,
-  MessageSquare,
-  Trash2,
-} from "lucide-react"
+import { Loader2, Plus, MessageSquare, Trash2, ArrowLeft } from "lucide-react"
 
-function ForumPage() {
+function MyQuestions() {
   const qc = useQueryClient()
-  const { data: questions = [], isLoading } = useQuery(getQuestionsOptions())
-  const { data: subjects = [] } = useQuery(getSubjectsOptions())
-  const [search, setSearch] = useState("")
-  const [subjectFilter, setSubjectFilter] = useState("all")
+  const { data: questions = [], isLoading } = useQuery(
+    getQuestionsOptions({ query: { mine: true } })
+  )
 
   const { mutate: deleteQuestion } = useMutation({
     ...deleteQuestionsByIdMutation(),
@@ -42,12 +25,6 @@ function ForumPage() {
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal menghapus pertanyaan")
     },
-  })
-
-  const filtered = questions.filter((q) => {
-    const matchSearch = (q.plain_content ?? "").toLowerCase().includes(search.toLowerCase())
-    const matchSubject = subjectFilter === "all" || String(q.subject_id) === subjectFilter
-    return matchSearch && matchSubject
   })
 
   const StatusBadge = ({ status }: { status: string }) => {
@@ -74,7 +51,12 @@ function ForumPage() {
   return (
     <main className="p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Forum Tanya Jawab</h1>
+        <div className="flex items-center gap-3">
+          <Link to="/forum" className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight">Pertanyaan Saya</h1>
+        </div>
         <Link to="/forum/new">
           <Button>
             <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
@@ -82,40 +64,15 @@ function ForumPage() {
         </Link>
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Cari pertanyaan..."
-            className="pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <Select value={subjectFilter} onValueChange={(v) => setSubjectFilter(v ?? "all")}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter Subjek" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Semua Subjek</SelectItem>
-            {subjects.map((s) => (
-              <SelectItem key={s.id} value={String(s.id)}>
-                {s.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
-        {filtered.length === 0 && (
+        {questions.length === 0 && (
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground">
               Belum ada pertanyaan
             </CardContent>
           </Card>
         )}
-        {filtered.map((q) => (
+        {questions.map((q) => (
           <Link key={q.id} to="/forum/$id" params={{ id: String(q.id!) }}>
             <Card className="overflow-hidden transition-colors hover:bg-muted/50">
               <CardContent className="p-5">
@@ -128,19 +85,17 @@ function ForumPage() {
                       </span>
                     )}
                   </div>
-                  {q.is_owner && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="mt-0.5 h-6 w-6 shrink-0 text-destructive hover:text-destructive"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        deleteQuestion({ path: { id: q.id! } })
-                      }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="mt-0.5 h-6 w-6 shrink-0 text-destructive hover:text-destructive"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      deleteQuestion({ path: { id: q.id! } })
+                    }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
 
                 <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{q.plain_content}</p>
@@ -169,6 +124,6 @@ function ForumPage() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/forum/")({
-  component: ForumPage,
+export const Route = createFileRoute("/_dashboard/forum/mine")({
+  component: MyQuestions,
 })
