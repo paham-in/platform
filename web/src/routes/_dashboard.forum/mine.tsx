@@ -1,5 +1,14 @@
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+} from "@/components/ui/alert-dialog"
 import {
   getQuestionsOptions,
   getQuestionsQueryKey,
@@ -15,6 +24,7 @@ function MyQuestions() {
   const { data: questions = [], isLoading } = useQuery(
     getQuestionsOptions({ query: { mine: true } })
   )
+  const [deleteId, setDeleteId] = useState<number | null>(null)
 
   const { mutate: deleteQuestion } = useMutation({
     ...deleteQuestionsByIdMutation(),
@@ -91,7 +101,7 @@ function MyQuestions() {
                     className="mt-0.5 h-6 w-6 shrink-0 text-destructive hover:text-destructive"
                     onClick={(e) => {
                       e.preventDefault()
-                      deleteQuestion({ path: { id: q.id! } })
+                      setDeleteId(q.id!)
                     }}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -120,6 +130,26 @@ function MyQuestions() {
           </Link>
         ))}
       </div>
+
+      {deleteId !== null && (
+        <AlertDialog open onOpenChange={(o) => !o && setDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus Pertanyaan</AlertDialogTitle>
+              <AlertDialogDescription>
+                Apakah kamu yakin ingin menghapus pertanyaan ini?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button variant="outline" onClick={() => setDeleteId(null)}>Batal</Button>
+              <Button variant="destructive" onClick={() => {
+                deleteQuestion({ path: { id: deleteId } })
+                setDeleteId(null)
+              }}>Hapus</Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </main>
   )
 }
