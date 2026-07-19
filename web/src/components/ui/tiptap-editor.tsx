@@ -1,3 +1,4 @@
+import { useState } from "react"
 import {
   BoldIcon,
   Heading1Icon,
@@ -11,14 +12,15 @@ import {
   Sigma,
   StrikethroughIcon,
   UndoIcon,
-} from "lucide-react";
-import { useEditor, EditorContent, type Editor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import TextAlign from "@tiptap/extension-text-align";
-import { Mathematics } from "@tiptap/extension-mathematics";
-import "katex/dist/katex.min.css";
-import { cn } from "@/lib/utils";
+} from "lucide-react"
+import { useEditor, EditorContent, type Editor } from "@tiptap/react"
+import StarterKit from "@tiptap/starter-kit"
+import Underline from "@tiptap/extension-underline"
+import TextAlign from "@tiptap/extension-text-align"
+import { Mathematics } from "@tiptap/extension-mathematics"
+import "katex/dist/katex.min.css"
+import { cn } from "@/lib/utils"
+import { MathInputDialog } from "./math-input-dialog"
 
 const ToolbarButton = ({
   active,
@@ -53,6 +55,7 @@ export function TiptapEditor({
   onChange: (html: string) => void;
   editable?: boolean;
 }) {
+  const [mathOpen, setMathOpen] = useState(false)
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -71,16 +74,21 @@ export function TiptapEditor({
 
   return (
     <div className="rounded-md border">
-      <Toolbar editor={editor} />
+      <Toolbar editor={editor} onOpenMath={() => setMathOpen(true)} />
       <EditorContent
         editor={editor}
         className="prose prose-sm dark:prose-invert max-w-none p-4 focus:outline-none [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:outline-none"
+      />
+      <MathInputDialog
+        open={mathOpen}
+        onOpenChange={setMathOpen}
+        onInsert={(latex) => editor.chain().focus().insertInlineMath({ latex }).run()}
       />
     </div>
   );
 }
 
-function Toolbar({ editor }: { editor: Editor }) {
+function Toolbar({ editor, onOpenMath }: { editor: Editor; onOpenMath: () => void }) {
   const items = [
     { icon: UndoIcon, action: () => editor.chain().focus().undo().run(), active: false },
     { icon: RedoIcon, action: () => editor.chain().focus().redo().run(), active: false },
@@ -98,14 +106,8 @@ function Toolbar({ editor }: { editor: Editor }) {
     { icon: ListOrderedIcon, action: () => editor.chain().focus().toggleOrderedList().run(), active: editor.isActive("orderedList") },
     { icon: QuoteIcon, action: () => editor.chain().focus().toggleBlockquote().run(), active: editor.isActive("blockquote") },
     { type: "sep" as const },
-    { icon: Sigma, action: insertMath, active: editor.isActive("blockMath") },
+    { icon: Sigma, action: onOpenMath, active: editor.isActive("blockMath") },
   ];
-
-  function insertMath() {
-    const latex = window.prompt("Masukkan rumus LaTeX (contoh: \\frac{a}{b})");
-    if (!latex) return;
-    editor.chain().focus().insertInlineMath({ latex }).run();
-  }
 
   return (
     <div className="flex flex-wrap items-center gap-0.5 border-b bg-muted/20 px-2 py-1.5">
