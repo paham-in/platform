@@ -1,5 +1,4 @@
-import { buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { Link } from "@tanstack/react-router"
 
 const navLinks = [
@@ -32,7 +31,11 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link to="/login" className={cn(buttonVariants({ size: "sm" }))}>Masuk</Link>
+          {localStorage.getItem("token") ? (
+            <Button size="sm" render={<Link to="/dashboard" />}>Dashboard</Button>
+          ) : (
+            <Button size="sm" render={<Link to="/login" />}>Masuk</Button>
+          )}
         </div>
       </div>
     </header>
