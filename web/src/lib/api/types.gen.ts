@@ -102,6 +102,23 @@ export type ForumQuestionResponse = {
     user_name?: string;
 };
 
+export type GalleryGalleryDeleteResponse = {
+    message?: string;
+};
+
+export type GalleryGalleryErrorResponse = {
+    error?: string;
+};
+
+export type GalleryGalleryImageResponse = {
+    created_at?: string;
+    id?: number;
+    is_owner?: boolean;
+    original_name?: string;
+    title?: string;
+    url?: string;
+};
+
 export type MaterialCreateInput = {
     chapter_id?: number;
     content?: string;
@@ -167,12 +184,6 @@ export type SubjectUpdateInput = {
     class_ids?: Array<number>;
     description?: string;
     name?: string;
-};
-
-export type UploadUploadResponse = {
-    file_name?: string;
-    id?: number;
-    url?: string;
 };
 
 export type UserAdminUserResponse = {
@@ -681,6 +692,109 @@ export type PatchAdminSubjectsByIdResponses = {
 };
 
 export type PatchAdminSubjectsByIdResponse = PatchAdminSubjectsByIdResponses[keyof PatchAdminSubjectsByIdResponses];
+
+export type GetAdminSubjectsBySubjectIdImagesData = {
+    body?: never;
+    path: {
+        /**
+         * Subject ID
+         */
+        subject_id: number;
+    };
+    query?: {
+        /**
+         * Filter by title
+         */
+        q?: string;
+    };
+    url: '/admin/subjects/{subject_id}/images';
+};
+
+export type GetAdminSubjectsBySubjectIdImagesResponses = {
+    /**
+     * OK
+     */
+    200: Array<GalleryGalleryImageResponse>;
+};
+
+export type GetAdminSubjectsBySubjectIdImagesResponse = GetAdminSubjectsBySubjectIdImagesResponses[keyof GetAdminSubjectsBySubjectIdImagesResponses];
+
+export type PostAdminSubjectsBySubjectIdImagesData = {
+    body: {
+        /**
+         * File gambar
+         */
+        image: Blob | File;
+        /**
+         * Judul gambar
+         */
+        title?: string;
+    };
+    path: {
+        /**
+         * Subject ID
+         */
+        subject_id: number;
+    };
+    query?: never;
+    url: '/admin/subjects/{subject_id}/images';
+};
+
+export type PostAdminSubjectsBySubjectIdImagesErrors = {
+    /**
+     * Bad Request
+     */
+    400: GalleryGalleryErrorResponse;
+};
+
+export type PostAdminSubjectsBySubjectIdImagesError = PostAdminSubjectsBySubjectIdImagesErrors[keyof PostAdminSubjectsBySubjectIdImagesErrors];
+
+export type PostAdminSubjectsBySubjectIdImagesResponses = {
+    /**
+     * Created
+     */
+    201: GalleryGalleryImageResponse;
+};
+
+export type PostAdminSubjectsBySubjectIdImagesResponse = PostAdminSubjectsBySubjectIdImagesResponses[keyof PostAdminSubjectsBySubjectIdImagesResponses];
+
+export type DeleteAdminSubjectsBySubjectIdImagesByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Subject ID
+         */
+        subject_id: number;
+        /**
+         * Image ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/subjects/{subject_id}/images/{id}';
+};
+
+export type DeleteAdminSubjectsBySubjectIdImagesByIdErrors = {
+    /**
+     * Forbidden
+     */
+    403: GalleryGalleryErrorResponse;
+    /**
+     * Not Found
+     */
+    404: GalleryGalleryErrorResponse;
+};
+
+export type DeleteAdminSubjectsBySubjectIdImagesByIdError = DeleteAdminSubjectsBySubjectIdImagesByIdErrors[keyof DeleteAdminSubjectsBySubjectIdImagesByIdErrors];
+
+export type DeleteAdminSubjectsBySubjectIdImagesByIdResponses = {
+    /**
+     * OK
+     */
+    200: GalleryGalleryDeleteResponse;
+};
+
+export type DeleteAdminSubjectsBySubjectIdImagesByIdResponse = DeleteAdminSubjectsBySubjectIdImagesByIdResponses[keyof DeleteAdminSubjectsBySubjectIdImagesByIdResponses];
 
 export type GetAdminUsersData = {
     body?: never;
@@ -1192,64 +1306,6 @@ export type DeleteQuestionsByQuestionIdAnswersByIdResponses = {
 };
 
 export type DeleteQuestionsByQuestionIdAnswersByIdResponse = DeleteQuestionsByQuestionIdAnswersByIdResponses[keyof DeleteQuestionsByQuestionIdAnswersByIdResponses];
-
-export type GetQuestionsByQuestionIdImagesData = {
-    body?: never;
-    path: {
-        /**
-         * Question ID
-         */
-        question_id: number;
-    };
-    query?: never;
-    url: '/questions/{question_id}/images';
-};
-
-export type GetQuestionsByQuestionIdImagesResponses = {
-    /**
-     * OK
-     */
-    200: Array<UploadUploadResponse>;
-};
-
-export type GetQuestionsByQuestionIdImagesResponse = GetQuestionsByQuestionIdImagesResponses[keyof GetQuestionsByQuestionIdImagesResponses];
-
-export type PostQuestionsByQuestionIdImagesData = {
-    body: {
-        /**
-         * File gambar
-         */
-        image: Blob | File;
-    };
-    path: {
-        /**
-         * Question ID
-         */
-        question_id: number;
-    };
-    query?: never;
-    url: '/questions/{question_id}/images';
-};
-
-export type PostQuestionsByQuestionIdImagesErrors = {
-    /**
-     * Bad Request
-     */
-    400: {
-        [key: string]: string;
-    };
-};
-
-export type PostQuestionsByQuestionIdImagesError = PostQuestionsByQuestionIdImagesErrors[keyof PostQuestionsByQuestionIdImagesErrors];
-
-export type PostQuestionsByQuestionIdImagesResponses = {
-    /**
-     * Created
-     */
-    201: UploadUploadResponse;
-};
-
-export type PostQuestionsByQuestionIdImagesResponse = PostQuestionsByQuestionIdImagesResponses[keyof PostQuestionsByQuestionIdImagesResponses];
 
 export type GetSubjectsData = {
     body?: never;

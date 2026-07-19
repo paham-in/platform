@@ -148,6 +148,31 @@ definitions:
       user_name:
         type: string
     type: object
+  gallery.GalleryDeleteResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  gallery.GalleryErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  gallery.GalleryImageResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_owner:
+        type: boolean
+      original_name:
+        type: string
+      title:
+        type: string
+      url:
+        type: string
+    type: object
   material.CreateInput:
     properties:
       chapter_id:
@@ -258,15 +283,6 @@ definitions:
       description:
         type: string
       name:
-        type: string
-    type: object
-  upload.UploadResponse:
-    properties:
-      file_name:
-        type: string
-      id:
-        type: integer
-      url:
         type: string
     type: object
   user.AdminUserResponse:
@@ -813,6 +829,102 @@ paths:
       summary: Update subject
       tags:
       - Admin
+  /admin/subjects/{subject_id}/images:
+    get:
+      description: Mengembalikan daftar gambar gallery subject
+      parameters:
+      - description: Subject ID
+        in: path
+        name: subject_id
+        required: true
+        type: integer
+      - description: Filter by title
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/gallery.GalleryImageResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List subject images
+      tags:
+      - Admin Gallery
+    post:
+      consumes:
+      - multipart/form-data
+      description: Mengunggah gambar ke gallery subject
+      parameters:
+      - description: Subject ID
+        in: path
+        name: subject_id
+        required: true
+        type: integer
+      - description: File gambar
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Judul gambar
+        in: formData
+        name: title
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/gallery.GalleryImageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gallery.GalleryErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload subject image
+      tags:
+      - Admin Gallery
+  /admin/subjects/{subject_id}/images/{id}:
+    delete:
+      description: Menghapus gambar dari gallery subject
+      parameters:
+      - description: Subject ID
+        in: path
+        name: subject_id
+        required: true
+        type: integer
+      - description: Image ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gallery.GalleryDeleteResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/gallery.GalleryErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gallery.GalleryErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete subject image
+      tags:
+      - Admin Gallery
   /admin/users:
     get:
       consumes:
@@ -1313,60 +1425,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete answer
-      tags:
-      - Forum
-  /questions/{question_id}/images:
-    get:
-      description: Mengembalikan daftar gambar pendukung pertanyaan
-      parameters:
-      - description: Question ID
-        in: path
-        name: question_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/upload.UploadResponse'
-            type: array
-      summary: List question images
-      tags:
-      - Forum
-    post:
-      consumes:
-      - multipart/form-data
-      description: Mengunggah gambar pendukung pertanyaan
-      parameters:
-      - description: Question ID
-        in: path
-        name: question_id
-        required: true
-        type: integer
-      - description: File gambar
-        in: formData
-        name: image
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/upload.UploadResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Upload question image
       tags:
       - Forum
   /subjects:

@@ -27,11 +27,16 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { useQuery } from "@tanstack/react-query"
+import {
+  getSubjectsOptions,
+  getAdminSubjectsBySubjectIdImagesQueryKey,
+  deleteAdminSubjectsBySubjectIdImagesByIdMutation,
+  postAdminSubjectsBySubjectIdImagesMutation,
+} from "@/lib/api/@tanstack/react-query.gen"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { getAdminSubjectsBySubjectIdImages } from "@/lib/api/sdk.gen"
 import { toast } from "sonner"
 import { Loader2, SearchIcon, Trash2, Upload, X } from "lucide-react"
-
 type GalleryImage = { id: number; url: string; title: string; is_owner?: boolean }
 
 export function GalleryPicker({
@@ -43,55 +48,40 @@ export function GalleryPicker({
   onOpenChange: (v: boolean) => void
   onInsert: (url: string) => void
 }) {
+  const qc = useQueryClient()
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [subjectId, setSubjectId] = useState("")
-  const [images, setImages] = useState<GalleryImage[]>([])
-  const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState("")
-  const [deleteId, setDeleteId] = useState<number | null>(null)
-  const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    if (!open) return
-    if (subjectId) loadImages(subjectId)
-  }, [open])
+  const queryKey = subjectId
+    ? getAdminSubjectsBySubjectIdImagesQueryKey({ path: { subject_id: Number(subjectId) }, query: { q: search || undefined } })
+    : [] as any
 
-  const loadImages = async (sid: string, q?: string) => {
-    setLoading(true)
-    try {
-      let url = `http://localhost:8080/admin/subjects/${sid}/images`
-      if (q) url += `?q=${encodeURIComponent(q)}`
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
-      if (res.ok) setImages(await res.json())
-      else setImages([])
-    } catch { setImages([]) }
-    setLoading(false)
-  }
+  const { data: rawImages = [], isLoading } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      if (!subjectId) return []
+      const res = await getAdminSubjectsBySubjectIdImages({ path: { subject_id: Number(subjectId) }, query: { q: search || undefined } })
+      return res.data ?? []
+    },
+    enabled: !!subjectId,
+  } as any)
+  const images = rawImages as unknown as GalleryImage[]
+
+  const { mutate: deleteImage, isPending: deleting } = useMutation({
+    ...deleteAdminSubjectsBySubjectIdImagesByIdMutation(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey })
+      toast.success("Gambar berhasil dihapus")
+    },
+    onError: () => toast.error("Gagal menghapus gambar"),
+  })
+
+  useEffect(() => { if (!open) setSearch("") }, [open])
 
   const handleSubjectChange = (v: string) => {
     setSubjectId(v ?? "")
     setSearch("")
-    loadImages(v ?? "")
-  }
-
-  const handleSearch = () => {
-    if (subjectId) loadImages(subjectId, search)
-  }
-
-  const deleteImage = async () => {
-    if (!deleteId || !subjectId) return
-    setDeleting(true)
-    const res = await fetch(`http://localhost:8080/admin/subjects/${subjectId}/images/${deleteId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    })
-    setDeleting(false)
-    setDeleteId(null)
-    if (res.ok) toast.success("Gambar berhasil dihapus")
-    else toast.error("Gagal menghapus gambar")
-    loadImages(subjectId)
   }
 
   return (
@@ -134,20 +124,17 @@ export function GalleryPicker({
                     className="pl-8"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    onKeyDown={(e) => { if (e.key === "Enter") qc.invalidateQueries({ queryKey }) }}
                   />
                 </div>
-                <Button variant="outline" size="sm" onClick={handleSearch}>Cari</Button>
+                <Button variant="outline" size="sm" onClick={() => qc.invalidateQueries({ queryKey })}>Cari</Button>
               </div>
 
-              <UploadDialog
-                subjectId={subjectId}
-                onDone={() => loadImages(subjectId)}
-              />
+              <UploadDialog subjectId={subjectId} onDone={() => qc.invalidateQueries({ queryKey })} />
             </>
           )}
 
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
           ) : images.length === 0 ? (
             <p className="py-8 text-center text-muted-foreground">
@@ -178,16 +165,14 @@ export function GalleryPicker({
                       <AlertDialogContent size="sm">
                         <AlertDialogHeader>
                           <AlertDialogTitle>Hapus Gambar</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Yakin ingin menghapus gambar ini?
-                          </AlertDialogDescription>
+                          <AlertDialogDescription>Yakin ingin menghapus gambar ini?</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Batal</AlertDialogCancel>
                           <AlertDialogAction
                             variant="destructive"
                             disabled={deleting}
-                            onClick={() => { setDeleteId(img.id); deleteImage() }}
+                            onClick={() => deleteImage({ path: { subject_id: Number(subjectId), id: img.id! } })}
                           >
                             {deleting && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
                             Hapus
@@ -210,31 +195,19 @@ function UploadDialog({ subjectId, onDone }: { subjectId: string; onDone: () => 
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [files, setFiles] = useState<FileList | null>(null)
-  const [uploading, setUploading] = useState(false)
 
-  const uploadFiles = async () => {
+  const { mutate: doUpload, isPending: uploading } = useMutation({
+    ...postAdminSubjectsBySubjectIdImagesMutation(),
+    onSuccess: () => { toast.success("Gambar berhasil diupload"); setOpen(false); setTitle(""); setFiles(null); onDone() },
+    onError: () => toast.error("Gagal upload"),
+  })
+
+  const submit = () => {
     if (!files?.length) return
     const t = title.trim() || files[0].name
-    setUploading(true)
-    let ok = true
     for (const file of files) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} terlalu besar (maks 5MB)`)
-        ok = false
-        continue
-      }
-      const form = new FormData()
-      form.append("image", file)
-      form.append("title", t)
-      const res = await fetch(`http://localhost:8080/admin/subjects/${subjectId}/images`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        body: form,
-      })
-      if (!res.ok) { ok = false; toast.error(`Gagal upload ${file.name}`) }
+      doUpload({ body: { image: file, title: t } as any, path: { subject_id: Number(subjectId) } })
     }
-    setUploading(false)
-    if (ok) { toast.success(`"${t}" berhasil diupload`); setOpen(false); setTitle(""); setFiles(null); onDone() }
   }
 
   return (
@@ -251,11 +224,7 @@ function UploadDialog({ subjectId, onDone }: { subjectId: string; onDone: () => 
           <div className="space-y-3">
             <div>
               <Label>Judul Gambar</Label>
-              <Input
-                placeholder="Masukkan judul"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              />
+              <Input placeholder="Masukkan judul" value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
             <div>
               <Label>File</Label>
@@ -272,7 +241,7 @@ function UploadDialog({ subjectId, onDone }: { subjectId: string; onDone: () => 
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
-            <Button onClick={uploadFiles} disabled={!files?.length || uploading}>
+            <Button onClick={submit} disabled={!files?.length || uploading}>
               {uploading && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
               Upload
             </Button>

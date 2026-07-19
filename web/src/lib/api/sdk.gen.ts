@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponses, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponses, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminQuestionsByIdData, DeleteAdminQuestionsByIdErrors, DeleteAdminQuestionsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, DeleteQuestionsByIdData, DeleteQuestionsByIdResponses, DeleteQuestionsByQuestionIdAnswersByIdData, DeleteQuestionsByQuestionIdAnswersByIdErrors, DeleteQuestionsByQuestionIdAnswersByIdResponses, GetAdminChaptersData, GetAdminChaptersResponses, GetAdminClassesData, GetAdminClassesResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminQuestionsData, GetAdminQuestionsErrors, GetAdminQuestionsResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetAuthGoogleCallbackData, GetAuthGoogleData, GetChaptersData, GetChaptersResponses, GetClassesData, GetClassesResponses, GetMaterialsByIdData, GetMaterialsByIdErrors, GetMaterialsByIdResponses, GetMaterialsData, GetMaterialsResponses, GetMeData, GetMeErrors, GetMeResponses, GetQuestionsByIdData, GetQuestionsByIdErrors, GetQuestionsByIdResponses, GetQuestionsByQuestionIdAnswersData, GetQuestionsByQuestionIdAnswersResponses, GetQuestionsByQuestionIdImagesData, GetQuestionsByQuestionIdImagesResponses, GetQuestionsData, GetQuestionsResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminChaptersByIdData, PatchAdminChaptersByIdErrors, PatchAdminChaptersByIdResponses, PatchAdminClassesByIdData, PatchAdminClassesByIdErrors, PatchAdminClassesByIdResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdPaymentData, PatchAdminUsersByIdPaymentErrors, PatchAdminUsersByIdPaymentResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PatchMeData, PatchMeErrors, PatchMeResponses, PostAdminChaptersData, PostAdminChaptersErrors, PostAdminChaptersResponses, PostAdminClassesData, PostAdminClassesErrors, PostAdminClassesResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostQuestionsByQuestionIdAnswersData, PostQuestionsByQuestionIdAnswersErrors, PostQuestionsByQuestionIdAnswersResponses, PostQuestionsByQuestionIdImagesData, PostQuestionsByQuestionIdImagesErrors, PostQuestionsByQuestionIdImagesResponses, PostQuestionsData, PostQuestionsErrors, PostQuestionsResponses } from './types.gen';
+import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponses, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponses, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminQuestionsByIdData, DeleteAdminQuestionsByIdErrors, DeleteAdminQuestionsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminSubjectsBySubjectIdImagesByIdData, DeleteAdminSubjectsBySubjectIdImagesByIdErrors, DeleteAdminSubjectsBySubjectIdImagesByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, DeleteQuestionsByIdData, DeleteQuestionsByIdResponses, DeleteQuestionsByQuestionIdAnswersByIdData, DeleteQuestionsByQuestionIdAnswersByIdErrors, DeleteQuestionsByQuestionIdAnswersByIdResponses, GetAdminChaptersData, GetAdminChaptersResponses, GetAdminClassesData, GetAdminClassesResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminQuestionsData, GetAdminQuestionsErrors, GetAdminQuestionsResponses, GetAdminSubjectsBySubjectIdImagesData, GetAdminSubjectsBySubjectIdImagesResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetAuthGoogleCallbackData, GetAuthGoogleData, GetChaptersData, GetChaptersResponses, GetClassesData, GetClassesResponses, GetMaterialsByIdData, GetMaterialsByIdErrors, GetMaterialsByIdResponses, GetMaterialsData, GetMaterialsResponses, GetMeData, GetMeErrors, GetMeResponses, GetQuestionsByIdData, GetQuestionsByIdErrors, GetQuestionsByIdResponses, GetQuestionsByQuestionIdAnswersData, GetQuestionsByQuestionIdAnswersResponses, GetQuestionsData, GetQuestionsResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminChaptersByIdData, PatchAdminChaptersByIdErrors, PatchAdminChaptersByIdResponses, PatchAdminClassesByIdData, PatchAdminClassesByIdErrors, PatchAdminClassesByIdResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdPaymentData, PatchAdminUsersByIdPaymentErrors, PatchAdminUsersByIdPaymentResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PatchMeData, PatchMeErrors, PatchMeResponses, PostAdminChaptersData, PostAdminChaptersErrors, PostAdminChaptersResponses, PostAdminClassesData, PostAdminClassesErrors, PostAdminClassesResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsBySubjectIdImagesData, PostAdminSubjectsBySubjectIdImagesErrors, PostAdminSubjectsBySubjectIdImagesResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostQuestionsByQuestionIdAnswersData, PostQuestionsByQuestionIdAnswersErrors, PostQuestionsByQuestionIdAnswersResponses, PostQuestionsData, PostQuestionsErrors, PostQuestionsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -251,6 +251,44 @@ export const patchAdminSubjectsById = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
+ * List subject images
+ *
+ * Mengembalikan daftar gambar gallery subject
+ */
+export const getAdminSubjectsBySubjectIdImages = <ThrowOnError extends boolean = false>(options: Options<GetAdminSubjectsBySubjectIdImagesData, ThrowOnError>): RequestResult<GetAdminSubjectsBySubjectIdImagesResponses, unknown, ThrowOnError> => (options.client ?? client).get<GetAdminSubjectsBySubjectIdImagesResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/subjects/{subject_id}/images',
+    ...options
+});
+
+/**
+ * Upload subject image
+ *
+ * Mengunggah gambar ke gallery subject
+ */
+export const postAdminSubjectsBySubjectIdImages = <ThrowOnError extends boolean = false>(options: Options<PostAdminSubjectsBySubjectIdImagesData, ThrowOnError>): RequestResult<PostAdminSubjectsBySubjectIdImagesResponses, PostAdminSubjectsBySubjectIdImagesErrors, ThrowOnError> => (options.client ?? client).post<PostAdminSubjectsBySubjectIdImagesResponses, PostAdminSubjectsBySubjectIdImagesErrors, ThrowOnError>({
+    ...formDataBodySerializer,
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/subjects/{subject_id}/images',
+    ...options,
+    headers: {
+        'Content-Type': null,
+        ...options.headers
+    }
+});
+
+/**
+ * Delete subject image
+ *
+ * Menghapus gambar dari gallery subject
+ */
+export const deleteAdminSubjectsBySubjectIdImagesById = <ThrowOnError extends boolean = false>(options: Options<DeleteAdminSubjectsBySubjectIdImagesByIdData, ThrowOnError>): RequestResult<DeleteAdminSubjectsBySubjectIdImagesByIdResponses, DeleteAdminSubjectsBySubjectIdImagesByIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteAdminSubjectsBySubjectIdImagesByIdResponses, DeleteAdminSubjectsBySubjectIdImagesByIdErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/subjects/{subject_id}/images/{id}',
+    ...options
+});
+
+/**
  * List all users
  *
  * Mengembalikan daftar semua user (admin only)
@@ -480,29 +518,6 @@ export const deleteQuestionsByQuestionIdAnswersById = <ThrowOnError extends bool
     security: [{ name: 'Authorization', type: 'apiKey' }],
     url: '/questions/{question_id}/answers/{id}',
     ...options
-});
-
-/**
- * List question images
- *
- * Mengembalikan daftar gambar pendukung pertanyaan
- */
-export const getQuestionsByQuestionIdImages = <ThrowOnError extends boolean = false>(options: Options<GetQuestionsByQuestionIdImagesData, ThrowOnError>): RequestResult<GetQuestionsByQuestionIdImagesResponses, unknown, ThrowOnError> => (options.client ?? client).get<GetQuestionsByQuestionIdImagesResponses, unknown, ThrowOnError>({ url: '/questions/{question_id}/images', ...options });
-
-/**
- * Upload question image
- *
- * Mengunggah gambar pendukung pertanyaan
- */
-export const postQuestionsByQuestionIdImages = <ThrowOnError extends boolean = false>(options: Options<PostQuestionsByQuestionIdImagesData, ThrowOnError>): RequestResult<PostQuestionsByQuestionIdImagesResponses, PostQuestionsByQuestionIdImagesErrors, ThrowOnError> => (options.client ?? client).post<PostQuestionsByQuestionIdImagesResponses, PostQuestionsByQuestionIdImagesErrors, ThrowOnError>({
-    ...formDataBodySerializer,
-    security: [{ name: 'Authorization', type: 'apiKey' }],
-    url: '/questions/{question_id}/images',
-    ...options,
-    headers: {
-        'Content-Type': null,
-        ...options.headers
-    }
 });
 
 /**
