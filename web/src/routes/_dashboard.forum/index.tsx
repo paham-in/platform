@@ -11,37 +11,21 @@ import {
 } from "@/components/ui/select"
 import {
   getQuestionsOptions,
-  getQuestionsQueryKey,
-  deleteQuestionsByIdMutation,
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { toast } from "sonner"
 import {
   Loader2,
   Plus,
   Search,
-  Trash2,
 } from "lucide-react"
 
 function ForumPage() {
-  const qc = useQueryClient()
   const { data: questions = [], isLoading } = useQuery(getQuestionsOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [search, setSearch] = useState("")
   const [subjectFilter, setSubjectFilter] = useState("all")
-
-  const { mutate: deleteQuestion } = useMutation({
-    ...deleteQuestionsByIdMutation(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getQuestionsQueryKey() })
-      toast.success("Pertanyaan berhasil dihapus")
-    },
-    onError: (err: any) => {
-      toast.error(err?.error || err?.message || "Gagal menghapus pertanyaan")
-    },
-  })
 
   const filtered = questions.filter((q) => {
     const matchSearch = (q.plain_content ?? "").toLowerCase().includes(search.toLowerCase())
@@ -130,19 +114,6 @@ function ForumPage() {
                       </span>
                     )}
                   </div>
-                  {q.is_owner && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="mt-0.5 h-6 w-6 shrink-0 text-destructive hover:text-destructive"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        deleteQuestion({ path: { id: q.id! } })
-                      }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
                 </div>
 
                 <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{q.plain_content}</p>
