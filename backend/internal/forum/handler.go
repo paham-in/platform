@@ -41,6 +41,7 @@ func userIDFrom(c *fiber.Ctx) uint {
 // @Tags         Forum
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        subject_id query int false "Filter by subject"
 // @Param        mine query bool false "Filter by current user"
 // @Success      200 {array} QuestionResponse
@@ -98,6 +99,7 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 // @Tags         Forum
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        id path int true "Question ID"
 // @Success      200 {object} QuestionResponse
 // @Failure      404 {object} ErrorResponse

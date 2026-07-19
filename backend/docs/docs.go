@@ -1283,6 +1283,11 @@ const docTemplate = `{
         },
         "/questions": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengembalikan daftar semua pertanyaan, diurutkan terbaru",
                 "consumes": [
                     "application/json"
@@ -1366,6 +1371,11 @@ const docTemplate = `{
         },
         "/questions/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Mengembalikan detail pertanyaan berdasarkan ID",
                 "consumes": [
                     "application/json"

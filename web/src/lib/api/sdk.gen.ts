@@ -402,7 +402,11 @@ export const patchMe = <ThrowOnError extends boolean = false>(options: Options<P
  *
  * Mengembalikan daftar semua pertanyaan, diurutkan terbaru
  */
-export const getQuestions = <ThrowOnError extends boolean = false>(options?: Options<GetQuestionsData, ThrowOnError>): RequestResult<GetQuestionsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetQuestionsResponses, unknown, ThrowOnError>({ url: '/questions', ...options });
+export const getQuestions = <ThrowOnError extends boolean = false>(options?: Options<GetQuestionsData, ThrowOnError>): RequestResult<GetQuestionsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetQuestionsResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/questions',
+    ...options
+});
 
 /**
  * Create question
@@ -435,7 +439,11 @@ export const deleteQuestionsById = <ThrowOnError extends boolean = false>(option
  *
  * Mengembalikan detail pertanyaan berdasarkan ID
  */
-export const getQuestionsById = <ThrowOnError extends boolean = false>(options: Options<GetQuestionsByIdData, ThrowOnError>): RequestResult<GetQuestionsByIdResponses, GetQuestionsByIdErrors, ThrowOnError> => (options.client ?? client).get<GetQuestionsByIdResponses, GetQuestionsByIdErrors, ThrowOnError>({ url: '/questions/{id}', ...options });
+export const getQuestionsById = <ThrowOnError extends boolean = false>(options: Options<GetQuestionsByIdData, ThrowOnError>): RequestResult<GetQuestionsByIdResponses, GetQuestionsByIdErrors, ThrowOnError> => (options.client ?? client).get<GetQuestionsByIdResponses, GetQuestionsByIdErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/questions/{id}',
+    ...options
+});
 
 /**
  * List answers

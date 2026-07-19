@@ -1136,6 +1136,8 @@ paths:
             items:
               $ref: '#/definitions/forum.QuestionResponse'
             type: array
+      security:
+      - BearerAuth: []
       summary: List questions
       tags:
       - Forum
@@ -1210,6 +1212,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/forum.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get question
       tags:
       - Forum
