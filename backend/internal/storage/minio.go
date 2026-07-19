@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"mime/multipart"
+	"time"
 
 	"bimbel2/backend/internal/config"
 
@@ -45,7 +46,7 @@ func NewMinioClient(cfg *config.Config) (*MinioClient, error) {
 	return &MinioClient{client: client, bucket: bucket}, nil
 }
 
-func (m *MinioClient) Upload(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, string, error) {
+func (m *MinioClient) Upload(ctx context.Context, file multipart.File, header *multipart.FileHeader) (string, error) {
 	ext := ""
 	if header.Filename != "" {
 		for i := len(header.Filename) - 1; i >= 0; i-- {
@@ -62,11 +63,18 @@ func (m *MinioClient) Upload(ctx context.Context, file multipart.File, header *m
 		ContentType: header.Header.Get("Content-Type"),
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("failed to upload: %w", err)
+		return "", fmt.Errorf("failed to upload: %w", err)
 	}
 
-	url := fmt.Sprintf("http://%s/%s/%s", m.client.EndpointURL().Host, m.bucket, objectName)
-	return objectName, url, nil
+	return objectName, nil
+}
+
+func (m *MinioClient) PresignedURL(ctx context.Context, objectName string, expiry time.Duration) (string, error) {
+	url, err := m.client.PresignedGetObject(ctx, m.bucket, objectName, expiry, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate presigned url: %w", err)
+	}
+	return url.String(), nil
 }
 
 func (m *MinioClient) Delete(ctx context.Context, objectName string) error {

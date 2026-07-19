@@ -2,6 +2,7 @@ package upload
 
 import (
 	"strconv"
+	"time"
 
 	"bimbel2/backend/internal/models"
 	"bimbel2/backend/internal/storage"
@@ -38,18 +39,6 @@ func roleFrom(c *fiber.Ctx) string {
 	return r
 }
 
-// UploadQuestionImage mengunggah gambar untuk pertanyaan
-// @Summary      Upload question image
-// @Description  Mengunggah gambar pendukung pertanyaan
-// @Tags         Forum
-// @Accept       multipart/form-data
-// @Produce      json
-// @Security     BearerAuth
-// @Param        question_id path int true "Question ID"
-// @Param        image formData file true "File gambar"
-// @Success      201 {object} UploadResponse
-// @Failure      400 {object} map[string]string
-// @Router       /questions/{question_id}/images [post]
 func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 	userID := userIDFrom(c)
 	if userID == 0 {
@@ -92,7 +81,7 @@ func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 	}
 	defer f.Close()
 
-	objectName, url, err := h.minio.Upload(c.Context(), f, file)
+	objectName, err := h.minio.Upload(c.Context(), f, file)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal mengunggah file"})
 	}
@@ -100,7 +89,7 @@ func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 	img := models.QuestionImage{
 		QuestionID: uint(questionID),
 		FileName:   objectName,
-		URL:        url,
+		URL:        objectName,
 	}
 	if err := h.db.Create(&img).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan data"})
@@ -108,19 +97,11 @@ func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 
 	return c.Status(201).JSON(UploadResponse{
 		ID:       img.ID,
-		URL:      img.URL,
+		URL:      objectName,
 		FileName: file.Filename,
 	})
 }
 
-// ListQuestionImages mengembalikan gambar-gambar pertanyaan
-// @Summary      List question images
-// @Description  Mengembalikan daftar gambar pendukung pertanyaan
-// @Tags         Forum
-// @Produce      json
-// @Param        question_id path int true "Question ID"
-// @Success      200 {array} UploadResponse
-// @Router       /questions/{question_id}/images [get]
 func (h *Handler) ListQuestionImages(c *fiber.Ctx) error {
 	questionID, err := strconv.ParseUint(c.Params("question_id"), 10, 64)
 	if err != nil {
@@ -134,9 +115,14 @@ func (h *Handler) ListQuestionImages(c *fiber.Ctx) error {
 
 	result := make([]UploadResponse, len(images))
 	for i, img := range images {
+		presignedURL, err := h.minio.PresignedURL(c.Context(), img.FileName, 24*time.Hour)
+		url := img.FileName
+		if err == nil {
+			url = presignedURL
+		}
 		result[i] = UploadResponse{
 			ID:       img.ID,
-			URL:      img.URL,
+			URL:      url,
 			FileName: img.FileName,
 		}
 	}
@@ -145,12 +131,10 @@ func (h *Handler) ListQuestionImages(c *fiber.Ctx) error {
 
 func PublicRoutes(app fiber.Router, db *gorm.DB, minioClient *storage.MinioClient) {
 	h := NewHandler(db, minioClient)
-
 	app.Get("/questions/:question_id/images", h.ListQuestionImages)
 }
 
 func AuthRoutes(app fiber.Router, db *gorm.DB, minioClient *storage.MinioClient) {
 	h := NewHandler(db, minioClient)
-
 	app.Post("/questions/:question_id/images", h.UploadQuestionImage)
 }
