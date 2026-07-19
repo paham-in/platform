@@ -9,7 +9,6 @@ type Question struct {
 	Content      string  `gorm:"type:text;not null" json:"content"`
 	PlainContent string  `gorm:"type:text;not null" json:"plain_content"`
 	Status       string  `gorm:"size:20;default:open" json:"status"`
-	Upvotes      int     `gorm:"default:0" json:"upvotes"`
 	User         User    `gorm:"foreignKey:UserID" json:"-"`
 	Subject      Subject `gorm:"foreignKey:SubjectID" json:"-"`
 }

@@ -1761,9 +1761,6 @@ const docTemplate = `{
                 "subject_name": {
                     "type": "string"
                 },
-                "upvotes": {
-                    "type": "integer"
-                },
                 "user_avatar": {
                     "type": "string"
                 },

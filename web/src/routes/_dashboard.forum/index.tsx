@@ -22,7 +22,6 @@ import {
   Loader2,
   Plus,
   Search,
-  MessageSquare,
   Trash2,
 } from "lucide-react"
 
@@ -157,11 +156,6 @@ function ForumPage() {
                     </div>
                   )}
                   <span className="truncate">{q.user_name}</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-0.5">
-                    <MessageSquare className="h-3 w-3" />
-                    {q.upvotes}
-                  </span>
                 </div>
               </CardContent>
             </Card>

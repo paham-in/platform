@@ -10,7 +10,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Loader2, ArrowLeft, MessageSquare, Send } from "lucide-react"
+import { Loader2, ArrowLeft, Send } from "lucide-react"
 
 function ForumDetail() {
   const qc = useQueryClient()
@@ -90,11 +90,6 @@ function ForumDetail() {
         <span>{question.user_name}</span>
         <span>•</span>
         <span>{question.created_at}</span>
-        <span>•</span>
-        <span className="flex items-center gap-1">
-          <MessageSquare className="h-3 w-3" />
-          {question.upvotes}
-        </span>
       </div>
 
       {question.content && (

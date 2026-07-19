@@ -93,7 +93,6 @@ export type ForumQuestionResponse = {
     status?: string;
     subject_id?: number;
     subject_name?: string;
-    upvotes?: number;
     user_avatar?: string;
     user_name?: string;
 };

@@ -17,7 +17,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Loader2, Plus, MessageSquare, Trash2, ArrowLeft } from "lucide-react"
+import { Loader2, Plus, Trash2, ArrowLeft } from "lucide-react"
 
 function MyQuestions() {
   const qc = useQueryClient()
@@ -119,11 +119,6 @@ function MyQuestions() {
                     </div>
                   )}
                   <span className="truncate">{q.user_name}</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-0.5">
-                    <MessageSquare className="h-3 w-3" />
-                    {q.upvotes}
-                  </span>
                 </div>
               </CardContent>
             </Card>

@@ -78,7 +78,6 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 			Content:      q.Content,
 			PlainContent: q.PlainContent,
 			Status:       q.Status,
-			Upvotes:      q.Upvotes,
 			UserName:     q.User.Name,
 			UserAvatar:   q.User.AvatarURL,
 			SubjectID:    q.SubjectID,
@@ -120,7 +119,6 @@ func (h *Handler) GetQuestion(c *fiber.Ctx) error {
 		Content:      question.Content,
 		PlainContent: question.PlainContent,
 		Status:       question.Status,
-		Upvotes:      question.Upvotes,
 		UserName:     question.User.Name,
 		UserAvatar:   question.User.AvatarURL,
 		SubjectID:    question.SubjectID,
@@ -205,7 +203,6 @@ type QuestionResponse struct {
 	Content      string `json:"content"`
 	PlainContent string `json:"plain_content"`
 	Status       string `json:"status"`
-	Upvotes      int    `json:"upvotes"`
 	SubjectName  string `json:"subject_name,omitempty"`
 	UserName     string `json:"user_name"`
 	UserAvatar   string `json:"user_avatar,omitempty"`

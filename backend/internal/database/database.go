@@ -73,5 +73,10 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE questions ADD COLUMN plain_content TEXT NOT NULL DEFAULT ''")
 	}
 
+	// migrate questions -- drop upvotes
+	if db.Migrator().HasColumn(&models.Question{}, "upvotes") {
+		db.Exec("ALTER TABLE questions DROP COLUMN upvotes")
+	}
+
 	log.Println("Migration completed")
 }
