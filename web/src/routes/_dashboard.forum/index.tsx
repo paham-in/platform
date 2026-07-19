@@ -46,7 +46,7 @@ function ForumPage() {
   })
 
   const filtered = questions.filter((q) => {
-    const matchSearch = (q.title ?? "").toLowerCase().includes(search.toLowerCase())
+    const matchSearch = (q.plain_content ?? "").toLowerCase().includes(search.toLowerCase())
     const matchSubject = subjectFilter === "all" || String(q.subject_id) === subjectFilter
     return matchSearch && matchSubject
   })
@@ -147,7 +147,7 @@ function ForumPage() {
                   )}
                 </div>
 
-                <h3 className="mt-3 font-semibold leading-snug">{q.title}</h3>
+                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{q.plain_content}</p>
 
                 <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                   {q.user_avatar ? (

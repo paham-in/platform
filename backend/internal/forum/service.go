@@ -2,9 +2,20 @@ package forum
 
 import (
 	"errors"
+	"html"
+	"regexp"
+	"strings"
 
 	"bimbel2/backend/internal/models"
 )
+
+var reHTMLTag = regexp.MustCompile(`<[^>]*>`)
+
+func stripHTML(s string) string {
+	s = reHTMLTag.ReplaceAllString(s, "")
+	s = html.UnescapeString(s)
+	return strings.TrimSpace(s)
+}
 
 type Service struct {
 	repo *Repository
@@ -18,13 +29,13 @@ func (s *Service) List(subjectID, userID *uint) ([]models.Question, error) {
 	return s.repo.List(subjectID, userID)
 }
 
-func (s *Service) Create(userID uint, title, content string, subjectID *uint) (*models.Question, error) {
+func (s *Service) Create(userID uint, content string, subjectID *uint) (*models.Question, error) {
 	question := models.Question{
-		UserID:    userID,
-		Title:     title,
-		Content:   content,
-		Status:    "open",
-		SubjectID: subjectID,
+		UserID:       userID,
+		Content:      content,
+		PlainContent: stripHTML(content),
+		Status:       "open",
+		SubjectID:    subjectID,
 	}
 	if err := s.repo.Create(&question); err != nil {
 		return nil, err

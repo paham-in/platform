@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { TiptapEditor } from "@/components/ui/tiptap-editor"
 import {
@@ -24,7 +23,6 @@ function NewQuestion() {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
-  const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [subjectId, setSubjectId] = useState("")
 
@@ -43,7 +41,6 @@ function NewQuestion() {
   const submit = () => {
     createQuestion({
       body: {
-        title,
         content,
         subject_id: subjectId ? Number(subjectId) : undefined,
       },
@@ -61,15 +58,6 @@ function NewQuestion() {
         </Link>
 
         <h1 className="text-2xl font-bold tracking-tight">Pertanyaan Baru</h1>
-
-        <div className="space-y-2">
-          <Label>Judul</Label>
-          <Input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Tulis pertanyaanmu dengan jelas..."
-          />
-        </div>
 
         <div className="space-y-2">
           <Label>Subjek (opsional)</Label>
@@ -94,7 +82,7 @@ function NewQuestion() {
 
         <div className="flex justify-end gap-3">
           <Link to="/forum"><Button variant="outline">Batal</Button></Link>
-          <Button onClick={submit} disabled={!title || !content || isPending}>
+          <Button onClick={submit} disabled={!content || isPending}>
             {isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
             Kirim
           </Button>

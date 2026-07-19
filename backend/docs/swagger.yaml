@@ -82,8 +82,6 @@ definitions:
         type: string
       subject_id:
         type: integer
-      title:
-        type: string
     type: object
   forum.ErrorResponse:
     properties:
@@ -105,13 +103,13 @@ definitions:
         type: integer
       is_owner:
         type: boolean
+      plain_content:
+        type: string
       status:
         type: string
       subject_id:
         type: integer
       subject_name:
-        type: string
-      title:
         type: string
       upvotes:
         type: integer

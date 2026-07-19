@@ -1585,9 +1585,6 @@ const docTemplate = `{
                 },
                 "subject_id": {
                     "type": "integer"
-                },
-                "title": {
-                    "type": "string"
                 }
             }
         },
@@ -1622,6 +1619,9 @@ const docTemplate = `{
                 "is_owner": {
                     "type": "boolean"
                 },
+                "plain_content": {
+                    "type": "string"
+                },
                 "status": {
                     "type": "string"
                 },
@@ -1629,9 +1629,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "subject_name": {
-                    "type": "string"
-                },
-                "title": {
                     "type": "string"
                 },
                 "upvotes": {

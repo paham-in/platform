@@ -32,7 +32,7 @@ function AdminForum() {
   const { data: questions = [], isLoading } = useQuery(getAdminQuestionsOptions())
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; title: string } | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; content: string } | null>(null)
   const perPage = 10
 
   const { mutate: deleteQuestion } = useMutation({
@@ -45,7 +45,7 @@ function AdminForum() {
   })
 
   const filtered = questions.filter((q) =>
-    (q.title ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    (q.plain_content ?? "").toLowerCase().includes(search.toLowerCase()) ||
     (q.user_name ?? "").toLowerCase().includes(search.toLowerCase())
   )
   const totalPages = Math.ceil(filtered.length / perPage)
@@ -91,7 +91,7 @@ function AdminForum() {
               <TableBody>
                 {paged.map((q) => (
                   <TableRow key={q.id}>
-                    <TableCell className="pl-6 font-medium">{q.title}</TableCell>
+                    <TableCell className="pl-6 font-medium">{q.plain_content?.slice(0, 80)}</TableCell>
                     <TableCell className="text-muted-foreground">{q.user_name}</TableCell>
                     <TableCell>
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -112,7 +112,7 @@ function AdminForum() {
                           <DropdownMenuItem onClick={() => window.open(`/forum/${q.id}`, "_blank")}>
                             <Eye className="h-4 w-4" /> Lihat
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDeleteConfirm({ id: q.id!, title: q.title! })}>
+                          <DropdownMenuItem onClick={() => setDeleteConfirm({ id: q.id!, content: q.plain_content! })}>
                             <Trash2 className="h-4 w-4" /> Hapus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -151,7 +151,7 @@ function AdminForum() {
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Pertanyaan</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah kamu yakin ingin menghapus <strong>{deleteConfirm.title}</strong>?
+              Apakah kamu yakin ingin menghapus <strong>{deleteConfirm.content}</strong>?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

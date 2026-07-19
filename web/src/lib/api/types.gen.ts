@@ -57,7 +57,6 @@ export type ClassMessageResponse = {
 export type ForumCreateQuestionInput = {
     content?: string;
     subject_id?: number;
-    title?: string;
 };
 
 export type ForumErrorResponse = {
@@ -73,10 +72,10 @@ export type ForumQuestionResponse = {
     created_at?: string;
     id?: number;
     is_owner?: boolean;
+    plain_content?: string;
     status?: string;
     subject_id?: number;
     subject_name?: string;
-    title?: string;
     upvotes?: number;
     user_avatar?: string;
     user_name?: string;

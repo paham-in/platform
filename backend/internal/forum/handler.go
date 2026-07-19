@@ -73,16 +73,16 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 	result := make([]QuestionResponse, len(questions))
 	for i, q := range questions {
 		r := QuestionResponse{
-			ID:        q.ID,
-			Title:     q.Title,
-			Content:   q.Content,
-			Status:    q.Status,
-			Upvotes:   q.Upvotes,
-			UserName:  q.User.Name,
-			UserAvatar: q.User.AvatarURL,
-			SubjectID: q.SubjectID,
-			IsOwner:   q.UserID == currentUser,
-			CreatedAt: q.CreatedAt.Format("2006-01-02 15:04"),
+			ID:           q.ID,
+			Content:      q.Content,
+			PlainContent: q.PlainContent,
+			Status:       q.Status,
+			Upvotes:      q.Upvotes,
+			UserName:     q.User.Name,
+			UserAvatar:   q.User.AvatarURL,
+			SubjectID:    q.SubjectID,
+			IsOwner:      q.UserID == currentUser,
+			CreatedAt:    q.CreatedAt.Format("2006-01-02 15:04"),
 		}
 		if q.Subject.Name != "" {
 			r.SubjectName = q.Subject.Name
@@ -115,16 +115,16 @@ func (h *Handler) GetQuestion(c *fiber.Ctx) error {
 	}
 
 	r := QuestionResponse{
-		ID:        question.ID,
-		Title:     question.Title,
-		Content:   question.Content,
-		Status:    question.Status,
-		Upvotes:   question.Upvotes,
-		UserName:  question.User.Name,
-		UserAvatar: question.User.AvatarURL,
-		SubjectID: question.SubjectID,
-		IsOwner:   question.UserID == userID,
-		CreatedAt: question.CreatedAt.Format("2006-01-02 15:04"),
+		ID:           question.ID,
+		Content:      question.Content,
+		PlainContent: question.PlainContent,
+		Status:       question.Status,
+		Upvotes:      question.Upvotes,
+		UserName:     question.User.Name,
+		UserAvatar:   question.User.AvatarURL,
+		SubjectID:    question.SubjectID,
+		IsOwner:      question.UserID == userID,
+		CreatedAt:    question.CreatedAt.Format("2006-01-02 15:04"),
 	}
 	if question.Subject.Name != "" {
 		r.SubjectName = question.Subject.Name
@@ -153,26 +153,26 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
-	if input.Title == "" || input.Content == "" {
-		return c.Status(400).JSON(ErrorResponse{Error: "title dan content wajib diisi"})
+	if input.Content == "" {
+		return c.Status(400).JSON(ErrorResponse{Error: "content wajib diisi"})
 	}
 
-	question, err := h.svc.Create(userID, input.Title, input.Content, input.SubjectID)
+	question, err := h.svc.Create(userID, input.Content, input.SubjectID)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menyimpan pertanyaan"})
 	}
 
 	user, _ := h.svc.GetUser(userID)
 	return c.Status(201).JSON(QuestionResponse{
-		ID:         question.ID,
-		Title:      question.Title,
-		Content:    question.Content,
-		Status:     question.Status,
-		UserName:   user.Name,
-		UserAvatar: user.AvatarURL,
-		SubjectID:  question.SubjectID,
-		IsOwner:    true,
-		CreatedAt:  time.Now().Format("2006-01-02 15:04"),
+		ID:           question.ID,
+		Content:      question.Content,
+		PlainContent: question.PlainContent,
+		Status:       question.Status,
+		UserName:     user.Name,
+		UserAvatar:   user.AvatarURL,
+		SubjectID:    question.SubjectID,
+		IsOwner:      true,
+		CreatedAt:    time.Now().Format("2006-01-02 15:04"),
 	})
 }
 
@@ -200,21 +200,20 @@ func (h *Handler) DeleteQuestion(c *fiber.Ctx) error {
 }
 
 type QuestionResponse struct {
-	ID          uint   `json:"id"`
-	Title       string `json:"title"`
-	Content     string `json:"content"`
-	Status      string `json:"status"`
-	Upvotes     int    `json:"upvotes"`
-	SubjectName string `json:"subject_name,omitempty"`
-	UserName    string `json:"user_name"`
-	UserAvatar  string `json:"user_avatar,omitempty"`
-	SubjectID   *uint  `json:"subject_id,omitempty"`
-	IsOwner     bool   `json:"is_owner"`
-	CreatedAt   string `json:"created_at"`
+	ID           uint   `json:"id"`
+	Content      string `json:"content"`
+	PlainContent string `json:"plain_content"`
+	Status       string `json:"status"`
+	Upvotes      int    `json:"upvotes"`
+	SubjectName  string `json:"subject_name,omitempty"`
+	UserName     string `json:"user_name"`
+	UserAvatar   string `json:"user_avatar,omitempty"`
+	SubjectID    *uint  `json:"subject_id,omitempty"`
+	IsOwner      bool   `json:"is_owner"`
+	CreatedAt    string `json:"created_at"`
 }
 
 type CreateQuestionInput struct {
-	Title     string `json:"title"`
 	Content   string `json:"content"`
 	SubjectID *uint  `json:"subject_id,omitempty"`
 }
