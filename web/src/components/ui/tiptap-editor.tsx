@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   BoldIcon,
   Heading1Icon,
@@ -56,6 +56,9 @@ export function TiptapEditor({
   editable?: boolean;
 }) {
   const [mathOpen, setMathOpen] = useState(false)
+  const [editLatex, setEditLatex] = useState<string | null>(null)
+  const editorElRef = useRef<HTMLDivElement>(null)
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -70,19 +73,51 @@ export function TiptapEditor({
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
   });
 
+  // click handler on math nodes
+  useEffect(() => {
+    const el = editorElRef.current
+    if (!el || !editable) return
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      const mathEl = target.closest('[data-type="inline-math"], [data-type="block-math"]')
+      if (!mathEl || !editor) return
+      const latex = mathEl.getAttribute("data-latex") || ""
+      setEditLatex(latex)
+      setMathOpen(true)
+    }
+    el.addEventListener("click", handler)
+    return () => el.removeEventListener("click", handler)
+  }, [editor, editable])
+
   if (!editor) return null;
+
+  const handleMathInsert = (latex: string) => {
+    if (editLatex !== null) {
+      editor.chain().focus().updateInlineMath({ latex }).run()
+    } else {
+      editor.chain().focus().insertInlineMath({ latex }).run()
+    }
+  }
+
+  const openMathForInsert = () => {
+    setEditLatex(null)
+    setMathOpen(true)
+  }
 
   return (
     <div className="rounded-md border">
-      <Toolbar editor={editor} onOpenMath={() => setMathOpen(true)} />
-      <EditorContent
-        editor={editor}
-        className="prose prose-sm dark:prose-invert max-w-none p-4 focus:outline-none [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:outline-none"
-      />
+      <Toolbar editor={editor} onOpenMath={openMathForInsert} />
+      <div ref={editorElRef}>
+        <EditorContent
+          editor={editor}
+          className="prose prose-sm dark:prose-invert max-w-none p-4 focus:outline-none [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:outline-none"
+        />
+      </div>
       <MathInputDialog
         open={mathOpen}
-        onOpenChange={setMathOpen}
-        onInsert={(latex) => editor.chain().focus().insertInlineMath({ latex }).run()}
+        initialLatex={editLatex ?? ""}
+        onOpenChange={(v) => { setMathOpen(v); if (!v) setEditLatex(null) }}
+        onInsert={handleMathInsert}
       />
     </div>
   );

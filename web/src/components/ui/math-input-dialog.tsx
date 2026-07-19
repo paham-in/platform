@@ -5,22 +5,24 @@ import { Button } from "@/components/ui/button"
 
 export function MathInputDialog({
   open,
+  initialLatex = "",
   onOpenChange,
   onInsert,
 }: {
   open: boolean
+  initialLatex?: string
   onOpenChange: (open: boolean) => void
   onInsert: (latex: string) => void
 }) {
-  const [latex, setLatex] = useState("")
+  const [latex, setLatex] = useState(initialLatex)
   const mfRef = useRef<MathfieldElement>(null)
 
   useEffect(() => {
     if (open) {
-      setLatex("")
+      setLatex(initialLatex)
       setTimeout(() => mfRef.current?.focus(), 100)
     }
-  }, [open])
+  }, [open, initialLatex])
 
   if (!open) return null
 
