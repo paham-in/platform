@@ -8,6 +8,7 @@ import {
   ListOrderedIcon,
   QuoteIcon,
   RedoIcon,
+  Sigma,
   StrikethroughIcon,
   UndoIcon,
 } from "lucide-react";
@@ -15,6 +16,8 @@ import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
+import { Mathematics } from "@tiptap/extension-mathematics";
+import "katex/dist/katex.min.css";
 import { cn } from "@/lib/utils";
 
 const ToolbarButton = ({
@@ -57,6 +60,7 @@ export function TiptapEditor({
       }),
       Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
+      Mathematics,
     ],
     content,
     editable,
@@ -93,7 +97,15 @@ function Toolbar({ editor }: { editor: Editor }) {
     { icon: ListIcon, action: () => editor.chain().focus().toggleBulletList().run(), active: editor.isActive("bulletList") },
     { icon: ListOrderedIcon, action: () => editor.chain().focus().toggleOrderedList().run(), active: editor.isActive("orderedList") },
     { icon: QuoteIcon, action: () => editor.chain().focus().toggleBlockquote().run(), active: editor.isActive("blockquote") },
+    { type: "sep" as const },
+    { icon: Sigma, action: insertMath, active: editor.isActive("blockMath") },
   ];
+
+  function insertMath() {
+    const latex = window.prompt("Masukkan rumus LaTeX (contoh: \\frac{a}{b})");
+    if (!latex) return;
+    editor.chain().focus().insertInlineMath({ latex }).run();
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-0.5 border-b bg-muted/20 px-2 py-1.5">

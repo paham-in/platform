@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { TiptapEditor } from "@/components/ui/tiptap-editor"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import "katex/dist/katex.min.css"
 import {
   getQuestionsByIdOptions,
   getQuestionsByQuestionIdAnswersOptions,
