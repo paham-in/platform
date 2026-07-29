@@ -12,7 +12,8 @@ import { id } from "date-fns/locale"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getAdminUsersOptions, getAdminInvoicesOptions, getAdminInvoicesQueryKey, postAdminInvoicesMutation, patchAdminInvoicesByIdToggleMutation, deleteAdminInvoicesByIdMutation } from "@/lib/api/@tanstack/react-query.gen"
 import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
-import { CalendarIcon, ChevronLeft, Loader2, Plus, MoreVertical, Trash2, CheckCircle2, XCircle } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CalendarIcon, ChevronLeft, Loader2, Plus, MoreVertical, Trash2, CheckCircle2, XCircle, Search } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -35,9 +36,18 @@ function PaymentsDetail() {
   const [note, setNote] = useState("")
   const [deleteTarget, setDeleteTarget] = useState<InvoiceInvoiceResponse | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
 
   const user = users.find((u) => u.id === Number(userId))
-  const userInvoices = invoices
+  const userInvoices = invoices.filter((inv) => {
+    const matchStatus = statusFilter === "all" || inv.status === statusFilter
+    const matchSearch = !search
+      || (inv.note ?? "").toLowerCase().includes(search.toLowerCase())
+      || (inv.start_date ?? "").includes(search)
+      || (inv.end_date ?? "").includes(search)
+    return matchStatus && matchSearch
+  })
 
   const allSelected = userInvoices.length > 0 && selectedIds.size === userInvoices.length
   const toggleAll = () => {
@@ -126,10 +136,22 @@ function PaymentsDetail() {
         </div>
       </div>
 
-      <div className="mb-4 flex items-center gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         <Button onClick={() => setCreateOpen(true)}>
           <Plus className="h-4 w-4" /> Buat Invoice
         </Button>
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Cari periode atau catatan..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={statusFilter} onValueChange={(v) => { if (v) { setStatusFilter(v); setSelectedIds(new Set()) } }}>
+          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua</SelectItem>
+            <SelectItem value="paid">Lunas</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+          </SelectContent>
+        </Select>
         {selectedIds.size > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">{selectedIds.size} dipilih</span>
