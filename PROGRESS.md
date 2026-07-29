@@ -67,6 +67,96 @@
 2. **Guru tidak punya akses manage materi** — hanya bisa forum. Seharusnya guru bisa create/edit materi
 3. **Student tidak bisa lihat status pembayaran**
 4. **Auth** — hanya Google OAuth + login admin via seed. Tidak ada registrasi manual (mungkin disengaja)
+5. **Notifikasi** — tidak ada sistem notifikasi sama sekali (push, in-app, email)
+
+---
+
+## Fitur Ideal Platform Bimbel — Kesenjangan per Role
+
+Daftar fitur yang seharusnya ada di platform bimbel lengkap, ditandai mana yang sudah (✅) dan belum (❌).
+
+### Student
+
+| Kategori | Fitur | Status |
+|----------|-------|--------|
+| **Belajar** | Lihat materi (teks/gambar/video) | ✅ |
+| | Filter materi by kelas & subjek | ✅ |
+| | Search materi | ❌ |
+| | Bookmark / simpan materi | ❌ |
+| | Riwayat akses materi | ❌ |
+| | Progress belajar (% selesai per chapter) | ❌ |
+| | Catatan pribadi per materi | ❌ |
+| **Tugas** | Lihat daftar tugas | ❌ |
+| | Kumpulkan tugas (upload file) | ❌ |
+| | Lihat nilai & feedback guru | ❌ |
+| **Forum** | Lihat semua pertanyaan | ✅ |
+| | Buat pertanyaan + upload gambar | ✅ |
+| | Hapus pertanyaan sendiri | ✅ |
+| **Ujian** | Ikut ujian online (pilihan ganda, essay) | ❌ |
+| | Lihat hasil ujian & pembahasan | ❌ |
+| | Timer otomatis | ❌ |
+| **Pembayaran** | Lihat status invoice sendiri | ❌ |
+| | Riwayat pembayaran | ❌ |
+| **Jadwal** | Lihat jadwal belajar / jadwal les | ❌ |
+| **Pengaturan** | Edit profil (nama, kelas) | ✅ |
+| | Ganti password / email | ❌ |
+| | Upload avatar | ❌ |
+| **Notifikasi** | In-app notification (ada jawaban baru) | ❌ |
+| | Push notification (mobile) | ❌ |
+| | Email notifikasi | ❌ |
+| **Dashboard** | Stat real (progress, materi selesai, dll) | ❌ |
+
+---
+
+### Teacher
+
+| Kategori | Fitur | Status |
+|----------|-------|--------|
+| **Materi** | Buat materi sendiri | ❌ |
+| | Edit materi | ❌ |
+| | Upload file ke materi | ❌ |
+| | Atur urutan materi per chapter | ❌ |
+| **Tugas** | Buat tugas untuk murid | ❌ |
+| | Lihat kumpulan tugas murid | ❌ |
+| | Beri nilai & feedback | ❌ |
+| **Ujian** | Buat soal ujian (PG, essay) | ❌ |
+| | Atur batas waktu | ❌ |
+| | Lihat hasil ujian semua murid | ❌ |
+| **Forum** | Jawab pertanyaan murid | ✅ |
+| | Lihat pertanyaan belum terjawab | ❌ |
+| **Kelas** | Lihat daftar murid per kelas | ❌ |
+| | Lihat progress murid per materi | ❌ |
+| **Dashboard** | Stat real | ❌ |
+| **Notifikasi** | Ada pertanyaan baru dari murid | ❌ |
+| **Pengaturan** | Edit profil | ✅ |
+
+---
+
+### Admin
+
+| Kategori | Fitur | Status |
+|----------|-------|--------|
+| **Dashboard** | Stat real dari DB | ✅ |
+| **User** | CRUD user | ✅ |
+| | Ganti role, hapus user | ✅ |
+| | Import user (CSV/Excel) | ❌ |
+| **Materi** | CRUD + publish/draft | ✅ |
+| **Kelas** | CRUD | ✅ |
+| **Mata Pelajaran** | CRUD | ✅ |
+| **Chapter** | CRUD | ✅ |
+| **Pembayaran** | Invoice per user | ✅ |
+| | Toggle status, bulk action | ✅ |
+| | Search + filter invoice | ✅ |
+| | Laporan pendapatan (bulanan/tahunan) | ❌ |
+| | Grafik pendapatan | ❌ |
+| | Ekspor laporan (PDF/Excel) | ❌ |
+| **Forum** | Hapus pertanyaan | ✅ |
+| **Tugas/Ujian** | CRUD semua | ❌ |
+| **Notifikasi** | Kirim ke murid/guru | ❌ |
+| **Log** | Catat aktivitas | ❌ |
+| **Pengaturan** | Biaya default per kelas | ❌ |
+| | Template email | ❌ |
+| | Tampilan/logo | ❌ |
 
 ---
 
