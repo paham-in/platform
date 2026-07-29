@@ -55,12 +55,6 @@ function DashboardPage() {
       { icon: HelpCircle, label: "Belum Terjawab", value: "5", color: "text-orange-600 bg-orange-100" },
       { icon: Users, label: "Total Siswa", value: "128", color: "text-purple-600 bg-purple-100" },
     ],
-    admin: [
-      { icon: Users, label: "Total Murid", value: "450", color: "text-blue-600 bg-blue-100" },
-      { icon: GraduationCap, label: "Total Guru", value: "32", color: "text-green-600 bg-green-100" },
-      { icon: BookOpen, label: "Mata Pelajaran", value: "15", color: "text-orange-600 bg-orange-100" },
-      { icon: FileText, label: "Total Materi", value: "120", color: "text-purple-600 bg-purple-100" },
-    ],
   }
 
   return (
@@ -70,14 +64,12 @@ function DashboardPage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold tracking-tight">Dashboard Murid</h2>
             <p className="text-muted-foreground">Selamat datang kembali! Lanjutkan belajarmu.</p>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {statCards.student.map((s) => (
-                <Card key={s.label} size="sm">
-                  <CardContent className="flex flex-col gap-3 p-(--card-spacing)">
+                <Card key={s.label}><CardContent className="flex flex-col gap-3">
                     <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></div>
                     <div><div className="text-2xl font-bold">{s.value}</div><div className="text-sm text-muted-foreground">{s.label}</div></div>
-                  </CardContent>
-                </Card>
+                  </CardContent></Card>
               ))}
             </div>
             <div className="grid gap-6 lg:grid-cols-2">
@@ -109,9 +101,9 @@ function DashboardPage() {
               <div><h2 className="text-2xl font-bold tracking-tight">Dashboard Guru</h2><p className="text-muted-foreground">Kelola materi dan jawab pertanyaan siswa.</p></div>
               <Button onClick={() => {}}><Plus className="mr-1 h-4 w-4" /> Buat Materi</Button>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {statCards.teacher.map((s) => (
-                <Card key={s.label} size="sm"><CardContent className="flex flex-col gap-3 p-(--card-spacing)">
+                <Card key={s.label}><CardContent className="flex flex-col gap-3">
                   <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></div>
                   <div><div className="text-2xl font-bold">{s.value}</div><div className="text-sm text-muted-foreground">{s.label}</div></div>
                 </CardContent></Card>
@@ -142,9 +134,9 @@ function DashboardPage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold tracking-tight">Dashboard Admin</h2>
             <p className="text-muted-foreground">Kelola seluruh pengguna dan konten platform.</p>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {adminStats.map((s) => (
-                <Card key={s.label} size="sm"><CardContent className="flex flex-col gap-3 p-(--card-spacing)">
+                <Card key={s.label}><CardContent className="flex flex-col gap-3">
                   <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></div>
                   <div><div className="text-2xl font-bold">{s.value}</div><div className="text-sm text-muted-foreground">{s.label}</div></div>
                 </CardContent></Card>
