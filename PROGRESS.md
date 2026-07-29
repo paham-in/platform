@@ -44,9 +44,9 @@
 
 | Fitur | Status | Catatan |
 |-------|--------|---------|
-| Dashboard | ⚠️ Sebagian | Stat cards hardcoded |
+| Dashboard | ✅ | Stat real: total murid, guru, mapel, materi dari DB + daftar user terkini |
 | Kelola User | ✅ | CRUD, ganti role, hapus |
-| Pembayaran (invoice) | ✅ | Buat invoice, toggle status, bulk action, hapus |
+| Pembayaran (invoice) | ✅ | Buat invoice, toggle status, bulk action (checkbox + batch toggle), hapus hard-delete |
 | Kelas | ✅ | CRUD |
 | Mata Pelajaran | ✅ | CRUD |
 | Chapter | ✅ | CRUD |
@@ -54,8 +54,7 @@
 | Forum | ✅ | List + hapus pertanyaan |
 
 ❌ **Belum ada:**
-- Statistik real (total murid, guru, materi dari DB)
-- Laporan pendapatan (total invoice lunas, dll)
+- Laporan pendapatan (total invoice lunas, per bulan)
 - Log aktivitas
 - Setting biaya default per kelas
 
@@ -63,7 +62,7 @@
 
 ## Masalah Umum
 
-1. **Dashboard semua role** — stat cards hardcoded, perlu endpoint aggregasi
+1. **Dashboard student & teacher** — stat cards masih hardcoded. **Admin sudah real dari DB**
 2. **Guru tidak punya akses manage materi** — hanya bisa forum. Seharusnya guru bisa create/edit materi
 3. **Student tidak bisa lihat status pembayaran**
 4. **Auth** — hanya Google OAuth + login admin via seed. Tidak ada registrasi manual (mungkin disengaja)
