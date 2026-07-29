@@ -13,9 +13,9 @@ export default function Navbar() {
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <a href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-            B
+            p
           </div>
-          <span className="text-xl font-bold">Bimbel</span>
+          <span className="text-xl font-bold">paham.in</span>
         </a>
 
         <nav className="hidden items-center gap-6 md:flex">

@@ -103,8 +103,8 @@ function DashboardLayout() {
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">B</div>
-              <span className="text-lg font-bold">Bimbel</span>
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">p</div>
+              <span className="text-lg font-bold">paham.in</span>
             </Link>
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(false)}>
               <X className="h-4 w-4" />

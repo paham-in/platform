@@ -11,7 +11,7 @@
    - Test users: tambah email lo
 4. Buka **Credentials** → **Create Credentials** → **OAuth client ID**
    - Application type: `Web application`
-   - Name: `Bimbel Dev`
+   - Name: `paham.in Dev`
    - **Authorized JavaScript origins**: `http://localhost:5173`
    - **Authorized redirect URIs**: `http://localhost:8080/auth/google/callback`
    - Klik Create

@@ -2508,7 +2508,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{"http"},
-	Title:            "Bimbel API",
+	Title:            "paham.in API",
 	Description:      "Platform bimbingan belajar online",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

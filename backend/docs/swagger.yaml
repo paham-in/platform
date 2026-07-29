@@ -366,7 +366,7 @@ host: localhost:8080
 info:
   contact: {}
   description: Platform bimbingan belajar online
-  title: Bimbel API
+  title: paham.in API
   version: "1.0"
 paths:
   /admin/chapters:

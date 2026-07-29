@@ -12,9 +12,9 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-                B
+              p
               </div>
-              <span className="text-lg font-bold">Bimbel</span>
+              <span className="text-lg font-bold">paham.in</span>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
               Platform bimbingan belajar online untuk membantu siswa meraih prestasi terbaik.
@@ -39,7 +39,7 @@ export default function Footer() {
           ))}
         </div>
         <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Bimbel. All rights reserved.
+          &copy; {new Date().getFullYear()} paham.in. All rights reserved.
         </div>
       </div>
     </footer>

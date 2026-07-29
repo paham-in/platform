@@ -28,7 +28,7 @@ const steps = [
 const testimonials = [
   { quote: "Aku jadi paham Matematika berkat penjelasan guru-guru di sini. Forum tanya-jawabnya juga super helpful!", name: "Siti Aisyah", role: "Siswa SMA" },
   { quote: "Sebagai guru, platform ini memudahkan saya membagikan materi dan menjawab pertanyaan siswa secara terstruktur.", name: "Bambang Supriyadi", role: "Guru Matematika" },
-  { quote: "Anak saya semangat belajar sejak pakai Bimbel. Nilainya naik drastis dalam 2 bulan!", name: "Rina Wijaya", role: "Orang Tua Siswa" },
+  { quote: "Anak saya semangat belajar sejak pakai paham.in. Nilainya naik drastis dalam 2 bulan!", name: "Rina Wijaya", role: "Orang Tua Siswa" },
 ]
 
 export const Route = createFileRoute("/")({
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/")({
           <div className="container mx-auto max-w-7xl px-4">
             <div className="mx-auto max-w-3xl text-center">
               <div className="mb-6 inline-flex items-center rounded-full border bg-muted/50 px-4 py-1.5 text-sm text-muted-foreground">✨ Platform bimbingan belajar #1 di Indonesia</div>
-              <h1 className="animate-fade-in text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">Belajar Lebih Pintar,<br /><span className="text-primary">Bersama Bimbel</span></h1>
+              <h1 className="animate-fade-in text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">Belajar Lebih Pintar,<br /><span className="text-primary">Bersama paham.in</span></h1>
               <p className="mt-6 animate-fade-in text-lg text-muted-foreground [animation-delay:0.1s] md:text-xl">Platform belajar online dengan materi berkualitas, video interaktif, dan forum tanya-jawab bersama guru berpengalaman. Raih prestasi terbaikmu!</p>
               <div className="mt-8 flex animate-fade-in flex-col items-center justify-center gap-4 [animation-delay:0.2s] sm:flex-row">
                 <Link to="/login" className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}>Mulai Belajar <ArrowRight className="h-4 w-4" /></Link>
