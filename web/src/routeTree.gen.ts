@@ -20,16 +20,19 @@ import { Route as DashboardForumIndexRouteImport } from './routes/_dashboard.for
 import { Route as DashboardForumNewRouteImport } from './routes/_dashboard.forum/new'
 import { Route as DashboardForumMineRouteImport } from './routes/_dashboard.forum/mine'
 import { Route as DashboardForumIdRouteImport } from './routes/_dashboard.forum/$id'
-import { Route as DashboardAdminUsersRouteImport } from './routes/_dashboard.admin.users'
-import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard.admin.subjects'
-import { Route as DashboardAdminForumRouteImport } from './routes/_dashboard.admin.forum'
-import { Route as DashboardAdminClassesRouteImport } from './routes/_dashboard.admin.classes'
-import { Route as DashboardAdminChaptersRouteImport } from './routes/_dashboard.admin.chapters'
-import { Route as DashboardAdminMaterialsIndexRouteImport } from './routes/_dashboard.admin.materials/index'
+import { Route as DashboardAdminUsersRouteImport } from './routes/_dashboard/admin/users'
+import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard/admin/subjects'
+import { Route as DashboardAdminPaymentsRouteImport } from './routes/_dashboard/admin/payments'
+import { Route as DashboardAdminForumRouteImport } from './routes/_dashboard/admin/forum'
+import { Route as DashboardAdminClassesRouteImport } from './routes/_dashboard/admin/classes'
+import { Route as DashboardAdminChaptersRouteImport } from './routes/_dashboard/admin/chapters'
+import { Route as DashboardAdminPaymentsIndexRouteImport } from './routes/_dashboard/admin/payments/index'
+import { Route as DashboardAdminMaterialsIndexRouteImport } from './routes/_dashboard/admin/materials/index'
 import { Route as DashboardMaterialsChaptersIdRouteImport } from './routes/_dashboard.materials/chapters/$id'
-import { Route as DashboardAdminMaterialsNewRouteImport } from './routes/_dashboard.admin.materials/new'
+import { Route as DashboardAdminPaymentsUserIdRouteImport } from './routes/_dashboard/admin/payments/$userId'
+import { Route as DashboardAdminMaterialsNewRouteImport } from './routes/_dashboard/admin/materials/new'
 import { Route as DashboardMaterialsChaptersChapterIdMaterialIdRouteImport } from './routes/_dashboard.materials/chapters/$chapterId/$materialId'
-import { Route as DashboardAdminMaterialsIdEditRouteImport } from './routes/_dashboard.admin.materials/$id/edit'
+import { Route as DashboardAdminMaterialsIdEditRouteImport } from './routes/_dashboard/admin/materials/$id/edit'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -95,6 +98,11 @@ const DashboardAdminSubjectsRoute = DashboardAdminSubjectsRouteImport.update({
   path: '/admin/subjects',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAdminPaymentsRoute = DashboardAdminPaymentsRouteImport.update({
+  id: '/admin/payments',
+  path: '/admin/payments',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAdminForumRoute = DashboardAdminForumRouteImport.update({
   id: '/admin/forum',
   path: '/admin/forum',
@@ -110,6 +118,12 @@ const DashboardAdminChaptersRoute = DashboardAdminChaptersRouteImport.update({
   path: '/admin/chapters',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAdminPaymentsIndexRoute =
+  DashboardAdminPaymentsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardAdminPaymentsRoute,
+  } as any)
 const DashboardAdminMaterialsIndexRoute =
   DashboardAdminMaterialsIndexRouteImport.update({
     id: '/admin/materials/',
@@ -121,6 +135,12 @@ const DashboardMaterialsChaptersIdRoute =
     id: '/materials/chapters/$id',
     path: '/materials/chapters/$id',
     getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAdminPaymentsUserIdRoute =
+  DashboardAdminPaymentsUserIdRouteImport.update({
+    id: '/$userId',
+    path: '/$userId',
+    getParentRoute: () => DashboardAdminPaymentsRoute,
   } as any)
 const DashboardAdminMaterialsNewRoute =
   DashboardAdminMaterialsNewRouteImport.update({
@@ -150,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/admin/chapters': typeof DashboardAdminChaptersRoute
   '/admin/classes': typeof DashboardAdminClassesRoute
   '/admin/forum': typeof DashboardAdminForumRoute
+  '/admin/payments': typeof DashboardAdminPaymentsRouteWithChildren
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/users': typeof DashboardAdminUsersRoute
   '/forum/$id': typeof DashboardForumIdRoute
@@ -158,8 +179,10 @@ export interface FileRoutesByFullPath {
   '/forum/': typeof DashboardForumIndexRoute
   '/materials/': typeof DashboardMaterialsIndexRoute
   '/admin/materials/new': typeof DashboardAdminMaterialsNewRoute
+  '/admin/payments/$userId': typeof DashboardAdminPaymentsUserIdRoute
   '/materials/chapters/$id': typeof DashboardMaterialsChaptersIdRoute
   '/admin/materials/': typeof DashboardAdminMaterialsIndexRoute
+  '/admin/payments/': typeof DashboardAdminPaymentsIndexRoute
   '/admin/materials/$id/edit': typeof DashboardAdminMaterialsIdEditRoute
   '/materials/chapters/$chapterId/$materialId': typeof DashboardMaterialsChaptersChapterIdMaterialIdRoute
 }
@@ -180,8 +203,10 @@ export interface FileRoutesByTo {
   '/forum': typeof DashboardForumIndexRoute
   '/materials': typeof DashboardMaterialsIndexRoute
   '/admin/materials/new': typeof DashboardAdminMaterialsNewRoute
+  '/admin/payments/$userId': typeof DashboardAdminPaymentsUserIdRoute
   '/materials/chapters/$id': typeof DashboardMaterialsChaptersIdRoute
   '/admin/materials': typeof DashboardAdminMaterialsIndexRoute
+  '/admin/payments': typeof DashboardAdminPaymentsIndexRoute
   '/admin/materials/$id/edit': typeof DashboardAdminMaterialsIdEditRoute
   '/materials/chapters/$chapterId/$materialId': typeof DashboardMaterialsChaptersChapterIdMaterialIdRoute
 }
@@ -196,6 +221,7 @@ export interface FileRoutesById {
   '/_dashboard/admin/chapters': typeof DashboardAdminChaptersRoute
   '/_dashboard/admin/classes': typeof DashboardAdminClassesRoute
   '/_dashboard/admin/forum': typeof DashboardAdminForumRoute
+  '/_dashboard/admin/payments': typeof DashboardAdminPaymentsRouteWithChildren
   '/_dashboard/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/_dashboard/admin/users': typeof DashboardAdminUsersRoute
   '/_dashboard/forum/$id': typeof DashboardForumIdRoute
@@ -204,8 +230,10 @@ export interface FileRoutesById {
   '/_dashboard/forum/': typeof DashboardForumIndexRoute
   '/_dashboard/materials/': typeof DashboardMaterialsIndexRoute
   '/_dashboard/admin/materials/new': typeof DashboardAdminMaterialsNewRoute
+  '/_dashboard/admin/payments/$userId': typeof DashboardAdminPaymentsUserIdRoute
   '/_dashboard/materials/chapters/$id': typeof DashboardMaterialsChaptersIdRoute
   '/_dashboard/admin/materials/': typeof DashboardAdminMaterialsIndexRoute
+  '/_dashboard/admin/payments/': typeof DashboardAdminPaymentsIndexRoute
   '/_dashboard/admin/materials/$id/edit': typeof DashboardAdminMaterialsIdEditRoute
   '/_dashboard/materials/chapters/$chapterId/$materialId': typeof DashboardMaterialsChaptersChapterIdMaterialIdRoute
 }
@@ -220,6 +248,7 @@ export interface FileRouteTypes {
     | '/admin/chapters'
     | '/admin/classes'
     | '/admin/forum'
+    | '/admin/payments'
     | '/admin/subjects'
     | '/admin/users'
     | '/forum/$id'
@@ -228,8 +257,10 @@ export interface FileRouteTypes {
     | '/forum/'
     | '/materials/'
     | '/admin/materials/new'
+    | '/admin/payments/$userId'
     | '/materials/chapters/$id'
     | '/admin/materials/'
+    | '/admin/payments/'
     | '/admin/materials/$id/edit'
     | '/materials/chapters/$chapterId/$materialId'
   fileRoutesByTo: FileRoutesByTo
@@ -250,8 +281,10 @@ export interface FileRouteTypes {
     | '/forum'
     | '/materials'
     | '/admin/materials/new'
+    | '/admin/payments/$userId'
     | '/materials/chapters/$id'
     | '/admin/materials'
+    | '/admin/payments'
     | '/admin/materials/$id/edit'
     | '/materials/chapters/$chapterId/$materialId'
   id:
@@ -265,6 +298,7 @@ export interface FileRouteTypes {
     | '/_dashboard/admin/chapters'
     | '/_dashboard/admin/classes'
     | '/_dashboard/admin/forum'
+    | '/_dashboard/admin/payments'
     | '/_dashboard/admin/subjects'
     | '/_dashboard/admin/users'
     | '/_dashboard/forum/$id'
@@ -273,8 +307,10 @@ export interface FileRouteTypes {
     | '/_dashboard/forum/'
     | '/_dashboard/materials/'
     | '/_dashboard/admin/materials/new'
+    | '/_dashboard/admin/payments/$userId'
     | '/_dashboard/materials/chapters/$id'
     | '/_dashboard/admin/materials/'
+    | '/_dashboard/admin/payments/'
     | '/_dashboard/admin/materials/$id/edit'
     | '/_dashboard/materials/chapters/$chapterId/$materialId'
   fileRoutesById: FileRoutesById
@@ -379,6 +415,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminSubjectsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/admin/payments': {
+      id: '/_dashboard/admin/payments'
+      path: '/admin/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof DashboardAdminPaymentsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/admin/forum': {
       id: '/_dashboard/admin/forum'
       path: '/admin/forum'
@@ -400,6 +443,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminChaptersRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/admin/payments/': {
+      id: '/_dashboard/admin/payments/'
+      path: '/'
+      fullPath: '/admin/payments/'
+      preLoaderRoute: typeof DashboardAdminPaymentsIndexRouteImport
+      parentRoute: typeof DashboardAdminPaymentsRoute
+    }
     '/_dashboard/admin/materials/': {
       id: '/_dashboard/admin/materials/'
       path: '/admin/materials'
@@ -413,6 +463,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/materials/chapters/$id'
       preLoaderRoute: typeof DashboardMaterialsChaptersIdRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/payments/$userId': {
+      id: '/_dashboard/admin/payments/$userId'
+      path: '/$userId'
+      fullPath: '/admin/payments/$userId'
+      preLoaderRoute: typeof DashboardAdminPaymentsUserIdRouteImport
+      parentRoute: typeof DashboardAdminPaymentsRoute
     }
     '/_dashboard/admin/materials/new': {
       id: '/_dashboard/admin/materials/new'
@@ -438,12 +495,29 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DashboardAdminPaymentsRouteChildren {
+  DashboardAdminPaymentsUserIdRoute: typeof DashboardAdminPaymentsUserIdRoute
+  DashboardAdminPaymentsIndexRoute: typeof DashboardAdminPaymentsIndexRoute
+}
+
+const DashboardAdminPaymentsRouteChildren: DashboardAdminPaymentsRouteChildren =
+  {
+    DashboardAdminPaymentsUserIdRoute: DashboardAdminPaymentsUserIdRoute,
+    DashboardAdminPaymentsIndexRoute: DashboardAdminPaymentsIndexRoute,
+  }
+
+const DashboardAdminPaymentsRouteWithChildren =
+  DashboardAdminPaymentsRoute._addFileChildren(
+    DashboardAdminPaymentsRouteChildren,
+  )
+
 interface DashboardRouteChildren {
   DashboardDashboardRoute: typeof DashboardDashboardRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardAdminChaptersRoute: typeof DashboardAdminChaptersRoute
   DashboardAdminClassesRoute: typeof DashboardAdminClassesRoute
   DashboardAdminForumRoute: typeof DashboardAdminForumRoute
+  DashboardAdminPaymentsRoute: typeof DashboardAdminPaymentsRouteWithChildren
   DashboardAdminSubjectsRoute: typeof DashboardAdminSubjectsRoute
   DashboardAdminUsersRoute: typeof DashboardAdminUsersRoute
   DashboardForumIdRoute: typeof DashboardForumIdRoute
@@ -464,6 +538,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminChaptersRoute: DashboardAdminChaptersRoute,
   DashboardAdminClassesRoute: DashboardAdminClassesRoute,
   DashboardAdminForumRoute: DashboardAdminForumRoute,
+  DashboardAdminPaymentsRoute: DashboardAdminPaymentsRouteWithChildren,
   DashboardAdminSubjectsRoute: DashboardAdminSubjectsRoute,
   DashboardAdminUsersRoute: DashboardAdminUsersRoute,
   DashboardForumIdRoute: DashboardForumIdRoute,

@@ -30,7 +30,10 @@ func Connect(cfg *config.Config) *gorm.DB {
 }
 
 func Migrate(db *gorm.DB) {
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{})
+	// clean up orphaned subject_images before AutoMigrate (FK constraint)
+	db.Exec("DELETE FROM subject_images WHERE user_id NOT IN (SELECT id FROM users)")
+
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{})
 
 	// migrate existing chapters table -- add class_id column
 	if !db.Migrator().HasColumn(&models.Chapter{}, "class_id") {

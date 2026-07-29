@@ -173,6 +173,37 @@ definitions:
       url:
         type: string
     type: object
+  invoice.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  invoice.InvoiceResponse:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      end_date:
+        type: string
+      id:
+        type: integer
+      note:
+        type: string
+      start_date:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  invoice.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
   material.CreateInput:
     properties:
       chapter_id:
@@ -548,6 +579,111 @@ paths:
       security:
       - BearerAuth: []
       summary: Update class
+      tags:
+      - Admin
+  /admin/invoices:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar semua invoice pembayaran
+      parameters:
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/invoice.InvoiceResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List invoices
+      tags:
+      - Admin
+    post:
+      consumes:
+      - application/json
+      description: Membuat invoice pembayaran baru
+      parameters:
+      - description: Data invoice
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/invoice.InvoiceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/invoice.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create invoice
+      tags:
+      - Admin
+  /admin/invoices/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus invoice berdasarkan ID
+      parameters:
+      - description: Invoice ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/invoice.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/invoice.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete invoice
+      tags:
+      - Admin
+  /admin/invoices/{id}/toggle:
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah status invoice dari pending ke paid atau sebaliknya
+      parameters:
+      - description: Invoice ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/invoice.InvoiceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/invoice.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Toggle invoice status
       tags:
       - Admin
   /admin/materials:

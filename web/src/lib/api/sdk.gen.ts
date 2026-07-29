@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponses, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponses, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminQuestionsByIdData, DeleteAdminQuestionsByIdErrors, DeleteAdminQuestionsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminSubjectsBySubjectIdImagesByIdData, DeleteAdminSubjectsBySubjectIdImagesByIdErrors, DeleteAdminSubjectsBySubjectIdImagesByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, DeleteQuestionsByIdData, DeleteQuestionsByIdResponses, DeleteQuestionsByQuestionIdAnswersByIdData, DeleteQuestionsByQuestionIdAnswersByIdErrors, DeleteQuestionsByQuestionIdAnswersByIdResponses, GetAdminChaptersData, GetAdminChaptersResponses, GetAdminClassesData, GetAdminClassesResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminQuestionsData, GetAdminQuestionsErrors, GetAdminQuestionsResponses, GetAdminSubjectsBySubjectIdImagesData, GetAdminSubjectsBySubjectIdImagesResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetAuthGoogleCallbackData, GetAuthGoogleData, GetChaptersData, GetChaptersResponses, GetClassesData, GetClassesResponses, GetMaterialsByIdData, GetMaterialsByIdErrors, GetMaterialsByIdResponses, GetMaterialsData, GetMaterialsResponses, GetMeData, GetMeErrors, GetMeResponses, GetQuestionsByIdData, GetQuestionsByIdErrors, GetQuestionsByIdResponses, GetQuestionsByQuestionIdAnswersData, GetQuestionsByQuestionIdAnswersResponses, GetQuestionsData, GetQuestionsResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminChaptersByIdData, PatchAdminChaptersByIdErrors, PatchAdminChaptersByIdResponses, PatchAdminClassesByIdData, PatchAdminClassesByIdErrors, PatchAdminClassesByIdResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdPaymentData, PatchAdminUsersByIdPaymentErrors, PatchAdminUsersByIdPaymentResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PatchMeData, PatchMeErrors, PatchMeResponses, PostAdminChaptersData, PostAdminChaptersErrors, PostAdminChaptersResponses, PostAdminClassesData, PostAdminClassesErrors, PostAdminClassesResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsBySubjectIdImagesData, PostAdminSubjectsBySubjectIdImagesErrors, PostAdminSubjectsBySubjectIdImagesResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostQuestionsByQuestionIdAnswersData, PostQuestionsByQuestionIdAnswersErrors, PostQuestionsByQuestionIdAnswersResponses, PostQuestionsData, PostQuestionsErrors, PostQuestionsResponses } from './types.gen';
+import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponses, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponses, DeleteAdminInvoicesByIdData, DeleteAdminInvoicesByIdErrors, DeleteAdminInvoicesByIdResponses, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminQuestionsByIdData, DeleteAdminQuestionsByIdErrors, DeleteAdminQuestionsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminSubjectsBySubjectIdImagesByIdData, DeleteAdminSubjectsBySubjectIdImagesByIdErrors, DeleteAdminSubjectsBySubjectIdImagesByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, DeleteQuestionsByIdData, DeleteQuestionsByIdResponses, DeleteQuestionsByQuestionIdAnswersByIdData, DeleteQuestionsByQuestionIdAnswersByIdErrors, DeleteQuestionsByQuestionIdAnswersByIdResponses, GetAdminChaptersData, GetAdminChaptersResponses, GetAdminClassesData, GetAdminClassesResponses, GetAdminInvoicesData, GetAdminInvoicesResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminQuestionsData, GetAdminQuestionsErrors, GetAdminQuestionsResponses, GetAdminSubjectsBySubjectIdImagesData, GetAdminSubjectsBySubjectIdImagesResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetAuthGoogleCallbackData, GetAuthGoogleData, GetChaptersData, GetChaptersResponses, GetClassesData, GetClassesResponses, GetMaterialsByIdData, GetMaterialsByIdErrors, GetMaterialsByIdResponses, GetMaterialsData, GetMaterialsResponses, GetMeData, GetMeErrors, GetMeResponses, GetQuestionsByIdData, GetQuestionsByIdErrors, GetQuestionsByIdResponses, GetQuestionsByQuestionIdAnswersData, GetQuestionsByQuestionIdAnswersResponses, GetQuestionsData, GetQuestionsResponses, GetSubjectsData, GetSubjectsResponses, PatchAdminChaptersByIdData, PatchAdminChaptersByIdErrors, PatchAdminChaptersByIdResponses, PatchAdminClassesByIdData, PatchAdminClassesByIdErrors, PatchAdminClassesByIdResponses, PatchAdminInvoicesByIdToggleData, PatchAdminInvoicesByIdToggleErrors, PatchAdminInvoicesByIdToggleResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdPaymentData, PatchAdminUsersByIdPaymentErrors, PatchAdminUsersByIdPaymentResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PatchMeData, PatchMeErrors, PatchMeResponses, PostAdminChaptersData, PostAdminChaptersErrors, PostAdminChaptersResponses, PostAdminClassesData, PostAdminClassesErrors, PostAdminClassesResponses, PostAdminInvoicesData, PostAdminInvoicesErrors, PostAdminInvoicesResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsBySubjectIdImagesData, PostAdminSubjectsBySubjectIdImagesErrors, PostAdminSubjectsBySubjectIdImagesResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostQuestionsByQuestionIdAnswersData, PostQuestionsByQuestionIdAnswersErrors, PostQuestionsByQuestionIdAnswersResponses, PostQuestionsData, PostQuestionsErrors, PostQuestionsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -120,6 +120,54 @@ export const patchAdminClassesById = <ThrowOnError extends boolean = false>(opti
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * List invoices
+ *
+ * Mengembalikan daftar semua invoice pembayaran
+ */
+export const getAdminInvoices = <ThrowOnError extends boolean = false>(options?: Options<GetAdminInvoicesData, ThrowOnError>): RequestResult<GetAdminInvoicesResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminInvoicesResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/invoices',
+    ...options
+});
+
+/**
+ * Create invoice
+ *
+ * Membuat invoice pembayaran baru
+ */
+export const postAdminInvoices = <ThrowOnError extends boolean = false>(options: Options<PostAdminInvoicesData, ThrowOnError>): RequestResult<PostAdminInvoicesResponses, PostAdminInvoicesErrors, ThrowOnError> => (options.client ?? client).post<PostAdminInvoicesResponses, PostAdminInvoicesErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/invoices',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete invoice
+ *
+ * Menghapus invoice berdasarkan ID
+ */
+export const deleteAdminInvoicesById = <ThrowOnError extends boolean = false>(options: Options<DeleteAdminInvoicesByIdData, ThrowOnError>): RequestResult<DeleteAdminInvoicesByIdResponses, DeleteAdminInvoicesByIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteAdminInvoicesByIdResponses, DeleteAdminInvoicesByIdErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/invoices/{id}',
+    ...options
+});
+
+/**
+ * Toggle invoice status
+ *
+ * Mengubah status invoice dari pending ke paid atau sebaliknya
+ */
+export const patchAdminInvoicesByIdToggle = <ThrowOnError extends boolean = false>(options: Options<PatchAdminInvoicesByIdToggleData, ThrowOnError>): RequestResult<PatchAdminInvoicesByIdToggleResponses, PatchAdminInvoicesByIdToggleErrors, ThrowOnError> => (options.client ?? client).patch<PatchAdminInvoicesByIdToggleResponses, PatchAdminInvoicesByIdToggleErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/invoices/{id}/toggle',
+    ...options
 });
 
 /**

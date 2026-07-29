@@ -119,6 +119,26 @@ export type GalleryGalleryImageResponse = {
     url?: string;
 };
 
+export type InvoiceErrorResponse = {
+    error?: string;
+};
+
+export type InvoiceInvoiceResponse = {
+    amount?: number;
+    created_at?: string;
+    end_date?: string;
+    id?: number;
+    note?: string;
+    start_date?: string;
+    status?: string;
+    user_id?: number;
+    user_name?: string;
+};
+
+export type InvoiceMessageResponse = {
+    message?: string;
+};
+
 export type MaterialCreateInput = {
     chapter_id?: number;
     content?: string;
@@ -422,6 +442,117 @@ export type PatchAdminClassesByIdResponses = {
 };
 
 export type PatchAdminClassesByIdResponse = PatchAdminClassesByIdResponses[keyof PatchAdminClassesByIdResponses];
+
+export type GetAdminInvoicesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter by user ID
+         */
+        user_id?: number;
+    };
+    url: '/admin/invoices';
+};
+
+export type GetAdminInvoicesResponses = {
+    /**
+     * OK
+     */
+    200: Array<InvoiceInvoiceResponse>;
+};
+
+export type GetAdminInvoicesResponse = GetAdminInvoicesResponses[keyof GetAdminInvoicesResponses];
+
+export type PostAdminInvoicesData = {
+    /**
+     * Data invoice
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path?: never;
+    query?: never;
+    url: '/admin/invoices';
+};
+
+export type PostAdminInvoicesErrors = {
+    /**
+     * Bad Request
+     */
+    400: InvoiceErrorResponse;
+};
+
+export type PostAdminInvoicesError = PostAdminInvoicesErrors[keyof PostAdminInvoicesErrors];
+
+export type PostAdminInvoicesResponses = {
+    /**
+     * Created
+     */
+    201: InvoiceInvoiceResponse;
+};
+
+export type PostAdminInvoicesResponse = PostAdminInvoicesResponses[keyof PostAdminInvoicesResponses];
+
+export type DeleteAdminInvoicesByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Invoice ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/invoices/{id}';
+};
+
+export type DeleteAdminInvoicesByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: InvoiceErrorResponse;
+};
+
+export type DeleteAdminInvoicesByIdError = DeleteAdminInvoicesByIdErrors[keyof DeleteAdminInvoicesByIdErrors];
+
+export type DeleteAdminInvoicesByIdResponses = {
+    /**
+     * OK
+     */
+    200: InvoiceMessageResponse;
+};
+
+export type DeleteAdminInvoicesByIdResponse = DeleteAdminInvoicesByIdResponses[keyof DeleteAdminInvoicesByIdResponses];
+
+export type PatchAdminInvoicesByIdToggleData = {
+    body?: never;
+    path: {
+        /**
+         * Invoice ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/invoices/{id}/toggle';
+};
+
+export type PatchAdminInvoicesByIdToggleErrors = {
+    /**
+     * Bad Request
+     */
+    400: InvoiceErrorResponse;
+};
+
+export type PatchAdminInvoicesByIdToggleError = PatchAdminInvoicesByIdToggleErrors[keyof PatchAdminInvoicesByIdToggleErrors];
+
+export type PatchAdminInvoicesByIdToggleResponses = {
+    /**
+     * OK
+     */
+    200: InvoiceInvoiceResponse;
+};
+
+export type PatchAdminInvoicesByIdToggleResponse = PatchAdminInvoicesByIdToggleResponses[keyof PatchAdminInvoicesByIdToggleResponses];
 
 export type GetAdminMaterialsData = {
     body?: never;

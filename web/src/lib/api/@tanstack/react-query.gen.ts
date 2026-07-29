@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { deleteAdminChaptersById, deleteAdminClassesById, deleteAdminMaterialsById, deleteAdminQuestionsById, deleteAdminSubjectsById, deleteAdminSubjectsBySubjectIdImagesById, deleteAdminUsersById, deleteQuestionsById, deleteQuestionsByQuestionIdAnswersById, getAdminChapters, getAdminClasses, getAdminMaterials, getAdminMaterialsById, getAdminQuestions, getAdminSubjectsBySubjectIdImages, getAdminUsers, getAuthGoogle, getAuthGoogleCallback, getChapters, getClasses, getMaterials, getMaterialsById, getMe, getQuestions, getQuestionsById, getQuestionsByQuestionIdAnswers, getSubjects, type Options, patchAdminChaptersById, patchAdminClassesById, patchAdminMaterialsById, patchAdminSubjectsById, patchAdminUsersByIdPayment, patchAdminUsersByIdRole, patchMe, postAdminChapters, postAdminClasses, postAdminMaterials, postAdminSubjects, postAdminSubjectsBySubjectIdImages, postLogout, postQuestions, postQuestionsByQuestionIdAnswers } from '../sdk.gen';
-import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponse, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponse, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponse, DeleteAdminQuestionsByIdData, DeleteAdminQuestionsByIdError, DeleteAdminQuestionsByIdResponse, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponse, DeleteAdminSubjectsBySubjectIdImagesByIdData, DeleteAdminSubjectsBySubjectIdImagesByIdError, DeleteAdminSubjectsBySubjectIdImagesByIdResponse, DeleteAdminUsersByIdData, DeleteAdminUsersByIdError, DeleteAdminUsersByIdResponse, DeleteQuestionsByIdData, DeleteQuestionsByIdResponse, DeleteQuestionsByQuestionIdAnswersByIdData, DeleteQuestionsByQuestionIdAnswersByIdError, DeleteQuestionsByQuestionIdAnswersByIdResponse, GetAdminChaptersData, GetAdminChaptersResponse, GetAdminClassesData, GetAdminClassesResponse, GetAdminMaterialsByIdData, GetAdminMaterialsByIdError, GetAdminMaterialsByIdResponse, GetAdminMaterialsData, GetAdminMaterialsResponse, GetAdminQuestionsData, GetAdminQuestionsError, GetAdminQuestionsResponse, GetAdminSubjectsBySubjectIdImagesData, GetAdminSubjectsBySubjectIdImagesResponse, GetAdminUsersData, GetAdminUsersError, GetAdminUsersResponse, GetAuthGoogleCallbackData, GetAuthGoogleData, GetChaptersData, GetChaptersResponse, GetClassesData, GetClassesResponse, GetMaterialsByIdData, GetMaterialsByIdError, GetMaterialsByIdResponse, GetMaterialsData, GetMaterialsResponse, GetMeData, GetMeError, GetMeResponse, GetQuestionsByIdData, GetQuestionsByIdError, GetQuestionsByIdResponse, GetQuestionsByQuestionIdAnswersData, GetQuestionsByQuestionIdAnswersResponse, GetQuestionsData, GetQuestionsResponse, GetSubjectsData, GetSubjectsResponse, PatchAdminChaptersByIdData, PatchAdminChaptersByIdError, PatchAdminChaptersByIdResponse, PatchAdminClassesByIdData, PatchAdminClassesByIdError, PatchAdminClassesByIdResponse, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdError, PatchAdminMaterialsByIdResponse, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdError, PatchAdminSubjectsByIdResponse, PatchAdminUsersByIdPaymentData, PatchAdminUsersByIdPaymentError, PatchAdminUsersByIdPaymentResponse, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleError, PatchAdminUsersByIdRoleResponse, PatchMeData, PatchMeError, PatchMeResponse, PostAdminChaptersData, PostAdminChaptersError, PostAdminChaptersResponse, PostAdminClassesData, PostAdminClassesError, PostAdminClassesResponse, PostAdminMaterialsData, PostAdminMaterialsError, PostAdminMaterialsResponse, PostAdminSubjectsBySubjectIdImagesData, PostAdminSubjectsBySubjectIdImagesError, PostAdminSubjectsBySubjectIdImagesResponse, PostAdminSubjectsData, PostAdminSubjectsError, PostAdminSubjectsResponse, PostLogoutData, PostLogoutError, PostLogoutResponse, PostQuestionsByQuestionIdAnswersData, PostQuestionsByQuestionIdAnswersError, PostQuestionsByQuestionIdAnswersResponse, PostQuestionsData, PostQuestionsError, PostQuestionsResponse } from '../types.gen';
+import { deleteAdminChaptersById, deleteAdminClassesById, deleteAdminInvoicesById, deleteAdminMaterialsById, deleteAdminQuestionsById, deleteAdminSubjectsById, deleteAdminSubjectsBySubjectIdImagesById, deleteAdminUsersById, deleteQuestionsById, deleteQuestionsByQuestionIdAnswersById, getAdminChapters, getAdminClasses, getAdminInvoices, getAdminMaterials, getAdminMaterialsById, getAdminQuestions, getAdminSubjectsBySubjectIdImages, getAdminUsers, getAuthGoogle, getAuthGoogleCallback, getChapters, getClasses, getMaterials, getMaterialsById, getMe, getQuestions, getQuestionsById, getQuestionsByQuestionIdAnswers, getSubjects, type Options, patchAdminChaptersById, patchAdminClassesById, patchAdminInvoicesByIdToggle, patchAdminMaterialsById, patchAdminSubjectsById, patchAdminUsersByIdPayment, patchAdminUsersByIdRole, patchMe, postAdminChapters, postAdminClasses, postAdminInvoices, postAdminMaterials, postAdminSubjects, postAdminSubjectsBySubjectIdImages, postLogout, postQuestions, postQuestionsByQuestionIdAnswers } from '../sdk.gen';
+import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponse, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponse, DeleteAdminInvoicesByIdData, DeleteAdminInvoicesByIdError, DeleteAdminInvoicesByIdResponse, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponse, DeleteAdminQuestionsByIdData, DeleteAdminQuestionsByIdError, DeleteAdminQuestionsByIdResponse, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponse, DeleteAdminSubjectsBySubjectIdImagesByIdData, DeleteAdminSubjectsBySubjectIdImagesByIdError, DeleteAdminSubjectsBySubjectIdImagesByIdResponse, DeleteAdminUsersByIdData, DeleteAdminUsersByIdError, DeleteAdminUsersByIdResponse, DeleteQuestionsByIdData, DeleteQuestionsByIdResponse, DeleteQuestionsByQuestionIdAnswersByIdData, DeleteQuestionsByQuestionIdAnswersByIdError, DeleteQuestionsByQuestionIdAnswersByIdResponse, GetAdminChaptersData, GetAdminChaptersResponse, GetAdminClassesData, GetAdminClassesResponse, GetAdminInvoicesData, GetAdminInvoicesResponse, GetAdminMaterialsByIdData, GetAdminMaterialsByIdError, GetAdminMaterialsByIdResponse, GetAdminMaterialsData, GetAdminMaterialsResponse, GetAdminQuestionsData, GetAdminQuestionsError, GetAdminQuestionsResponse, GetAdminSubjectsBySubjectIdImagesData, GetAdminSubjectsBySubjectIdImagesResponse, GetAdminUsersData, GetAdminUsersError, GetAdminUsersResponse, GetAuthGoogleCallbackData, GetAuthGoogleData, GetChaptersData, GetChaptersResponse, GetClassesData, GetClassesResponse, GetMaterialsByIdData, GetMaterialsByIdError, GetMaterialsByIdResponse, GetMaterialsData, GetMaterialsResponse, GetMeData, GetMeError, GetMeResponse, GetQuestionsByIdData, GetQuestionsByIdError, GetQuestionsByIdResponse, GetQuestionsByQuestionIdAnswersData, GetQuestionsByQuestionIdAnswersResponse, GetQuestionsData, GetQuestionsResponse, GetSubjectsData, GetSubjectsResponse, PatchAdminChaptersByIdData, PatchAdminChaptersByIdError, PatchAdminChaptersByIdResponse, PatchAdminClassesByIdData, PatchAdminClassesByIdError, PatchAdminClassesByIdResponse, PatchAdminInvoicesByIdToggleData, PatchAdminInvoicesByIdToggleError, PatchAdminInvoicesByIdToggleResponse, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdError, PatchAdminMaterialsByIdResponse, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdError, PatchAdminSubjectsByIdResponse, PatchAdminUsersByIdPaymentData, PatchAdminUsersByIdPaymentError, PatchAdminUsersByIdPaymentResponse, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleError, PatchAdminUsersByIdRoleResponse, PatchMeData, PatchMeError, PatchMeResponse, PostAdminChaptersData, PostAdminChaptersError, PostAdminChaptersResponse, PostAdminClassesData, PostAdminClassesError, PostAdminClassesResponse, PostAdminInvoicesData, PostAdminInvoicesError, PostAdminInvoicesResponse, PostAdminMaterialsData, PostAdminMaterialsError, PostAdminMaterialsResponse, PostAdminSubjectsBySubjectIdImagesData, PostAdminSubjectsBySubjectIdImagesError, PostAdminSubjectsBySubjectIdImagesResponse, PostAdminSubjectsData, PostAdminSubjectsError, PostAdminSubjectsResponse, PostLogoutData, PostLogoutError, PostLogoutResponse, PostQuestionsByQuestionIdAnswersData, PostQuestionsByQuestionIdAnswersError, PostQuestionsByQuestionIdAnswersResponse, PostQuestionsData, PostQuestionsError, PostQuestionsResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -183,6 +183,83 @@ export const patchAdminClassesByIdMutation = (options?: Partial<Options<PatchAdm
     const mutationOptions: UseMutationOptions<PatchAdminClassesByIdResponse, PatchAdminClassesByIdError, Options<PatchAdminClassesByIdData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await patchAdminClassesById({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getAdminInvoicesQueryKey = (options?: Options<GetAdminInvoicesData>) => createQueryKey('getAdminInvoices', options);
+
+/**
+ * List invoices
+ *
+ * Mengembalikan daftar semua invoice pembayaran
+ */
+export const getAdminInvoicesOptions = (options?: Options<GetAdminInvoicesData>) => queryOptions<GetAdminInvoicesResponse, DefaultError, GetAdminInvoicesResponse, ReturnType<typeof getAdminInvoicesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAdminInvoices({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAdminInvoicesQueryKey(options)
+});
+
+/**
+ * Create invoice
+ *
+ * Membuat invoice pembayaran baru
+ */
+export const postAdminInvoicesMutation = (options?: Partial<Options<PostAdminInvoicesData>>): UseMutationOptions<PostAdminInvoicesResponse, PostAdminInvoicesError, Options<PostAdminInvoicesData>> => {
+    const mutationOptions: UseMutationOptions<PostAdminInvoicesResponse, PostAdminInvoicesError, Options<PostAdminInvoicesData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postAdminInvoices({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Delete invoice
+ *
+ * Menghapus invoice berdasarkan ID
+ */
+export const deleteAdminInvoicesByIdMutation = (options?: Partial<Options<DeleteAdminInvoicesByIdData>>): UseMutationOptions<DeleteAdminInvoicesByIdResponse, DeleteAdminInvoicesByIdError, Options<DeleteAdminInvoicesByIdData>> => {
+    const mutationOptions: UseMutationOptions<DeleteAdminInvoicesByIdResponse, DeleteAdminInvoicesByIdError, Options<DeleteAdminInvoicesByIdData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await deleteAdminInvoicesById({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * Toggle invoice status
+ *
+ * Mengubah status invoice dari pending ke paid atau sebaliknya
+ */
+export const patchAdminInvoicesByIdToggleMutation = (options?: Partial<Options<PatchAdminInvoicesByIdToggleData>>): UseMutationOptions<PatchAdminInvoicesByIdToggleResponse, PatchAdminInvoicesByIdToggleError, Options<PatchAdminInvoicesByIdToggleData>> => {
+    const mutationOptions: UseMutationOptions<PatchAdminInvoicesByIdToggleResponse, PatchAdminInvoicesByIdToggleError, Options<PatchAdminInvoicesByIdToggleData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await patchAdminInvoicesByIdToggle({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

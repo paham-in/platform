@@ -12,6 +12,7 @@ import (
 	"bimbel2/backend/internal/class"
 	"bimbel2/backend/internal/forum"
 	"bimbel2/backend/internal/gallery"
+	"bimbel2/backend/internal/invoice"
 	"bimbel2/backend/internal/material"
 	"bimbel2/backend/internal/storage"
 	"bimbel2/backend/internal/subject"
@@ -89,6 +90,7 @@ func main() {
 	subject.AdminRoutes(admin, db)
 	material.AdminRoutes(admin, db)
 	forum.AdminRoutes(admin, db)
+	invoice.AdminRoutes(admin, db)
 	if minioClient != nil {
 		gallery.Routes(admin, db, minioClient)
 	}
