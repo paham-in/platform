@@ -3,6 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -22,6 +30,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useDraft } from "@/lib/use-draft";
 
 function EditMaterial() {
   const { id } = useParams({ from: "/_dashboard/admin/materials/$id/edit" });
@@ -32,24 +41,59 @@ function EditMaterial() {
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
   const { data: material, isLoading } = useQuery(getAdminMaterialsByIdOptions({ path: { id: Number(id) } }));
 
+  const { draft, hasDraft, restored, debouncedSave, clear, restore, discard } = useDraft(id);
+
   const [classId, setClassId] = useState("");
   const [subjectId, setSubjectId] = useState("");
   const [chapterId, setChapterId] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(false);
+  const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
 
+  // restore draft or start fresh
   useEffect(() => {
-    if (material) {
-      const ch = allChapters.find((c) => c.id === material.chapter_id);
-      setClassId(String(ch?.class_id ?? ""));
-      setSubjectId(String(ch?.subject_id ?? ""));
-      setChapterId(String(material.chapter_id ?? ""));
-      setTitle(material.title ?? "");
-      setContent(material.content ?? "");
+    if (!showDraftDialog) return;
+    if (restored && draft) {
+      setTitle(draft.title);
+      setContent(draft.content);
+      setClassId(draft.classId);
+      setSubjectId(draft.subjectId);
+      setChapterId(draft.chapterId);
       setLoaded(true);
     }
-  }, [material, allChapters]);
+  }, [restored, showDraftDialog, draft]);
+
+  // init from server data — only if no draft restore
+  useEffect(() => {
+    if (!material || initialLoad || restored) return;
+    const ch = allChapters.find((c) => c.id === material.chapter_id);
+    setClassId(String(ch?.class_id ?? ""));
+    setSubjectId(String(ch?.subject_id ?? ""));
+    setChapterId(String(material.chapter_id ?? ""));
+    setTitle(material.title ?? "");
+    setContent(material.content ?? "");
+    setLoaded(true);
+    setInitialLoad(true);
+  }, [material, allChapters, initialLoad, restored]);
+
+  // autosave on change (skip during initial load)
+  useEffect(() => {
+    if (!title && !content) return;
+    debouncedSave({ title, content, classId, subjectId, chapterId });
+  }, [title, content, classId, subjectId, chapterId, debouncedSave]);
+
+  // warn on tab close
+  useEffect(() => {
+    const onBefore = (e: BeforeUnloadEvent) => {
+      if (title || content) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", onBefore);
+    return () => window.removeEventListener("beforeunload", onBefore);
+  }, [title, content]);
 
   const availableSubjects = classId
     ? subjects.filter((s) => (s.class_ids ?? []).includes(Number(classId)))
@@ -61,6 +105,7 @@ function EditMaterial() {
   const { mutate: update, isPending } = useMutation({
     ...patchAdminMaterialsByIdMutation(),
     onSuccess: () => {
+      clear();
       qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
       toast.success("Materi berhasil disimpan");
       navigate({ to: "/admin/materials" });
@@ -81,7 +126,7 @@ function EditMaterial() {
     });
   };
 
-  if (isLoading) {
+  if (isLoading && !loaded) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -178,6 +223,22 @@ function EditMaterial() {
           </div>
         </div>
       </main>
+
+      {/* draft dialog */}
+      <AlertDialog open={showDraftDialog && !restored} onOpenChange={(o) => { if (!o) { discard(); setShowDraftDialog(false) } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Draft ditemukan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ada draft perubahan yang belum disimpan. Lanjutkan atau mulai dari data terakhir tersimpan?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => { discard(); setShowDraftDialog(false) }}>Mulai dari Server</Button>
+            <Button onClick={() => { restore(); setShowDraftDialog(false) }}>Lanjutkan Draft</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

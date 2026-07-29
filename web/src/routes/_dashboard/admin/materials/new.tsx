@@ -1,7 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -21,6 +29,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useDraft } from "@/lib/use-draft";
 
 function NewMaterial() {
   const qc = useQueryClient();
@@ -29,11 +38,43 @@ function NewMaterial() {
   const { data: allChapters = [] } = useQuery(getAdminChaptersOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
 
+  const { draft, hasDraft, restored, debouncedSave, clear, restore, discard } = useDraft();
+
   const [classId, setClassId] = useState("");
   const [subjectId, setSubjectId] = useState("");
   const [chapterId, setChapterId] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
+
+  // restore draft or start fresh
+  useEffect(() => {
+    if (!showDraftDialog) return;
+    if (restored && draft) {
+      setTitle(draft.title);
+      setContent(draft.content);
+      setClassId(draft.classId);
+      setSubjectId(draft.subjectId);
+      setChapterId(draft.chapterId);
+    }
+  }, [restored, showDraftDialog, draft]);
+
+  // autosave on change
+  useEffect(() => {
+    if (!title && !content) return;
+    debouncedSave({ title, content, classId, subjectId, chapterId });
+  }, [title, content, classId, subjectId, chapterId, debouncedSave]);
+
+  // warn on tab close
+  useEffect(() => {
+    const onBefore = (e: BeforeUnloadEvent) => {
+      if (title || content) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", onBefore);
+    return () => window.removeEventListener("beforeunload", onBefore);
+  }, [title, content]);
 
   const availableSubjects = classId
     ? subjects.filter((s) => (s.class_ids ?? []).includes(Number(classId)))
@@ -45,6 +86,7 @@ function NewMaterial() {
   const { mutate: create, isPending } = useMutation({
     ...postAdminMaterialsMutation(),
     onSuccess: () => {
+      clear();
       qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
       toast.success("Materi berhasil dibuat");
       navigate({ to: "/admin/materials" });
@@ -138,7 +180,7 @@ function NewMaterial() {
 
           <div className="space-y-2">
             <Label>Konten</Label>
-            <TiptapEditor content="" onChange={setContent} />
+            <TiptapEditor content={content} onChange={setContent} />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
@@ -150,6 +192,22 @@ function NewMaterial() {
           </div>
         </div>
       </main>
+
+      {/* draft dialog */}
+      <AlertDialog open={showDraftDialog && !restored} onOpenChange={(o) => { if (!o) { discard(); setShowDraftDialog(false) } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Draft ditemukan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ada draft materi yang belum selesai. Lanjutkan atau mulai baru?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => { discard(); setShowDraftDialog(false) }}>Mulai Baru</Button>
+            <Button onClick={() => { restore(); setShowDraftDialog(false) }}>Lanjutkan</Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
