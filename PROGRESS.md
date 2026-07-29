@@ -46,7 +46,7 @@
 |-------|--------|---------|
 | Dashboard | ✅ | Stat real dari DB, padding/gap konsisten pake bawaan shadcn |
 | Kelola User | ✅ | CRUD, ganti role, hapus |
-| Pembayaran (invoice) | ✅ | Buat invoice, toggle status, bulk action (checkbox + batch toggle), hapus hard-delete, dropdown menu |
+| Pembayaran (invoice) | ✅ | Buat invoice, toggle status, bulk action (checkbox + batch toggle), hapus hard-delete, dropdown menu, search + filter status |
 | Kelas | ✅ | CRUD |
 | Mata Pelajaran | ✅ | CRUD |
 | Chapter | ✅ | CRUD |
@@ -57,7 +57,7 @@
 - Laporan pendapatan (total invoice lunas, per bulan)
 - Log aktivitas
 - Setting biaya default per kelas
-- Filter pembayaran berdasarkan status/kelas
+- Filter pembayaran berdasarkan kelas (kelas murid)
 
 ---
 
@@ -77,7 +77,7 @@
 | # | Fitur | Alasan |
 |---|-------|--------|
 | 1 | **Guru: akses buat/edit materi** | Guru saat ini cuma bisa forum. Buat materi adalah core functionality guru. Backend udah siap (endpoint `/admin/materials`), tinggal buka akses role teacher + halaman frontend |
-| 2 | **Filter + search pembayaran admin** | Tabel invoice student belum ada filter by status (lunas/pending) atau search. Penting buat admin yang punya banyak murid |
+| 2 | **Filter + search pembayaran admin** | ✅ Selesai — search by note/periode + filter status dropdown |
 | 3 | **Dashboard real untuk student** | Stat cards masih hardcoded. Bikin endpoint aggregasi (total materi selesai, progress, sesi terakhir) |
 
 ### Prioritas Sedang
