@@ -12,24 +12,46 @@ import { id } from "date-fns/locale"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getAdminUsersOptions, getAdminInvoicesOptions, getAdminInvoicesQueryKey, postAdminInvoicesMutation, patchAdminInvoicesByIdToggleMutation, deleteAdminInvoicesByIdMutation } from "@/lib/api/@tanstack/react-query.gen"
 import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
-import { CalendarIcon, ChevronLeft, Loader2, Plus, Trash2 } from "lucide-react"
+import { CalendarIcon, ChevronLeft, Loader2, Plus, MoreVertical, Trash2, CheckCircle2, XCircle } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
 
 function PaymentsDetail() {
   const { userId } = Route.useParams()
   const qc = useQueryClient()
   const { data: users = [], isLoading: usersLoading } = useQuery(getAdminUsersOptions())
-  const { data: invoices = [], isLoading: invoicesLoading } = useQuery(getAdminInvoicesOptions())
+  const { data: invoices = [], isLoading: invoicesLoading } = useQuery(getAdminInvoicesOptions({ query: { user_id: Number(userId) } }))
   const [createOpen, setCreateOpen] = useState(false)
   const [amount, setAmount] = useState("")
   const [startDate, setStartDate] = useState<Date>()
   const [endDate, setEndDate] = useState<Date>()
   const [note, setNote] = useState("")
   const [deleteTarget, setDeleteTarget] = useState<InvoiceInvoiceResponse | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 
   const user = users.find((u) => u.id === Number(userId))
-  const userInvoices = invoices.filter((inv) => inv.user_id === Number(userId))
+  const userInvoices = invoices
+
+  const allSelected = userInvoices.length > 0 && selectedIds.size === userInvoices.length
+  const toggleAll = () => {
+    if (allSelected) setSelectedIds(new Set())
+    else setSelectedIds(new Set(userInvoices.map((inv) => inv.id!)))
+  }
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const { mutate: createInvoice, isPending: creating } = useMutation({
     ...postAdminInvoicesMutation(),
@@ -104,10 +126,21 @@ function PaymentsDetail() {
         </div>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 flex items-center gap-3">
         <Button onClick={() => setCreateOpen(true)}>
           <Plus className="h-4 w-4" /> Buat Invoice
         </Button>
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">{selectedIds.size} dipilih</span>
+            <Button size="sm" onClick={() => { selectedIds.forEach((id) => { const inv = userInvoices.find(i => i.id === id); if (inv?.status === "pending") toggleInvoice({ path: { id } }) }); setSelectedIds(new Set()) }}>
+              Lunas
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { selectedIds.forEach((id) => { const inv = userInvoices.find(i => i.id === id); if (inv?.status === "paid") toggleInvoice({ path: { id } }) }); setSelectedIds(new Set()) }}>
+              Pending
+            </Button>
+          </div>
+        )}
       </div>
 
       <Card className="pt-0 gap-0 pb-0">
@@ -115,7 +148,10 @@ function PaymentsDetail() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
-                <TableHead className="pl-6">Periode</TableHead>
+                <TableHead className="w-10 pl-4">
+                  <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
+                </TableHead>
+                <TableHead className="pl-0">Periode</TableHead>
                 <TableHead>Jumlah</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Catatan</TableHead>
@@ -126,14 +162,17 @@ function PaymentsDetail() {
             <TableBody>
               {userInvoices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="p-8 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="p-8 text-center text-muted-foreground">
                     Belum ada invoice
                   </TableCell>
                 </TableRow>
               ) : (
                 userInvoices.map((inv) => (
                   <TableRow key={inv.id}>
-                    <TableCell className="pl-6 font-medium">
+                    <TableCell className="w-10 pl-4">
+                      <Checkbox checked={selectedIds.has(inv.id!)} onCheckedChange={() => toggleSelect(inv.id!)} />
+                    </TableCell>
+                    <TableCell className="pl-0 font-medium">
                       {inv.start_date} — {inv.end_date}
                     </TableCell>
                     <TableCell>Rp {inv.amount?.toLocaleString("id-ID")}</TableCell>
@@ -153,22 +192,20 @@ function PaymentsDetail() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{inv.created_at}</TableCell>
                     <TableCell className="pr-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => toggleInvoice({ path: { id: inv.id! } })}
-                        >
-                          {inv.status === "paid" ? "Pending" : "Lunas"}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteTarget(inv)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
+                          <MoreVertical className="h-4 w-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => toggleInvoice({ path: { id: inv.id! } })}>
+                            {inv.status === "paid" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                            {inv.status === "paid" ? "Pending" : "Lunas"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDeleteTarget(inv)}>
+                            <Trash2 className="h-4 w-4 text-destructive" /> Hapus
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))

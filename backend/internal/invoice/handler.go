@@ -35,19 +35,14 @@ func NewHandler(svc *Service) *Handler {
 // @Router       /admin/invoices [get]
 func (h *Handler) AdminListInvoices(c *fiber.Ctx) error {
 	userIDStr := c.Query("user_id")
-	if userIDStr != "" {
-		userID, err := strconv.ParseUint(userIDStr, 10, 64)
-		if err != nil {
-			return c.Status(400).JSON(ErrorResponse{Error: "user_id tidak valid"})
-		}
-		invoices, err := h.svc.ListByUser(uint(userID))
-		if err != nil {
-			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
-		}
-		return c.JSON(invoices)
+	if userIDStr == "" {
+		return c.Status(400).JSON(ErrorResponse{Error: "user_id wajib diisi"})
 	}
-
-	invoices, err := h.svc.List()
+	userID, err := strconv.ParseUint(userIDStr, 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "user_id tidak valid"})
+	}
+	invoices, err := h.svc.ListByUser(uint(userID))
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}

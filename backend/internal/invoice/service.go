@@ -29,14 +29,6 @@ func NewService(repo *Repository) *Service {
 
 var monthRegex = regexp.MustCompile(`^\d{4}-(0[1-9]|1[0-2])$`)
 
-func (s *Service) List() ([]InvoiceResponse, error) {
-	invoices, err := s.repo.List()
-	if err != nil {
-		return nil, err
-	}
-	return toResponses(invoices), nil
-}
-
 func (s *Service) ListByUser(userID uint) ([]InvoiceResponse, error) {
 	invoices, err := s.repo.ListByUser(userID)
 	if err != nil {
