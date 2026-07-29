@@ -86,6 +86,13 @@ export function TiptapEditor({
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
   });
 
+  // sync content prop changes (e.g. draft restore)
+  useEffect(() => {
+    if (editor && content && editor.getHTML() !== content) {
+      editor.commands.setContent(content)
+    }
+  }, [editor, content])
+
   // click handler on math nodes + images
   useEffect(() => {
     const el = editorElRef.current

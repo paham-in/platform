@@ -47,18 +47,6 @@ function NewMaterial() {
   const [content, setContent] = useState("");
   const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
 
-  // restore draft or start fresh
-  useEffect(() => {
-    if (!showDraftDialog) return;
-    if (restored && draft) {
-      setTitle(draft.title);
-      setContent(draft.content);
-      setClassId(draft.classId);
-      setSubjectId(draft.subjectId);
-      setChapterId(draft.chapterId);
-    }
-  }, [restored, showDraftDialog, draft]);
-
   // autosave on change
   useEffect(() => {
     if (!title && !content) return;
@@ -204,7 +192,7 @@ function NewMaterial() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => { discard(); setShowDraftDialog(false) }}>Mulai Baru</Button>
-            <Button onClick={() => { restore(); setShowDraftDialog(false) }}>Lanjutkan</Button>
+            <Button onClick={() => { restore(); if (draft) { setTitle(draft.title); setContent(draft.content); setClassId(draft.classId); setSubjectId(draft.subjectId); setChapterId(draft.chapterId) } setShowDraftDialog(false) }}>Lanjutkan</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

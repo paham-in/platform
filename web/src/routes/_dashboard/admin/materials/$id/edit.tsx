@@ -52,19 +52,6 @@ function EditMaterial() {
   const [initialLoad, setInitialLoad] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
 
-  // restore draft or start fresh
-  useEffect(() => {
-    if (!showDraftDialog) return;
-    if (restored && draft) {
-      setTitle(draft.title);
-      setContent(draft.content);
-      setClassId(draft.classId);
-      setSubjectId(draft.subjectId);
-      setChapterId(draft.chapterId);
-      setLoaded(true);
-    }
-  }, [restored, showDraftDialog, draft]);
-
   // init from server data — only if no draft restore
   useEffect(() => {
     if (!material || initialLoad || restored) return;
@@ -235,7 +222,7 @@ function EditMaterial() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => { discard(); setShowDraftDialog(false) }}>Mulai dari Server</Button>
-            <Button onClick={() => { restore(); setShowDraftDialog(false) }}>Lanjutkan Draft</Button>
+            <Button onClick={() => { restore(); if (draft) { setTitle(draft.title); setContent(draft.content); setClassId(draft.classId); setSubjectId(draft.subjectId); setChapterId(draft.chapterId); setLoaded(true) } setShowDraftDialog(false) }}>Lanjutkan Draft</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

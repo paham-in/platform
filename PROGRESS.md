@@ -141,6 +141,8 @@ Daftar fitur yang seharusnya ada di platform bimbel lengkap, ditandai mana yang 
 | | Ganti role, hapus user | ✅ |
 | | Import user (CSV/Excel) | ❌ |
 | **Materi** | CRUD + publish/draft | ✅ |
+| | Autosave draft ke localStorage saat create/edit | ✅ |
+| | Restore draft dialog (lanjutkan/mulai baru) | ✅ |
 | **Kelas** | CRUD | ✅ |
 | **Mata Pelajaran** | CRUD | ✅ |
 | **Chapter** | CRUD | ✅ |
