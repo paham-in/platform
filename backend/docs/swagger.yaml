@@ -316,6 +316,76 @@ definitions:
       name:
         type: string
     type: object
+  tutoring.AvailabilityResponse:
+    properties:
+      day_of_week:
+        type: integer
+      end_time:
+        type: string
+      id:
+        type: integer
+      start_time:
+        type: string
+      teacher_id:
+        type: integer
+    type: object
+  tutoring.BookingResponse:
+    properties:
+      created_at:
+        type: string
+      date:
+        type: string
+      end_time:
+        type: string
+      id:
+        type: integer
+      note:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      student_id:
+        type: integer
+      student_name:
+        type: string
+      teacher_id:
+        type: integer
+      teacher_name:
+        type: string
+    type: object
+  tutoring.CreateAvailabilityInput:
+    properties:
+      day_of_week:
+        type: integer
+      end_time:
+        type: string
+      start_time:
+        type: string
+    type: object
+  tutoring.CreateBookingInput:
+    properties:
+      date:
+        type: string
+      end_time:
+        type: string
+      note:
+        type: string
+      start_time:
+        type: string
+      teacher_id:
+        type: integer
+    type: object
+  tutoring.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  tutoring.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
   user.AdminUserResponse:
     properties:
       avatar_url:
@@ -1580,6 +1650,161 @@ paths:
       summary: List subjects
       tags:
       - Subjects
+  /tutoring/availability:
+    get:
+      consumes:
+      - application/json
+      description: Returns availability slots. Teachers see their own; students pass
+        ?teacher_id=
+      parameters:
+      - description: Teacher ID (for students)
+        in: query
+        name: teacher_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/tutoring.AvailabilityResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List availability
+      tags:
+      - Tutoring
+    post:
+      consumes:
+      - application/json
+      description: Menambah slot waktu kosong guru
+      parameters:
+      - description: Slot data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tutoring.CreateAvailabilityInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/tutoring.AvailabilityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create availability
+      tags:
+      - Tutoring
+  /tutoring/availability/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus slot waktu kosong guru
+      parameters:
+      - description: Slot ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.MessageResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete availability
+      tags:
+      - Tutoring
+  /tutoring/bookings:
+    get:
+      consumes:
+      - application/json
+      description: Returns bookings. Teachers see bookings for their slots; students
+        see their own.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/tutoring.BookingResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List bookings
+      tags:
+      - Tutoring
+    post:
+      consumes:
+      - application/json
+      description: Murid booking jadwal guru
+      parameters:
+      - description: Booking data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tutoring.CreateBookingInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/tutoring.BookingResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create booking
+      tags:
+      - Tutoring
+  /tutoring/bookings/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Guru menyetujui atau menolak booking
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Status baru
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.BookingResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update booking status
+      tags:
+      - Tutoring
 schemes:
 - http
 securityDefinitions:

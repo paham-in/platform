@@ -98,6 +98,10 @@ Daftar fitur yang seharusnya ada di platform bimbel lengkap, ditandai mana yang 
 | **Pembayaran** | Lihat status invoice sendiri | ❌ |
 | | Riwayat pembayaran | ❌ |
 | **Jadwal** | Lihat jadwal belajar / jadwal les | ❌ |
+| **Les Privat** | Lihat daftar guru | ✅ |
+| | Lihat jadwal tersedia guru | ✅ |
+| | Booking jadwal les | ✅ |
+| | Lihat status booking | ✅ |
 | **Pengaturan** | Edit profil (nama, kelas) | ✅ |
 | | Ganti password / email | ❌ |
 | | Upload avatar | ❌ |
@@ -124,6 +128,10 @@ Daftar fitur yang seharusnya ada di platform bimbel lengkap, ditandai mana yang 
 | | Lihat hasil ujian semua murid | ❌ |
 | **Forum** | Jawab pertanyaan murid | ✅ |
 | | Lihat pertanyaan belum terjawab | ❌ |
+| **Les Privat** | Atur jadwal tersedia (hari + jam) | ✅ |
+| | Lihat permintaan booking murid | ✅ |
+| | Setujui/tolak booking | ✅ |
+| | Lihat riwayat booking | ✅ |
 | **Kelas** | Lihat daftar murid per kelas | ❌ |
 | | Lihat progress murid per materi | ❌ |
 | **Dashboard** | Stat real | ❌ |

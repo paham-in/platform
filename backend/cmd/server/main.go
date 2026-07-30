@@ -13,6 +13,7 @@ import (
 	"bimbel2/backend/internal/forum"
 	"bimbel2/backend/internal/gallery"
 	"bimbel2/backend/internal/invoice"
+	"bimbel2/backend/internal/tutoring"
 	"bimbel2/backend/internal/material"
 	"bimbel2/backend/internal/storage"
 	"bimbel2/backend/internal/subject"
@@ -78,6 +79,7 @@ func main() {
 	class.PublicRoutes(auth, db)
 	chapter.PublicRoutes(auth, db)
 	material.PublicRoutes(auth, db)
+		tutoring.Routes(auth, db)
 	answer.AuthRoutes(auth, db)
 	if minioClient != nil {
 		upload.AuthRoutes(auth, db, minioClient)

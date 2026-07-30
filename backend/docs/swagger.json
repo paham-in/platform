@@ -1927,6 +1927,251 @@
                     }
                 }
             }
+        },
+        "/tutoring/availability": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns availability slots. Teachers see their own; students pass ?teacher_id=",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "List availability",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Teacher ID (for students)",
+                        "name": "teacher_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/tutoring.AvailabilityResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menambah slot waktu kosong guru",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Create availability",
+                "parameters": [
+                    {
+                        "description": "Slot data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.CreateAvailabilityInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.AvailabilityResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tutoring/availability/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus slot waktu kosong guru",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Delete availability",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Slot ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.MessageResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tutoring/bookings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns bookings. Teachers see bookings for their slots; students see their own.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "List bookings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/tutoring.BookingResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Murid booking jadwal guru",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Create booking",
+                "parameters": [
+                    {
+                        "description": "Booking data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.CreateBookingInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.BookingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tutoring/bookings/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Guru menyetujui atau menolak booking",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Update booking status",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Booking ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status baru",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.BookingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -2415,6 +2660,114 @@
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.AvailabilityResponse": {
+            "type": "object",
+            "properties": {
+                "day_of_week": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "tutoring.BookingResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.CreateAvailabilityInput": {
+            "type": "object",
+            "properties": {
+                "day_of_week": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.CreateBookingInput": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "tutoring.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
                     "type": "string"
                 }
             }

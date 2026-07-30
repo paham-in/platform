@@ -206,6 +206,50 @@ export type SubjectUpdateInput = {
     name?: string;
 };
 
+export type TutoringAvailabilityResponse = {
+    day_of_week?: number;
+    end_time?: string;
+    id?: number;
+    start_time?: string;
+    teacher_id?: number;
+};
+
+export type TutoringBookingResponse = {
+    created_at?: string;
+    date?: string;
+    end_time?: string;
+    id?: number;
+    note?: string;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    teacher_id?: number;
+    teacher_name?: string;
+};
+
+export type TutoringCreateAvailabilityInput = {
+    day_of_week?: number;
+    end_time?: string;
+    start_time?: string;
+};
+
+export type TutoringCreateBookingInput = {
+    date?: string;
+    end_time?: string;
+    note?: string;
+    start_time?: string;
+    teacher_id?: number;
+};
+
+export type TutoringErrorResponse = {
+    error?: string;
+};
+
+export type TutoringMessageResponse = {
+    message?: string;
+};
+
 export type UserAdminUserResponse = {
     avatar_url?: string;
     created_at?: string;
@@ -1453,3 +1497,152 @@ export type GetSubjectsResponses = {
 };
 
 export type GetSubjectsResponse = GetSubjectsResponses[keyof GetSubjectsResponses];
+
+export type GetTutoringAvailabilityData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Teacher ID (for students)
+         */
+        teacher_id?: number;
+    };
+    url: '/tutoring/availability';
+};
+
+export type GetTutoringAvailabilityResponses = {
+    /**
+     * OK
+     */
+    200: Array<TutoringAvailabilityResponse>;
+};
+
+export type GetTutoringAvailabilityResponse = GetTutoringAvailabilityResponses[keyof GetTutoringAvailabilityResponses];
+
+export type PostTutoringAvailabilityData = {
+    /**
+     * Slot data
+     */
+    body: TutoringCreateAvailabilityInput;
+    path?: never;
+    query?: never;
+    url: '/tutoring/availability';
+};
+
+export type PostTutoringAvailabilityErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PostTutoringAvailabilityError = PostTutoringAvailabilityErrors[keyof PostTutoringAvailabilityErrors];
+
+export type PostTutoringAvailabilityResponses = {
+    /**
+     * Created
+     */
+    201: TutoringAvailabilityResponse;
+};
+
+export type PostTutoringAvailabilityResponse = PostTutoringAvailabilityResponses[keyof PostTutoringAvailabilityResponses];
+
+export type DeleteTutoringAvailabilityByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Slot ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/tutoring/availability/{id}';
+};
+
+export type DeleteTutoringAvailabilityByIdResponses = {
+    /**
+     * OK
+     */
+    200: TutoringMessageResponse;
+};
+
+export type DeleteTutoringAvailabilityByIdResponse = DeleteTutoringAvailabilityByIdResponses[keyof DeleteTutoringAvailabilityByIdResponses];
+
+export type GetTutoringBookingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/tutoring/bookings';
+};
+
+export type GetTutoringBookingsResponses = {
+    /**
+     * OK
+     */
+    200: Array<TutoringBookingResponse>;
+};
+
+export type GetTutoringBookingsResponse = GetTutoringBookingsResponses[keyof GetTutoringBookingsResponses];
+
+export type PostTutoringBookingsData = {
+    /**
+     * Booking data
+     */
+    body: TutoringCreateBookingInput;
+    path?: never;
+    query?: never;
+    url: '/tutoring/bookings';
+};
+
+export type PostTutoringBookingsErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PostTutoringBookingsError = PostTutoringBookingsErrors[keyof PostTutoringBookingsErrors];
+
+export type PostTutoringBookingsResponses = {
+    /**
+     * Created
+     */
+    201: TutoringBookingResponse;
+};
+
+export type PostTutoringBookingsResponse = PostTutoringBookingsResponses[keyof PostTutoringBookingsResponses];
+
+export type PatchTutoringBookingsByIdData = {
+    /**
+     * Status baru
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        /**
+         * Booking ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/tutoring/bookings/{id}';
+};
+
+export type PatchTutoringBookingsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PatchTutoringBookingsByIdError = PatchTutoringBookingsByIdErrors[keyof PatchTutoringBookingsByIdErrors];
+
+export type PatchTutoringBookingsByIdResponses = {
+    /**
+     * OK
+     */
+    200: TutoringBookingResponse;
+};
+
+export type PatchTutoringBookingsByIdResponse = PatchTutoringBookingsByIdResponses[keyof PatchTutoringBookingsByIdResponses];

@@ -23,6 +23,7 @@ import {
   Sun,
   Users,
   X,
+  Calendar,
 } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "@/components/theme-provider";
@@ -41,6 +42,7 @@ const sidebarLinks = [
   { label: "Forum", icon: Home, to: "/forum", roles: ["student"] },
   { label: "Materi Saya", icon: BookMarked, to: "/materials", roles: ["teacher"] },
   { label: "Tanya Jawab", icon: Home, to: "/forum", roles: ["teacher"] },
+  { label: "Les Privat", icon: Calendar, to: "/tutoring", roles: ["student", "teacher"] },
   { label: "Kelola User", icon: Users, to: "/admin/users", roles: ["admin"] },
   { label: "Pembayaran", icon: CreditCard, to: "/admin/payments", roles: ["admin"] },
   { label: "Kelas", icon: GraduationCap, to: "/admin/classes", roles: ["admin"] },
