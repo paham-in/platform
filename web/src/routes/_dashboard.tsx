@@ -74,7 +74,6 @@ const sidebarGroups = [
       { label: "Kelas", icon: GraduationCap, to: "/admin/classes" },
       { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects" },
       { label: "Chapter", icon: BookOpen, to: "/admin/chapters" },
-      { label: "Materi", icon: FileText, to: "/admin/materials" },
       { label: "Forum", icon: MessageSquare, to: "/admin/forum" },
     ],
   },

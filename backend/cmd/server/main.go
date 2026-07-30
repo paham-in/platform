@@ -85,12 +85,15 @@ func main() {
 		upload.AuthRoutes(auth, db, minioClient)
 	}
 
+	// Materials — admin + teacher (register first so teacher can pass)
+	staff := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin", "teacher"))
+	material.AdminRoutes(staff, db)
+
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)
 	class.AdminRoutes(admin, db)
 	chapter.AdminRoutes(admin, db)
 	subject.AdminRoutes(admin, db)
-	material.AdminRoutes(admin, db)
 	forum.AdminRoutes(admin, db)
 	invoice.AdminRoutes(admin, db)
 	if minioClient != nil {
