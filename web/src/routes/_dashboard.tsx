@@ -87,7 +87,7 @@ function DashboardLayout() {
     return null;
   }
 
-  const filteredLinks = sidebarLinks.filter((l) => l.roles.includes(user.role ?? ""));
+  const filteredLinks = sidebarLinks.filter((l) => (user?.roles ?? []).some((r) => l.roles.includes(r)));
 
   return (
     <div className="min-h-screen bg-muted/20">

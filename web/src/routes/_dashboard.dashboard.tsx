@@ -17,7 +17,7 @@ import {
 
 function DashboardPage() {
   const { data: user } = useQuery(getMeOptions())
-  const role = user?.role ?? "student"
+  const role = user?.roles?.[0] ?? "student"
 
   // real data for admin dashboard
   const { data: allUsers = [] } = useQuery({
@@ -35,8 +35,8 @@ function DashboardPage() {
 
   const adminStats = role === "admin"
     ? [
-        { icon: Users, label: "Total Murid", value: String(allUsers.filter((u) => u.role === "student").length), color: "text-blue-600 bg-blue-100" },
-        { icon: GraduationCap, label: "Total Guru", value: String(allUsers.filter((u) => u.role === "teacher").length), color: "text-green-600 bg-green-100" },
+        { icon: Users, label: "Total Murid", value: String(allUsers.filter((u) => (u.roles ?? []).includes("student")).length), color: "text-blue-600 bg-blue-100" },
+        { icon: GraduationCap, label: "Total Guru", value: String(allUsers.filter((u) => (u.roles ?? []).includes("teacher")).length), color: "text-green-600 bg-green-100" },
         { icon: BookOpen, label: "Mata Pelajaran", value: String(subjects.length), color: "text-orange-600 bg-orange-100" },
         { icon: FileText, label: "Total Materi", value: String(allMaterials.length), color: "text-purple-600 bg-purple-100" },
       ]
@@ -150,7 +150,7 @@ function DashboardPage() {
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
                       <div><p className="text-sm font-medium">{u.name}</p><p className="text-xs text-muted-foreground">{u.email}</p></div>
                     </div>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${u.role === "teacher" ? "bg-blue-100 text-blue-700" : u.role === "admin" ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>{u.role === "teacher" ? "Guru" : u.role === "admin" ? "Admin" : "Murid"}</span>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${(u.roles ?? []).includes("teacher") ? "bg-blue-100 text-blue-700" : (u.roles ?? []).includes("admin") ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>{(u.roles ?? []).includes("teacher") ? "Guru" : (u.roles ?? []).includes("admin") ? "Admin" : "Murid"}</span>
                   </div>
                 ))}
                 {allUsers.length > 5 && (

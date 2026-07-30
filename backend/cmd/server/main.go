@@ -43,6 +43,7 @@ func main() {
 
 	db := database.Connect(cfg)
 	database.Migrate(db)
+	seedRoles(db)
 	seedAdmin(db, cfg)
 
 	minioClient, err := storage.NewMinioClient(cfg)
@@ -102,9 +103,18 @@ func main() {
 	log.Fatal(app.Listen(":" + port))
 }
 
+func seedRoles(db *gorm.DB) {
+	for _, name := range []string{"student", "teacher", "admin"} {
+		var role models.Role
+		if err := db.Where("name = ?", name).First(&role).Error; err != nil {
+			db.Create(&models.Role{Name: name})
+		}
+	}
+}
+
 func seedAdmin(db *gorm.DB, cfg *config.Config) {
 	var count int64
-	db.Model(&models.User{}).Where("role = ?", "admin").Count(&count)
+	db.Model(&models.User{}).Joins("JOIN user_roles ON user_roles.user_id = users.id").Joins("JOIN roles ON roles.id = user_roles.role_id").Where("roles.name = ?", "admin").Count(&count)
 	if count > 0 {
 		return
 	}
@@ -119,12 +129,15 @@ func seedAdmin(db *gorm.DB, cfg *config.Config) {
 		Name:     cfg.AdminName,
 		Email:    cfg.AdminEmail,
 		Password: &hashStr,
-		Role:     "admin",
 	}
 
 	if err := db.Create(&admin).Error; err != nil {
 		log.Fatal("Failed to seed admin:", err)
 	}
+
+	var adminRole models.Role
+	db.Where("name = ?", "admin").First(&adminRole)
+	db.Model(&admin).Association("Roles").Append(&adminRole)
 
 	log.Printf("Admin seeded: %s / %s\n", cfg.AdminEmail, cfg.AdminPass)
 }

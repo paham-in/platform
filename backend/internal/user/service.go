@@ -17,23 +17,23 @@ type AuthResponse struct {
 }
 
 type UserResponse struct {
-	ID            uint   `json:"id"`
-	Name          string `json:"name"`
-	Email         string `json:"email"`
-	Role          string `json:"role"`
-	AvatarURL     string `json:"avatar_url"`
-	PaymentStatus string `json:"payment_status"`
-	ClassID       *uint  `json:"class_id"`
+	ID            uint     `json:"id"`
+	Name          string   `json:"name"`
+	Email         string   `json:"email"`
+	Roles         []string `json:"roles"`
+	AvatarURL     string   `json:"avatar_url"`
+	PaymentStatus string   `json:"payment_status"`
+	ClassID       *uint    `json:"class_id"`
 }
 
 type AdminUserResponse struct {
-	ID            uint   `json:"id"`
-	Name          string `json:"name"`
-	Email         string `json:"email"`
-	Role          string `json:"role"`
-	AvatarURL     string `json:"avatar_url"`
-	PaymentStatus string `json:"payment_status"`
-	CreatedAt     string `json:"created_at"`
+	ID            uint     `json:"id"`
+	Name          string   `json:"name"`
+	Email         string   `json:"email"`
+	Roles         []string `json:"roles"`
+	AvatarURL     string   `json:"avatar_url"`
+	PaymentStatus string   `json:"payment_status"`
+	CreatedAt     string   `json:"created_at"`
 }
 
 type ErrorResponse struct {
@@ -87,7 +87,7 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 		Email:     email,
 		GoogleID:  googleID,
 		AvatarURL: avatarURL,
-		Role:      "student",
+		Roles:     []models.Role{{Name: "student"}},
 	}
 	if err := s.userRepo.Create(user); err != nil {
 		return nil, errInternal
@@ -139,6 +139,14 @@ func generateToken() (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
+func roleNames(u models.User) []string {
+	names := make([]string, len(u.Roles))
+	for i, r := range u.Roles {
+		names[i] = r.Name
+	}
+	return names
+}
+
 func (s *Service) ListUsers() ([]AdminUserResponse, error) {
 	users, err := s.userRepo.List()
 	if err != nil {
@@ -150,7 +158,7 @@ func (s *Service) ListUsers() ([]AdminUserResponse, error) {
 			ID:        u.ID,
 			Name:      u.Name,
 			Email:     u.Email,
-			Role:      u.Role,
+			Roles:     roleNames(u),
 			AvatarURL:     u.AvatarURL,
 			PaymentStatus: u.PaymentStatus,
 					CreatedAt: u.CreatedAt.Format("2006-01-02"),
@@ -209,7 +217,7 @@ func toResponse(u models.User) UserResponse {
 		ID:            u.ID,
 		Name:          u.Name,
 		Email:         u.Email,
-		Role:          u.Role,
+		Roles:         roleNames(u),
 		AvatarURL:     u.AvatarURL,
 		PaymentStatus: u.PaymentStatus,
 		ClassID:       u.ClassID,

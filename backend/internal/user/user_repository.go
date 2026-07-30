@@ -16,7 +16,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 
 func (r *UserRepository) Get(id uint) (*models.User, error) {
 	var user models.User
-	if err := r.db.First(&user, id).Error; err != nil {
+	if err := r.db.Preload("Roles").First(&user, id).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -24,7 +24,7 @@ func (r *UserRepository) Get(id uint) (*models.User, error) {
 
 func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
 	var user models.User
-	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := r.db.Preload("Roles").Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -36,14 +36,27 @@ func (r *UserRepository) Create(user *models.User) error {
 
 func (r *UserRepository) List() ([]models.User, error) {
 	var users []models.User
-	if err := r.db.Order("created_at desc").Find(&users).Error; err != nil {
+	if err := r.db.Preload("Roles").Order("created_at desc").Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
 }
 
 func (r *UserRepository) UpdateRole(id uint, role string) error {
-	return r.db.Model(&models.User{}).Where("id = ?", id).Update("role", role).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&models.User{}).Where("id = ?", id).Association("Roles").Clear(); err != nil {
+			return err
+		}
+		return tx.Model(&models.User{}).Where("id = ?", id).Association("Roles").Append(&models.Role{Name: role})
+	})
+}
+
+func (r *UserRepository) GetByGoogleID(googleID string) (*models.User, error) {
+	var user models.User
+	if err := r.db.Preload("Roles").Where("google_id = ?", googleID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (r *UserRepository) UpdatePaymentStatus(id uint, status string) error {
@@ -68,12 +81,4 @@ func (r *UserRepository) UpdateName(id uint, name string) error {
 
 func (r *UserRepository) UpdateClassID(id uint, classID uint) error {
 	return r.db.Model(&models.User{}).Where("id = ?", id).Update("class_id", classID).Error
-}
-
-func (r *UserRepository) GetByGoogleID(googleID string) (*models.User, error) {
-	var user models.User
-	if err := r.db.Where("google_id = ?", googleID).First(&user).Error; err != nil {
-		return nil, err
-	}
-	return &user, nil
 }

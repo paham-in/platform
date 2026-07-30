@@ -12,7 +12,7 @@ function PaymentsIndex() {
   const { data: users = [], isLoading } = useQuery(getAdminUsersOptions())
   const [search, setSearch] = useState("")
 
-  const students = users.filter((u) => u.role === "student")
+  const students = users.filter((u) => (u.roles ?? []).includes("student"))
   const filtered = students.filter((u) =>
     (u.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
     (u.email ?? "").toLowerCase().includes(search.toLowerCase())

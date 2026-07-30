@@ -40,8 +40,16 @@ func userIDFrom(c *fiber.Ctx) uint {
 }
 
 func roleFrom(c *fiber.Ctx) string {
-	r, _ := c.Locals("role").(string)
-	return r
+	roles, _ := c.Locals("roles").([]string)
+	for _, r := range roles {
+		if r == "admin" {
+			return "admin"
+		}
+	}
+	if len(roles) > 0 {
+		return roles[0]
+	}
+	return ""
 }
 
 func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {

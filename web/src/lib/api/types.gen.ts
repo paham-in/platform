@@ -257,7 +257,7 @@ export type UserAdminUserResponse = {
     id?: number;
     name?: string;
     payment_status?: string;
-    role?: string;
+    roles?: Array<string>;
 };
 
 export type UserErrorResponse = {
@@ -275,7 +275,7 @@ export type UserUserResponse = {
     id?: number;
     name?: string;
     payment_status?: string;
-    role?: string;
+    roles?: Array<string>;
 };
 
 export type GetAdminChaptersData = {

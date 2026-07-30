@@ -9,7 +9,7 @@ type User struct {
 	GoogleID      string  `gorm:"size:100;uniqueIndex" json:"-"`
 	AvatarURL     string  `gorm:"size:500" json:"avatar_url"`
 	Password      *string `gorm:"size:255" json:"-"`
-	Role          string  `gorm:"size:20;not null;default:student" json:"role"`
+	Roles         []Role  `gorm:"many2many:user_roles;" json:"roles"`
 	PaymentStatus string  `gorm:"size:20;default:pending" json:"payment_status"`
 	ClassID       *uint   `gorm:"default:null" json:"class_id"`
 	Class         *Class  `gorm:"foreignKey:ClassID" json:"class,omitempty"`

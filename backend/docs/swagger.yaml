@@ -400,8 +400,10 @@ definitions:
         type: string
       payment_status:
         type: string
-      role:
-        type: string
+      roles:
+        items:
+          type: string
+        type: array
     type: object
   user.ErrorResponse:
     properties:
@@ -429,8 +431,10 @@ definitions:
         type: string
       payment_status:
         type: string
-      role:
-        type: string
+      roles:
+        items:
+          type: string
+        type: array
     type: object
 host: localhost:8080
 info:

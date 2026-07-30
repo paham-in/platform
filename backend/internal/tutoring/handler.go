@@ -23,6 +23,16 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
+func hasRole(c *fiber.Ctx, role string) bool {
+	roles, _ := c.Locals("roles").([]string)
+	for _, r := range roles {
+		if r == role {
+			return true
+		}
+	}
+	return false
+}
+
 // ListAvailability returns availability slots (teacher: own, student: by teacher_id)
 // @Summary      List availability
 // @Description  Returns availability slots. Teachers see their own; students pass ?teacher_id=
@@ -34,10 +44,9 @@ func NewHandler(svc *Service) *Handler {
 // @Success      200 {array} AvailabilityResponse
 // @Router       /tutoring/availability [get]
 func (h *Handler) ListAvailability(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
 	userID := c.Locals("user_id").(uint)
 
-	if role == "teacher" {
+	if hasRole(c, "teacher") || hasRole(c, "admin") {
 		slots, err := h.svc.ListAvailability(userID)
 		if err != nil {
 			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
@@ -73,8 +82,7 @@ func (h *Handler) ListAvailability(c *fiber.Ctx) error {
 // @Failure      400 {object} ErrorResponse
 // @Router       /tutoring/availability [post]
 func (h *Handler) CreateAvailability(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
-	if role != "teacher" && role != "admin" {
+	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
 		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
 	}
 
@@ -101,8 +109,7 @@ func (h *Handler) CreateAvailability(c *fiber.Ctx) error {
 // @Success      200 {object} MessageResponse
 // @Router       /tutoring/availability/{id} [delete]
 func (h *Handler) DeleteAvailability(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
-	if role != "teacher" && role != "admin" {
+	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
 		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
 	}
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
@@ -126,10 +133,9 @@ func (h *Handler) DeleteAvailability(c *fiber.Ctx) error {
 // @Success      200 {array} BookingResponse
 // @Router       /tutoring/bookings [get]
 func (h *Handler) ListBookings(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
 	userID := c.Locals("user_id").(uint)
 
-	if role == "teacher" || role == "admin" {
+	if hasRole(c, "teacher") || hasRole(c, "admin") {
 		bookings, err := h.svc.ListTeacherBookings(userID)
 		if err != nil {
 			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
@@ -156,8 +162,7 @@ func (h *Handler) ListBookings(c *fiber.Ctx) error {
 // @Failure      400 {object} ErrorResponse
 // @Router       /tutoring/bookings [post]
 func (h *Handler) CreateBooking(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
-	if role != "student" {
+	if !hasRole(c, "student") {
 		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk murid"})
 	}
 
@@ -186,8 +191,7 @@ func (h *Handler) CreateBooking(c *fiber.Ctx) error {
 // @Failure      400 {object} ErrorResponse
 // @Router       /tutoring/bookings/{id} [patch]
 func (h *Handler) UpdateBookingStatus(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
-	if role != "teacher" && role != "admin" {
+	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
 		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
 	}
 

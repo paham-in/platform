@@ -55,7 +55,7 @@ function AdminUsers() {
 
   const filtered = users.filter((u) => {
     const matchSearch = (u.name ?? "").toLowerCase().includes(search.toLowerCase()) || (u.email ?? "").toLowerCase().includes(search.toLowerCase())
-    const matchRole = roleFilter === "all" || u.role === roleFilter
+    const matchRole = roleFilter === "all" || (u.roles ?? []).includes(roleFilter)
     return matchSearch && matchRole
   })
   const totalPages = Math.ceil(filtered.length / perPage)
@@ -63,7 +63,7 @@ function AdminUsers() {
 
   const openEdit = (u: UserAdminUserResponse) => {
     setEditing(u)
-    setNewRole(u.role ?? "student")
+    setNewRole((u.roles ?? [])[0] ?? "student")
   }
   const closeEdit = () => setEditing(null)
   const save = () => {
@@ -130,7 +130,7 @@ function AdminUsers() {
                       <span className="font-medium">{u.name}</span>
                     </div></TableCell>
                     <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                    <TableCell><RoleBadge role={u.role ?? ""} /></TableCell>
+                    <TableCell><RoleBadge role={(u.roles ?? [])[0] ?? ""} /></TableCell>
                     <TableCell className="text-muted-foreground">{u.created_at}</TableCell>
                     <TableCell className="pr-6 text-right">
                       <DropdownMenu>
