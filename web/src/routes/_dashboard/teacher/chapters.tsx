@@ -413,6 +413,6 @@ function AdminChapters() {
   );
 }
 
-export const Route = createFileRoute("/_dashboard/admin/chapters")({
+export const Route = createFileRoute("/_dashboard/teacher/chapters")({
   component: AdminChapters,
 });

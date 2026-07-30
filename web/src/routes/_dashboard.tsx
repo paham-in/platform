@@ -60,6 +60,7 @@ const sidebarGroups = [
     links: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/teacher/dashboard" },
       { label: "Materi Saya", icon: BookMarked, to: "/teacher/materials" },
+      { label: "Chapter", icon: BookOpen, to: "/teacher/chapters" },
       { label: "Tanya Jawab", icon: Home, to: "/forum" },
       { label: "Les Privat", icon: Calendar, to: "/teacher/tutoring" },
     ],
@@ -73,7 +74,6 @@ const sidebarGroups = [
       { label: "Pembayaran", icon: CreditCard, to: "/admin/payments" },
       { label: "Kelas", icon: GraduationCap, to: "/admin/classes" },
       { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects" },
-      { label: "Chapter", icon: BookOpen, to: "/admin/chapters" },
       { label: "Forum", icon: MessageSquare, to: "/admin/forum" },
     ],
   },

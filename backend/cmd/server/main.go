@@ -88,6 +88,7 @@ func main() {
 	// Materials — admin + teacher (register first so teacher can pass)
 	staff := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin", "teacher"))
 	material.AdminRoutes(staff, db)
+		chapter.AdminRoutes(staff, db)
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)
