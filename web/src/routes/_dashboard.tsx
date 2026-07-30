@@ -36,21 +36,46 @@ import {
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
 
-const sidebarLinks = [
-  { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard", roles: ["student", "teacher", "admin"] },
-  { label: "Materi", icon: BookMarked, to: "/materials", roles: ["student"] },
-  { label: "Forum", icon: Home, to: "/forum", roles: ["student"] },
-  { label: "Materi Saya", icon: BookMarked, to: "/materials", roles: ["teacher"] },
-  { label: "Tanya Jawab", icon: Home, to: "/forum", roles: ["teacher"] },
-  { label: "Les Privat", icon: Calendar, to: "/student/tutoring", roles: ["student"] },
-  { label: "Les Privat", icon: Calendar, to: "/teacher/tutoring", roles: ["teacher"] },
-  { label: "Kelola User", icon: Users, to: "/admin/users", roles: ["admin"] },
-  { label: "Pembayaran", icon: CreditCard, to: "/admin/payments", roles: ["admin"] },
-  { label: "Kelas", icon: GraduationCap, to: "/admin/classes", roles: ["admin"] },
-  { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects", roles: ["admin"] },
-  { label: "Chapter", icon: BookOpen, to: "/admin/chapters", roles: ["admin"] },
-  { label: "Materi", icon: FileText, to: "/admin/materials", roles: ["admin"] },
-  { label: "Forum", icon: MessageSquare, to: "/admin/forum", roles: ["admin"] },
+const sidebarGroups = [
+  {
+    label: "Umum",
+    roles: ["student", "teacher", "admin"],
+    links: [
+      { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
+      { label: "Pengaturan", icon: Settings, to: "/settings" },
+    ],
+  },
+  {
+    label: "Murid",
+    roles: ["student"],
+    links: [
+      { label: "Materi", icon: BookMarked, to: "/materials" },
+      { label: "Forum", icon: Home, to: "/forum" },
+      { label: "Les Privat", icon: Calendar, to: "/student/tutoring" },
+    ],
+  },
+  {
+    label: "Guru",
+    roles: ["teacher"],
+    links: [
+      { label: "Materi Saya", icon: BookMarked, to: "/materials" },
+      { label: "Tanya Jawab", icon: Home, to: "/forum" },
+      { label: "Les Privat", icon: Calendar, to: "/teacher/tutoring" },
+    ],
+  },
+  {
+    label: "Admin",
+    roles: ["admin"],
+    links: [
+      { label: "Kelola User", icon: Users, to: "/admin/users" },
+      { label: "Pembayaran", icon: CreditCard, to: "/admin/payments" },
+      { label: "Kelas", icon: GraduationCap, to: "/admin/classes" },
+      { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects" },
+      { label: "Chapter", icon: BookOpen, to: "/admin/chapters" },
+      { label: "Materi", icon: FileText, to: "/admin/materials" },
+      { label: "Forum", icon: MessageSquare, to: "/admin/forum" },
+    ],
+  },
 ];
 
 function DashboardLayout() {
@@ -87,7 +112,13 @@ function DashboardLayout() {
     return null;
   }
 
-  const filteredLinks = sidebarLinks.filter((l) => (user?.roles ?? []).some((r) => l.roles.includes(r)));
+  const userRoles = (user?.roles as string[]) ?? [];
+  const filteredGroups = sidebarGroups
+    .map((g) => ({
+      ...g,
+      links: g.roles.some((r) => userRoles.includes(r)) ? g.links : [],
+    }))
+    .filter((g) => g.links.length > 0);
 
   return (
     <div className="min-h-screen bg-muted/20">
@@ -114,29 +145,30 @@ function DashboardLayout() {
             </Button>
           </div>
 
-          <nav className="mt-8 flex-1 space-y-1 overflow-y-auto">
-            {filteredLinks.map((l) => (
-              <Link
-                key={l.to}
-                to={l.to}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                activeProps={{ className: "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted" }}
-                onClick={() => setMobileOpen(false)}
-              >
-                <l.icon className="h-4 w-4" /> {l.label}
-              </Link>
+          <nav className="mt-8 flex-1 space-y-4 overflow-y-auto">
+            {filteredGroups.map((group) => (
+              <div key={group.label}>
+                <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+                  {group.label}
+                </p>
+                <div className="space-y-0.5">
+                  {group.links.map((l) => (
+                    <Link
+                      key={l.to}
+                      to={l.to}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      activeProps={{ className: "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted" }}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <l.icon className="h-4 w-4" /> {l.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
             ))}
           </nav>
 
           <div className="space-y-1 border-t pt-4">
-            <Link
-              to="/settings"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              activeProps={{ className: "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted" }}
-              onClick={() => setMobileOpen(false)}
-            >
-              <Settings className="h-4 w-4" /> Pengaturan
-            </Link>
             <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-muted-foreground" onClick={() => setLogoutConfirmOpen(true)} disabled={logout.isPending}>
               <LogOut className="h-4 w-4" /> {logout.isPending ? "..." : "Keluar"}
             </Button>

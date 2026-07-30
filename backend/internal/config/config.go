@@ -38,7 +38,7 @@ func Load() *Config {
 		DBPass:             getEnv("DB_PASS", "postgres"),
 		DBName:             getEnv("DB_NAME", "bimbel"),
 		AdminName:          getEnv("ADMIN_NAME", "Admin paham.in"),
-		AdminEmail:         getEnv("ADMIN_EMAIL", "admin@bimbel.com"),
+		AdminEmail:         getEnv("ADMIN_EMAIL", "gnoogler4@gmail.com"),
 		AdminPass:          getEnv("ADMIN_PASS", "admin123"),
 		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
