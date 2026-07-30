@@ -107,7 +107,7 @@ function MaterialsPage() {
           </Card>
         )}
         {filtered.map((c) => (
-          <Link key={c.id} to="/materials/chapters/$id" params={{ id: String(c.id!) }}>
+          <Link key={c.id} to="/student/materials/chapters/$id" params={{ id: String(c.id!) }}>
             <Card className="cursor-pointer transition-colors hover:bg-muted/50">
               <CardContent className="p-5">
                 <div className="flex gap-4">
@@ -143,6 +143,6 @@ function MaterialsPage() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/materials/")({
+export const Route = createFileRoute("/_dashboard/student/materials/")({
   component: MaterialsPage,
 })

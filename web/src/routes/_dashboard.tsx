@@ -49,7 +49,7 @@ const sidebarGroups = [
     roles: ["student"],
     links: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/student/dashboard" },
-      { label: "Materi", icon: BookMarked, to: "/materials" },
+      { label: "Materi", icon: BookMarked, to: "/student/materials" },
       { label: "Forum", icon: Home, to: "/forum" },
       { label: "Les Privat", icon: Calendar, to: "/student/tutoring" },
     ],
@@ -59,7 +59,7 @@ const sidebarGroups = [
     roles: ["teacher"],
     links: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/teacher/dashboard" },
-      { label: "Materi Saya", icon: BookMarked, to: "/materials" },
+      { label: "Materi Saya", icon: BookMarked, to: "/teacher/materials" },
       { label: "Tanya Jawab", icon: Home, to: "/forum" },
       { label: "Les Privat", icon: Calendar, to: "/teacher/tutoring" },
     ],

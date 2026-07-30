@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery } from "@tanstack/react-query"
-import { getMeOptions, getAdminUsersOptions, getAdminMaterialsOptions, getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminUsersOptions, getAdminMaterialsOptions, getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { Users, GraduationCap, BookOpen, FileText, BookMarked, ChevronRight, CreditCard } from "lucide-react"
 
 function AdminDashboard() {
-  const { data: user } = useQuery(getMeOptions())
   const { data: allUsers = [] } = useQuery(getAdminUsersOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const { data: allMaterials = [] } = useQuery(getAdminMaterialsOptions())

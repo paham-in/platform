@@ -10,7 +10,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { Loader2, ArrowLeft, FileText } from "lucide-react"
 
 function ChapterDetail() {
-  const { id } = useParams({ from: "/_dashboard/materials/chapters/$id" })
+  const { id } = useParams({ from: "/_dashboard/student/materials/chapters/$id" })
   const { data: materials = [], isLoading } = useQuery(getMaterialsOptions())
   const { data: allChapters = [] } = useQuery(getChaptersOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
@@ -32,7 +32,7 @@ function ChapterDetail() {
   return (
     <main className="p-6">
       <Link
-        to="/materials"
+        to="/student/materials"
         className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" /> Kembali
@@ -54,7 +54,7 @@ function ChapterDetail() {
           </Card>
         )}
         {chapterMaterials.map((m) => (
-          <Link key={m.id} to="/materials/chapters/$chapterId/$materialId" params={{ chapterId: id, materialId: String(m.id!) }}>
+          <Link key={m.id} to="/student/materials/chapters/$chapterId/$materialId" params={{ chapterId: id, materialId: String(m.id!) }}>
             <Card className="overflow-hidden transition-colors hover:bg-muted/50">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
@@ -79,6 +79,6 @@ function ChapterDetail() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/materials/chapters/$id")({
+export const Route = createFileRoute("/_dashboard/student/materials/chapters/$id")({
   component: ChapterDetail,
 })

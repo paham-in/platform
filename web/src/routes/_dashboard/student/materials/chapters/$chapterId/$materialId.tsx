@@ -9,7 +9,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { Loader2, ArrowLeft } from "lucide-react"
 
 function MaterialDetail() {
-  const { chapterId, materialId } = useParams({ from: "/_dashboard/materials/chapters/$chapterId/$materialId" })
+  const { chapterId, materialId } = useParams({ from: "/_dashboard/student/materials/chapters/$chapterId/$materialId" })
   const { data: material, isLoading } = useQuery(getMaterialsByIdOptions({ path: { id: Number(materialId) } }))
   const { data: allChapters = [] } = useQuery(getChaptersOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
@@ -38,7 +38,7 @@ function MaterialDetail() {
   return (
     <main className="w-full max-w-3xl p-6">
       <Link
-        to="/materials/chapters/$id"
+        to="/student/materials/chapters/$id"
         params={{ id: chapterId }}
         className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
       >
@@ -65,6 +65,6 @@ function MaterialDetail() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/materials/chapters/$chapterId/$materialId")({
+export const Route = createFileRoute("/_dashboard/student/materials/chapters/$chapterId/$materialId")({
   component: MaterialDetail,
 })

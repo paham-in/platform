@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery } from "@tanstack/react-query"
-import { getMeOptions, getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { BookOpen, TrendingUp, Clock, CheckCircle2 } from "lucide-react"
 
 function StudentDashboard() {
