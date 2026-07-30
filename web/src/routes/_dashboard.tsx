@@ -41,7 +41,6 @@ const sidebarGroups = [
     label: "Umum",
     roles: ["student", "teacher", "admin"],
     links: [
-      { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
       { label: "Pengaturan", icon: Settings, to: "/settings" },
     ],
   },
@@ -49,6 +48,7 @@ const sidebarGroups = [
     label: "Murid",
     roles: ["student"],
     links: [
+      { label: "Dashboard", icon: LayoutDashboard, to: "/student/dashboard" },
       { label: "Materi", icon: BookMarked, to: "/materials" },
       { label: "Forum", icon: Home, to: "/forum" },
       { label: "Les Privat", icon: Calendar, to: "/student/tutoring" },
@@ -58,6 +58,7 @@ const sidebarGroups = [
     label: "Guru",
     roles: ["teacher"],
     links: [
+      { label: "Dashboard", icon: LayoutDashboard, to: "/teacher/dashboard" },
       { label: "Materi Saya", icon: BookMarked, to: "/materials" },
       { label: "Tanya Jawab", icon: Home, to: "/forum" },
       { label: "Les Privat", icon: Calendar, to: "/teacher/tutoring" },
@@ -67,6 +68,7 @@ const sidebarGroups = [
     label: "Admin",
     roles: ["admin"],
     links: [
+      { label: "Dashboard", icon: LayoutDashboard, to: "/admin/dashboard" },
       { label: "Kelola User", icon: Users, to: "/admin/users" },
       { label: "Pembayaran", icon: CreditCard, to: "/admin/payments" },
       { label: "Kelas", icon: GraduationCap, to: "/admin/classes" },

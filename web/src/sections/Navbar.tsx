@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Link } from "@tanstack/react-router"
+import { useQuery } from "@tanstack/react-query"
+import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 
 const navLinks = [
   { label: "Mata Pelajaran", href: "#subjects" },
@@ -7,7 +9,18 @@ const navLinks = [
   { label: "Cara Kerja", href: "#how-it-works" },
 ]
 
+const dashboardLink = (roles?: string[]) => {
+  if (!roles || roles.length === 0) return "/login"
+  if (roles.includes("admin")) return "/admin/dashboard"
+  if (roles.includes("teacher")) return "/teacher/dashboard"
+  return "/student/dashboard"
+}
+
 export default function Navbar() {
+  const { data: user } = useQuery(getMeOptions())
+  const token = typeof window !== "undefined" && localStorage.getItem("token")
+  const dashTo = token && user ? dashboardLink(user.roles as string[]) : "/login"
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
@@ -32,7 +45,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-3">
           {localStorage.getItem("token") ? (
-            <Button size="sm" render={<Link to="/dashboard" />}>Dashboard</Button>
+            <Button size="sm" render={<Link to={dashTo} />}>Dashboard</Button>
           ) : (
             <Button size="sm" render={<Link to="/login" />}>Masuk</Button>
           )}
