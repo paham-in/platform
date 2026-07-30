@@ -33,7 +33,27 @@ func Migrate(db *gorm.DB) {
 	// clean up orphaned subject_images before AutoMigrate (FK constraint)
 	db.Exec("DELETE FROM subject_images WHERE user_id NOT IN (SELECT id FROM users)")
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{})
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.Role{})
+
+	// seed default roles
+	for _, name := range []string{"student", "teacher", "admin"} {
+		var role models.Role
+		if err := db.Where("name = ?", name).First(&role).Error; err != nil {
+			db.Create(&models.Role{Name: name})
+		}
+	}
+
+	// migrate existing users without roles — assign student as default
+	var roleless []models.User
+	db.Preload("Roles").Where("id NOT IN (SELECT user_id FROM user_roles)").Find(&roleless)
+	if len(roleless) > 0 {
+		var studentRole models.Role
+		db.Where("name = ?", "student").First(&studentRole)
+		for i := range roleless {
+			db.Model(&roleless[i]).Association("Roles").Append(&studentRole)
+		}
+		log.Printf("Assigned default role to %d existing users\n", len(roleless))
+	}
 
 	// migrate existing chapters table -- add class_id column
 	if !db.Migrator().HasColumn(&models.Chapter{}, "class_id") {

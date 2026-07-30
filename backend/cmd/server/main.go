@@ -43,7 +43,6 @@ func main() {
 
 	db := database.Connect(cfg)
 	database.Migrate(db)
-	seedRoles(db)
 	seedAdmin(db, cfg)
 
 	minioClient, err := storage.NewMinioClient(cfg)
@@ -103,19 +102,22 @@ func main() {
 	log.Fatal(app.Listen(":" + port))
 }
 
-func seedRoles(db *gorm.DB) {
-	for _, name := range []string{"student", "teacher", "admin"} {
-		var role models.Role
-		if err := db.Where("name = ?", name).First(&role).Error; err != nil {
-			db.Create(&models.Role{Name: name})
-		}
+func ensureAdminRole(db *gorm.DB, user *models.User) {
+	var count int64
+	db.Model(user).Joins("JOIN user_roles ON user_roles.user_id = users.id").Joins("JOIN roles ON roles.id = user_roles.role_id").Where("roles.name = ?", "admin").Count(&count)
+	if count > 0 {
+		return
 	}
+	var adminRole models.Role
+	db.Where("name = ?", "admin").First(&adminRole)
+	db.Model(user).Association("Roles").Append(&adminRole)
+	log.Printf("Admin role assigned to existing user: %s\n", user.Email)
 }
 
 func seedAdmin(db *gorm.DB, cfg *config.Config) {
-	var count int64
-	db.Model(&models.User{}).Joins("JOIN user_roles ON user_roles.user_id = users.id").Joins("JOIN roles ON roles.id = user_roles.role_id").Where("roles.name = ?", "admin").Count(&count)
-	if count > 0 {
+	var existingUser models.User
+	if err := db.Where("email = ?", cfg.AdminEmail).First(&existingUser).Error; err == nil {
+		ensureAdminRole(db, &existingUser)
 		return
 	}
 
