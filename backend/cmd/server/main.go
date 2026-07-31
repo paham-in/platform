@@ -51,7 +51,7 @@ func main() {
 	}
 
 	app := fiber.New(fiber.Config{
-		BodyLimit: 210 * 1024 * 1024,
+		BodyLimit: 6 * 1024 * 1024,
 	})
 	app.Use(cors.New())
 	app.Use(middleware.RequestLogger())
@@ -71,7 +71,6 @@ func main() {
 	answer.PublicRoutes(app, db)
 	if minioClient != nil {
 		upload.PublicRoutes(app, db, minioClient)
-		material.VideoRoutes(app, db, minioClient)
 	}
 
 	// Authenticated routes (any role with valid session)
@@ -92,15 +91,14 @@ func main() {
 	chapter.AdminRoutes(staff, db)
 	class.AdminRoutes(staff, db)
 	subject.AdminRoutes(staff, db)
-	if minioClient != nil {
-		gallery.Routes(staff, db, minioClient)
-		material.AdminVideoRoutes(staff, db, minioClient)
-	}
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)
 	forum.AdminRoutes(admin, db)
 	invoice.AdminRoutes(admin, db)
+	if minioClient != nil {
+		gallery.Routes(admin, db, minioClient)
+	}
 
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)

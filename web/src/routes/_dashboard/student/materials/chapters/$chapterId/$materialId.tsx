@@ -60,22 +60,13 @@ function MaterialDetail() {
         </p>
       </div>
 
-      {material.type === "video" && material.video_url && material.video_source === "youtube" ? (
+      {material.type === "video" && material.video_url ? (
         <div className="overflow-hidden rounded-xl border">
           <iframe
             className="aspect-video w-full"
             src={`https://www.youtube.com/embed/${extractYoutubeId(material.video_url)}?rel=0&modestbranding=1`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-          />
-        </div>
-      ) : material.type === "video" && material.video_url && material.video_source === "minio" ? (
-        <div className="overflow-hidden rounded-xl border bg-black">
-          <video
-            className="aspect-video w-full"
-            controls
-            preload="metadata"
-            src={`http://localhost:8080/materials/${material.id}/video?token=${localStorage.getItem("token") ?? ""}`}
           />
         </div>
       ) : material.content ? (

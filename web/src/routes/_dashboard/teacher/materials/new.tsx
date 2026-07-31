@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +27,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Loader2, Type, Video, Upload, Youtube } from "lucide-react";
+import { ArrowLeft, Loader2, Type, Video } from "lucide-react";
 import { toast } from "sonner";
 import { useDraft } from "@/lib/use-draft";
 import { cn } from "@/lib/utils";
@@ -46,19 +46,15 @@ function NewMaterial() {
   const [chapterId, setChapterId] = useState("");
   const [title, setTitle] = useState("");
   const [type, setType] = useState("text");
-  const [videoSource, setVideoSource] = useState("youtube");
   const [content, setContent] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
   const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
 
   // autosave on change
   useEffect(() => {
     if (!title && !content && !videoUrl) return;
-    debouncedSave({ title, content, classId, subjectId, chapterId, type, videoSource, videoUrl });
-  }, [title, content, classId, subjectId, chapterId, type, videoSource, videoUrl, debouncedSave]);
+    debouncedSave({ title, content, classId, subjectId, chapterId, type, videoUrl });
+  }, [title, content, classId, subjectId, chapterId, type, videoUrl, debouncedSave]);
 
   // warn on tab close
   useEffect(() => {
@@ -80,31 +76,7 @@ function NewMaterial() {
 
   const { mutate: create, isPending } = useMutation({
     ...postAdminMaterialsMutation(),
-    onSuccess: async (data) => {
-      // if video source is minio, upload file first
-      if (type === "video" && videoSource === "minio" && videoFile) {
-        setUploading(true)
-        const form = new FormData()
-        form.append("video", videoFile)
-        try {
-          const res = await fetch(`http://localhost:8080/admin/materials/${data.id}/video`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            body: form,
-          })
-          if (!res.ok) {
-            const err = await res.json()
-            toast.error(err?.error || "Gagal upload video")
-            setUploading(false)
-            return
-          }
-        } catch {
-          toast.error("Gagal upload video")
-          setUploading(false)
-          return
-        }
-        setUploading(false)
-      }
+    onSuccess: () => {
       clear();
       qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
       toast.success("Materi berhasil dibuat");
@@ -120,8 +92,7 @@ function NewMaterial() {
       body: {
         title,
         content: type === "text" ? content : "",
-        video_url: type === "video" && videoSource === "youtube" ? videoUrl : "",
-        video_source: type === "video" ? videoSource : "youtube",
+        video_url: type === "video" ? videoUrl : "",
         type,
         chapter_id: Number(chapterId),
         status: "draft",
@@ -229,7 +200,7 @@ function NewMaterial() {
                 <Video className="h-5 w-5 text-primary" />
                 <div>
                   <p className="font-medium">Video</p>
-                  <p className="text-xs text-muted-foreground">Video pembelajaran</p>
+                  <p className="text-xs text-muted-foreground">Tautkan video YouTube</p>
                 </div>
               </button>
             </div>
@@ -241,79 +212,21 @@ function NewMaterial() {
               <TiptapEditor content={content} onChange={setContent} />
             </div>
           ) : (
-            <div className="space-y-4">
-              {/* video source picker */}
-              <div className="space-y-2">
-                <Label>Sumber Video</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setVideoSource("youtube")}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/50",
-                      videoSource === "youtube" && "border-primary bg-primary/5 ring-1 ring-primary"
-                    )}
-                  >
-                    <Youtube className="h-5 w-5 text-red-500" />
-                    <div>
-                      <p className="text-sm font-medium">YouTube</p>
-                      <p className="text-xs text-muted-foreground">Tautkan video dari YouTube</p>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setVideoSource("minio")}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/50",
-                      videoSource === "minio" && "border-primary bg-primary/5 ring-1 ring-primary"
-                    )}
-                  >
-                    <Upload className="h-5 w-5 text-blue-500" />
-                    <div>
-                      <p className="text-sm font-medium">Upload Server</p>
-                      <p className="text-xs text-muted-foreground">Unggah video ke server platform</p>
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              {videoSource === "youtube" ? (
-                <div className="space-y-2">
-                  <Label>YouTube URL</Label>
-                  <Input
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    placeholder="https://www.youtube.com/watch?v=abc123"
+            <div className="space-y-2">
+              <Label>YouTube URL</Label>
+              <Input
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=abc123"
+              />
+              {videoUrl && (
+                <div className="overflow-hidden rounded-lg border">
+                  <iframe
+                    className="aspect-video w-full"
+                    src={`https://www.youtube.com/embed/${extractYoutubeId(videoUrl)}?rel=0&modestbranding=1`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
                   />
-                  {videoUrl && (
-                    <div className="overflow-hidden rounded-lg border">
-                      <iframe
-                        className="aspect-video w-full"
-                        src={`https://www.youtube.com/embed/${extractYoutubeId(videoUrl)}?rel=0&modestbranding=1`}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label>File Video</Label>
-                  <input
-                    ref={fileRef}
-                    type="file"
-                    accept="video/mp4,video/webm,video/ogg,video/quicktime"
-                    className="hidden"
-                    onChange={(e) => setVideoFile(e.target.files?.[0] ?? null)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed p-8 text-sm text-muted-foreground hover:bg-muted/50"
-                  >
-                    <Upload className="h-5 w-5" />
-                    {videoFile ? videoFile.name : "Klik untuk pilih video (mp4, webm, ogg, mov — maks 200MB)"}
-                  </button>
                 </div>
               )}
             </div>
@@ -321,9 +234,9 @@ function NewMaterial() {
 
           <div className="flex justify-end gap-3 pt-4">
             <Link to="/teacher/materials"><Button variant="outline" type="button">Batal</Button></Link>
-            <Button onClick={save} disabled={!title || !chapterId || isPending || uploading || (type === "video" && videoSource === "youtube" && !videoUrl) || (type === "video" && videoSource === "minio" && !videoFile)}>
-              {(isPending || uploading) && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
-              {uploading ? "Mengunggah video..." : "Simpan"}
+            <Button onClick={save} disabled={!title || !chapterId || isPending || (type === "video" && !videoUrl)}>
+              {isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              Simpan
             </Button>
           </div>
         </div>
@@ -340,7 +253,7 @@ function NewMaterial() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => { discard(); setShowDraftDialog(false) }}>Mulai Baru</Button>
-            <Button onClick={() => { restore(); if (draft) { setTitle(draft.title); setContent(draft.content); setClassId(draft.classId); setSubjectId(draft.subjectId); setChapterId(draft.chapterId); setType(draft.type || "text"); setVideoSource(draft.videoSource || "youtube"); setVideoUrl(draft.videoUrl || "") } setShowDraftDialog(false) }}>Lanjutkan</Button>
+            <Button onClick={() => { restore(); if (draft) { setTitle(draft.title); setContent(draft.content); setClassId(draft.classId); setSubjectId(draft.subjectId); setChapterId(draft.chapterId); setType(draft.type || "text"); setVideoUrl(draft.videoUrl || "") } setShowDraftDialog(false) }}>Lanjutkan</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
