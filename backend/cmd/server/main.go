@@ -51,7 +51,7 @@ func main() {
 	}
 
 	app := fiber.New(fiber.Config{
-		BodyLimit: 6 * 1024 * 1024,
+		BodyLimit: 210 * 1024 * 1024,
 	})
 	app.Use(cors.New())
 	app.Use(middleware.RequestLogger())
@@ -71,6 +71,7 @@ func main() {
 	answer.PublicRoutes(app, db)
 	if minioClient != nil {
 		upload.PublicRoutes(app, db, minioClient)
+		material.VideoRoutes(app, db, minioClient)
 	}
 
 	// Authenticated routes (any role with valid session)
@@ -83,7 +84,6 @@ func main() {
 	answer.AuthRoutes(auth, db)
 	if minioClient != nil {
 		upload.AuthRoutes(auth, db, minioClient)
-		material.VideoRoutes(auth, db, minioClient)
 	}
 
 	// Teacher + admin shared resources (register first so teacher can pass)

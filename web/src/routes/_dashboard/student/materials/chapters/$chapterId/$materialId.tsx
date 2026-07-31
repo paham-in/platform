@@ -75,7 +75,7 @@ function MaterialDetail() {
             className="aspect-video w-full"
             controls
             preload="metadata"
-            src={`http://localhost:8080/materials/${material.id}/video`}
+            src={`http://localhost:8080/materials/${material.id}/video?token=${localStorage.getItem("token") ?? ""}`}
           />
         </div>
       ) : material.content ? (

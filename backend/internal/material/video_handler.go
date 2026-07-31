@@ -3,6 +3,7 @@ package material
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"bimbel2/backend/internal/models"
 	"bimbel2/backend/internal/storage"
@@ -66,7 +67,8 @@ func (h *VideoHandler) UploadVideo(c *fiber.Ctx) error {
 	defer f.Close()
 
 	objectName := h.minio.GenerateObjectNameIn("materials", file.Filename)
-	if err := h.minio.UploadReader(c.Context(), objectName, file.Header.Get("Content-Type"), f, file.Size); err != nil {
+	contentType := videoContentType(file.Filename)
+	if err := h.minio.UploadReader(c.Context(), objectName, contentType, f, file.Size); err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengunggah video"})
 	}
 
@@ -95,6 +97,16 @@ func (h *VideoHandler) UploadVideo(c *fiber.Ctx) error {
 // @Failure      404 {object} ErrorResponse
 // @Router       /materials/{id}/video [get]
 func (h *VideoHandler) StreamVideo(c *fiber.Ctx) error {
+	// validate session token via query param (video tag can't send auth header)
+	token := c.Query("token")
+	if token == "" {
+		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
+	}
+	var session models.Session
+	if err := h.db.Where("token = ? AND expires_at > ?", token, time.Now().Unix()).First(&session).Error; err != nil {
+		return c.Status(401).JSON(ErrorResponse{Error: "session tidak valid"})
+	}
+
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
@@ -114,9 +126,12 @@ func (h *VideoHandler) StreamVideo(c *fiber.Ctx) error {
 		return c.Status(404).JSON(ErrorResponse{Error: "video tidak ditemukan"})
 	}
 
-	contentType := info.ContentType
+	contentType := videoContentType(material.VideoURL)
 	if contentType == "" {
-		contentType = "video/mp4"
+		contentType = info.ContentType
+	}
+	if contentType == "" {
+		contentType = "application/octet-stream"
 	}
 
 	rangeHeader := c.Get("Range")
@@ -125,14 +140,13 @@ func (h *VideoHandler) StreamVideo(c *fiber.Ctx) error {
 	if rangeHeader == "" {
 		c.Set("Accept-Ranges", "bytes")
 		c.Set("Content-Type", contentType)
-		c.Set("Content-Length", strconv.FormatInt(info.Size, 10))
 
 		obj, err := h.minio.GetObject(c.Context(), material.VideoURL, -1, 0)
 		if err != nil {
 			return c.Status(500).JSON(ErrorResponse{Error: "gagal membuka video"})
 		}
 		defer obj.Close()
-		return c.SendStream(obj)
+		return c.SendStream(obj, int(info.Size))
 	}
 
 	// parse Range: bytes=start-end
@@ -148,7 +162,6 @@ func (h *VideoHandler) StreamVideo(c *fiber.Ctx) error {
 	c.Set("Accept-Ranges", "bytes")
 	c.Set("Content-Type", contentType)
 	c.Set("Content-Range", "bytes "+strconv.FormatInt(start, 10)+"-"+strconv.FormatInt(end, 10)+"/"+strconv.FormatInt(info.Size, 10))
-	c.Set("Content-Length", strconv.FormatInt(length, 10))
 
 	obj, err := h.minio.GetObject(c.Context(), material.VideoURL, start, end)
 	if err != nil {
@@ -156,7 +169,21 @@ func (h *VideoHandler) StreamVideo(c *fiber.Ctx) error {
 	}
 	defer obj.Close()
 
-	return c.SendStream(obj)
+	return c.SendStream(obj, int(length))
+}
+
+func videoContentType(name string) string {
+	switch {
+	case strings.HasSuffix(strings.ToLower(name), ".mp4"):
+		return "video/mp4"
+	case strings.HasSuffix(strings.ToLower(name), ".webm"):
+		return "video/webm"
+	case strings.HasSuffix(strings.ToLower(name), ".ogg"):
+		return "video/ogg"
+	case strings.HasSuffix(strings.ToLower(name), ".mov"):
+		return "video/quicktime"
+	}
+	return ""
 }
 
 func parseRange(header string, size int64) (int64, int64, error) {

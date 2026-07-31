@@ -321,7 +321,7 @@ function EditMaterial() {
                   <Label>File Video</Label>
                   {material?.video_source === "minio" && material.video_url ? (
                     <div className="rounded-lg border bg-black">
-                      <video className="aspect-video w-full" controls src={`http://localhost:8080/materials/${material.id}/video`} />
+                      <video className="aspect-video w-full" controls src={`http://localhost:8080/materials/${material.id}/video?token=${localStorage.getItem("token") ?? ""}`} />
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">
