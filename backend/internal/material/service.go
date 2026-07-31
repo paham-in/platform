@@ -22,6 +22,7 @@ type MaterialResponse struct {
 	Slug        string `json:"slug"`
 	Description string `json:"description"`
 	Type        string `json:"type"`
+	VideoSource string `json:"video_source"`
 	Content     string `json:"content"`
 	VideoURL    string `json:"video_url"`
 	Status      string `json:"status"`
@@ -58,6 +59,7 @@ type CreateInput struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Type        string `json:"type"`
+	VideoSource string `json:"video_source"`
 	Content     string `json:"content"`
 	VideoURL    string `json:"video_url"`
 	Status      string `json:"status"`
@@ -72,6 +74,7 @@ func (s *Service) Create(input CreateInput) (*MaterialResponse, error) {
 		Slug:        slug,
 		Description: input.Description,
 		Type:        input.Type,
+		VideoSource: input.VideoSource,
 		Content:     input.Content,
 		VideoURL:    input.VideoURL,
 		Status:      input.Status,
@@ -79,6 +82,9 @@ func (s *Service) Create(input CreateInput) (*MaterialResponse, error) {
 	}
 	if material.Type == "" {
 		material.Type = "text"
+	}
+	if material.VideoSource == "" {
+		material.VideoSource = "youtube"
 	}
 	if material.Status == "" {
 		material.Status = "draft"
@@ -99,6 +105,7 @@ type UpdateInput struct {
 	ChapterID   *uint   `json:"chapter_id"`
 	Description *string `json:"description"`
 	Type        *string `json:"type"`
+	VideoSource *string `json:"video_source"`
 	Content     *string `json:"content"`
 	VideoURL    *string `json:"video_url"`
 	Status      *string `json:"status"`
@@ -119,6 +126,9 @@ func (s *Service) Update(id uint, input UpdateInput) (*MaterialResponse, error) 
 	}
 	if input.Type != nil {
 		updates["type"] = *input.Type
+	}
+	if input.VideoSource != nil {
+		updates["video_source"] = *input.VideoSource
 	}
 	if input.VideoURL != nil {
 		updates["video_url"] = *input.VideoURL
@@ -155,6 +165,7 @@ func toResponse(m models.Material) MaterialResponse {
 		Slug:        m.Slug,
 		Description: m.Description,
 		Type:        m.Type,
+		VideoSource: m.VideoSource,
 		Content:     m.Content,
 		VideoURL:    m.VideoURL,
 		Status:      m.Status,

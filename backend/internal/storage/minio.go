@@ -92,6 +92,38 @@ func (m *MinioClient) Delete(ctx context.Context, objectName string) error {
 	return m.client.RemoveObject(ctx, m.bucket, objectName, minio.RemoveObjectOptions{})
 }
 
+// GetObject returns a minio Object for reading. Supports range via start/end (end = -1 for open-ended).
+func (m *MinioClient) GetObject(ctx context.Context, objectName string, start, end int64) (*minio.Object, error) {
+	opts := minio.GetObjectOptions{}
+	if start >= 0 {
+		if err := opts.SetRange(start, end); err != nil {
+			return nil, err
+		}
+	}
+	return m.client.GetObject(ctx, m.bucket, objectName, opts)
+}
+
+// StatObject returns object metadata (size, content type).
+func (m *MinioClient) StatObject(ctx context.Context, objectName string) (*minio.ObjectInfo, error) {
+	info, err := m.client.StatObject(ctx, m.bucket, objectName, minio.StatObjectOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return &info, nil
+}
+
+// GenerateObjectNameFor prefixes object names per folder.
+func (m *MinioClient) GenerateObjectNameIn(folder, filename string) string {
+	ext := ""
+	for i := len(filename) - 1; i >= 0; i-- {
+		if filename[i] == '.' {
+			ext = filename[i:]
+			break
+		}
+	}
+	return fmt.Sprintf("%s/%s%s", folder, uuid.NewString(), ext)
+}
+
 func (m *MinioClient) GenerateObjectName(filename string) string {
 	ext := ""
 	for i := len(filename) - 1; i >= 0; i-- {

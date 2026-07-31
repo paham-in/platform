@@ -9,7 +9,8 @@ type Material struct {
 	Title       string  `gorm:"size:200;not null" json:"title"`
 	Slug        string  `gorm:"size:200;uniqueIndex;not null" json:"slug"`
 	Description string  `gorm:"size:500" json:"description"`
-	Type        string  `gorm:"size:20;default:text" json:"type"` // text | video
+	Type        string  `gorm:"size:20;default:text" json:"type"`          // text | video
+	VideoSource string  `gorm:"size:20;default:youtube" json:"video_source"` // youtube | minio
 	Content     string  `gorm:"type:text" json:"content"`
 	VideoURL    string  `gorm:"size:500" json:"video_url"`
 	Status      string  `gorm:"size:20;default:draft" json:"status"`

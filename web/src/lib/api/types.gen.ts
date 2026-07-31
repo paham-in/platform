@@ -147,6 +147,7 @@ export type MaterialCreateInput = {
     status?: string;
     title?: string;
     type?: string;
+    video_source?: string;
     video_url?: string;
 };
 
@@ -165,6 +166,7 @@ export type MaterialMaterialResponse = {
     status?: string;
     title?: string;
     type?: string;
+    video_source?: string;
     video_url?: string;
 };
 
@@ -180,6 +182,7 @@ export type MaterialUpdateInput = {
     status?: string;
     title?: string;
     type?: string;
+    video_source?: string;
     video_url?: string;
 };
 
@@ -737,6 +740,41 @@ export type PatchAdminMaterialsByIdResponses = {
 
 export type PatchAdminMaterialsByIdResponse = PatchAdminMaterialsByIdResponses[keyof PatchAdminMaterialsByIdResponses];
 
+export type PostAdminMaterialsByIdVideoData = {
+    body: {
+        /**
+         * File video
+         */
+        video: Blob | File;
+    };
+    path: {
+        /**
+         * Material ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/materials/{id}/video';
+};
+
+export type PostAdminMaterialsByIdVideoErrors = {
+    /**
+     * Bad Request
+     */
+    400: MaterialErrorResponse;
+};
+
+export type PostAdminMaterialsByIdVideoError = PostAdminMaterialsByIdVideoErrors[keyof PostAdminMaterialsByIdVideoErrors];
+
+export type PostAdminMaterialsByIdVideoResponses = {
+    /**
+     * OK
+     */
+    200: MaterialMaterialResponse;
+};
+
+export type PostAdminMaterialsByIdVideoResponse = PostAdminMaterialsByIdVideoResponses[keyof PostAdminMaterialsByIdVideoResponses];
+
 export type GetAdminQuestionsData = {
     body?: never;
     path?: never;
@@ -1240,6 +1278,36 @@ export type GetMaterialsByIdResponses = {
 };
 
 export type GetMaterialsByIdResponse = GetMaterialsByIdResponses[keyof GetMaterialsByIdResponses];
+
+export type GetMaterialsByIdVideoData = {
+    body?: never;
+    path: {
+        /**
+         * Material ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/materials/{id}/video';
+};
+
+export type GetMaterialsByIdVideoErrors = {
+    /**
+     * Not Found
+     */
+    404: MaterialErrorResponse;
+};
+
+export type GetMaterialsByIdVideoError = GetMaterialsByIdVideoErrors[keyof GetMaterialsByIdVideoErrors];
+
+export type GetMaterialsByIdVideoResponses = {
+    /**
+     * OK
+     */
+    200: Blob | File;
+};
+
+export type GetMaterialsByIdVideoResponse = GetMaterialsByIdVideoResponses[keyof GetMaterialsByIdVideoResponses];
 
 export type GetMeData = {
     body?: never;

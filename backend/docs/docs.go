@@ -729,6 +729,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/materials/{id}/video": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload video ke MinIO untuk materi",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Materials"
+                ],
+                "summary": "Upload material video",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Material ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "File video",
+                        "name": "video",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/material.MaterialResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/material.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/questions": {
             "get": {
                 "security": [
@@ -1512,6 +1562,43 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/material.MaterialResponse"
                         }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/material.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/materials/{id}/video": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Streaming video materi dengan range support",
+                "produces": [
+                    "video/mp4"
+                ],
+                "tags": [
+                    "Materials"
+                ],
+                "summary": "Stream material video",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Material ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     },
                     "404": {
                         "description": "Not Found",
@@ -2525,6 +2612,9 @@ const docTemplate = `{
                 "type": {
                     "type": "string"
                 },
+                "video_source": {
+                    "type": "string"
+                },
                 "video_url": {
                     "type": "string"
                 }
@@ -2571,6 +2661,9 @@ const docTemplate = `{
                 "type": {
                     "type": "string"
                 },
+                "video_source": {
+                    "type": "string"
+                },
                 "video_url": {
                     "type": "string"
                 }
@@ -2606,6 +2699,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                },
+                "video_source": {
                     "type": "string"
                 },
                 "video_url": {

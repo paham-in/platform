@@ -83,6 +83,7 @@ func main() {
 	answer.AuthRoutes(auth, db)
 	if minioClient != nil {
 		upload.AuthRoutes(auth, db, minioClient)
+		material.VideoRoutes(auth, db, minioClient)
 	}
 
 	// Teacher + admin shared resources (register first so teacher can pass)
@@ -93,6 +94,7 @@ func main() {
 	subject.AdminRoutes(staff, db)
 	if minioClient != nil {
 		gallery.Routes(staff, db, minioClient)
+		material.AdminVideoRoutes(staff, db, minioClient)
 	}
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))

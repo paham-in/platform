@@ -3,6 +3,8 @@ package material
 import (
 	"strconv"
 
+	"bimbel2/backend/internal/storage"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -169,6 +171,18 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	admin.Post("/materials", h.AdminCreateMaterial)
 	admin.Patch("/materials/:id", h.AdminUpdateMaterial)
 	admin.Delete("/materials/:id", h.AdminDeleteMaterial)
+}
+
+// AdminVideoRoutes registers video upload (staff) and stream (auth'd)
+func AdminVideoRoutes(admin fiber.Router, db *gorm.DB, minio *storage.MinioClient) {
+	vh := NewVideoHandler(db, minio)
+	admin.Post("/materials/:id/video", vh.UploadVideo)
+}
+
+// VideoRoutes registers video streaming for authenticated users
+func VideoRoutes(auth fiber.Router, db *gorm.DB, minio *storage.MinioClient) {
+	vh := NewVideoHandler(db, minio)
+	auth.Get("/materials/:id/video", vh.StreamVideo)
 }
 
 // ListMaterials mengembalikan daftar materi (memerlukan login)

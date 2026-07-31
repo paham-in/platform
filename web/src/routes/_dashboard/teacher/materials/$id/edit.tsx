@@ -28,7 +28,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Loader2, Type, Video } from "lucide-react";
+import { ArrowLeft, Loader2, Type, Video, Upload, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import { useDraft } from "@/lib/use-draft";
 import { cn } from "@/lib/utils";
@@ -54,6 +54,7 @@ function EditMaterial() {
   const [chapterId, setChapterId] = useState("");
   const [title, setTitle] = useState("");
   const [type, setType] = useState("text");
+  const [videoSource, setVideoSource] = useState("youtube");
   const [content, setContent] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [loaded, setLoaded] = useState(false);
@@ -69,6 +70,7 @@ function EditMaterial() {
     setChapterId(String(material.chapter_id ?? ""));
     setTitle(material.title ?? "");
     setType(material.type ?? "text");
+    setVideoSource(material.video_source ?? "youtube");
     setContent(material.content ?? "");
     setVideoUrl(material.video_url ?? "");
     setLoaded(true);
@@ -78,8 +80,8 @@ function EditMaterial() {
   // autosave on change (skip during initial load)
   useEffect(() => {
     if (!title && !content && !videoUrl) return;
-    debouncedSave({ title, content, classId, subjectId, chapterId, type, videoUrl });
-  }, [title, content, classId, subjectId, chapterId, type, videoUrl, debouncedSave]);
+    debouncedSave({ title, content, classId, subjectId, chapterId, type, videoSource, videoUrl });
+  }, [title, content, classId, subjectId, chapterId, type, videoSource, videoUrl, debouncedSave]);
 
   // warn on tab close
   useEffect(() => {
@@ -120,9 +122,14 @@ function EditMaterial() {
     if (type === "text") {
       if (content) body.content = content;
       body.video_url = "";
+      body.video_source = "youtube";
     } else {
       body.content = "";
-      if (videoUrl) body.video_url = videoUrl;
+      body.video_source = videoSource;
+      if (videoSource === "youtube") {
+        if (videoUrl) body.video_url = videoUrl;
+      }
+      // minio: video_url already set server-side on upload
     }
     update({
       path: { id: Number(id) },
@@ -254,21 +261,73 @@ function EditMaterial() {
               )}
             </div>
           ) : (
-            <div className="space-y-2">
-              <Label>YouTube URL</Label>
-              <Input
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=abc123"
-              />
-              {videoUrl && (
-                <div className="overflow-hidden rounded-lg border">
-                  <iframe
-                    className="aspect-video w-full"
-                    src={`https://www.youtube.com/embed/${extractYoutubeId(videoUrl)}?rel=0&modestbranding=1`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
+            <div className="space-y-4">
+              {/* video source picker */}
+              <div className="space-y-2">
+                <Label>Sumber Video</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setVideoSource("youtube")}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/50",
+                      videoSource === "youtube" && "border-primary bg-primary/5 ring-1 ring-primary"
+                    )}
+                  >
+                    <Youtube className="h-5 w-5 text-red-500" />
+                    <div>
+                      <p className="text-sm font-medium">YouTube</p>
+                      <p className="text-xs text-muted-foreground">Tautkan video dari YouTube</p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVideoSource("minio")}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/50",
+                      videoSource === "minio" && "border-primary bg-primary/5 ring-1 ring-primary"
+                    )}
+                  >
+                    <Upload className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <p className="text-sm font-medium">Upload Server</p>
+                      <p className="text-xs text-muted-foreground">Unggah video ke server platform</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {videoSource === "youtube" ? (
+                <div className="space-y-2">
+                  <Label>YouTube URL</Label>
+                  <Input
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=abc123"
                   />
+                  {videoUrl && (
+                    <div className="overflow-hidden rounded-lg border">
+                      <iframe
+                        className="aspect-video w-full"
+                        src={`https://www.youtube.com/embed/${extractYoutubeId(videoUrl)}?rel=0&modestbranding=1`}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>File Video</Label>
+                  {material?.video_source === "minio" && material.video_url ? (
+                    <div className="rounded-lg border bg-black">
+                      <video className="aspect-video w-full" controls src={`http://localhost:8080/materials/${material.id}/video`} />
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Pilih sumber YouTube dulu, atau buat materi baru untuk upload video.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -276,7 +335,7 @@ function EditMaterial() {
 
           <div className="flex justify-end gap-3 pt-4">
             <Link to="/teacher/materials"><Button variant="outline" type="button">Batal</Button></Link>
-            <Button onClick={save} disabled={!title || !chapterId || isPending || (type === "video" && !videoUrl)}>
+            <Button onClick={save} disabled={!title || !chapterId || isPending || (type === "video" && videoSource === "youtube" && !videoUrl)}>
               {isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
               Simpan
             </Button>
@@ -295,7 +354,7 @@ function EditMaterial() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => { discard(); setShowDraftDialog(false) }}>Mulai dari Server</Button>
-            <Button onClick={() => { restore(); if (draft) { setTitle(draft.title); setContent(draft.content); setClassId(draft.classId); setSubjectId(draft.subjectId); setChapterId(draft.chapterId); setType(draft.type || "text"); setVideoUrl(draft.videoUrl || ""); setLoaded(true) } setShowDraftDialog(false) }}>Lanjutkan Draft</Button>
+            <Button onClick={() => { restore(); if (draft) { setTitle(draft.title); setContent(draft.content); setClassId(draft.classId); setSubjectId(draft.subjectId); setChapterId(draft.chapterId); setType(draft.type || "text"); setVideoSource(draft.videoSource || "youtube"); setVideoUrl(draft.videoUrl || ""); setLoaded(true) } setShowDraftDialog(false) }}>Lanjutkan Draft</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

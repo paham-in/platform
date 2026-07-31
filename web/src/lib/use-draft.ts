@@ -7,6 +7,7 @@ interface DraftData {
   subjectId: string
   chapterId: string
   type: string
+  videoSource: string
   videoUrl: string
 }
 

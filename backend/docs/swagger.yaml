@@ -220,6 +220,8 @@ definitions:
         type: string
       type:
         type: string
+      video_source:
+        type: string
       video_url:
         type: string
     type: object
@@ -250,6 +252,8 @@ definitions:
         type: string
       type:
         type: string
+      video_source:
+        type: string
       video_url:
         type: string
     type: object
@@ -273,6 +277,8 @@ definitions:
       title:
         type: string
       type:
+        type: string
+      video_source:
         type: string
       video_url:
         type: string
@@ -904,6 +910,38 @@ paths:
       summary: Update material
       tags:
       - Admin
+  /admin/materials/{id}/video:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload video ke MinIO untuk materi
+      parameters:
+      - description: Material ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: File video
+        in: formData
+        name: video
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/material.MaterialResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/material.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload material video
+      tags:
+      - Materials
   /admin/questions:
     get:
       consumes:
@@ -1406,6 +1444,29 @@ paths:
       security:
       - BearerAuth: []
       summary: Get material
+      tags:
+      - Materials
+  /materials/{id}/video:
+    get:
+      description: Streaming video materi dengan range support
+      parameters:
+      - description: Material ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - video/mp4
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/material.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Stream material video
       tags:
       - Materials
   /me:
