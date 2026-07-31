@@ -2521,6 +2521,12 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "video_url": {
+                    "type": "string"
                 }
             }
         },
@@ -2561,6 +2567,12 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "video_url": {
+                    "type": "string"
                 }
             }
         },
@@ -2591,6 +2603,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "video_url": {
                     "type": "string"
                 }
             }

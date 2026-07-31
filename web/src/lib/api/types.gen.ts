@@ -146,6 +146,8 @@ export type MaterialCreateInput = {
     order?: number;
     status?: string;
     title?: string;
+    type?: string;
+    video_url?: string;
 };
 
 export type MaterialErrorResponse = {
@@ -162,6 +164,8 @@ export type MaterialMaterialResponse = {
     slug?: string;
     status?: string;
     title?: string;
+    type?: string;
+    video_url?: string;
 };
 
 export type MaterialMessageResponse = {
@@ -175,6 +179,8 @@ export type MaterialUpdateInput = {
     order?: number;
     status?: string;
     title?: string;
+    type?: string;
+    video_url?: string;
 };
 
 export type SubjectCreateInput = {

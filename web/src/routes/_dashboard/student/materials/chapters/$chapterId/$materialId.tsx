@@ -8,6 +8,11 @@ import {
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { Loader2, ArrowLeft } from "lucide-react"
 
+function extractYoutubeId(url: string): string {
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  return m?.[1] || url
+}
+
 function MaterialDetail() {
   const { chapterId, materialId } = useParams({ from: "/_dashboard/student/materials/chapters/$chapterId/$materialId" })
   const { data: material, isLoading } = useQuery(getMaterialsByIdOptions({ path: { id: Number(materialId) } }))
@@ -55,12 +60,21 @@ function MaterialDetail() {
         </p>
       </div>
 
-      {material.content && (
+      {material.type === "video" && material.video_url ? (
+        <div className="overflow-hidden rounded-xl border">
+          <iframe
+            className="aspect-video w-full"
+            src={`https://www.youtube.com/embed/${extractYoutubeId(material.video_url)}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : material.content ? (
         <article
           className="prose prose-sm dark:prose-invert max-w-none"
           dangerouslySetInnerHTML={{ __html: material.content }}
         />
-      )}
+      ) : null}
     </main>
   )
 }

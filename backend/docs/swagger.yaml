@@ -218,6 +218,10 @@ definitions:
         type: string
       title:
         type: string
+      type:
+        type: string
+      video_url:
+        type: string
     type: object
   material.ErrorResponse:
     properties:
@@ -244,6 +248,10 @@ definitions:
         type: string
       title:
         type: string
+      type:
+        type: string
+      video_url:
+        type: string
     type: object
   material.MessageResponse:
     properties:
@@ -263,6 +271,10 @@ definitions:
       status:
         type: string
       title:
+        type: string
+      type:
+        type: string
+      video_url:
         type: string
     type: object
   subject.CreateInput:

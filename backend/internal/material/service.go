@@ -21,7 +21,9 @@ type MaterialResponse struct {
 	Title       string `json:"title"`
 	Slug        string `json:"slug"`
 	Description string `json:"description"`
+	Type        string `json:"type"`
 	Content     string `json:"content"`
+	VideoURL    string `json:"video_url"`
 	Status      string `json:"status"`
 	Order       int    `json:"order"`
 }
@@ -55,7 +57,9 @@ type CreateInput struct {
 	ChapterID   uint   `json:"chapter_id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
+	Type        string `json:"type"`
 	Content     string `json:"content"`
+	VideoURL    string `json:"video_url"`
 	Status      string `json:"status"`
 	Order       int    `json:"order"`
 }
@@ -67,9 +71,14 @@ func (s *Service) Create(input CreateInput) (*MaterialResponse, error) {
 		Title:       input.Title,
 		Slug:        slug,
 		Description: input.Description,
+		Type:        input.Type,
 		Content:     input.Content,
+		VideoURL:    input.VideoURL,
 		Status:      input.Status,
 		Order:       input.Order,
+	}
+	if material.Type == "" {
+		material.Type = "text"
 	}
 	if material.Status == "" {
 		material.Status = "draft"
@@ -89,7 +98,9 @@ type UpdateInput struct {
 	Title       *string `json:"title"`
 	ChapterID   *uint   `json:"chapter_id"`
 	Description *string `json:"description"`
+	Type        *string `json:"type"`
 	Content     *string `json:"content"`
+	VideoURL    *string `json:"video_url"`
 	Status      *string `json:"status"`
 	Order       *int    `json:"order"`
 }
@@ -105,6 +116,12 @@ func (s *Service) Update(id uint, input UpdateInput) (*MaterialResponse, error) 
 	}
 	if input.Content != nil {
 		updates["content"] = *input.Content
+	}
+	if input.Type != nil {
+		updates["type"] = *input.Type
+	}
+	if input.VideoURL != nil {
+		updates["video_url"] = *input.VideoURL
 	}
 	if input.Status != nil {
 		updates["status"] = *input.Status
@@ -137,7 +154,9 @@ func toResponse(m models.Material) MaterialResponse {
 		Title:       m.Title,
 		Slug:        m.Slug,
 		Description: m.Description,
+		Type:        m.Type,
 		Content:     m.Content,
+		VideoURL:    m.VideoURL,
 		Status:      m.Status,
 		Order:       m.Order,
 	}

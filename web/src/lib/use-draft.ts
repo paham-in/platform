@@ -6,6 +6,8 @@ interface DraftData {
   classId: string
   subjectId: string
   chapterId: string
+  type: string
+  videoUrl: string
 }
 
 const STORAGE_PREFIX = "draft:material"
