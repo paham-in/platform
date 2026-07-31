@@ -58,7 +58,7 @@ function ForumPage() {
     <main className="p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Forum Tanya Jawab</h1>
-        <Link to="/forum/new">
+        <Link to="/student/forum/new">
           <Button>
             <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
           </Button>
@@ -88,7 +88,7 @@ function ForumPage() {
             ))}
           </SelectContent>
         </Select>
-        <Link to="/forum/mine">
+        <Link to="/student/forum/mine">
           <Button variant="outline" size="sm">Pertanyaan Saya</Button>
         </Link>
       </div>
@@ -102,7 +102,7 @@ function ForumPage() {
           </Card>
         )}
         {filtered.map((q) => (
-          <Link key={q.id} to="/forum/$id" params={{ id: String(q.id!) }}>
+          <Link key={q.id} to="/student/forum/$id" params={{ id: String(q.id!) }}>
             <Card className="overflow-hidden transition-colors hover:bg-muted/50">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-2">
@@ -137,6 +137,6 @@ function ForumPage() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/forum/")({
+export const Route = createFileRoute("/_dashboard/student/forum/")({
   component: ForumPage,
 })

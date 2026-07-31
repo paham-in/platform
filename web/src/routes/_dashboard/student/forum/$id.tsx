@@ -30,7 +30,7 @@ type QuestionImage = { id: number; url: string; file_name: string }
 
 function ForumDetail() {
   const qc = useQueryClient()
-  const { id } = useParams({ from: "/_dashboard/forum/$id" })
+  const { id } = useParams({ from: "/_dashboard/student/forum/$id" })
   const questionId = Number(id)
 
   const { data: question, isLoading } = useQuery(getQuestionsByIdOptions({ path: { id: questionId } }))
@@ -91,7 +91,7 @@ function ForumDetail() {
   return (
     <main className="mx-auto w-full max-w-3xl p-6">
       <Link
-        to="/forum"
+        to="/student/forum"
         className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" /> Kembali
@@ -220,6 +220,6 @@ function ForumDetail() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/forum/$id")({
+export const Route = createFileRoute("/_dashboard/student/forum/$id")({
   component: ForumDetail,
 })

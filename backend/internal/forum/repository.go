@@ -14,7 +14,7 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) List(subjectID, userID *uint) ([]models.Question, error) {
+func (r *Repository) List(subjectID, userID *uint, unanswered bool) ([]models.Question, error) {
 	var questions []models.Question
 	q := r.db.Preload("User").Preload("Subject")
 	if subjectID != nil {
@@ -22,6 +22,9 @@ func (r *Repository) List(subjectID, userID *uint) ([]models.Question, error) {
 	}
 	if userID != nil {
 		q = q.Where("user_id = ?", *userID)
+	}
+	if unanswered {
+		q = q.Where("NOT EXISTS (SELECT 1 FROM answers WHERE answers.question_id = questions.id)")
 	}
 	if err := q.Order("created_at desc").Find(&questions).Error; err != nil {
 		return nil, err

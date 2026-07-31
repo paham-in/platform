@@ -1302,6 +1302,10 @@ export type GetQuestionsData = {
          * Filter by current user
          */
         mine?: boolean;
+        /**
+         * Filter unanswered only
+         */
+        unanswered?: boolean;
     };
     url: '/questions';
 };

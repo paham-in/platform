@@ -1629,6 +1629,12 @@ const docTemplate = `{
                         "description": "Filter by current user",
                         "name": "mine",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter unanswered only",
+                        "name": "unanswered",
+                        "in": "query"
                     }
                 ],
                 "responses": {

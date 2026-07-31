@@ -25,8 +25,8 @@ func NewService(repo *Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) List(subjectID, userID *uint) ([]models.Question, error) {
-	return s.repo.List(subjectID, userID)
+func (s *Service) List(subjectID, userID *uint, unanswered bool) ([]models.Question, error) {
+	return s.repo.List(subjectID, userID, unanswered)
 }
 
 func (s *Service) Create(userID uint, content string, subjectID *uint) (*models.Question, error) {

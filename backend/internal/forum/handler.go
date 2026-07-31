@@ -44,11 +44,13 @@ func userIDFrom(c *fiber.Ctx) uint {
 // @Security     BearerAuth
 // @Param        subject_id query int false "Filter by subject"
 // @Param        mine query bool false "Filter by current user"
+// @Param        unanswered query bool false "Filter unanswered only"
 // @Success      200 {array} QuestionResponse
 // @Router       /questions [get]
 func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 	subjectID := c.Query("subject_id")
 	mine := c.Query("mine")
+	unanswered := c.Query("unanswered")
 	var sid *uint
 	if subjectID != "" {
 		id, err := strconv.ParseUint(subjectID, 10, 64)
@@ -66,7 +68,7 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 		}
 	}
 
-	questions, err := h.svc.List(sid, userID)
+	questions, err := h.svc.List(sid, userID, unanswered == "true")
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}

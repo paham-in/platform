@@ -1458,6 +1458,10 @@ paths:
         in: query
         name: mine
         type: boolean
+      - description: Filter unanswered only
+        in: query
+        name: unanswered
+        type: boolean
       produces:
       - application/json
       responses:

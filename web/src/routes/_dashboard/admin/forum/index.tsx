@@ -109,7 +109,7 @@ function AdminForum() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => window.open(`/forum/${q.id}`, "_blank")}>
+                          <DropdownMenuItem onClick={() => window.open(`/admin/forum/${q.id}`, "_blank")}>
                             <Eye className="h-4 w-4" /> Lihat
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setDeleteConfirm({ id: q.id!, content: q.plain_content! })}>
@@ -167,6 +167,6 @@ function AdminForum() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/admin/forum")({
+export const Route = createFileRoute("/_dashboard/admin/forum/")({
   component: AdminForum,
 })

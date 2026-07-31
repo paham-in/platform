@@ -8,7 +8,7 @@
 | Materi `/student/materials` | ✅ | Grid card, filter kelas/subjek/search |
 | Materi — detail chapter | ✅ | |
 | Materi — detail konten | ✅ | Render HTML content |
-| Forum — list pertanyaan | ✅ | Filter subjek, search |
+| Forum `/student/forum` | ✅ | Grid card, filter subjek, search |
 | Forum — buat pertanyaan | ✅ | Tiptap editor + upload gambar |
 | Forum — detail + jawab | ✅ | |
 | Forum — pertanyaan saya | ✅ | Filter `?mine=true` |
@@ -37,7 +37,7 @@
 | Materi — publish/draft toggle | ✅ | |
 | Materi — hapus | ✅ | |
 | Chapter `/teacher/chapters` | ✅ | CRUD (pindah dari admin) |
-| Forum — list + jawab | ✅ | |
+| Forum `/teacher/forum` | ✅ | Table, filter belum terjawab, lihat detail, jawab |
 | Les Privat `/teacher/tutoring` | ✅ | Atur jadwal, lihat permintaan, setuju/tolak, riwayat |
 | Settings | ✅ | |
 | Sidebar grouped by role | ✅ | Menu "Guru" terpisah |
@@ -60,7 +60,7 @@
 | Kelas | ✅ | CRUD |
 | Mata Pelajaran | ✅ | CRUD |
 | Chapter | ✅ | CRUD (backend, frontend di teacher) |
-| Forum | ✅ | List + hapus pertanyaan |
+| Forum `/admin/forum` | ✅ | Table moderasi, hapus semua, lihat detail |
 | Sidebar grouped by role | ✅ | Menu "Admin" terpisah |
 
 ❌ **Belum ada:**

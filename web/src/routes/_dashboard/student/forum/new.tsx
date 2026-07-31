@@ -36,7 +36,7 @@ function NewQuestion() {
       if (!questionId) {
         qc.invalidateQueries({ queryKey: getQuestionsQueryKey() })
         toast.success("Pertanyaan berhasil dibuat")
-        navigate({ to: "/forum" })
+        navigate({ to: "/student/forum" })
         return
       }
 
@@ -62,7 +62,7 @@ function NewQuestion() {
       }
 
       qc.invalidateQueries({ queryKey: getQuestionsQueryKey() })
-      navigate({ to: "/forum" })
+      navigate({ to: "/student/forum" })
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal membuat pertanyaan")
@@ -96,7 +96,7 @@ function NewQuestion() {
     <main className="p-6">
       <div className="mx-auto max-w-2xl space-y-6">
         <Link
-          to="/forum"
+          to="/student/forum"
           className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" /> Kembali ke Forum
@@ -161,7 +161,7 @@ function NewQuestion() {
         </div>
 
         <div className="flex justify-end gap-3">
-          <Link to="/forum"><Button variant="outline">Batal</Button></Link>
+          <Link to="/student/forum"><Button variant="outline">Batal</Button></Link>
           <Button onClick={submit} disabled={!content || isPending || uploading}>
             {(isPending || uploading) && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
             {uploading ? "Mengupload gambar..." : "Kirim"}
@@ -172,6 +172,6 @@ function NewQuestion() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/forum/new")({
+export const Route = createFileRoute("/_dashboard/student/forum/new")({
   component: NewQuestion,
 })

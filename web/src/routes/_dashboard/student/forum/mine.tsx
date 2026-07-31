@@ -62,12 +62,12 @@ function MyQuestions() {
     <main className="p-6">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link to="/forum" className="text-muted-foreground hover:text-foreground">
+          <Link to="/student/forum" className="text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">Pertanyaan Saya</h1>
         </div>
-        <Link to="/forum/new">
+        <Link to="/student/forum/new">
           <Button>
             <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
           </Button>
@@ -83,7 +83,7 @@ function MyQuestions() {
           </Card>
         )}
         {questions.map((q) => (
-          <Link key={q.id} to="/forum/$id" params={{ id: String(q.id!) }}>
+          <Link key={q.id} to="/student/forum/$id" params={{ id: String(q.id!) }}>
             <Card className="overflow-hidden transition-colors hover:bg-muted/50">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-2">
@@ -149,6 +149,6 @@ function MyQuestions() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/forum/mine")({
+export const Route = createFileRoute("/_dashboard/student/forum/mine")({
   component: MyQuestions,
 })
