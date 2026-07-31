@@ -95,14 +95,15 @@ function NewMaterial() {
           if (!res.ok) {
             const err = await res.json()
             toast.error(err?.error || "Gagal upload video")
+            setUploading(false)
             return
           }
         } catch {
           toast.error("Gagal upload video")
-          return
-        } finally {
           setUploading(false)
+          return
         }
+        setUploading(false)
       }
       clear();
       qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
