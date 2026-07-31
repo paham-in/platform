@@ -103,13 +103,13 @@ func (h *Handler) AdminUpdateRole(c *fiber.Ctx) error {
 	}
 
 	var input struct {
-		Role string `json:"role"`
+		Roles []string `json:"roles"`
 	}
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 
-	if err := h.svc.UpdateUserRole(uint(id), input.Role); err != nil {
+	if err := h.svc.UpdateUserRole(uint(id), input.Roles); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 

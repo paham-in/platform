@@ -167,12 +167,17 @@ func (s *Service) ListUsers() ([]AdminUserResponse, error) {
 	return result, nil
 }
 
-func (s *Service) UpdateUserRole(id uint, role string) error {
+func (s *Service) UpdateUserRole(id uint, roles []string) error {
 	validRoles := map[string]bool{"student": true, "teacher": true, "admin": true}
-	if !validRoles[role] {
-		return errors.New("role tidak valid")
+	for _, r := range roles {
+		if !validRoles[r] {
+			return errors.New("role tidak valid: " + r)
+		}
 	}
-	return s.userRepo.UpdateRole(id, role)
+	if len(roles) == 0 {
+		return errors.New("minimal 1 role")
+	}
+	return s.userRepo.UpdateRole(id, roles)
 }
 
 func (s *Service) UpdatePaymentStatus(id uint, status string) error {

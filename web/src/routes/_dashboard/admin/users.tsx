@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState } from "react"
@@ -32,13 +32,28 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 
+const ROLE_LABELS: Record<string, string> = { student: "Murid", teacher: "Guru", admin: "Admin" }
+const ROLE_STYLES: Record<string, string> = {
+  student: "bg-green-100 text-green-700",
+  teacher: "bg-blue-100 text-blue-700",
+  admin: "bg-purple-100 text-purple-700",
+}
+
+function RoleBadge({ role }: { role: string }) {
+  return (
+    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${ROLE_STYLES[role] || ""}`}>
+      {ROLE_LABELS[role] || role}
+    </span>
+  )
+}
+
 function AdminUsers() {
   const qc = useQueryClient()
   const { data: users = [], isLoading } = useQuery(getAdminUsersOptions())
   const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
   const [editing, setEditing] = useState<UserAdminUserResponse | null>(null)
-  const [newRole, setNewRole] = useState("student")
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([])
   const [page, setPage] = useState(1)
   const perPage = 5
   const [deleteConfirm, setDeleteConfirm] = useState<UserAdminUserResponse | null>(null)
@@ -63,18 +78,20 @@ function AdminUsers() {
 
   const openEdit = (u: UserAdminUserResponse) => {
     setEditing(u)
-    setNewRole((u.roles ?? [])[0] ?? "student")
+    setSelectedRoles(u.roles ?? [])
   }
   const closeEdit = () => setEditing(null)
-  const save = () => {
-    if (editing) {
-      updateRole({ path: { id: editing.id! }, body: { role: newRole } })
-    }
+
+  const toggleRole = (role: string) => {
+    setSelectedRoles((prev) =>
+      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
+    )
   }
 
-  const RoleBadge = ({ role }: { role: string }) => {
-    const styles: Record<string, string> = { student: "bg-green-100 text-green-700", teacher: "bg-blue-100 text-blue-700", admin: "bg-purple-100 text-purple-700" }
-    return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[role as keyof typeof styles] || ""}`}>{role}</span>
+  const save = () => {
+    if (editing && selectedRoles.length > 0) {
+      updateRole({ path: { id: editing.id! }, body: { roles: selectedRoles } })
+    }
   }
 
   if (isLoading) {
@@ -130,7 +147,12 @@ function AdminUsers() {
                       <span className="font-medium">{u.name}</span>
                     </div></TableCell>
                     <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                    <TableCell><RoleBadge role={(u.roles ?? [])[0] ?? ""} /></TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {(u.roles ?? []).length === 0 && <span className="text-muted-foreground">-</span>}
+                        {(u.roles ?? []).map((r) => <RoleBadge key={r} role={r} />)}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{u.created_at}</TableCell>
                     <TableCell className="pr-6 text-right">
                       <DropdownMenu>
@@ -175,20 +197,25 @@ function AdminUsers() {
               {editing.name} — {editing.email}
             </p>
           </div>
-          <div className="space-y-2">
-            <Label>Role</Label>
-            <Select value={newRole} onValueChange={(v) => v && setNewRole(v)}>
-              <SelectTrigger><SelectValue placeholder="Pilih role" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="student">Murid</SelectItem>
-                <SelectItem value="teacher">Guru</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="space-y-3 pt-2">
+            <p className="text-sm font-medium">Role (centang semua yang sesuai)</p>
+            {["student", "teacher", "admin"].map((role) => (
+              <label key={role} className="flex items-center gap-3 rounded-lg border p-3 cursor-pointer hover:bg-muted/50">
+                <Checkbox
+                  checked={selectedRoles.includes(role)}
+                  onCheckedChange={() => toggleRole(role)}
+                />
+                <RoleBadge role={role} />
+                <span className="ml-auto text-sm text-muted-foreground">{ROLE_LABELS[role]}</span>
+              </label>
+            ))}
+            {selectedRoles.length === 0 && (
+              <p className="text-xs text-destructive">Minimal 1 role harus dipilih</p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeEdit}>Batal</Button>
-            <Button onClick={save}>Simpan</Button>
+            <Button onClick={save} disabled={selectedRoles.length === 0}>Simpan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>}
