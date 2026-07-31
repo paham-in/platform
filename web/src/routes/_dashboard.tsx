@@ -49,7 +49,7 @@ const sidebarGroups = [
     links: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/student/dashboard" },
       { label: "Materi", icon: BookMarked, to: "/student/materials" },
-      { label: "Forum", icon: Home, to: "/student/forum" },
+      { label: "Tanya Jawab", icon: Home, to: "/student/forum" },
       { label: "Les Privat", icon: Calendar, to: "/student/tutoring" },
     ],
   },
@@ -60,7 +60,7 @@ const sidebarGroups = [
       { label: "Dashboard", icon: LayoutDashboard, to: "/teacher/dashboard" },
       { label: "Chapter", icon: BookOpen, to: "/teacher/chapters" },
       { label: "Materi", icon: BookMarked, to: "/teacher/materials" },
-      { label: "Forum", icon: MessageSquare, to: "/teacher/forum" },
+      { label: "Tanya Jawab", icon: MessageSquare, to: "/teacher/forum" },
       { label: "Les Privat", icon: Calendar, to: "/teacher/tutoring" },
     ],
   },
@@ -73,7 +73,7 @@ const sidebarGroups = [
       { label: "Pembayaran", icon: CreditCard, to: "/admin/payments" },
       { label: "Kelas", icon: GraduationCap, to: "/admin/classes" },
       { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects" },
-      { label: "Forum", icon: MessageSquare, to: "/admin/forum" },
+      { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
     ],
   },
 ];
