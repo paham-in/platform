@@ -91,14 +91,14 @@ func main() {
 	chapter.AdminRoutes(staff, db)
 	class.AdminRoutes(staff, db)
 	subject.AdminRoutes(staff, db)
+	if minioClient != nil {
+		gallery.Routes(staff, db, minioClient)
+	}
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)
 	forum.AdminRoutes(admin, db)
 	invoice.AdminRoutes(admin, db)
-	if minioClient != nil {
-		gallery.Routes(admin, db, minioClient)
-	}
 
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)
