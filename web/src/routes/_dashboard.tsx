@@ -59,8 +59,8 @@ const sidebarGroups = [
     links: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/teacher/dashboard" },
       { label: "Chapter", icon: BookOpen, to: "/teacher/chapters" },
-      { label: "Materi Saya", icon: BookMarked, to: "/teacher/materials" },
-      { label: "Tanya Jawab", icon: Home, to: "/teacher/forum" },
+      { label: "Materi", icon: BookMarked, to: "/teacher/materials" },
+      { label: "Forum", icon: MessageSquare, to: "/teacher/forum" },
       { label: "Les Privat", icon: Calendar, to: "/teacher/tutoring" },
     ],
   },

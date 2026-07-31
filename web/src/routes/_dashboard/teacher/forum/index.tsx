@@ -6,7 +6,7 @@ import {
   getQuestionsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
 import { Search, ChevronLeft, ChevronRight, Loader2, Eye, MessageSquare } from "lucide-react"
 
@@ -88,9 +88,9 @@ function TeacherForum() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{q.created_at}</TableCell>
                   <TableCell className="pr-6 text-right">
-                    <Link to="/teacher/forum/$id" params={{ id: String(q.id!) }}>
+                    <a href={`/teacher/forum/${q.id}`} target="_blank" rel="noreferrer">
                       <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
-                    </Link>
+                    </a>
                   </TableCell>
                 </TableRow>
               ))}
