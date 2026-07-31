@@ -89,6 +89,10 @@
 | Calendar + Popover (shadcn) | All | ✅ |
 | Autosave draft + restore dialog | Teacher | ✅ |
 | Search + filter invoice | Admin | ✅ |
+| Forum split per role (student grid, teacher/admin table) | All | ✅ |
+| Filter "belum terjawab" di Tanya Jawab | Teacher | ✅ |
+| Teacher detail forum buka tab baru | Teacher | ✅ |
+| Label sidebar disamakan "Tanya Jawab" | All | ✅ |
 
 ---
 
@@ -96,16 +100,17 @@
 
 ```
 _dashboard/
-├── _dashboard.tsx              → layout sidebar
+├── _dashboard.tsx              → layout sidebar (grouped per role)
 ├── student/
 │   ├── dashboard.tsx             /student/dashboard
-│   ├── materials/                /student/materials
-│   │   └── chapters/...
+│   ├── materials/                /student/materials, chapters/...
+│   ├── forum/                    /student/forum, new, mine, $id
 │   └── tutoring/                 /student/tutoring, /student/tutoring/$teacherId
 ├── teacher/
 │   ├── dashboard.tsx             /teacher/dashboard
-│   ├── materials/                /teacher/materials, new, edit
 │   ├── chapters.tsx              /teacher/chapters
+│   ├── materials/                /teacher/materials, new, $id/edit
+│   ├── forum/                    /teacher/forum, $id
 │   └── tutoring/                 /teacher/tutoring, availability
 ├── admin/
 │   ├── dashboard.tsx             /admin/dashboard
@@ -113,8 +118,7 @@ _dashboard/
 │   ├── payments/                 /admin/payments, /admin/payments/$userId
 │   ├── classes.tsx               /admin/classes
 │   ├── subjects.tsx              /admin/subjects
-│   └── forum.tsx                 /admin/forum
-└── forum/                        /forum
+│   └── forum/                    /admin/forum, $id
 └── settings.tsx                  /settings
 ```
 
@@ -127,6 +131,7 @@ _dashboard/
 3. **Auth** — hanya Google OAuth + login admin via seed. Tidak ada registrasi manual
 4. **Notifikasi** — 0 notifikasi (in-app, push, email)
 5. **Guru tidak bisa lihat daftar murid per kelas**
+6. **Filter "belum terjawab" masih cek count jawaban doang** — jawaban soft-delete masih dianggap ada
 
 ---
 
@@ -138,7 +143,7 @@ _dashboard/
 |---|-------|--------|
 | 1 | **Dashboard real student & teacher** | Bikin endpoint aggregasi. Sekarang masih hardcoded semua |
 | 2 | **Student lihat status pembayaran** | Tampilkan invoice status di profil atau dashboard student |
-| 3 | **Role multi user sudah selesai** | ✅ User bisa punya admin + teacher + student sekaligus |
+| 3 | **Fix filter unanswered** | Tambahin `deleted_at IS NULL` di subquery biar jawaban soft-delete gak dihitung |
 
 ### Prioritas Sedang
 
