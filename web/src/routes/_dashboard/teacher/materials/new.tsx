@@ -223,7 +223,7 @@ function NewMaterial() {
                 <div className="overflow-hidden rounded-lg border">
                   <iframe
                     className="aspect-video w-full"
-                    src={`https://www.youtube.com/embed/${extractYoutubeId(videoUrl)}`}
+                    src={`https://www.youtube.com/embed/${extractYoutubeId(videoUrl)}?rel=0&modestbranding=1`}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />

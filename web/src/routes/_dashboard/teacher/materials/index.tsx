@@ -143,6 +143,7 @@ function AdminMaterials() {
               <TableHeader>
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Judul</TableHead>
+                  <TableHead>Tipe</TableHead>
                   <TableHead>Kelas</TableHead>
                   <TableHead>Subjek</TableHead>
                   <TableHead>Chapter</TableHead>
@@ -158,6 +159,13 @@ function AdminMaterials() {
                   return (
                     <TableRow key={m.id}>
                       <TableCell className="pl-6 font-medium">{m.title}</TableCell>
+                      <TableCell>
+                        {m.type === "video" ? (
+                          <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">Video</span>
+                        ) : (
+                          <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">Teks</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">{cl?.name ?? "-"}</TableCell>
                       <TableCell className="text-muted-foreground">{sub?.name ?? "-"}</TableCell>
                       <TableCell className="text-muted-foreground">{m.chapter_name}</TableCell>
@@ -196,7 +204,7 @@ function AdminMaterials() {
                 })}
                 {paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="p-8 text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="p-8 text-center text-muted-foreground">
                       Tidak ada materi ditemukan
                     </TableCell>
                   </TableRow>

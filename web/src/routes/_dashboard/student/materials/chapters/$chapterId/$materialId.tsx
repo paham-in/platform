@@ -64,7 +64,7 @@ function MaterialDetail() {
         <div className="overflow-hidden rounded-xl border">
           <iframe
             className="aspect-video w-full"
-            src={`https://www.youtube.com/embed/${extractYoutubeId(material.video_url)}`}
+            src={`https://www.youtube.com/embed/${extractYoutubeId(material.video_url)}?rel=0&modestbranding=1`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
