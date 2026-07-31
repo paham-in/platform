@@ -121,55 +121,12 @@ func (h *VideoHandler) StreamVideo(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "materi ini tidak punya video lokal"})
 	}
 
-	info, err := h.minio.StatObject(c.Context(), material.VideoURL)
+	// generate presigned URL (15 min) and redirect — MinIO handles range/content-length/content-type
+	presigned, err := h.minio.PresignedURL(c.Context(), material.VideoURL, 15*time.Minute)
 	if err != nil {
-		return c.Status(404).JSON(ErrorResponse{Error: "video tidak ditemukan"})
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal generate video url"})
 	}
-
-	contentType := videoContentType(material.VideoURL)
-	if contentType == "" {
-		contentType = info.ContentType
-	}
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-
-	rangeHeader := c.Get("Range")
-
-	// no range → return full (still streamed by HTTP)
-	if rangeHeader == "" {
-		c.Set("Accept-Ranges", "bytes")
-		c.Set("Content-Type", contentType)
-
-		obj, err := h.minio.GetObject(c.Context(), material.VideoURL, -1, 0)
-		if err != nil {
-			return c.Status(500).JSON(ErrorResponse{Error: "gagal membuka video"})
-		}
-		defer obj.Close()
-		return c.SendStream(obj, int(info.Size))
-	}
-
-	// parse Range: bytes=start-end
-	start, end, err := parseRange(rangeHeader, info.Size)
-	if err != nil {
-		c.Status(416).Set("Content-Range", "bytes */"+strconv.FormatInt(info.Size, 10))
-		return c.SendString("range not satisfiable")
-	}
-
-	length := end - start + 1
-
-	c.Status(206)
-	c.Set("Accept-Ranges", "bytes")
-	c.Set("Content-Type", contentType)
-	c.Set("Content-Range", "bytes "+strconv.FormatInt(start, 10)+"-"+strconv.FormatInt(end, 10)+"/"+strconv.FormatInt(info.Size, 10))
-
-	obj, err := h.minio.GetObject(c.Context(), material.VideoURL, start, end)
-	if err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal membuka video"})
-	}
-	defer obj.Close()
-
-	return c.SendStream(obj, int(length))
+	return c.Redirect(presigned, fiber.StatusFound)
 }
 
 func videoContentType(name string) string {
