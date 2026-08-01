@@ -283,6 +283,65 @@ definitions:
       video_url:
         type: string
     type: object
+  questionbank.CreateInput:
+    properties:
+      chapter_id:
+        type: integer
+      correct_index:
+        type: integer
+      explanation:
+        type: string
+      options:
+        items:
+          type: string
+        type: array
+      question:
+        type: string
+    type: object
+  questionbank.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  questionbank.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  questionbank.QuestionResponse:
+    properties:
+      chapter_id:
+        type: integer
+      chapter_title:
+        type: string
+      correct_index:
+        type: integer
+      created_at:
+        type: string
+      explanation:
+        type: string
+      id:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      question:
+        type: string
+    type: object
+  questionbank.UpdateInput:
+    properties:
+      correct_index:
+        type: integer
+      explanation:
+        type: string
+      options:
+        items:
+          type: string
+        type: array
+      question:
+        type: string
+    type: object
   subject.CreateInput:
     properties:
       class_ids:
@@ -980,6 +1039,112 @@ paths:
       tags:
       - Admin
       - Admin
+  /admin/questions-bank:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar soal, bisa difilter dengan chapter_id
+      parameters:
+      - description: Filter by chapter ID
+        in: query
+        name: chapter_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/questionbank.QuestionResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List question bank
+      tags:
+      - QuestionBank
+    post:
+      consumes:
+      - application/json
+      description: Menambah soal baru ke bank soal
+      parameters:
+      - description: Data soal
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/questionbank.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/questionbank.QuestionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/questionbank.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create question
+      tags:
+      - QuestionBank
+  /admin/questions-bank/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus soal dari bank soal
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionbank.MessageResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete question
+      tags:
+      - QuestionBank
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah soal di bank soal
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/questionbank.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionbank.QuestionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/questionbank.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update question
+      tags:
+      - QuestionBank
   /admin/questions/{id}:
     delete:
       consumes:

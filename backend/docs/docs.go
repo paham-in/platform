@@ -822,6 +822,175 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/questions-bank": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar soal, bisa difilter dengan chapter_id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionBank"
+                ],
+                "summary": "List question bank",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Filter by chapter ID",
+                        "name": "chapter_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/questionbank.QuestionResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menambah soal baru ke bank soal",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionBank"
+                ],
+                "summary": "Create question",
+                "parameters": [
+                    {
+                        "description": "Data soal",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/questionbank.CreateInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/questionbank.QuestionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/questionbank.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/questions-bank/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus soal dari bank soal",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionBank"
+                ],
+                "summary": "Delete question",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Question ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/questionbank.MessageResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengubah soal di bank soal",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionBank"
+                ],
+                "summary": "Update question",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Question ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Data update",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/questionbank.UpdateInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/questionbank.QuestionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/questionbank.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/questions/{id}": {
             "delete": {
                 "security": [
@@ -2754,6 +2923,97 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "video_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "questionbank.CreateInput": {
+            "type": "object",
+            "properties": {
+                "chapter_id": {
+                    "type": "integer"
+                },
+                "correct_index": {
+                    "type": "integer"
+                },
+                "explanation": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
+        "questionbank.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "questionbank.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "questionbank.QuestionResponse": {
+            "type": "object",
+            "properties": {
+                "chapter_id": {
+                    "type": "integer"
+                },
+                "chapter_title": {
+                    "type": "string"
+                },
+                "correct_index": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "explanation": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
+        "questionbank.UpdateInput": {
+            "type": "object",
+            "properties": {
+                "correct_index": {
+                    "type": "integer"
+                },
+                "explanation": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "question": {
                     "type": "string"
                 }
             }

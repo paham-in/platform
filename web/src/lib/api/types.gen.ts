@@ -186,6 +186,40 @@ export type MaterialUpdateInput = {
     video_url?: string;
 };
 
+export type QuestionbankCreateInput = {
+    chapter_id?: number;
+    correct_index?: number;
+    explanation?: string;
+    options?: Array<string>;
+    question?: string;
+};
+
+export type QuestionbankErrorResponse = {
+    error?: string;
+};
+
+export type QuestionbankMessageResponse = {
+    message?: string;
+};
+
+export type QuestionbankQuestionResponse = {
+    chapter_id?: number;
+    chapter_title?: string;
+    correct_index?: number;
+    created_at?: string;
+    explanation?: string;
+    id?: number;
+    options?: Array<string>;
+    question?: string;
+};
+
+export type QuestionbankUpdateInput = {
+    correct_index?: number;
+    explanation?: string;
+    options?: Array<string>;
+    question?: string;
+};
+
 export type SubjectCreateInput = {
     class_ids?: Array<number>;
     description?: string;
@@ -805,6 +839,109 @@ export type GetAdminQuestionsResponses = {
 };
 
 export type GetAdminQuestionsResponse = GetAdminQuestionsResponses[keyof GetAdminQuestionsResponses];
+
+export type GetAdminQuestionsBankData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter by chapter ID
+         */
+        chapter_id?: number;
+    };
+    url: '/admin/questions-bank';
+};
+
+export type GetAdminQuestionsBankResponses = {
+    /**
+     * OK
+     */
+    200: Array<QuestionbankQuestionResponse>;
+};
+
+export type GetAdminQuestionsBankResponse = GetAdminQuestionsBankResponses[keyof GetAdminQuestionsBankResponses];
+
+export type PostAdminQuestionsBankData = {
+    /**
+     * Data soal
+     */
+    body: QuestionbankCreateInput;
+    path?: never;
+    query?: never;
+    url: '/admin/questions-bank';
+};
+
+export type PostAdminQuestionsBankErrors = {
+    /**
+     * Bad Request
+     */
+    400: QuestionbankErrorResponse;
+};
+
+export type PostAdminQuestionsBankError = PostAdminQuestionsBankErrors[keyof PostAdminQuestionsBankErrors];
+
+export type PostAdminQuestionsBankResponses = {
+    /**
+     * Created
+     */
+    201: QuestionbankQuestionResponse;
+};
+
+export type PostAdminQuestionsBankResponse = PostAdminQuestionsBankResponses[keyof PostAdminQuestionsBankResponses];
+
+export type DeleteAdminQuestionsBankByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Question ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/questions-bank/{id}';
+};
+
+export type DeleteAdminQuestionsBankByIdResponses = {
+    /**
+     * OK
+     */
+    200: QuestionbankMessageResponse;
+};
+
+export type DeleteAdminQuestionsBankByIdResponse = DeleteAdminQuestionsBankByIdResponses[keyof DeleteAdminQuestionsBankByIdResponses];
+
+export type PatchAdminQuestionsBankByIdData = {
+    /**
+     * Data update
+     */
+    body: QuestionbankUpdateInput;
+    path: {
+        /**
+         * Question ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/questions-bank/{id}';
+};
+
+export type PatchAdminQuestionsBankByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: QuestionbankErrorResponse;
+};
+
+export type PatchAdminQuestionsBankByIdError = PatchAdminQuestionsBankByIdErrors[keyof PatchAdminQuestionsBankByIdErrors];
+
+export type PatchAdminQuestionsBankByIdResponses = {
+    /**
+     * OK
+     */
+    200: QuestionbankQuestionResponse;
+};
+
+export type PatchAdminQuestionsBankByIdResponse = PatchAdminQuestionsBankByIdResponses[keyof PatchAdminQuestionsBankByIdResponses];
 
 export type DeleteAdminQuestionsByIdData = {
     body?: never;

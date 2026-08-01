@@ -2,7 +2,7 @@
 
 import { type Client, type ClientMeta, formDataBodySerializer, type Options as Options2, type RequestResult, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponses, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponses, DeleteAdminInvoicesByIdData, DeleteAdminInvoicesByIdErrors, DeleteAdminInvoicesByIdResponses, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminQuestionsByIdData, DeleteAdminQuestionsByIdErrors, DeleteAdminQuestionsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminSubjectsBySubjectIdImagesByIdData, DeleteAdminSubjectsBySubjectIdImagesByIdErrors, DeleteAdminSubjectsBySubjectIdImagesByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, DeleteQuestionsByIdData, DeleteQuestionsByIdResponses, DeleteQuestionsByQuestionIdAnswersByIdData, DeleteQuestionsByQuestionIdAnswersByIdErrors, DeleteQuestionsByQuestionIdAnswersByIdResponses, DeleteTutoringAvailabilityByIdData, DeleteTutoringAvailabilityByIdResponses, GetAdminChaptersData, GetAdminChaptersResponses, GetAdminClassesData, GetAdminClassesResponses, GetAdminInvoicesData, GetAdminInvoicesResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminQuestionsData, GetAdminQuestionsErrors, GetAdminQuestionsResponses, GetAdminSubjectsBySubjectIdImagesData, GetAdminSubjectsBySubjectIdImagesResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetAuthGoogleCallbackData, GetAuthGoogleData, GetChaptersData, GetChaptersResponses, GetClassesData, GetClassesResponses, GetMaterialsByIdData, GetMaterialsByIdErrors, GetMaterialsByIdResponses, GetMaterialsData, GetMaterialsResponses, GetMeData, GetMeErrors, GetMeResponses, GetQuestionsByIdData, GetQuestionsByIdErrors, GetQuestionsByIdResponses, GetQuestionsByQuestionIdAnswersData, GetQuestionsByQuestionIdAnswersResponses, GetQuestionsByQuestionIdImagesData, GetQuestionsByQuestionIdImagesResponses, GetQuestionsData, GetQuestionsResponses, GetSubjectsData, GetSubjectsResponses, GetTutoringAvailabilityData, GetTutoringAvailabilityResponses, GetTutoringBookingsData, GetTutoringBookingsResponses, PatchAdminChaptersByIdData, PatchAdminChaptersByIdErrors, PatchAdminChaptersByIdResponses, PatchAdminClassesByIdData, PatchAdminClassesByIdErrors, PatchAdminClassesByIdResponses, PatchAdminInvoicesByIdToggleData, PatchAdminInvoicesByIdToggleErrors, PatchAdminInvoicesByIdToggleResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdPaymentData, PatchAdminUsersByIdPaymentErrors, PatchAdminUsersByIdPaymentResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PatchMeData, PatchMeErrors, PatchMeResponses, PatchTutoringBookingsByIdData, PatchTutoringBookingsByIdErrors, PatchTutoringBookingsByIdResponses, PostAdminChaptersByIdCoverData, PostAdminChaptersByIdCoverErrors, PostAdminChaptersByIdCoverResponses, PostAdminChaptersData, PostAdminChaptersErrors, PostAdminChaptersResponses, PostAdminClassesData, PostAdminClassesErrors, PostAdminClassesResponses, PostAdminInvoicesData, PostAdminInvoicesErrors, PostAdminInvoicesResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminSubjectsBySubjectIdImagesData, PostAdminSubjectsBySubjectIdImagesErrors, PostAdminSubjectsBySubjectIdImagesResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostQuestionsByQuestionIdAnswersData, PostQuestionsByQuestionIdAnswersErrors, PostQuestionsByQuestionIdAnswersResponses, PostQuestionsByQuestionIdImagesData, PostQuestionsByQuestionIdImagesErrors, PostQuestionsByQuestionIdImagesResponses, PostQuestionsData, PostQuestionsErrors, PostQuestionsResponses, PostTutoringAvailabilityData, PostTutoringAvailabilityErrors, PostTutoringAvailabilityResponses, PostTutoringBookingsData, PostTutoringBookingsErrors, PostTutoringBookingsResponses } from './types.gen';
+import type { DeleteAdminChaptersByIdData, DeleteAdminChaptersByIdResponses, DeleteAdminClassesByIdData, DeleteAdminClassesByIdResponses, DeleteAdminInvoicesByIdData, DeleteAdminInvoicesByIdErrors, DeleteAdminInvoicesByIdResponses, DeleteAdminMaterialsByIdData, DeleteAdminMaterialsByIdResponses, DeleteAdminQuestionsBankByIdData, DeleteAdminQuestionsBankByIdResponses, DeleteAdminQuestionsByIdData, DeleteAdminQuestionsByIdErrors, DeleteAdminQuestionsByIdResponses, DeleteAdminSubjectsByIdData, DeleteAdminSubjectsByIdResponses, DeleteAdminSubjectsBySubjectIdImagesByIdData, DeleteAdminSubjectsBySubjectIdImagesByIdErrors, DeleteAdminSubjectsBySubjectIdImagesByIdResponses, DeleteAdminUsersByIdData, DeleteAdminUsersByIdErrors, DeleteAdminUsersByIdResponses, DeleteQuestionsByIdData, DeleteQuestionsByIdResponses, DeleteQuestionsByQuestionIdAnswersByIdData, DeleteQuestionsByQuestionIdAnswersByIdErrors, DeleteQuestionsByQuestionIdAnswersByIdResponses, DeleteTutoringAvailabilityByIdData, DeleteTutoringAvailabilityByIdResponses, GetAdminChaptersData, GetAdminChaptersResponses, GetAdminClassesData, GetAdminClassesResponses, GetAdminInvoicesData, GetAdminInvoicesResponses, GetAdminMaterialsByIdData, GetAdminMaterialsByIdErrors, GetAdminMaterialsByIdResponses, GetAdminMaterialsData, GetAdminMaterialsResponses, GetAdminQuestionsBankData, GetAdminQuestionsBankResponses, GetAdminQuestionsData, GetAdminQuestionsErrors, GetAdminQuestionsResponses, GetAdminSubjectsBySubjectIdImagesData, GetAdminSubjectsBySubjectIdImagesResponses, GetAdminUsersData, GetAdminUsersErrors, GetAdminUsersResponses, GetAuthGoogleCallbackData, GetAuthGoogleData, GetChaptersData, GetChaptersResponses, GetClassesData, GetClassesResponses, GetMaterialsByIdData, GetMaterialsByIdErrors, GetMaterialsByIdResponses, GetMaterialsData, GetMaterialsResponses, GetMeData, GetMeErrors, GetMeResponses, GetQuestionsByIdData, GetQuestionsByIdErrors, GetQuestionsByIdResponses, GetQuestionsByQuestionIdAnswersData, GetQuestionsByQuestionIdAnswersResponses, GetQuestionsByQuestionIdImagesData, GetQuestionsByQuestionIdImagesResponses, GetQuestionsData, GetQuestionsResponses, GetSubjectsData, GetSubjectsResponses, GetTutoringAvailabilityData, GetTutoringAvailabilityResponses, GetTutoringBookingsData, GetTutoringBookingsResponses, PatchAdminChaptersByIdData, PatchAdminChaptersByIdErrors, PatchAdminChaptersByIdResponses, PatchAdminClassesByIdData, PatchAdminClassesByIdErrors, PatchAdminClassesByIdResponses, PatchAdminInvoicesByIdToggleData, PatchAdminInvoicesByIdToggleErrors, PatchAdminInvoicesByIdToggleResponses, PatchAdminMaterialsByIdData, PatchAdminMaterialsByIdErrors, PatchAdminMaterialsByIdResponses, PatchAdminQuestionsBankByIdData, PatchAdminQuestionsBankByIdErrors, PatchAdminQuestionsBankByIdResponses, PatchAdminSubjectsByIdData, PatchAdminSubjectsByIdErrors, PatchAdminSubjectsByIdResponses, PatchAdminUsersByIdPaymentData, PatchAdminUsersByIdPaymentErrors, PatchAdminUsersByIdPaymentResponses, PatchAdminUsersByIdRoleData, PatchAdminUsersByIdRoleErrors, PatchAdminUsersByIdRoleResponses, PatchMeData, PatchMeErrors, PatchMeResponses, PatchTutoringBookingsByIdData, PatchTutoringBookingsByIdErrors, PatchTutoringBookingsByIdResponses, PostAdminChaptersByIdCoverData, PostAdminChaptersByIdCoverErrors, PostAdminChaptersByIdCoverResponses, PostAdminChaptersData, PostAdminChaptersErrors, PostAdminChaptersResponses, PostAdminClassesData, PostAdminClassesErrors, PostAdminClassesResponses, PostAdminInvoicesData, PostAdminInvoicesErrors, PostAdminInvoicesResponses, PostAdminMaterialsData, PostAdminMaterialsErrors, PostAdminMaterialsResponses, PostAdminQuestionsBankData, PostAdminQuestionsBankErrors, PostAdminQuestionsBankResponses, PostAdminSubjectsBySubjectIdImagesData, PostAdminSubjectsBySubjectIdImagesErrors, PostAdminSubjectsBySubjectIdImagesResponses, PostAdminSubjectsData, PostAdminSubjectsErrors, PostAdminSubjectsResponses, PostLogoutData, PostLogoutErrors, PostLogoutResponses, PostQuestionsByQuestionIdAnswersData, PostQuestionsByQuestionIdAnswersErrors, PostQuestionsByQuestionIdAnswersResponses, PostQuestionsByQuestionIdImagesData, PostQuestionsByQuestionIdImagesErrors, PostQuestionsByQuestionIdImagesResponses, PostQuestionsData, PostQuestionsErrors, PostQuestionsResponses, PostTutoringAvailabilityData, PostTutoringAvailabilityErrors, PostTutoringAvailabilityResponses, PostTutoringBookingsData, PostTutoringBookingsErrors, PostTutoringBookingsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -259,6 +259,58 @@ export const getAdminQuestions = <ThrowOnError extends boolean = false>(options?
     security: [{ name: 'Authorization', type: 'apiKey' }],
     url: '/admin/questions',
     ...options
+});
+
+/**
+ * List question bank
+ *
+ * Mengembalikan daftar soal, bisa difilter dengan chapter_id
+ */
+export const getAdminQuestionsBank = <ThrowOnError extends boolean = false>(options?: Options<GetAdminQuestionsBankData, ThrowOnError>): RequestResult<GetAdminQuestionsBankResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminQuestionsBankResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/questions-bank',
+    ...options
+});
+
+/**
+ * Create question
+ *
+ * Menambah soal baru ke bank soal
+ */
+export const postAdminQuestionsBank = <ThrowOnError extends boolean = false>(options: Options<PostAdminQuestionsBankData, ThrowOnError>): RequestResult<PostAdminQuestionsBankResponses, PostAdminQuestionsBankErrors, ThrowOnError> => (options.client ?? client).post<PostAdminQuestionsBankResponses, PostAdminQuestionsBankErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/questions-bank',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete question
+ *
+ * Menghapus soal dari bank soal
+ */
+export const deleteAdminQuestionsBankById = <ThrowOnError extends boolean = false>(options: Options<DeleteAdminQuestionsBankByIdData, ThrowOnError>): RequestResult<DeleteAdminQuestionsBankByIdResponses, unknown, ThrowOnError> => (options.client ?? client).delete<DeleteAdminQuestionsBankByIdResponses, unknown, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/questions-bank/{id}',
+    ...options
+});
+
+/**
+ * Update question
+ *
+ * Mengubah soal di bank soal
+ */
+export const patchAdminQuestionsBankById = <ThrowOnError extends boolean = false>(options: Options<PatchAdminQuestionsBankByIdData, ThrowOnError>): RequestResult<PatchAdminQuestionsBankByIdResponses, PatchAdminQuestionsBankByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchAdminQuestionsBankByIdResponses, PatchAdminQuestionsBankByIdErrors, ThrowOnError>({
+    security: [{ name: 'Authorization', type: 'apiKey' }],
+    url: '/admin/questions-bank/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });
 
 /**

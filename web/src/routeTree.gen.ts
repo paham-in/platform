@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard/settings'
 import { Route as DashboardTeacherTutoringRouteImport } from './routes/_dashboard/teacher/tutoring'
+import { Route as DashboardTeacherQuestionBankRouteImport } from './routes/_dashboard/teacher/question-bank'
 import { Route as DashboardTeacherDashboardRouteImport } from './routes/_dashboard/teacher/dashboard'
 import { Route as DashboardTeacherChaptersRouteImport } from './routes/_dashboard/teacher/chapters'
 import { Route as DashboardStudentTutoringRouteImport } from './routes/_dashboard/student/tutoring'
@@ -73,6 +74,12 @@ const DashboardTeacherTutoringRoute =
   DashboardTeacherTutoringRouteImport.update({
     id: '/teacher/tutoring',
     path: '/teacher/tutoring',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherQuestionBankRoute =
+  DashboardTeacherQuestionBankRouteImport.update({
+    id: '/teacher/question-bank',
+    path: '/teacher/question-bank',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardTeacherDashboardRoute =
@@ -256,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/student/tutoring': typeof DashboardStudentTutoringRouteWithChildren
   '/teacher/chapters': typeof DashboardTeacherChaptersRoute
   '/teacher/dashboard': typeof DashboardTeacherDashboardRoute
+  '/teacher/question-bank': typeof DashboardTeacherQuestionBankRoute
   '/teacher/tutoring': typeof DashboardTeacherTutoringRouteWithChildren
   '/admin/forum/$id': typeof DashboardAdminForumIdRoute
   '/admin/payments/$userId': typeof DashboardAdminPaymentsUserIdRoute
@@ -290,6 +298,7 @@ export interface FileRoutesByTo {
   '/student/dashboard': typeof DashboardStudentDashboardRoute
   '/teacher/chapters': typeof DashboardTeacherChaptersRoute
   '/teacher/dashboard': typeof DashboardTeacherDashboardRoute
+  '/teacher/question-bank': typeof DashboardTeacherQuestionBankRoute
   '/admin/forum/$id': typeof DashboardAdminForumIdRoute
   '/admin/payments/$userId': typeof DashboardAdminPaymentsUserIdRoute
   '/student/forum/$id': typeof DashboardStudentForumIdRoute
@@ -327,6 +336,7 @@ export interface FileRoutesById {
   '/_dashboard/student/tutoring': typeof DashboardStudentTutoringRouteWithChildren
   '/_dashboard/teacher/chapters': typeof DashboardTeacherChaptersRoute
   '/_dashboard/teacher/dashboard': typeof DashboardTeacherDashboardRoute
+  '/_dashboard/teacher/question-bank': typeof DashboardTeacherQuestionBankRoute
   '/_dashboard/teacher/tutoring': typeof DashboardTeacherTutoringRouteWithChildren
   '/_dashboard/admin/forum/$id': typeof DashboardAdminForumIdRoute
   '/_dashboard/admin/payments/$userId': typeof DashboardAdminPaymentsUserIdRoute
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/student/tutoring'
     | '/teacher/chapters'
     | '/teacher/dashboard'
+    | '/teacher/question-bank'
     | '/teacher/tutoring'
     | '/admin/forum/$id'
     | '/admin/payments/$userId'
@@ -399,6 +410,7 @@ export interface FileRouteTypes {
     | '/student/dashboard'
     | '/teacher/chapters'
     | '/teacher/dashboard'
+    | '/teacher/question-bank'
     | '/admin/forum/$id'
     | '/admin/payments/$userId'
     | '/student/forum/$id'
@@ -435,6 +447,7 @@ export interface FileRouteTypes {
     | '/_dashboard/student/tutoring'
     | '/_dashboard/teacher/chapters'
     | '/_dashboard/teacher/dashboard'
+    | '/_dashboard/teacher/question-bank'
     | '/_dashboard/teacher/tutoring'
     | '/_dashboard/admin/forum/$id'
     | '/_dashboard/admin/payments/$userId'
@@ -507,6 +520,13 @@ declare module '@tanstack/react-router' {
       path: '/teacher/tutoring'
       fullPath: '/teacher/tutoring'
       preLoaderRoute: typeof DashboardTeacherTutoringRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/question-bank': {
+      id: '/_dashboard/teacher/question-bank'
+      path: '/teacher/question-bank'
+      fullPath: '/teacher/question-bank'
+      preLoaderRoute: typeof DashboardTeacherQuestionBankRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/teacher/dashboard': {
@@ -776,6 +796,7 @@ interface DashboardRouteChildren {
   DashboardStudentTutoringRoute: typeof DashboardStudentTutoringRouteWithChildren
   DashboardTeacherChaptersRoute: typeof DashboardTeacherChaptersRoute
   DashboardTeacherDashboardRoute: typeof DashboardTeacherDashboardRoute
+  DashboardTeacherQuestionBankRoute: typeof DashboardTeacherQuestionBankRoute
   DashboardTeacherTutoringRoute: typeof DashboardTeacherTutoringRouteWithChildren
   DashboardAdminForumIdRoute: typeof DashboardAdminForumIdRoute
   DashboardStudentForumIdRoute: typeof DashboardStudentForumIdRoute
@@ -804,6 +825,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardStudentTutoringRoute: DashboardStudentTutoringRouteWithChildren,
   DashboardTeacherChaptersRoute: DashboardTeacherChaptersRoute,
   DashboardTeacherDashboardRoute: DashboardTeacherDashboardRoute,
+  DashboardTeacherQuestionBankRoute: DashboardTeacherQuestionBankRoute,
   DashboardTeacherTutoringRoute: DashboardTeacherTutoringRouteWithChildren,
   DashboardAdminForumIdRoute: DashboardAdminForumIdRoute,
   DashboardStudentForumIdRoute: DashboardStudentForumIdRoute,
