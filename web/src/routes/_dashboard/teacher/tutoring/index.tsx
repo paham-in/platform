@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getTutoringBookingsOptions, getTutoringBookingsQueryKey, patchTutoringBookingsByIdMutation } from "@/lib/api/@tanstack/react-query.gen"
@@ -36,74 +36,78 @@ function TeacherTutoringIndex() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader><CardTitle>Permintaan Baru</CardTitle></CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/30">
-                <TableHead className="pl-6">Murid</TableHead>
-                <TableHead>Tanggal</TableHead>
-                <TableHead>Jam</TableHead>
-                <TableHead>Catatan</TableHead>
-                <TableHead className="pr-6 text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pendingBookings.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada permintaan</TableCell></TableRow>
-              ) : pendingBookings.map((b) => (
-                <TableRow key={b.id}>
-                  <TableCell className="pl-6 font-medium">{b.student_name}</TableCell>
-                  <TableCell>{b.date}</TableCell>
-                  <TableCell>{b.start_time} - {b.end_time}</TableCell>
-                  <TableCell className="max-w-[200px] truncate text-muted-foreground">{b.note || "-"}</TableCell>
-                  <TableCell className="pr-6 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button size="sm" onClick={() => updateStatus({ path: { id: b.id! }, body: { status: "confirmed" } })}>
-                        <CheckCircle2 className="h-4 w-4" /> Setuju
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => updateStatus({ path: { id: b.id! }, body: { status: "rejected" } })}>
-                        <XCircle className="h-4 w-4" /> Tolak
-                      </Button>
-                    </div>
-                  </TableCell>
+      <div>
+        <h2 className="mb-2 text-lg font-semibold">Permintaan Baru</h2>
+        <Card className="pt-0 gap-0 pb-0">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="pl-6">Murid</TableHead>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Jam</TableHead>
+                  <TableHead>Catatan</TableHead>
+                  <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {pendingBookings.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada permintaan</TableCell></TableRow>
+                ) : pendingBookings.map((b) => (
+                  <TableRow key={b.id}>
+                    <TableCell className="pl-6 font-medium">{b.student_name}</TableCell>
+                    <TableCell>{b.date}</TableCell>
+                    <TableCell>{b.start_time} - {b.end_time}</TableCell>
+                    <TableCell className="max-w-[200px] truncate text-muted-foreground">{b.note || "-"}</TableCell>
+                    <TableCell className="pr-6 text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" onClick={() => updateStatus({ path: { id: b.id! }, body: { status: "confirmed" } })}>
+                          <CheckCircle2 className="h-4 w-4" /> Setuju
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => updateStatus({ path: { id: b.id! }, body: { status: "rejected" } })}>
+                          <XCircle className="h-4 w-4" /> Tolak
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
 
-      <Card>
-        <CardHeader><CardTitle>Riwayat Booking</CardTitle></CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/30">
-                <TableHead className="pl-6">Murid</TableHead>
-                <TableHead>Tanggal</TableHead>
-                <TableHead>Jam</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="pr-6">Dibuat</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {otherBookings.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada riwayat</TableCell></TableRow>
-              ) : otherBookings.map((b) => (
-                <TableRow key={b.id}>
-                  <TableCell className="pl-6 font-medium">{b.student_name}</TableCell>
-                  <TableCell>{b.date}</TableCell>
-                  <TableCell>{b.start_time} - {b.end_time}</TableCell>
-                  <TableCell>{statusBadge(b.status!)}</TableCell>
-                  <TableCell className="text-muted-foreground">{b.created_at}</TableCell>
+      <div>
+        <h2 className="mb-2 text-lg font-semibold">Riwayat Booking</h2>
+        <Card className="pt-0 gap-0 pb-0">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="pl-6">Murid</TableHead>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Jam</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="pr-6">Dibuat</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {otherBookings.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada riwayat</TableCell></TableRow>
+                ) : otherBookings.map((b) => (
+                  <TableRow key={b.id}>
+                    <TableCell className="pl-6 font-medium">{b.student_name}</TableCell>
+                    <TableCell>{b.date}</TableCell>
+                    <TableCell>{b.start_time} - {b.end_time}</TableCell>
+                    <TableCell>{statusBadge(b.status!)}</TableCell>
+                    <TableCell className="text-muted-foreground">{b.created_at}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
