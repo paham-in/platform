@@ -85,13 +85,6 @@ function ForumDetail() {
   return (
     <main className="mx-auto w-full max-w-3xl p-6">
       <div className="mb-2 flex items-center gap-2">
-        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-          question.status === "open" ? "bg-green-100 text-green-700" :
-          question.status === "answered" ? "bg-blue-100 text-blue-700" :
-          "bg-gray-100 text-gray-700"
-        }`}>
-          {question.status === "open" ? "Terbuka" : question.status === "answered" ? "Terjawab" : "Tertutup"}
-        </span>
         {question.subject_name && (
           <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
             {question.subject_name}
