@@ -3,6 +3,8 @@ package chapter
 import (
 	"strconv"
 
+	"bimbel2/backend/internal/storage"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -146,9 +148,9 @@ func (h *Handler) AdminDeleteChapter(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "berhasil dihapus"})
 }
 
-func AdminRoutes(admin fiber.Router, db *gorm.DB) {
+func AdminRoutes(admin fiber.Router, db *gorm.DB, minio *storage.MinioClient) {
 	repo := NewRepository(db)
-	svc := NewService(repo)
+	svc := NewService(repo, minio)
 	h := NewHandler(svc)
 
 	admin.Get("/chapters", h.AdminListChapters)
@@ -172,9 +174,9 @@ func (h *Handler) ListChapters(c *fiber.Ctx) error {
 	return h.AdminListChapters(c)
 }
 
-func PublicRoutes(app fiber.Router, db *gorm.DB) {
+func PublicRoutes(app fiber.Router, db *gorm.DB, minio *storage.MinioClient) {
 	repo := NewRepository(db)
-	svc := NewService(repo)
+	svc := NewService(repo, minio)
 	h := NewHandler(svc)
 
 	app.Get("/chapters", h.ListChapters)

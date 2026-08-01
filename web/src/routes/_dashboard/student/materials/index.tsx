@@ -108,32 +108,34 @@ function MaterialsPage() {
         )}
         {filtered.map((c) => (
           <Link key={c.id} to="/student/materials/chapters/$id" params={{ id: String(c.id!) }}>
-            <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-              <CardContent className="p-5">
-                <div className="flex gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold">{c.title}</h3>
-                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1">
-                        <GraduationCap className="h-3 w-3" />
-                        {className(c.class_id)}
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <Layers className="h-3 w-3" />
-                        {subjectName(c.subject_id)}
-                      </span>
-                      {c.material_count ? (
-                        <span>{c.material_count} materi</span>
-                      ) : null}
-                    </div>
-                    <Button variant="link" size="sm" className="mt-2 h-auto p-0 text-xs">
-                      Lihat <ChevronRight className="ml-0.5 h-3 w-3" />
-                    </Button>
-                  </div>
+            <Card className="cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
+              {c.cover_url ? (
+                <div className="aspect-video w-full overflow-hidden">
+                  <img src={c.cover_url} alt="" className="h-full w-full object-cover" />
                 </div>
+              ) : (
+                <div className="flex aspect-video w-full items-center justify-center bg-muted/30">
+                  <BookOpen className="h-8 w-8 text-muted-foreground/40" />
+                </div>
+              )}
+              <CardContent className="p-5">
+                <h3 className="font-semibold">{c.title}</h3>
+                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <GraduationCap className="h-3 w-3" />
+                    {className(c.class_id)}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Layers className="h-3 w-3" />
+                    {subjectName(c.subject_id)}
+                  </span>
+                  {c.material_count ? (
+                    <span>{c.material_count} materi</span>
+                  ) : null}
+                </div>
+                <Button variant="link" size="sm" className="mt-2 h-auto p-0 text-xs">
+                  Lihat <ChevronRight className="ml-0.5 h-3 w-3" />
+                </Button>
               </CardContent>
             </Card>
           </Link>

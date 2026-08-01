@@ -77,7 +77,7 @@ func main() {
 	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))
 	user.AuthRoutes(auth, db)
 	class.PublicRoutes(auth, db)
-	chapter.PublicRoutes(auth, db)
+	chapter.PublicRoutes(auth, db, minioClient)
 	material.PublicRoutes(auth, db)
 		tutoring.Routes(auth, db)
 	answer.AuthRoutes(auth, db)
@@ -88,11 +88,12 @@ func main() {
 	// Teacher + admin shared resources (register first so teacher can pass)
 	staff := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin", "teacher"))
 	material.AdminRoutes(staff, db)
-	chapter.AdminRoutes(staff, db)
+	chapter.AdminRoutes(staff, db, minioClient)
 	class.AdminRoutes(staff, db)
 	subject.AdminRoutes(staff, db)
 	if minioClient != nil {
 		gallery.Routes(staff, db, minioClient)
+		chapter.CoverRoutes(staff, db, minioClient)
 	}
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))

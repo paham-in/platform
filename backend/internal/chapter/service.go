@@ -1,17 +1,21 @@
 package chapter
 
 import (
+	"context"
 	"strings"
+	"time"
 
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/storage"
 )
 
 type Service struct {
-	repo *Repository
+	repo  *Repository
+	minio *storage.MinioClient
 }
 
-func NewService(repo *Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo *Repository, minio *storage.MinioClient) *Service {
+	return &Service{repo: repo, minio: minio}
 }
 
 type ChapterResponse struct {
@@ -23,6 +27,7 @@ type ChapterResponse struct {
 	Title         string `json:"title"`
 	Slug          string `json:"slug"`
 	Description   string `json:"description"`
+	CoverURL      string `json:"cover_url"`
 	Order         int    `json:"order"`
 	MaterialCount int64  `json:"material_count"`
 }
@@ -53,11 +58,12 @@ func (s *Service) Get(id uint) (*ChapterResponse, error) {
 }
 
 type CreateInput struct {
-	ClassID   uint   `json:"class_id"`
-	SubjectID uint   `json:"subject_id"`
-	Title     string `json:"title"`
+	ClassID     uint   `json:"class_id"`
+	SubjectID   uint   `json:"subject_id"`
+	Title       string `json:"title"`
 	Description string `json:"description"`
-	Order     int    `json:"order"`
+	CoverURL    string `json:"cover_url"`
+	Order       int    `json:"order"`
 }
 
 func (s *Service) Create(input CreateInput) (*ChapterResponse, error) {
@@ -68,6 +74,7 @@ func (s *Service) Create(input CreateInput) (*ChapterResponse, error) {
 		Title:       input.Title,
 		Slug:        slug,
 		Description: input.Description,
+		CoverURL:    input.CoverURL,
 		Order:       input.Order,
 	}
 	if err := s.repo.Create(&chapter); err != nil {
@@ -84,6 +91,7 @@ func (s *Service) Create(input CreateInput) (*ChapterResponse, error) {
 type UpdateInput struct {
 	Title       *string `json:"title"`
 	Description *string `json:"description"`
+	CoverURL    *string `json:"cover_url"`
 	Order       *int    `json:"order"`
 }
 
@@ -95,6 +103,9 @@ func (s *Service) Update(id uint, input UpdateInput) (*ChapterResponse, error) {
 	}
 	if input.Description != nil {
 		updates["description"] = *input.Description
+	}
+	if input.CoverURL != nil {
+		updates["cover_url"] = *input.CoverURL
 	}
 	if input.Order != nil {
 		updates["order"] = *input.Order
@@ -121,6 +132,12 @@ func (s *Service) toResponse(c models.Chapter) ChapterResponse {
 		subjectName = c.Subject.Name
 	}
 	count, _ := s.repo.MaterialCount(c.ID)
+	coverURL := c.CoverURL
+	if coverURL != "" && s.minio != nil {
+		if presigned, err := s.minio.PresignedURL(context.Background(), coverURL, 24*time.Hour); err == nil {
+			coverURL = presigned
+		}
+	}
 	return ChapterResponse{
 		ID:            c.ID,
 		ClassID:       c.ClassID,
@@ -130,6 +147,7 @@ func (s *Service) toResponse(c models.Chapter) ChapterResponse {
 		Title:         c.Title,
 		Slug:          c.Slug,
 		Description:   c.Description,
+		CoverURL:      coverURL,
 		Order:         c.Order,
 		MaterialCount: count,
 	}

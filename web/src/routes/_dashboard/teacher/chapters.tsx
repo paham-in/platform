@@ -40,6 +40,7 @@ import {
   patchAdminChaptersByIdMutation,
   postAdminChaptersMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
+import { postAdminChaptersByIdCover } from "@/lib/api/sdk.gen";
 import type { ChapterChapterResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -79,6 +80,9 @@ function AdminChapters() {
     class_id: "",
     subject_id: "",
   });
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string>("");
+  const [uploadingCover, setUploadingCover] = useState(false);
   const perPage = 5;
 
   const { mutate: createChapter } = useMutation({
@@ -116,6 +120,8 @@ function AdminChapters() {
   const openAdd = () => {
     setEditing(null);
     setForm({ title: "", description: "", order: 0, class_id: "", subject_id: "" });
+    setCoverFile(null);
+    setCoverPreview("");
     setDialogOpen(true);
   };
   const openEdit = (c: ChapterChapterResponse) => {
@@ -127,9 +133,23 @@ function AdminChapters() {
       class_id: String(c.class_id ?? ""),
       subject_id: String(c.subject_id ?? ""),
     });
+    setCoverFile(null);
+    setCoverPreview("");
     setDialogOpen(true);
   };
-  const save = () => {
+  const uploadCover = async (chapterId: number): Promise<boolean> => {
+    if (!coverFile) return true
+    setUploadingCover(true)
+    try {
+      await postAdminChaptersByIdCover({ path: { id: chapterId }, body: { image: coverFile } })
+      return true
+    } catch {
+      return false
+    } finally {
+      setUploadingCover(false)
+    }
+  }
+  const save = async () => {
     if (editing) {
       updateChapter({
         path: { id: editing.id! },
@@ -137,6 +157,10 @@ function AdminChapters() {
           title: form.title || undefined,
           description: form.description || undefined,
           order: form.order,
+        },
+      }, {
+        onSuccess: async () => {
+          if (coverFile) await uploadCover(editing.id!)
         },
       });
     } else {
@@ -147,6 +171,10 @@ function AdminChapters() {
           order: form.order,
           class_id: Number(form.class_id),
           subject_id: Number(form.subject_id),
+        },
+      }, {
+        onSuccess: async (data) => {
+          if (coverFile && data?.id) await uploadCover(data.id)
         },
       });
     }
@@ -219,6 +247,30 @@ function AdminChapters() {
                     }
                     placeholder="Judul chapter"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cover (opsional)</Label>
+                  <div className="flex items-center gap-3">
+                    {(coverPreview || editing?.cover_url) && (
+                      <img
+                        src={coverPreview || editing?.cover_url}
+                        alt=""
+                        className="h-16 w-24 rounded-lg border object-cover"
+                      />
+                    )}
+                    <Input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) {
+                          setCoverFile(f)
+                          setCoverPreview(URL.createObjectURL(f))
+                        }
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">JPG, PNG, GIF, WebP. Maks 5MB.</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Kelas</Label>
@@ -295,8 +347,8 @@ function AdminChapters() {
                   >
                     Batal
                   </Button>
-                  <Button onClick={save} disabled={!form.title || !form.class_id || !form.subject_id}>
-                    {editing ? "Simpan" : "Tambah"}
+                  <Button onClick={save} disabled={!form.title || !form.class_id || !form.subject_id || uploadingCover}>
+                    {uploadingCover ? "Mengupload..." : editing ? "Simpan" : "Tambah"}
                   </Button>
                 </div>
               </div>

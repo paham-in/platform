@@ -93,6 +93,10 @@ func (m *MinioClient) Delete(ctx context.Context, objectName string) error {
 }
 
 func (m *MinioClient) GenerateObjectName(filename string) string {
+	return m.GenerateObjectNameIn("forum", filename)
+}
+
+func (m *MinioClient) GenerateObjectNameIn(folder, filename string) string {
 	ext := ""
 	for i := len(filename) - 1; i >= 0; i-- {
 		if filename[i] == '.' {
@@ -100,6 +104,6 @@ func (m *MinioClient) GenerateObjectName(filename string) string {
 			break
 		}
 	}
-	return fmt.Sprintf("forum/%s%s", uuid.NewString(), ext)
+	return fmt.Sprintf("%s/%s%s", folder, uuid.NewString(), ext)
 }
 

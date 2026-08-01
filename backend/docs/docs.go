@@ -190,6 +190,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/chapters/{id}/cover": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengunggah gambar cover untuk chapter",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chapters"
+                ],
+                "summary": "Upload chapter cover",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Chapter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "File gambar",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/chapter.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/chapter.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/classes": {
             "get": {
                 "security": [
@@ -2329,6 +2379,9 @@ const docTemplate = `{
                 "class_name": {
                     "type": "string"
                 },
+                "cover_url": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -2360,6 +2413,9 @@ const docTemplate = `{
             "properties": {
                 "class_id": {
                     "type": "integer"
+                },
+                "cover_url": {
+                    "type": "string"
                 },
                 "description": {
                     "type": "string"
@@ -2394,6 +2450,9 @@ const docTemplate = `{
         "chapter.UpdateInput": {
             "type": "object",
             "properties": {
+                "cover_url": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },

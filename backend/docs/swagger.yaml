@@ -38,6 +38,8 @@ definitions:
         type: integer
       class_name:
         type: string
+      cover_url:
+        type: string
       description:
         type: string
       id:
@@ -59,6 +61,8 @@ definitions:
     properties:
       class_id:
         type: integer
+      cover_url:
+        type: string
       description:
         type: string
       order:
@@ -80,6 +84,8 @@ definitions:
     type: object
   chapter.UpdateInput:
     properties:
+      cover_url:
+        type: string
       description:
         type: string
       order:
@@ -575,6 +581,38 @@ paths:
       summary: Update chapter
       tags:
       - Admin
+  /admin/chapters/{id}/cover:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Mengunggah gambar cover untuk chapter
+      parameters:
+      - description: Chapter ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: File gambar
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chapter.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/chapter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload chapter cover
+      tags:
+      - Chapters
   /admin/classes:
     get:
       consumes:

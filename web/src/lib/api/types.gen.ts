@@ -29,6 +29,7 @@ export type AnswerMessageResponse = {
 export type ChapterChapterResponse = {
     class_id?: number;
     class_name?: string;
+    cover_url?: string;
     description?: string;
     id?: number;
     material_count?: number;
@@ -41,6 +42,7 @@ export type ChapterChapterResponse = {
 
 export type ChapterCreateInput = {
     class_id?: number;
+    cover_url?: string;
     description?: string;
     order?: number;
     subject_id?: number;
@@ -56,6 +58,7 @@ export type ChapterMessageResponse = {
 };
 
 export type ChapterUpdateInput = {
+    cover_url?: string;
     description?: string;
     order?: number;
     title?: string;
@@ -396,6 +399,41 @@ export type PatchAdminChaptersByIdResponses = {
 };
 
 export type PatchAdminChaptersByIdResponse = PatchAdminChaptersByIdResponses[keyof PatchAdminChaptersByIdResponses];
+
+export type PostAdminChaptersByIdCoverData = {
+    body: {
+        /**
+         * File gambar
+         */
+        image: Blob | File;
+    };
+    path: {
+        /**
+         * Chapter ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/chapters/{id}/cover';
+};
+
+export type PostAdminChaptersByIdCoverErrors = {
+    /**
+     * Bad Request
+     */
+    400: ChapterErrorResponse;
+};
+
+export type PostAdminChaptersByIdCoverError = PostAdminChaptersByIdCoverErrors[keyof PostAdminChaptersByIdCoverErrors];
+
+export type PostAdminChaptersByIdCoverResponses = {
+    /**
+     * OK
+     */
+    200: ChapterMessageResponse;
+};
+
+export type PostAdminChaptersByIdCoverResponse = PostAdminChaptersByIdCoverResponses[keyof PostAdminChaptersByIdCoverResponses];
 
 export type GetAdminClassesData = {
     body?: never;
