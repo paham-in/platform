@@ -118,7 +118,7 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Isi Pertanyaan</Label>
-          <TiptapEditor content={content} onChange={setContent} />
+          <TiptapEditor content={content} onChange={setContent} allowImages={false} />
         </div>
 
         {/* Images */}

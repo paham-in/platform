@@ -60,10 +60,12 @@ export function TiptapEditor({
   content,
   onChange,
   editable = true,
+  allowImages = true,
 }: {
   content: string;
   onChange: (html: string) => void;
   editable?: boolean;
+  allowImages?: boolean;
 }) {
   const [mathOpen, setMathOpen] = useState(false)
   const [editLatex, setEditLatex] = useState<string | null>(null)
@@ -151,7 +153,7 @@ export function TiptapEditor({
 
   return (
     <div className="rounded-md border">
-      <Toolbar editor={editor} onOpenMath={openMathForInsert} onOpenGallery={() => setGalleryOpen(true)} />
+      <Toolbar editor={editor} onOpenMath={openMathForInsert} onOpenGallery={() => setGalleryOpen(true)} allowImages={allowImages} />
       <div ref={editorElRef}>
         <EditorContent
           editor={editor}
@@ -164,11 +166,13 @@ export function TiptapEditor({
         onOpenChange={(v) => { setMathOpen(v); if (!v) setEditLatex(null) }}
         onInsert={handleMathInsert}
       />
-      <GalleryPicker
-        open={galleryOpen}
-        onOpenChange={setGalleryOpen}
-        onInsert={(url) => editor.chain().focus().setImage({ src: url }).run()}
-      />
+      {allowImages && (
+        <GalleryPicker
+          open={galleryOpen}
+          onOpenChange={setGalleryOpen}
+          onInsert={(url) => editor.chain().focus().setImage({ src: url }).run()}
+        />
+      )}
 
       <Dialog open={resizeOpen} onOpenChange={setResizeOpen}>
         <DialogContent>
@@ -188,7 +192,7 @@ export function TiptapEditor({
   );
 }
 
-function Toolbar({ editor, onOpenMath, onOpenGallery }: { editor: Editor; onOpenMath: () => void; onOpenGallery: () => void }) {
+function Toolbar({ editor, onOpenMath, onOpenGallery, allowImages }: { editor: Editor; onOpenMath: () => void; onOpenGallery: () => void; allowImages: boolean }) {
   const items = [
     { icon: UndoIcon, action: () => editor.chain().focus().undo().run(), active: false },
     { icon: RedoIcon, action: () => editor.chain().focus().redo().run(), active: false },
@@ -207,7 +211,7 @@ function Toolbar({ editor, onOpenMath, onOpenGallery }: { editor: Editor; onOpen
     { icon: QuoteIcon, action: () => editor.chain().focus().toggleBlockquote().run(), active: editor.isActive("blockquote") },
     { type: "sep" as const },
     { icon: Sigma, action: onOpenMath, active: editor.isActive("blockMath") },
-    { icon: ImageIcon, action: onOpenGallery, active: false },
+    ...(allowImages ? [{ icon: ImageIcon, action: onOpenGallery, active: false }] : []),
   ];
 
   return (

@@ -198,7 +198,7 @@ function ForumDetail() {
       {!isOwner && (
         <section className="mt-6 space-y-3 rounded-lg border p-4">
           <h3 className="text-sm font-semibold">Tulis Jawaban</h3>
-          <TiptapEditor content={answerContent} onChange={setAnswerContent} />
+          <TiptapEditor content={answerContent} onChange={setAnswerContent} allowImages={false} />
           <div className="flex justify-end">
             <Button
               onClick={() => submitAnswer({ path: { question_id: questionId }, body: { content: answerContent } })}
