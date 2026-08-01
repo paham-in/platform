@@ -47,6 +47,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   ChevronLeft,
   ChevronRight,
+  ImageIcon,
   Loader2,
   MoreVertical,
   Pencil,
@@ -83,6 +84,7 @@ function AdminChapters() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string>("");
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [coverView, setCoverView] = useState<ChapterChapterResponse | null>(null);
   const perPage = 5;
 
   const { mutateAsync: createChapter } = useMutation({
@@ -385,6 +387,9 @@ function AdminChapters() {
                             <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
+                          <DropdownMenuItem disabled={!c.cover_url} onClick={() => setCoverView(c)}>
+                            <ImageIcon className="h-4 w-4" /> Lihat Cover
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openEdit(c)}>
                             <Pencil className="h-4 w-4" /> Edit
                           </DropdownMenuItem>
@@ -436,6 +441,19 @@ function AdminChapters() {
           )}
         </Card>
       </main>
+
+      {coverView && (
+        <Dialog open onOpenChange={(o) => !o && setCoverView(null)}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Cover — {coverView.title}</DialogTitle>
+            </DialogHeader>
+            <div className="overflow-hidden rounded-lg border">
+              <img src={coverView.cover_url} alt={coverView.title} className="w-full" />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {deleteConfirm && <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <AlertDialogContent>
