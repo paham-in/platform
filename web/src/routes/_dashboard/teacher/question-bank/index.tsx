@@ -8,14 +8,20 @@ import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFoo
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAdminChaptersOptions, getAdminQuestionsBankOptions, getAdminQuestionsBankQueryKey, postAdminQuestionsBankMutation, patchAdminQuestionsBankByIdMutation, deleteAdminQuestionsBankByIdMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { getAdminChaptersOptions, getAdminQuestionsBankOptions, getAdminQuestionsBankQueryKey, patchAdminQuestionsBankByIdMutation, deleteAdminQuestionsBankByIdMutation } from "@/lib/api/@tanstack/react-query.gen";
 import type { QuestionbankQuestionResponse } from "@/lib/api/types.gen";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Loader2, MoreVertical, Pencil, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E"]
+
+function stripHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html")
+  return (doc.body.textContent || "").trim()
+}
 
 function TeacherQuestionBank() {
   const qc = useQueryClient()
@@ -35,16 +41,6 @@ function TeacherQuestionBank() {
     options: ["", "", "", ""],
     correct_index: 0,
     explanation: "",
-  })
-
-  const { mutate: createQuestion } = useMutation({
-    ...postAdminQuestionsBankMutation(),
-    onSuccess: () => {
-      setDialogOpen(false)
-      qc.invalidateQueries({ queryKey: getAdminQuestionsBankQueryKey() })
-      toast.success("Soal berhasil ditambahkan")
-    },
-    onError: (err: any) => toast.error(err?.error || "Gagal menambah soal"),
   })
 
   const { mutate: updateQuestion } = useMutation({
@@ -73,11 +69,6 @@ function TeacherQuestionBank() {
   const totalPages = Math.ceil(filtered.length / perPage)
   const paged = filtered.slice((page - 1) * perPage, page * perPage)
 
-  const openAdd = () => {
-    setEditing(null)
-    setForm({ chapter_id: "", question: "", options: ["", "", "", ""], correct_index: 0, explanation: "" })
-    setDialogOpen(true)
-  }
   const openEdit = (q: QuestionbankQuestionResponse) => {
     setEditing(q)
     setForm({
@@ -89,20 +80,19 @@ function TeacherQuestionBank() {
     })
     setDialogOpen(true)
   }
-  const save = () => {
+  const saveEdit = () => {
     const options = form.options.filter((o) => o.trim() !== "")
-    const payload = {
-      chapter_id: Number(form.chapter_id),
-      question: form.question,
-      options,
-      correct_index: form.correct_index,
-      explanation: form.explanation,
-    }
-    if (editing) {
-      updateQuestion({ path: { id: editing.id! }, body: payload })
-    } else {
-      createQuestion({ body: payload })
-    }
+    if (!editing) return
+    updateQuestion({
+      path: { id: editing.id! },
+      body: {
+        chapter_id: Number(form.chapter_id),
+        question: form.question,
+        options,
+        correct_index: form.correct_index,
+        explanation: form.explanation,
+      },
+    })
   }
 
   if (isLoading) return <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
@@ -124,7 +114,9 @@ function TeacherQuestionBank() {
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={openAdd}><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
+          <Link to="/teacher/question-bank/new">
+            <Button><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
+          </Link>
         </div>
 
         <Card className="pt-0 gap-0 pb-0">
@@ -144,7 +136,7 @@ function TeacherQuestionBank() {
                   <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada soal</TableCell></TableRow>
                 ) : paged.map((q) => (
                   <TableRow key={q.id}>
-                    <TableCell className="pl-6 font-medium max-w-[400px] truncate">{q.question}</TableCell>
+                    <TableCell className="pl-6 font-medium max-w-[400px] truncate">{stripHtml(q.question ?? "")}</TableCell>
                     <TableCell className="text-muted-foreground">{q.chapter_title || "-"}</TableCell>
                     <TableCell className="text-muted-foreground">{q.options?.length ?? 0}</TableCell>
                     <TableCell className="text-muted-foreground">{q.created_at}</TableCell>
@@ -180,10 +172,10 @@ function TeacherQuestionBank() {
         </Card>
       </main>
 
-      {/* create/edit dialog */}
+      {/* edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing ? "Edit Soal" : "Tambah Soal"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Edit Soal</DialogTitle></DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
               <Label>Chapter</Label>
@@ -198,12 +190,7 @@ function TeacherQuestionBank() {
             </div>
             <div className="space-y-2">
               <Label>Pertanyaan</Label>
-              <textarea
-                className="min-h-[80px] w-full rounded-md border bg-transparent px-3 py-2 text-sm outline-none focus:border-ring"
-                value={form.question}
-                onChange={(e) => setForm({ ...form, question: e.target.value })}
-                placeholder="Tulis pertanyaan..."
-              />
+              <TiptapEditor content={form.question} onChange={(html) => setForm({ ...form, question: html })} />
             </div>
             <div className="space-y-3">
               <Label>Opsi Jawaban</Label>
@@ -253,8 +240,8 @@ function TeacherQuestionBank() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Batal</Button>
-            <Button onClick={save} disabled={!form.chapter_id || !form.question || form.options.filter((o) => o.trim()).length < 2}>
-              {editing ? "Simpan" : "Tambah"}
+            <Button onClick={saveEdit} disabled={!form.chapter_id || !form.question || form.options.filter((o) => o.trim()).length < 2}>
+              Simpan
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -278,6 +265,6 @@ function TeacherQuestionBank() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/question-bank")({
+export const Route = createFileRoute("/_dashboard/teacher/question-bank/")({
   component: TeacherQuestionBank,
 })
