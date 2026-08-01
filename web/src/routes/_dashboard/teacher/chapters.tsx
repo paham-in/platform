@@ -85,17 +85,15 @@ function AdminChapters() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const perPage = 5;
 
-  const { mutate: createChapter } = useMutation({
+  const { mutateAsync: createChapter } = useMutation({
     ...postAdminChaptersMutation(),
     onSuccess: () => {
-      setDialogOpen(false);
       qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() });
     },
   });
-  const { mutate: updateChapter } = useMutation({
+  const { mutateAsync: updateChapter } = useMutation({
     ...patchAdminChaptersByIdMutation(),
     onSuccess: () => {
-      setDialogOpen(false);
       qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() });
     },
   });
@@ -151,20 +149,17 @@ function AdminChapters() {
   }
   const save = async () => {
     if (editing) {
-      updateChapter({
+      await updateChapter({
         path: { id: editing.id! },
         body: {
           title: form.title || undefined,
           description: form.description || undefined,
           order: form.order,
         },
-      }, {
-        onSuccess: async () => {
-          if (coverFile) await uploadCover(editing.id!)
-        },
       });
+      if (coverFile) await uploadCover(editing.id!)
     } else {
-      createChapter({
+      const data = await createChapter({
         body: {
           title: form.title,
           description: form.description,
@@ -172,12 +167,10 @@ function AdminChapters() {
           class_id: Number(form.class_id),
           subject_id: Number(form.subject_id),
         },
-      }, {
-        onSuccess: async (data) => {
-          if (coverFile && data?.id) await uploadCover(data.id)
-        },
       });
+      if (coverFile && data?.id) await uploadCover(data.id)
     }
+    setDialogOpen(false);
   };
 
   if (isLoading) {
