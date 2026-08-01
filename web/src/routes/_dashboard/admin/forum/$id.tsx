@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { RichContent } from "@/components/ui/rich-content"
 import { TiptapEditor } from "@/components/ui/tiptap-editor"
@@ -10,6 +10,7 @@ import {
   getQuestionsByQuestionIdAnswersQueryKey,
   postQuestionsByQuestionIdAnswersMutation,
   deleteQuestionsByQuestionIdAnswersByIdMutation,
+  getQuestionsByQuestionIdImagesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
@@ -26,8 +27,6 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 
-type QuestionImage = { id: number; url: string; file_name: string }
-
 function ForumDetail() {
   const qc = useQueryClient()
   const { id } = useParams({ from: "/_dashboard/admin/forum/$id" })
@@ -37,15 +36,10 @@ function ForumDetail() {
   const { data: answers = [] } = useQuery(
     getQuestionsByQuestionIdAnswersOptions({ path: { question_id: questionId } })
   )
-  const [images, setImages] = useState<QuestionImage[]>([])
   const [answerContent, setAnswerContent] = useState("")
-
-  useEffect(() => {
-    fetch(`http://localhost:8080/questions/${questionId}/images`)
-      .then((r) => r.json())
-      .then(setImages)
-      .catch(() => {})
-  }, [questionId])
+  const { data: images = [] } = useQuery(
+    getQuestionsByQuestionIdImagesOptions({ path: { question_id: questionId } })
+  )
 
   const { mutate: submitAnswer, isPending } = useMutation({
     ...postQuestionsByQuestionIdAnswersMutation(),

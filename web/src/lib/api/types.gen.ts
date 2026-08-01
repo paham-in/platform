@@ -147,7 +147,6 @@ export type MaterialCreateInput = {
     status?: string;
     title?: string;
     type?: string;
-    video_source?: string;
     video_url?: string;
 };
 
@@ -166,7 +165,6 @@ export type MaterialMaterialResponse = {
     status?: string;
     title?: string;
     type?: string;
-    video_source?: string;
     video_url?: string;
 };
 
@@ -182,7 +180,6 @@ export type MaterialUpdateInput = {
     status?: string;
     title?: string;
     type?: string;
-    video_source?: string;
     video_url?: string;
 };
 
@@ -257,6 +254,12 @@ export type TutoringErrorResponse = {
 
 export type TutoringMessageResponse = {
     message?: string;
+};
+
+export type UploadUploadResponse = {
+    file_name?: string;
+    id?: number;
+    url?: string;
 };
 
 export type UserAdminUserResponse = {
@@ -739,41 +742,6 @@ export type PatchAdminMaterialsByIdResponses = {
 };
 
 export type PatchAdminMaterialsByIdResponse = PatchAdminMaterialsByIdResponses[keyof PatchAdminMaterialsByIdResponses];
-
-export type PostAdminMaterialsByIdVideoData = {
-    body: {
-        /**
-         * File video
-         */
-        video: Blob | File;
-    };
-    path: {
-        /**
-         * Material ID
-         */
-        id: number;
-    };
-    query?: never;
-    url: '/admin/materials/{id}/video';
-};
-
-export type PostAdminMaterialsByIdVideoErrors = {
-    /**
-     * Bad Request
-     */
-    400: MaterialErrorResponse;
-};
-
-export type PostAdminMaterialsByIdVideoError = PostAdminMaterialsByIdVideoErrors[keyof PostAdminMaterialsByIdVideoErrors];
-
-export type PostAdminMaterialsByIdVideoResponses = {
-    /**
-     * OK
-     */
-    200: MaterialMaterialResponse;
-};
-
-export type PostAdminMaterialsByIdVideoResponse = PostAdminMaterialsByIdVideoResponses[keyof PostAdminMaterialsByIdVideoResponses];
 
 export type GetAdminQuestionsData = {
     body?: never;
@@ -1279,36 +1247,6 @@ export type GetMaterialsByIdResponses = {
 
 export type GetMaterialsByIdResponse = GetMaterialsByIdResponses[keyof GetMaterialsByIdResponses];
 
-export type GetMaterialsByIdVideoData = {
-    body?: never;
-    path: {
-        /**
-         * Material ID
-         */
-        id: number;
-    };
-    query?: never;
-    url: '/materials/{id}/video';
-};
-
-export type GetMaterialsByIdVideoErrors = {
-    /**
-     * Not Found
-     */
-    404: MaterialErrorResponse;
-};
-
-export type GetMaterialsByIdVideoError = GetMaterialsByIdVideoErrors[keyof GetMaterialsByIdVideoErrors];
-
-export type GetMaterialsByIdVideoResponses = {
-    /**
-     * OK
-     */
-    200: Blob | File;
-};
-
-export type GetMaterialsByIdVideoResponse = GetMaterialsByIdVideoResponses[keyof GetMaterialsByIdVideoResponses];
-
 export type GetMeData = {
     body?: never;
     path?: never;
@@ -1559,6 +1497,64 @@ export type DeleteQuestionsByQuestionIdAnswersByIdResponses = {
 };
 
 export type DeleteQuestionsByQuestionIdAnswersByIdResponse = DeleteQuestionsByQuestionIdAnswersByIdResponses[keyof DeleteQuestionsByQuestionIdAnswersByIdResponses];
+
+export type GetQuestionsByQuestionIdImagesData = {
+    body?: never;
+    path: {
+        /**
+         * Question ID
+         */
+        question_id: number;
+    };
+    query?: never;
+    url: '/questions/{question_id}/images';
+};
+
+export type GetQuestionsByQuestionIdImagesResponses = {
+    /**
+     * OK
+     */
+    200: Array<UploadUploadResponse>;
+};
+
+export type GetQuestionsByQuestionIdImagesResponse = GetQuestionsByQuestionIdImagesResponses[keyof GetQuestionsByQuestionIdImagesResponses];
+
+export type PostQuestionsByQuestionIdImagesData = {
+    body: {
+        /**
+         * File gambar
+         */
+        image: Blob | File;
+    };
+    path: {
+        /**
+         * Question ID
+         */
+        question_id: number;
+    };
+    query?: never;
+    url: '/questions/{question_id}/images';
+};
+
+export type PostQuestionsByQuestionIdImagesErrors = {
+    /**
+     * Bad Request
+     */
+    400: {
+        [key: string]: unknown;
+    };
+};
+
+export type PostQuestionsByQuestionIdImagesError = PostQuestionsByQuestionIdImagesErrors[keyof PostQuestionsByQuestionIdImagesErrors];
+
+export type PostQuestionsByQuestionIdImagesResponses = {
+    /**
+     * Created
+     */
+    201: UploadUploadResponse;
+};
+
+export type PostQuestionsByQuestionIdImagesResponse = PostQuestionsByQuestionIdImagesResponses[keyof PostQuestionsByQuestionIdImagesResponses];
 
 export type GetSubjectsData = {
     body?: never;

@@ -726,56 +726,6 @@
                 }
             }
         },
-        "/admin/materials/{id}/video": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Upload video ke MinIO untuk materi",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Materials"
-                ],
-                "summary": "Upload material video",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Material ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "File video",
-                        "name": "video",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/material.MaterialResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/material.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/admin/questions": {
             "get": {
                 "security": [
@@ -1569,43 +1519,6 @@
                 }
             }
         },
-        "/materials/{id}/video": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Streaming video materi dengan range support",
-                "produces": [
-                    "video/mp4"
-                ],
-                "tags": [
-                    "Materials"
-                ],
-                "summary": "Stream material video",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Material ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/material.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/me": {
             "get": {
                 "security": [
@@ -1990,6 +1903,92 @@
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/answer.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/questions/{question_id}/images": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar gambar pendukung pertanyaan forum",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Forum"
+                ],
+                "summary": "List question images",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Question ID",
+                        "name": "question_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/upload.UploadResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengunggah gambar pendukung ke pertanyaan forum",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Forum"
+                ],
+                "summary": "Upload question image",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Question ID",
+                        "name": "question_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "File gambar",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/upload.UploadResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -2609,9 +2608,6 @@
                 "type": {
                     "type": "string"
                 },
-                "video_source": {
-                    "type": "string"
-                },
                 "video_url": {
                     "type": "string"
                 }
@@ -2658,9 +2654,6 @@
                 "type": {
                     "type": "string"
                 },
-                "video_source": {
-                    "type": "string"
-                },
                 "video_url": {
                     "type": "string"
                 }
@@ -2696,9 +2689,6 @@
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
-                },
-                "video_source": {
                     "type": "string"
                 },
                 "video_url": {
@@ -2888,6 +2878,20 @@
             "type": "object",
             "properties": {
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "upload.UploadResponse": {
+            "type": "object",
+            "properties": {
+                "file_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "url": {
                     "type": "string"
                 }
             }

@@ -52,6 +52,18 @@ func roleFrom(c *fiber.Ctx) string {
 	return ""
 }
 
+// UploadQuestionImage mengunggah gambar ke pertanyaan forum
+// @Summary      Upload question image
+// @Description  Mengunggah gambar pendukung ke pertanyaan forum
+// @Tags         Forum
+// @Accept       multipart/form-data
+// @Produce      json
+// @Security     BearerAuth
+// @Param        question_id path int true "Question ID"
+// @Param        image formData file true "File gambar"
+// @Success      201 {object} UploadResponse
+// @Failure      400 {object} map[string]interface{}
+// @Router       /questions/{question_id}/images [post]
 func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 	userID := userIDFrom(c)
 	if userID == 0 {
@@ -148,6 +160,15 @@ func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 	})
 }
 
+// ListQuestionImages mengembalikan daftar gambar pertanyaan forum
+// @Summary      List question images
+// @Description  Mengembalikan daftar gambar pendukung pertanyaan forum
+// @Tags         Forum
+// @Produce      json
+// @Security     BearerAuth
+// @Param        question_id path int true "Question ID"
+// @Success      200 {array} UploadResponse
+// @Router       /questions/{question_id}/images [get]
 func (h *Handler) ListQuestionImages(c *fiber.Ctx) error {
 	questionID, err := strconv.ParseUint(c.Params("question_id"), 10, 64)
 	if err != nil {

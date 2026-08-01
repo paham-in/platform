@@ -220,8 +220,6 @@ definitions:
         type: string
       type:
         type: string
-      video_source:
-        type: string
       video_url:
         type: string
     type: object
@@ -252,8 +250,6 @@ definitions:
         type: string
       type:
         type: string
-      video_source:
-        type: string
       video_url:
         type: string
     type: object
@@ -277,8 +273,6 @@ definitions:
       title:
         type: string
       type:
-        type: string
-      video_source:
         type: string
       video_url:
         type: string
@@ -402,6 +396,15 @@ definitions:
   tutoring.MessageResponse:
     properties:
       message:
+        type: string
+    type: object
+  upload.UploadResponse:
+    properties:
+      file_name:
+        type: string
+      id:
+        type: integer
+      url:
         type: string
     type: object
   user.AdminUserResponse:
@@ -910,38 +913,6 @@ paths:
       summary: Update material
       tags:
       - Admin
-  /admin/materials/{id}/video:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Upload video ke MinIO untuk materi
-      parameters:
-      - description: Material ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: File video
-        in: formData
-        name: video
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/material.MaterialResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/material.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Upload material video
-      tags:
-      - Materials
   /admin/questions:
     get:
       consumes:
@@ -1446,29 +1417,6 @@ paths:
       summary: Get material
       tags:
       - Materials
-  /materials/{id}/video:
-    get:
-      description: Streaming video materi dengan range support
-      parameters:
-      - description: Material ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - video/mp4
-      responses:
-        "200":
-          description: OK
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/material.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Stream material video
-      tags:
-      - Materials
   /me:
     get:
       consumes:
@@ -1712,6 +1660,61 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete answer
+      tags:
+      - Forum
+  /questions/{question_id}/images:
+    get:
+      description: Mengembalikan daftar gambar pendukung pertanyaan forum
+      parameters:
+      - description: Question ID
+        in: path
+        name: question_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/upload.UploadResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List question images
+      tags:
+      - Forum
+    post:
+      consumes:
+      - multipart/form-data
+      description: Mengunggah gambar pendukung ke pertanyaan forum
+      parameters:
+      - description: Question ID
+        in: path
+        name: question_id
+        required: true
+        type: integer
+      - description: File gambar
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/upload.UploadResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload question image
       tags:
       - Forum
   /subjects:

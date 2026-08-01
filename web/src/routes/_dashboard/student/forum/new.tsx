@@ -14,6 +14,7 @@ import {
   postQuestionsMutation,
   getQuestionsQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
+import { postQuestionsByQuestionIdImages } from "@/lib/api/sdk.gen"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
@@ -45,14 +46,9 @@ function NewQuestion() {
         setUploading(true)
         let ok = true
         for (const file of images) {
-          const form = new FormData()
-          form.append("image", file)
-          const res = await fetch(`http://localhost:8080/questions/${questionId}/images`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            body: form,
-          })
-          if (!res.ok) {
+          try {
+            await postQuestionsByQuestionIdImages({ path: { question_id: questionId }, body: { image: file } })
+          } catch {
             ok = false
             toast.error(`Gagal upload ${file.name}`)
           }
