@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -81,7 +80,7 @@ function TeacherQuestionBank() {
     setDialogOpen(true)
   }
   const saveEdit = () => {
-    const options = form.options.filter((o) => o.trim() !== "")
+    const options = form.options.filter((o) => stripHtml(o) !== "")
     if (!editing) return
     updateQuestion({
       path: { id: editing.id! },
@@ -195,21 +194,23 @@ function TeacherQuestionBank() {
             <div className="space-y-3">
               <Label>Opsi Jawaban</Label>
               {form.options.map((opt, i) => (
-                <div key={i} className="flex items-center gap-2">
+                <div key={i} className="flex items-start gap-2">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-sm font-medium">{OPTION_LABELS[i]}</span>
-                  <Input
-                    value={opt}
-                    onChange={(e) => {
-                      const options = [...form.options]
-                      options[i] = e.target.value
-                      setForm({ ...form, options })
-                    }}
-                    placeholder={`Opsi ${OPTION_LABELS[i]}`}
-                  />
+                  <div className="flex-1 rounded-md border">
+                    <TiptapEditor
+                      content={opt}
+                      onChange={(html) => {
+                        const options = [...form.options]
+                        options[i] = html
+                        setForm({ ...form, options })
+                      }}
+                    />
+                  </div>
                   <Button
                     type="button"
                     variant={form.correct_index === i ? "default" : "outline"}
                     size="sm"
+                    className="mt-1"
                     onClick={() => setForm({ ...form, correct_index: i })}
                   >
                     {form.correct_index === i ? "Benar" : "Jadikan"}
@@ -240,7 +241,7 @@ function TeacherQuestionBank() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Batal</Button>
-            <Button onClick={saveEdit} disabled={!form.chapter_id || !form.question || form.options.filter((o) => o.trim()).length < 2}>
+            <Button onClick={saveEdit} disabled={!form.chapter_id || !form.question || form.options.filter((o) => stripHtml(o) !== "").length < 2}>
               Simpan
             </Button>
           </DialogFooter>

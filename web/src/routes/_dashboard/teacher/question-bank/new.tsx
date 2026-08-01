@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
@@ -11,6 +10,11 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E"]
+
+function stripHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html")
+  return (doc.body.textContent || "").trim()
+}
 
 function NewQuestion() {
   const qc = useQueryClient()
@@ -34,7 +38,7 @@ function NewQuestion() {
   })
 
   const save = () => {
-    const validOptions = options.filter((o) => o.trim() !== "")
+    const validOptions = options.filter((o) => stripHtml(o) !== "")
     createQuestion({
       body: {
         chapter_id: Number(chapterId),
@@ -75,21 +79,23 @@ function NewQuestion() {
         <div className="space-y-3">
           <Label>Opsi Jawaban</Label>
           {options.map((opt, i) => (
-            <div key={i} className="flex items-center gap-2">
+            <div key={i} className="flex items-start gap-2">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-sm font-medium">{OPTION_LABELS[i]}</span>
-              <Input
-                value={opt}
-                onChange={(e) => {
-                  const next = [...options]
-                  next[i] = e.target.value
-                  setOptions(next)
-                }}
-                placeholder={`Opsi ${OPTION_LABELS[i]}`}
-              />
+              <div className="flex-1 rounded-md border">
+                <TiptapEditor
+                  content={opt}
+                  onChange={(html) => {
+                    const next = [...options]
+                    next[i] = html
+                    setOptions(next)
+                  }}
+                />
+              </div>
               <Button
                 type="button"
                 variant={correctIndex === i ? "default" : "outline"}
                 size="sm"
+                className="mt-1"
                 onClick={() => setCorrectIndex(i)}
               >
                 {correctIndex === i ? "Benar" : "Jadikan"}
@@ -123,7 +129,7 @@ function NewQuestion() {
           <Link to="/teacher/question-bank"><Button variant="outline">Batal</Button></Link>
           <Button
             onClick={save}
-            disabled={!chapterId || !question || options.filter((o) => o.trim()).length < 2 || isPending}
+            disabled={!chapterId || !question || options.filter((o) => stripHtml(o) !== "").length < 2 || isPending}
           >
             {isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
             Simpan
