@@ -12,9 +12,9 @@ import {
   deleteQuestionsByQuestionIdAnswersByIdMutation,
   getQuestionsByQuestionIdImagesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { createFileRoute, Link, useParams } from "@tanstack/react-router"
+import { createFileRoute, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Loader2, ArrowLeft, Send, Trash2 } from "lucide-react"
+import { Loader2, Send, Trash2 } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -84,13 +84,6 @@ function ForumDetail() {
 
   return (
     <main className="mx-auto w-full max-w-3xl p-6">
-      <Link
-        to="/admin/forum"
-        className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> Kembali
-      </Link>
-
       <div className="mb-2 flex items-center gap-2">
         <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
           question.status === "open" ? "bg-green-100 text-green-700" :
