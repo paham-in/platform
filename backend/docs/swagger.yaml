@@ -342,6 +342,64 @@ definitions:
       question:
         type: string
     type: object
+  questionpackage.CreateInput:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      question_ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  questionpackage.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  questionpackage.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  questionpackage.PackageQuestionResponse:
+    properties:
+      id:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      question:
+        type: string
+    type: object
+  questionpackage.PackageResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      questions:
+        items:
+          $ref: '#/definitions/questionpackage.PackageQuestionResponse'
+        type: array
+    type: object
+  questionpackage.UpdateInput:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      question_ids:
+        items:
+          type: integer
+        type: array
+    type: object
   subject.CreateInput:
     properties:
       class_ids:
@@ -1010,6 +1068,137 @@ paths:
       summary: Update material
       tags:
       - Admin
+  /admin/question-packages:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar paket soal
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/questionpackage.PackageResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List question packages
+      tags:
+      - QuestionPackage
+    post:
+      consumes:
+      - application/json
+      description: Membuat paket soal baru
+      parameters:
+      - description: Data paket
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/questionpackage.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/questionpackage.PackageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/questionpackage.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create question package
+      tags:
+      - QuestionPackage
+  /admin/question-packages/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus paket soal
+      parameters:
+      - description: Package ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionpackage.MessageResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/questionpackage.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete question package
+      tags:
+      - QuestionPackage
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan detail paket soal beserta soalnya
+      parameters:
+      - description: Package ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionpackage.PackageResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/questionpackage.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get question package
+      tags:
+      - QuestionPackage
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah nama, deskripsi, atau soal dalam paket
+      parameters:
+      - description: Package ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/questionpackage.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionpackage.PackageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/questionpackage.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update question package
+      tags:
+      - QuestionPackage
   /admin/questions:
     get:
       consumes:

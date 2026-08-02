@@ -220,6 +220,40 @@ export type QuestionbankUpdateInput = {
     question?: string;
 };
 
+export type QuestionpackageCreateInput = {
+    description?: string;
+    name?: string;
+    question_ids?: Array<number>;
+};
+
+export type QuestionpackageErrorResponse = {
+    error?: string;
+};
+
+export type QuestionpackageMessageResponse = {
+    message?: string;
+};
+
+export type QuestionpackagePackageQuestionResponse = {
+    id?: number;
+    options?: Array<string>;
+    question?: string;
+};
+
+export type QuestionpackagePackageResponse = {
+    created_at?: string;
+    description?: string;
+    id?: number;
+    name?: string;
+    questions?: Array<QuestionpackagePackageQuestionResponse>;
+};
+
+export type QuestionpackageUpdateInput = {
+    description?: string;
+    name?: string;
+    question_ids?: Array<number>;
+};
+
 export type SubjectCreateInput = {
     class_ids?: Array<number>;
     description?: string;
@@ -814,6 +848,143 @@ export type PatchAdminMaterialsByIdResponses = {
 };
 
 export type PatchAdminMaterialsByIdResponse = PatchAdminMaterialsByIdResponses[keyof PatchAdminMaterialsByIdResponses];
+
+export type GetAdminQuestionPackagesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/question-packages';
+};
+
+export type GetAdminQuestionPackagesResponses = {
+    /**
+     * OK
+     */
+    200: Array<QuestionpackagePackageResponse>;
+};
+
+export type GetAdminQuestionPackagesResponse = GetAdminQuestionPackagesResponses[keyof GetAdminQuestionPackagesResponses];
+
+export type PostAdminQuestionPackagesData = {
+    /**
+     * Data paket
+     */
+    body: QuestionpackageCreateInput;
+    path?: never;
+    query?: never;
+    url: '/admin/question-packages';
+};
+
+export type PostAdminQuestionPackagesErrors = {
+    /**
+     * Bad Request
+     */
+    400: QuestionpackageErrorResponse;
+};
+
+export type PostAdminQuestionPackagesError = PostAdminQuestionPackagesErrors[keyof PostAdminQuestionPackagesErrors];
+
+export type PostAdminQuestionPackagesResponses = {
+    /**
+     * Created
+     */
+    201: QuestionpackagePackageResponse;
+};
+
+export type PostAdminQuestionPackagesResponse = PostAdminQuestionPackagesResponses[keyof PostAdminQuestionPackagesResponses];
+
+export type DeleteAdminQuestionPackagesByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Package ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/question-packages/{id}';
+};
+
+export type DeleteAdminQuestionPackagesByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: QuestionpackageErrorResponse;
+};
+
+export type DeleteAdminQuestionPackagesByIdError = DeleteAdminQuestionPackagesByIdErrors[keyof DeleteAdminQuestionPackagesByIdErrors];
+
+export type DeleteAdminQuestionPackagesByIdResponses = {
+    /**
+     * OK
+     */
+    200: QuestionpackageMessageResponse;
+};
+
+export type DeleteAdminQuestionPackagesByIdResponse = DeleteAdminQuestionPackagesByIdResponses[keyof DeleteAdminQuestionPackagesByIdResponses];
+
+export type GetAdminQuestionPackagesByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Package ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/question-packages/{id}';
+};
+
+export type GetAdminQuestionPackagesByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: QuestionpackageErrorResponse;
+};
+
+export type GetAdminQuestionPackagesByIdError = GetAdminQuestionPackagesByIdErrors[keyof GetAdminQuestionPackagesByIdErrors];
+
+export type GetAdminQuestionPackagesByIdResponses = {
+    /**
+     * OK
+     */
+    200: QuestionpackagePackageResponse;
+};
+
+export type GetAdminQuestionPackagesByIdResponse = GetAdminQuestionPackagesByIdResponses[keyof GetAdminQuestionPackagesByIdResponses];
+
+export type PatchAdminQuestionPackagesByIdData = {
+    /**
+     * Data update
+     */
+    body: QuestionpackageUpdateInput;
+    path: {
+        /**
+         * Package ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/question-packages/{id}';
+};
+
+export type PatchAdminQuestionPackagesByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: QuestionpackageErrorResponse;
+};
+
+export type PatchAdminQuestionPackagesByIdError = PatchAdminQuestionPackagesByIdErrors[keyof PatchAdminQuestionPackagesByIdErrors];
+
+export type PatchAdminQuestionPackagesByIdResponses = {
+    /**
+     * OK
+     */
+    200: QuestionpackagePackageResponse;
+};
+
+export type PatchAdminQuestionPackagesByIdResponse = PatchAdminQuestionPackagesByIdResponses[keyof PatchAdminQuestionPackagesByIdResponses];
 
 export type GetAdminQuestionsData = {
     body?: never;
