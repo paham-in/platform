@@ -91,6 +91,7 @@ func (s *Service) Create(input CreateInput) (*QuestionResponse, error) {
 }
 
 type UpdateInput struct {
+	ChapterID    *uint     `json:"chapter_id"`
 	Question     *string   `json:"question"`
 	Options      *[]string `json:"options"`
 	CorrectIndex *int      `json:"correct_index"`
@@ -99,6 +100,9 @@ type UpdateInput struct {
 
 func (s *Service) Update(id uint, input UpdateInput) (*QuestionResponse, error) {
 	updates := map[string]any{}
+	if input.ChapterID != nil {
+		updates["chapter_id"] = *input.ChapterID
+	}
 	if input.Question != nil {
 		updates["question"] = *input.Question
 	}

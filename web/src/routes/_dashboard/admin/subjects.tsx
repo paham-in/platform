@@ -236,7 +236,7 @@ function AdminSubjects() {
                       >
                         <Checkbox
                           checked={form.class_ids.includes(c.id!)}
-                          onChange={() => toggleClass(c.id!)}
+                          onCheckedChange={() => toggleClass(c.id!)}
                         />
                         {c.name}
                       </label>

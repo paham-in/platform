@@ -70,14 +70,14 @@ function TeacherQuestionPackages() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem asChild>
-                            <Link to={`/teacher/packs/${pkg.id}/edit`}>
+                          <Link to="/teacher/packs/$id/edit" params={{ id: String(pkg.id!) }}>
+                            <DropdownMenuItem>
                               <Pencil className="h-4 w-4" /> Edit
-                            </Link>
-                          </DropdownMenuItem>
+                            </DropdownMenuItem>
+                          </Link>
                           <DropdownMenuItem
                             className="text-destructive"
-                            onClick={() => setDeleteConfirm({ id: pkg.id!, name: pkg.name })}
+                            onClick={() => setDeleteConfirm({ id: pkg.id!, name: pkg.name ?? "" })}
                           >
                             <Trash2 className="h-4 w-4" /> Hapus
                           </DropdownMenuItem>
