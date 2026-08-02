@@ -33,7 +33,7 @@ function NewPackage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getAdminQuestionPackagesQueryKey() });
       toast.success("Paket soal berhasil ditambahkan");
-      navigate({ to: "/teacher/question-bank/packages" });
+      navigate({ to: "/teacher/packs" });
     },
     onError: (err: any) => toast.error(err?.error || "Gagal menambah paket"),
   });
@@ -59,7 +59,7 @@ function NewPackage() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-4xl space-y-6">
-        <Link to="/teacher/question-bank/packages" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link to="/teacher/packs" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           ← Kembali
         </Link>
 
@@ -108,7 +108,7 @@ function NewPackage() {
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Link to="/teacher/question-bank/packages"><Button variant="outline">Batal</Button></Link>
+          <Link to="/teacher/packs"><Button variant="outline">Batal</Button></Link>
           <Button onClick={save} disabled={!name.trim() || isPending}>
             Simpan
           </Button>
@@ -118,6 +118,6 @@ function NewPackage() {
   );
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/question-bank/packages/new")({
+export const Route = createFileRoute("/_dashboard/teacher/packs/new")({
   component: NewPackage,
 });

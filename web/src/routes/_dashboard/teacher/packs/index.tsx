@@ -38,7 +38,7 @@ function TeacherQuestionPackages() {
       <main className="p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl font-bold tracking-tight">Paket Soal</h1>
-          <Link to="/teacher/question-bank/packages/new">
+          <Link to="/teacher/packs/new">
             <Button><Plus className="mr-1 h-4 w-4" /> Tambah Paket</Button>
           </Link>
         </div>
@@ -71,7 +71,7 @@ function TeacherQuestionPackages() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem asChild>
-                            <Link to={`/teacher/question-bank/packages/${pkg.id}/edit`}>
+                            <Link to={`/teacher/packs/${pkg.id}/edit`}>
                               <Pencil className="h-4 w-4" /> Edit
                             </Link>
                           </DropdownMenuItem>
@@ -118,6 +118,6 @@ function TeacherQuestionPackages() {
   );
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/question-bank/packages")({
+export const Route = createFileRoute("/_dashboard/teacher/packs/")({
   component: TeacherQuestionPackages,
 });
