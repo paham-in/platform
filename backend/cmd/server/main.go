@@ -83,6 +83,7 @@ func main() {
 	material.PublicRoutes(auth, db)
 		tutoring.Routes(auth, db)
 	answer.AuthRoutes(auth, db)
+	invoice.AuthRoutes(auth, db)
 	if minioClient != nil {
 		upload.AuthRoutes(auth, db, minioClient)
 	}

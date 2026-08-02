@@ -3,6 +3,8 @@ package invoice
 import (
 	"strconv"
 
+	"bimbel2/backend/internal/models"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -21,6 +23,27 @@ type Handler struct {
 
 func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
+}
+
+// MyInvoices mengembalikan daftar invoice user yang sedang login
+// @Summary      My invoices
+// @Description  Mengembalikan daftar invoice pembayaran milik user yang login
+// @Tags         Student
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} InvoiceResponse
+// @Router       /invoices [get]
+func (h *Handler) MyInvoices(c *fiber.Ctx) error {
+	u, ok := c.Locals("user").(*models.User)
+	if !ok || u == nil {
+		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
+	}
+	invoices, err := h.svc.ListByUser(u.ID)
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(invoices)
 }
 
 // AdminListInvoices mengembalikan daftar semua invoice
@@ -118,6 +141,14 @@ func (h *Handler) AdminDeleteInvoice(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus invoice"})
 	}
 	return c.JSON(MessageResponse{Message: "invoice berhasil dihapus"})
+}
+
+func AuthRoutes(auth fiber.Router, db *gorm.DB) {
+	repo := NewRepository(db)
+	svc := NewService(repo)
+	h := NewHandler(svc)
+
+	auth.Get("/invoices", h.MyInvoices)
 }
 
 func AdminRoutes(admin fiber.Router, db *gorm.DB) {

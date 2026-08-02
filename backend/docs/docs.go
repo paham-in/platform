@@ -1881,6 +1881,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/invoices": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar invoice pembayaran milik user yang login",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Student"
+                ],
+                "summary": "My invoices",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/invoice.InvoiceResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/logout": {
             "post": {
                 "security": [
@@ -3288,6 +3319,9 @@ const docTemplate = `{
         "questionbank.UpdateInput": {
             "type": "object",
             "properties": {
+                "chapter_id": {
+                    "type": "integer"
+                },
                 "correct_index": {
                     "type": "integer"
                 },

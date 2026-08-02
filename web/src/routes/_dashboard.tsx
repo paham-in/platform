@@ -53,6 +53,7 @@ const sidebarGroups = [
       { label: "Materi", icon: BookMarked, to: "/student/materials" },
       { label: "Tanya Jawab", icon: Home, to: "/student/forum" },
       { label: "Les Privat", icon: Calendar, to: "/student/tutoring" },
+      { label: "Pembayaran", icon: CreditCard, to: "/student/payments" },
     ],
   },
   {

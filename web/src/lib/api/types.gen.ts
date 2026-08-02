@@ -226,6 +226,7 @@ export type QuestionbankQuestionResponse = {
 };
 
 export type QuestionbankUpdateInput = {
+    chapter_id?: number;
     correct_index?: number;
     explanation?: string;
     options?: Array<string>;
@@ -1557,6 +1558,22 @@ export type GetClassesResponses = {
 };
 
 export type GetClassesResponse = GetClassesResponses[keyof GetClassesResponses];
+
+export type GetInvoicesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/invoices';
+};
+
+export type GetInvoicesResponses = {
+    /**
+     * OK
+     */
+    200: Array<InvoiceInvoiceResponse>;
+};
+
+export type GetInvoicesResponse = GetInvoicesResponses[keyof GetInvoicesResponses];
 
 export type PostLogoutData = {
     body?: never;

@@ -351,6 +351,8 @@ definitions:
     type: object
   questionbank.UpdateInput:
     properties:
+      chapter_id:
+        type: integer
       correct_index:
         type: integer
       explanation:
@@ -1788,6 +1790,25 @@ paths:
       summary: List classes
       tags:
       - Classes
+  /invoices:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar invoice pembayaran milik user yang login
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/invoice.InvoiceResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: My invoices
+      tags:
+      - Student
   /logout:
     post:
       consumes:
