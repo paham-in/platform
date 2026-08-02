@@ -1112,6 +1112,54 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/questions-bank/paginated": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar soal dengan pagination, bisa difilter dengan chapter_id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionBank"
+                ],
+                "summary": "List question bank (paginated)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Filter by chapter ID",
+                        "name": "chapter_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10)",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/questionbank.PaginatedResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/questions-bank/{id}": {
             "delete": {
                 "security": [
@@ -3171,6 +3219,37 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "questionbank.PaginatedResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/questionbank.QuestionResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/questionbank.PaginationMeta"
+                }
+            }
+        },
+        "questionbank.PaginationMeta": {
+            "type": "object",
+            "properties": {
+                "page": {
+                    "type": "integer"
+                },
+                "per_page": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
                 }
             }
         },

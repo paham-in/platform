@@ -38,6 +38,37 @@ func (r *Repository) Get(id uint) (*models.QuestionBank, error) {
 	return &q, nil
 }
 
+func (r *Repository) Count(chapterID uint) (int64, error) {
+	q := r.db.Model(&models.QuestionBank{})
+	if chapterID > 0 {
+		q = q.Where("chapter_id = ?", chapterID)
+	}
+	var count int64
+	if err := q.Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *Repository) ListPaginated(chapterID uint, page, perPage int) ([]models.QuestionBank, error) {
+	if perPage <= 0 {
+		perPage = 10
+	}
+	if page <= 0 {
+		page = 1
+	}
+	offset := (page - 1) * perPage
+	q := r.db.Order("created_at desc")
+	if chapterID > 0 {
+		q = q.Where("chapter_id = ?", chapterID)
+	}
+	var questions []models.QuestionBank
+	if err := q.Limit(perPage).Offset(offset).Find(&questions).Error; err != nil {
+		return nil, err
+	}
+	return questions, nil
+}
+
 func (r *Repository) Create(q *models.QuestionBank) error {
 	return r.db.Create(q).Error
 }

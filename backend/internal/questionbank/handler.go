@@ -129,12 +129,43 @@ func (h *Handler) DeleteQuestion(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "soal berhasil dihapus"})
 }
 
+// ListQuestionsPaginated mengembalikan daftar soal bank dengan pagination
+// @Summary      List question bank (paginated)
+// @Description  Mengembalikan daftar soal dengan pagination, bisa difilter dengan chapter_id
+// @Tags         QuestionBank
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        chapter_id query int false "Filter by chapter ID"
+// @Param        page query int false "Page number (default 1)"
+// @Param        per_page query int false "Items per page (default 10)"
+// @Success      200 {object} PaginatedResponse
+// @Router       /admin/questions-bank/paginated [get]
+func (h *Handler) ListQuestionsPaginated(c *fiber.Ctx) error {
+	chapterID, _ := strconv.ParseUint(c.Query("chapter_id"), 10, 64)
+	page, _ := strconv.Atoi(c.Query("page"))
+	if page == 0 {
+		page = 1
+	}
+	perPage, _ := strconv.Atoi(c.Query("per_page"))
+	if perPage == 0 {
+		perPage = 10
+	}
+
+	result, err := h.svc.ListPaginated(uint(chapterID), page, perPage)
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(result)
+}
+
 func Routes(admin fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	svc := NewService(repo)
 	h := NewHandler(svc)
 
 	admin.Get("/questions-bank", h.ListQuestions)
+	admin.Get("/questions-bank/paginated", h.ListQuestionsPaginated)
 	admin.Post("/questions-bank", h.CreateQuestion)
 	admin.Patch("/questions-bank/:id", h.UpdateQuestion)
 	admin.Delete("/questions-bank/:id", h.DeleteQuestion)

@@ -308,6 +308,26 @@ definitions:
       message:
         type: string
     type: object
+  questionbank.PaginatedResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/questionbank.QuestionResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/questionbank.PaginationMeta'
+    type: object
+  questionbank.PaginationMeta:
+    properties:
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
   questionbank.QuestionResponse:
     properties:
       chapter_id:
@@ -1332,6 +1352,37 @@ paths:
       security:
       - BearerAuth: []
       summary: Update question
+      tags:
+      - QuestionBank
+  /admin/questions-bank/paginated:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar soal dengan pagination, bisa difilter dengan
+        chapter_id
+      parameters:
+      - description: Filter by chapter ID
+        in: query
+        name: chapter_id
+        type: integer
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10)
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionbank.PaginatedResponse'
+      security:
+      - BearerAuth: []
+      summary: List question bank (paginated)
       tags:
       - QuestionBank
   /admin/questions/{id}:

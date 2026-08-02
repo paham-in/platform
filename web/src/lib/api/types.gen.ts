@@ -202,6 +202,18 @@ export type QuestionbankMessageResponse = {
     message?: string;
 };
 
+export type QuestionbankPaginatedResponse = {
+    data?: Array<QuestionbankQuestionResponse>;
+    meta?: QuestionbankPaginationMeta;
+};
+
+export type QuestionbankPaginationMeta = {
+    page?: number;
+    per_page?: number;
+    total?: number;
+    total_pages?: number;
+};
+
 export type QuestionbankQuestionResponse = {
     chapter_id?: number;
     chapter_title?: string;
@@ -1059,6 +1071,35 @@ export type PostAdminQuestionsBankResponses = {
 };
 
 export type PostAdminQuestionsBankResponse = PostAdminQuestionsBankResponses[keyof PostAdminQuestionsBankResponses];
+
+export type GetAdminQuestionsBankPaginatedData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter by chapter ID
+         */
+        chapter_id?: number;
+        /**
+         * Page number (default 1)
+         */
+        page?: number;
+        /**
+         * Items per page (default 10)
+         */
+        per_page?: number;
+    };
+    url: '/admin/questions-bank/paginated';
+};
+
+export type GetAdminQuestionsBankPaginatedResponses = {
+    /**
+     * OK
+     */
+    200: QuestionbankPaginatedResponse;
+};
+
+export type GetAdminQuestionsBankPaginatedResponse = GetAdminQuestionsBankPaginatedResponses[keyof GetAdminQuestionsBankPaginatedResponses];
 
 export type DeleteAdminQuestionsBankByIdData = {
     body?: never;

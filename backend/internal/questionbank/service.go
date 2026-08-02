@@ -123,6 +123,43 @@ func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
+type PaginationMeta struct {
+	Page       int   `json:"page"`
+	PerPage    int   `json:"per_page"`
+	Total      int64 `json:"total"`
+	TotalPages int   `json:"total_pages"`
+}
+
+type PaginatedResponse struct {
+	Data []QuestionResponse `json:"data"`
+	Meta PaginationMeta     `json:"meta"`
+}
+
+func (s *Service) ListPaginated(chapterID uint, page, perPage int) (*PaginatedResponse, error) {
+	total, err := s.repo.Count(chapterID)
+	if err != nil {
+		return nil, err
+	}
+	if perPage <= 0 {
+		perPage = 10
+	}
+	if page <= 0 {
+		page = 1
+	}
+	questions, err := s.repo.ListPaginated(chapterID, page, perPage)
+	if err != nil {
+		return nil, err
+	}
+	totalPages := int(total) / perPage
+	if int(total)%perPage > 0 {
+		totalPages++
+	}
+	return &PaginatedResponse{
+		Data: s.toResponses(questions),
+		Meta: PaginationMeta{Page: page, PerPage: perPage, Total: total, TotalPages: totalPages},
+	}, nil
+}
+
 func (s *Service) toResponse(q models.QuestionBank) QuestionResponse {
 	title := ""
 	if q.Chapter.ID != 0 {
