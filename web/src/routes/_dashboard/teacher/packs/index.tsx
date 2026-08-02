@@ -12,7 +12,7 @@ import {
   deleteAdminQuestionPackagesByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { Link } from "@tanstack/react-router";
-import { Loader2, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { Eye, Loader2, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 function TeacherQuestionPackages() {
@@ -70,6 +70,11 @@ function TeacherQuestionPackages() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
+                          <Link to="/teacher/packs/$id" params={{ id: String(pkg.id!) }}>
+                            <DropdownMenuItem>
+                              <Eye className="h-4 w-4" /> Lihat
+                            </DropdownMenuItem>
+                          </Link>
                           <Link to="/teacher/packs/$id/edit" params={{ id: String(pkg.id!) }}>
                             <DropdownMenuItem>
                               <Pencil className="h-4 w-4" /> Edit

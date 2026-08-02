@@ -22,8 +22,6 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 
-const OPTION_LABELS = ["A", "B", "C", "D", "E"];
-
 function stripHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html");
   return (doc.body.textContent || "").trim();
@@ -256,14 +254,14 @@ function NewPackage() {
             </DialogContent>
           </Dialog>
 
-          {/* daftar soal yang dipilih — preview soal + opsi + jawaban */}
+          {/* daftar soal yang dipilih — card per soal seperti halaman lihat */}
           {selectedIds.size > 0 && (
-            <Card className="pt-0 gap-0">
-              <CardContent className="p-3 space-y-2">
-                {selectedItems.map((q) => (
-                  <div key={q.id} className="rounded-md border px-3 py-2">
+            <div className="space-y-4">
+              {selectedItems.map((q, i) => (
+                <Card key={q.id} className="pt-0 gap-0 pb-0">
+                  <CardContent className="p-4">
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className="font-medium">#{q.id} {q.question ? stripHtml(q.question) : ""}</span>
+                      <p className="text-sm font-medium text-muted-foreground">Soal {i + 1}</p>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -276,28 +274,21 @@ function NewPackage() {
                         <X className="h-3 w-3" />
                       </Button>
                     </div>
-                    {q.options && q.options.length > 0 && (
-                      <div className="grid grid-cols-2 gap-1 text-sm">
-                        {q.options.map((opt, i) => (
-                          <div
-                            key={i}
-                            className={
-                              "rounded border px-2 py-1 text-sm" +
-                              (q.correct_index === i
-                                ? "border-green-600 bg-green-50 font-medium dark:bg-green-950/30"
-                                : "bg-muted/30")
-                          }
-                          title={q.correct_index === i ? "Jawaban benar" : undefined}
-                        >
-                          <span className="font-mono">{OPTION_LABELS[i]}</span>. {stripHtml(opt || "")}
-                        </div>
+                    <div
+                      className="mt-1 text-sm leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: q.question ?? "" }}
+                    />
+                    <div className="mt-3 space-y-1">
+                      {(q.options ?? []).map((opt, oi) => (
+                        <p key={oi} className="text-sm text-muted-foreground">
+                          {String.fromCharCode(65 + oi)}. {opt}
+                        </p>
                       ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
 
