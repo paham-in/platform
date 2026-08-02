@@ -117,12 +117,7 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Pembahasan (opsional)</Label>
-          <textarea
-            className="min-h-[60px] w-full rounded-md border bg-transparent px-3 py-2 text-sm outline-none focus:border-ring"
-            value={explanation}
-            onChange={(e) => setExplanation(e.target.value)}
-            placeholder="Penjelasan jawaban..."
-          />
+          <TiptapEditor content={explanation} onChange={setExplanation} />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">

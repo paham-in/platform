@@ -231,12 +231,7 @@ function TeacherQuestionBank() {
             </div>
             <div className="space-y-2">
               <Label>Pembahasan (opsional)</Label>
-              <textarea
-                className="min-h-[60px] w-full rounded-md border bg-transparent px-3 py-2 text-sm outline-none focus:border-ring"
-                value={form.explanation}
-                onChange={(e) => setForm({ ...form, explanation: e.target.value })}
-                placeholder="Penjelasan jawaban..."
-              />
+              <TiptapEditor content={form.explanation} onChange={(html) => setForm({ ...form, explanation: html })} />
             </div>
           </div>
           <DialogFooter>
