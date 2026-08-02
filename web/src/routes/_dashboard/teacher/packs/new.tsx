@@ -115,10 +115,6 @@ function NewPackage() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-4xl space-y-6">
-        <Link to="/teacher/packs" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-          ← Kembali
-        </Link>
-
         <h1 className="text-2xl font-bold tracking-tight">Tambah Paket Soal</h1>
 
         <div className="space-y-2">
