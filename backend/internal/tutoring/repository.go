@@ -29,6 +29,7 @@ func (r *Repository) ListTeachers() ([]models.User, error) {
 		Joins("JOIN roles ON roles.id = user_roles.role_id").
 		Where("roles.name = ?", "teacher").
 		Preload("Roles").
+		Preload("Subjects").
 		Order("users.name").
 		Find(&users).Error; err != nil {
 		return nil, err

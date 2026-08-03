@@ -543,6 +543,13 @@ definitions:
       message:
         type: string
     type: object
+  tutoring.SubjectInfo:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
   tutoring.TeacherResponse:
     properties:
       avatar_url:
@@ -553,6 +560,10 @@ definitions:
         type: integer
       name:
         type: string
+      subjects:
+        items:
+          $ref: '#/definitions/tutoring.SubjectInfo'
+        type: array
     type: object
   upload.UploadResponse:
     properties:
@@ -581,6 +592,10 @@ definitions:
         items:
           type: string
         type: array
+      subjects:
+        items:
+          $ref: '#/definitions/user.SubjectInfo'
+        type: array
     type: object
   user.ErrorResponse:
     properties:
@@ -592,6 +607,13 @@ definitions:
     properties:
       message:
         example: berhasil
+        type: string
+    type: object
+  user.SubjectInfo:
+    properties:
+      id:
+        type: integer
+      name:
         type: string
     type: object
   user.UserResponse:
@@ -611,6 +633,10 @@ definitions:
       roles:
         items:
           type: string
+        type: array
+      subjects:
+        items:
+          $ref: '#/definitions/user.SubjectInfo'
         type: array
     type: object
 host: localhost:8080
@@ -1734,6 +1760,43 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user role
+      tags:
+      - Admin
+  /admin/users/{id}/subjects:
+    patch:
+      consumes:
+      - application/json
+      description: Mengatur mata pelajaran yang diajarkan seorang guru (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Daftar subject_ids
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.AdminUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update teacher subjects
       tags:
       - Admin
   /auth/google:

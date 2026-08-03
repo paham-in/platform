@@ -1,14 +1,32 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useQuery } from "@tanstack/react-query"
-import { getTutoringBookingsOptions, getTutoringTeachersOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getTutoringBookingsOptions, getTutoringTeachersOptions, getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
+import type { TutoringSubjectInfo, TutoringTeacherResponse } from "@/lib/api/types.gen"
 import { Calendar, Loader2, UserRound } from "lucide-react"
+import { useState } from "react"
+
+function SubjectBadge({ subjects }: { subjects?: TutoringSubjectInfo[] }) {
+  if (!subjects || subjects.length === 0) return null
+  return (
+    <div className="mt-1 flex flex-wrap gap-1">
+      {subjects.map((s) => (
+        <span key={s.id} className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+          {s.name}
+        </span>
+      ))}
+    </div>
+  )
+}
 
 function StudentTutoringIndex() {
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getTutoringBookingsOptions())
   const { data: teachers = [], isLoading: teachersLoading } = useQuery(getTutoringTeachersOptions())
+  const { data: subjects = [] } = useQuery(getSubjectsOptions())
+  const [subjectFilter, setSubjectFilter] = useState("all")
 
   const statusBadge = (s: string) => {
     const styles: Record<string, string> = {
@@ -22,6 +40,12 @@ function StudentTutoringIndex() {
   }
 
   if (bookingsLoading || teachersLoading) return <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+
+  const filteredTeachers = subjectFilter === "all"
+    ? teachers
+    : teachers.filter((t: TutoringTeacherResponse) =>
+        (t.subjects ?? []).some((s) => s.id === Number(subjectFilter))
+      )
 
   return (
     <div className="space-y-6">
@@ -56,20 +80,33 @@ function StudentTutoringIndex() {
       )}
 
       <div>
-        <h2 className="mb-4 text-lg font-semibold">Pilih Guru</h2>
-        {teachers.length === 0 ? (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold">Pilih Guru</h2>
+          <Select value={subjectFilter} onValueChange={(v) => setSubjectFilter(v ?? "all")}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter Subjek" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Subjek</SelectItem>
+              {subjects.map((s) => (
+                <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {filteredTeachers.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
               <UserRound className="h-10 w-10 text-muted-foreground/40" />
               <div>
-                <p className="font-medium">Belum ada guru tersedia</p>
+                <p className="font-medium">{subjectFilter === "all" ? "Belum ada guru tersedia" : "Tidak ada guru untuk subjek ini"}</p>
                 <p className="text-sm text-muted-foreground">Guru akan muncul di sini setelah terdaftar</p>
               </div>
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {teachers.map((t) => (
+            {filteredTeachers.map((t) => (
               <Card key={t.id} className="hover:bg-muted/50 transition-colors">
                 <CardContent className="flex items-center gap-4 p-4">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
@@ -82,6 +119,7 @@ function StudentTutoringIndex() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{t.name}</p>
                     <p className="truncate text-sm text-muted-foreground">{t.email}</p>
+                    <SubjectBadge subjects={t.subjects} />
                   </div>
                   <Link to="/student/tutoring/$teacherId" params={{ teacherId: String(t.id) }}>
                     <Button size="sm" variant="outline"><Calendar className="mr-1 h-4 w-4" /> Jadwal</Button>

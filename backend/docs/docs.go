@@ -1777,6 +1777,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/users/{id}/subjects": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengatur mata pelajaran yang diajarkan seorang guru (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update teacher subjects",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Daftar subject_ids",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user.AdminUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/user.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/user.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/google": {
             "get": {
                 "description": "Redirect to Google OAuth consent screen",
@@ -3646,6 +3704,17 @@ const docTemplate = `{
                 }
             }
         },
+        "tutoring.SubjectInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "tutoring.TeacherResponse": {
             "type": "object",
             "properties": {
@@ -3660,6 +3729,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tutoring.SubjectInfo"
+                    }
                 }
             }
         },
@@ -3703,6 +3778,12 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.SubjectInfo"
+                    }
                 }
             }
         },
@@ -3721,6 +3802,17 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "berhasil"
+                }
+            }
+        },
+        "user.SubjectInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },
@@ -3749,6 +3841,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "string"
+                    }
+                },
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.SubjectInfo"
                     }
                 }
             }

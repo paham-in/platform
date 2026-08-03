@@ -57,6 +57,15 @@ function BookTeacher() {
         <div>
           <h2 className="text-xl font-bold">{teacher.name}</h2>
           <p className="text-sm text-muted-foreground">{teacher.email}</p>
+          {(teacher.subjects ?? []).length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {(teacher.subjects ?? []).map((s) => (
+                <span key={s.id} className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                  {s.name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

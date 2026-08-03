@@ -30,10 +30,16 @@ type BookingResponse struct {
 }
 
 type TeacherResponse struct {
-	ID        uint   `json:"id"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	AvatarURL string `json:"avatar_url"`
+	ID        uint          `json:"id"`
+	Name      string        `json:"name"`
+	Email     string        `json:"email"`
+	AvatarURL string        `json:"avatar_url"`
+	Subjects  []SubjectInfo `json:"subjects"`
+}
+
+type SubjectInfo struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
 }
 
 type Service struct {
@@ -92,7 +98,11 @@ func (s *Service) ListTeachers() ([]TeacherResponse, error) {
 	}
 	res := make([]TeacherResponse, len(users))
 	for i, u := range users {
-		res[i] = TeacherResponse{ID: u.ID, Name: u.Name, Email: u.Email, AvatarURL: u.AvatarURL}
+		subjects := make([]SubjectInfo, len(u.Subjects))
+		for j, s := range u.Subjects {
+			subjects[j] = SubjectInfo{ID: s.ID, Name: s.Name}
+		}
+		res[i] = TeacherResponse{ID: u.ID, Name: u.Name, Email: u.Email, AvatarURL: u.AvatarURL, Subjects: subjects}
 	}
 	return res, nil
 }

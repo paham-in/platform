@@ -13,24 +13,33 @@ import {
 import {
   getClassesOptions,
   getMeOptions,
+  getSubjectsOptions,
   patchMeMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { Loader2, Save } from "lucide-react"
+import { BookOpen, Loader2, Save } from "lucide-react"
 import { toast } from "sonner"
 
 function SettingsPage() {
   const qc = useQueryClient()
   const { data: user, isLoading: userLoading } = useQuery(getMeOptions())
   const { data: classes = [] } = useQuery(getClassesOptions())
+  const { data: subjects = [] } = useQuery(getSubjectsOptions())
 
   const [name, setName] = useState("")
   const [classId, setClassId] = useState("")
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([])
   const [initialized, setInitialized] = useState(false)
+
+  const roles = user?.roles ?? []
+  const isTeacher = roles.includes("teacher")
+  const isStudent = roles.includes("student")
 
   if (user && !initialized) {
     setName(user.name ?? "")
+    setSelectedSubjectIds((user.subjects ?? []).map((s) => s.id!).filter((id) => id !== undefined))
     if (user.class_id) {
       const found = classes.find((c) => c.id === user.class_id)
       setClassId(String(user.class_id))
@@ -61,11 +70,24 @@ function SettingsPage() {
     )
   }
 
+  const toggleSubject = (subjectId: number) => {
+    setSelectedSubjectIds((prev) =>
+      prev.includes(subjectId) ? prev.filter((id) => id !== subjectId) : [...prev, subjectId]
+    )
+  }
+
   const handleSave = () => {
     const body: Record<string, unknown> = {}
     if (name !== user?.name) body.name = name
-    const parsedClassId = classId === "none" ? null : Number(classId)
-    if (parsedClassId !== (user as any)?.class_id) body.class_id = parsedClassId
+    if (isStudent) {
+      const parsedClassId = classId === "none" ? null : Number(classId)
+      if (parsedClassId !== (user as any)?.class_id) body.class_id = parsedClassId
+    }
+    if (isTeacher) {
+      const current = (user?.subjects ?? []).map((s) => s.id!).filter((id) => id !== undefined).sort()
+      const next = [...selectedSubjectIds].sort()
+      if (JSON.stringify(current) !== JSON.stringify(next)) body.subject_ids = selectedSubjectIds
+    }
     if (Object.keys(body).length === 0) return
     updateProfile.mutate({ body })
   }
@@ -74,7 +96,8 @@ function SettingsPage() {
     <main className="p-6">
       <h1 className="mb-6 text-2xl font-bold tracking-tight">Pengaturan</h1>
 
-      <Card className="max-w-lg">
+      <div className="flex max-w-lg flex-col gap-4">
+      <Card>
         <CardHeader>
           <CardTitle>Profil</CardTitle>
         </CardHeader>
@@ -84,39 +107,73 @@ function SettingsPage() {
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="class">Kelas</Label>
-            <Select value={classId} onValueChange={(v) => setClassId(v ?? "none")}>
-              <SelectTrigger id="class" className="w-full">
-                <SelectValue placeholder="Pilih kelas">
-                  {classId === "none" ? "Tidak ada" : classes.find((c) => String(c.id) === classId)?.name ?? classId}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Tidak ada</SelectItem>
-                {classes.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id!)}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button
-            onClick={handleSave}
-            disabled={updateProfile.isPending}
-            className="w-full"
-          >
-            {updateProfile.isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            Simpan
-          </Button>
+          {isStudent && (
+            <div className="space-y-2">
+              <Label htmlFor="class">Kelas</Label>
+              <Select value={classId} onValueChange={(v) => setClassId(v ?? "none")}>
+                <SelectTrigger id="class" className="w-full">
+                  <SelectValue placeholder="Pilih kelas">
+                    {classId === "none" ? "Tidak ada" : classes.find((c) => String(c.id) === classId)?.name ?? classId}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Tidak ada</SelectItem>
+                  {classes.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id!)}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {isTeacher && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" /> Mata Pelajaran Saya
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-3 text-sm text-muted-foreground">
+              Pilih mata pelajaran yang Anda ajarkan. Murid bisa menemukan Anda lewat subjek ini di halaman Les Privat.
+            </p>
+            <div className="max-h-[240px] space-y-2 overflow-y-auto rounded-md border p-3">
+              {subjects.map((s) => (
+                <label key={s.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted">
+                  <Checkbox
+                    checked={selectedSubjectIds.includes(s.id!)}
+                    onCheckedChange={() => toggleSubject(s.id!)}
+                  />
+                  {s.name}
+                </label>
+              ))}
+              {subjects.length === 0 && (
+                <p className="text-sm text-muted-foreground">Belum ada mata pelajaran.</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div>
+        <Button
+          onClick={handleSave}
+          disabled={updateProfile.isPending}
+          className="w-full"
+        >
+          {updateProfile.isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
+          Simpan
+        </Button>
+      </div>
+      </div>
     </main>
   )
 }

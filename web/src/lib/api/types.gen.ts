@@ -340,11 +340,17 @@ export type TutoringMessageResponse = {
     message?: string;
 };
 
+export type TutoringSubjectInfo = {
+    id?: number;
+    name?: string;
+};
+
 export type TutoringTeacherResponse = {
     avatar_url?: string;
     email?: string;
     id?: number;
     name?: string;
+    subjects?: Array<TutoringSubjectInfo>;
 };
 
 export type UploadUploadResponse = {
@@ -361,6 +367,7 @@ export type UserAdminUserResponse = {
     name?: string;
     payment_status?: string;
     roles?: Array<string>;
+    subjects?: Array<UserSubjectInfo>;
 };
 
 export type UserErrorResponse = {
@@ -371,6 +378,11 @@ export type UserMessageResponse = {
     message?: string;
 };
 
+export type UserSubjectInfo = {
+    id?: number;
+    name?: string;
+};
+
 export type UserUserResponse = {
     avatar_url?: string;
     class_id?: number;
@@ -379,6 +391,7 @@ export type UserUserResponse = {
     name?: string;
     payment_status?: string;
     roles?: Array<string>;
+    subjects?: Array<UserSubjectInfo>;
 };
 
 export type GetAdminChaptersData = {
@@ -1510,6 +1523,45 @@ export type PatchAdminUsersByIdRoleResponses = {
 };
 
 export type PatchAdminUsersByIdRoleResponse = PatchAdminUsersByIdRoleResponses[keyof PatchAdminUsersByIdRoleResponses];
+
+export type PatchAdminUsersByIdSubjectsData = {
+    /**
+     * Daftar subject_ids
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        /**
+         * User ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/users/{id}/subjects';
+};
+
+export type PatchAdminUsersByIdSubjectsErrors = {
+    /**
+     * Bad Request
+     */
+    400: UserErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: UserErrorResponse;
+};
+
+export type PatchAdminUsersByIdSubjectsError = PatchAdminUsersByIdSubjectsErrors[keyof PatchAdminUsersByIdSubjectsErrors];
+
+export type PatchAdminUsersByIdSubjectsResponses = {
+    /**
+     * OK
+     */
+    200: UserAdminUserResponse;
+};
+
+export type PatchAdminUsersByIdSubjectsResponse = PatchAdminUsersByIdSubjectsResponses[keyof PatchAdminUsersByIdSubjectsResponses];
 
 export type GetAuthGoogleData = {
     body?: never;

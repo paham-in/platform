@@ -16,7 +16,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 
 func (r *UserRepository) Get(id uint) (*models.User, error) {
 	var user models.User
-	if err := r.db.Preload("Roles").First(&user, id).Error; err != nil {
+	if err := r.db.Preload("Roles").Preload("Subjects").First(&user, id).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -36,7 +36,7 @@ func (r *UserRepository) Create(user *models.User) error {
 
 func (r *UserRepository) List() ([]models.User, error) {
 	var users []models.User
-	if err := r.db.Preload("Roles").Order("created_at desc").Find(&users).Error; err != nil {
+	if err := r.db.Preload("Roles").Preload("Subjects").Order("created_at desc").Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
@@ -85,4 +85,20 @@ func (r *UserRepository) UpdateName(id uint, name string) error {
 
 func (r *UserRepository) UpdateClassID(id uint, classID uint) error {
 	return r.db.Model(&models.User{}).Where("id = ?", id).Update("class_id", classID).Error
+}
+
+func (r *UserRepository) SetTeacherSubjects(userID uint, subjectIDs []uint) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Unscoped().Where("user_id = ?", userID).Delete(&models.TeacherSubject{}).Error; err != nil {
+			return err
+		}
+		if len(subjectIDs) == 0 {
+			return nil
+		}
+		pivots := make([]models.TeacherSubject, len(subjectIDs))
+		for i, sid := range subjectIDs {
+			pivots[i] = models.TeacherSubject{UserID: userID, SubjectID: sid}
+		}
+		return tx.Create(&pivots).Error
+	})
 }

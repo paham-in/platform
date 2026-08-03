@@ -116,6 +116,38 @@ func (h *Handler) AdminUpdateRole(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "role berhasil diubah"})
 }
 
+// AdminUpdateTeacherSubjects mengubah mata pelajaran yang diajarkan guru (admin only)
+// @Summary      Update teacher subjects
+// @Description  Mengatur mata pelajaran yang diajarkan seorang guru (admin only)
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int    true "User ID"
+// @Param        body body      object true "Daftar subject_ids"
+// @Success      200  {object}  AdminUserResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /admin/users/{id}/subjects [patch]
+func (h *Handler) AdminUpdateTeacherSubjects(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+
+	var input SetTeacherSubjectsInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+
+	user, err := h.svc.SetTeacherSubjects(uint(id), input)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+
+	return c.JSON(user)
+}
+
 // AdminDeleteUser menghapus user (admin only)
 // @Summary      Delete user
 // @Description  Menghapus user berdasarkan ID (admin only)
@@ -159,14 +191,15 @@ func (h *Handler) UpdateProfile(c *fiber.Ctx) error {
 	}
 
 	var input struct {
-		Name    *string `json:"name"`
-		ClassID *uint   `json:"class_id"`
+		Name       *string `json:"name"`
+		ClassID    *uint   `json:"class_id"`
+		SubjectIDs *[]uint `json:"subject_ids"`
 	}
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 
-	user, err := h.svc.UpdateProfile(userID, UpdateProfileInput{Name: input.Name, ClassID: input.ClassID})
+	user, err := h.svc.UpdateProfile(userID, UpdateProfileInput{Name: input.Name, ClassID: input.ClassID, SubjectIDs: input.SubjectIDs})
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
@@ -248,6 +281,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 
 	admin.Get("/users", h.AdminListUsers)
 	admin.Patch("/users/:id/role", h.AdminUpdateRole)
+	admin.Patch("/users/:id/subjects", h.AdminUpdateTeacherSubjects)
 	admin.Patch("/users/:id/payment", h.AdminTogglePayment)
 	admin.Delete("/users/:id", h.AdminDeleteUser)
 }

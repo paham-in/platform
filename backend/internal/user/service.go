@@ -17,23 +17,30 @@ type AuthResponse struct {
 }
 
 type UserResponse struct {
-	ID            uint     `json:"id"`
-	Name          string   `json:"name"`
-	Email         string   `json:"email"`
-	Roles         []string `json:"roles"`
-	AvatarURL     string   `json:"avatar_url"`
-	PaymentStatus string   `json:"payment_status"`
-	ClassID       *uint    `json:"class_id"`
+	ID            uint          `json:"id"`
+	Name          string        `json:"name"`
+	Email         string        `json:"email"`
+	Roles         []string      `json:"roles"`
+	AvatarURL     string        `json:"avatar_url"`
+	PaymentStatus string        `json:"payment_status"`
+	ClassID       *uint         `json:"class_id"`
+	Subjects      []SubjectInfo `json:"subjects"`
 }
 
 type AdminUserResponse struct {
-	ID            uint     `json:"id"`
-	Name          string   `json:"name"`
-	Email         string   `json:"email"`
-	Roles         []string `json:"roles"`
-	AvatarURL     string   `json:"avatar_url"`
-	PaymentStatus string   `json:"payment_status"`
-	CreatedAt     string   `json:"created_at"`
+	ID            uint          `json:"id"`
+	Name          string        `json:"name"`
+	Email         string        `json:"email"`
+	Roles         []string      `json:"roles"`
+	AvatarURL     string        `json:"avatar_url"`
+	PaymentStatus string        `json:"payment_status"`
+	CreatedAt     string        `json:"created_at"`
+	Subjects      []SubjectInfo `json:"subjects"`
+}
+
+type SubjectInfo struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
 }
 
 type ErrorResponse struct {
@@ -155,16 +162,49 @@ func (s *Service) ListUsers() ([]AdminUserResponse, error) {
 	result := make([]AdminUserResponse, len(users))
 	for i, u := range users {
 		result[i] = AdminUserResponse{
-			ID:        u.ID,
-			Name:      u.Name,
-			Email:     u.Email,
-			Roles:     roleNames(u),
+			ID:            u.ID,
+			Name:          u.Name,
+			Email:         u.Email,
+			Roles:         roleNames(u),
 			AvatarURL:     u.AvatarURL,
 			PaymentStatus: u.PaymentStatus,
-					CreatedAt: u.CreatedAt.Format("2006-01-02"),
+			CreatedAt:     u.CreatedAt.Format("2006-01-02"),
+			Subjects:      subjectInfos(u.Subjects),
 		}
 	}
 	return result, nil
+}
+
+func subjectInfos(subjects []models.Subject) []SubjectInfo {
+	res := make([]SubjectInfo, len(subjects))
+	for i, s := range subjects {
+		res[i] = SubjectInfo{ID: s.ID, Name: s.Name}
+	}
+	return res
+}
+
+type SetTeacherSubjectsInput struct {
+	SubjectIDs []uint `json:"subject_ids"`
+}
+
+func (s *Service) SetTeacherSubjects(id uint, input SetTeacherSubjectsInput) (*AdminUserResponse, error) {
+	if err := s.userRepo.SetTeacherSubjects(id, input.SubjectIDs); err != nil {
+		return nil, err
+	}
+	u, err := s.userRepo.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	return &AdminUserResponse{
+		ID:            u.ID,
+		Name:          u.Name,
+		Email:         u.Email,
+		Roles:         roleNames(*u),
+		AvatarURL:     u.AvatarURL,
+		PaymentStatus: u.PaymentStatus,
+		CreatedAt:     u.CreatedAt.Format("2006-01-02"),
+		Subjects:      subjectInfos(u.Subjects),
+	}, nil
 }
 
 func (s *Service) UpdateUserRole(id uint, roles []string) error {
@@ -189,8 +229,9 @@ func (s *Service) UpdatePaymentStatus(id uint, status string) error {
 }
 
 type UpdateProfileInput struct {
-	Name    *string `json:"name"`
-	ClassID *uint   `json:"class_id"`
+	Name       *string `json:"name"`
+	ClassID    *uint   `json:"class_id"`
+	SubjectIDs *[]uint `json:"subject_ids"`
 }
 
 func (s *Service) UpdateProfile(id uint, input UpdateProfileInput) (*UserResponse, error) {
@@ -201,6 +242,11 @@ func (s *Service) UpdateProfile(id uint, input UpdateProfileInput) (*UserRespons
 	}
 	if input.ClassID != nil {
 		if err := s.userRepo.UpdateClassID(id, *input.ClassID); err != nil {
+			return nil, errInternal
+		}
+	}
+	if input.SubjectIDs != nil {
+		if err := s.userRepo.SetTeacherSubjects(id, *input.SubjectIDs); err != nil {
 			return nil, errInternal
 		}
 	}
@@ -226,5 +272,6 @@ func toResponse(u models.User) UserResponse {
 		AvatarURL:     u.AvatarURL,
 		PaymentStatus: u.PaymentStatus,
 		ClassID:       u.ClassID,
+		Subjects:      subjectInfos(u.Subjects),
 	}
 }

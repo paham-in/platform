@@ -10,6 +10,7 @@ type User struct {
 	AvatarURL     string  `gorm:"size:500" json:"avatar_url"`
 	Password      *string `gorm:"size:255" json:"-"`
 	Roles         []Role  `gorm:"many2many:user_roles;" json:"roles"`
+	Subjects      []Subject `gorm:"many2many:teacher_subjects;" json:"subjects"`
 	PaymentStatus string  `gorm:"size:20;default:pending" json:"payment_status"`
 	ClassID       *uint   `gorm:"default:null" json:"class_id"`
 	Class         *Class  `gorm:"foreignKey:ClassID" json:"class,omitempty"`
