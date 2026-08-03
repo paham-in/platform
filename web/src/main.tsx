@@ -8,9 +8,10 @@ import { router } from "./router"
 import "./index.css"
 
 const token = localStorage.getItem("token")
-if (token) {
-  client.setConfig({ auth: () => `Bearer ${token}` })
-}
+client.setConfig({
+  baseUrl: import.meta.env.VITE_API_URL || "http://localhost:8080/",
+  ...(token ? { auth: () => `Bearer ${token}` } : {}),
+})
 
 const queryClient = new QueryClient()
 
