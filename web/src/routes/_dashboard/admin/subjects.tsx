@@ -1,6 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxValue,
+  useComboboxAnchor,
+} from "@/components/ui/combobox";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -60,18 +71,22 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import type { ClassClassResponse } from "@/lib/api/types.gen";
+
+type ClassOption = Pick<ClassClassResponse, "id" | "name">;
 
 function AdminSubjects() {
   const qc = useQueryClient();
   const { data: subjects = [], isLoading } = useQuery(getSubjectsOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
+  const comboboxAnchor = useComboboxAnchor();
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<SubjectSubjectResponse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<SubjectSubjectResponse | null>(null);
-  const [form, setForm] = useState({ name: "", class_ids: [] as number[] });
+  const [form, setForm] = useState<{ name: string; classes: ClassOption[] }>({ name: "", classes: [] });
   const perPage = 5;
 
   const { mutate: createSubject } = useMutation({
@@ -102,42 +117,36 @@ function AdminSubjects() {
   const totalPages = Math.ceil(filtered.length / perPage);
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
-  const toggleClass = (classId: number) => {
-    setForm((prev) => ({
-      ...prev,
-      class_ids: prev.class_ids.includes(classId)
-        ? prev.class_ids.filter((id) => id !== classId)
-        : [...prev.class_ids, classId],
-    }));
-  };
-
   const openAdd = () => {
     setEditing(null);
-    setForm({ name: "", class_ids: [] });
+    setForm({ name: "", classes: [] });
     setDialogOpen(true);
   };
   const openEdit = (s: SubjectSubjectResponse) => {
     setEditing(s);
     setForm({
       name: s.name ?? "",
-      class_ids: s.class_ids ?? [],
+      classes: (s.class_ids ?? [])
+        .map((id) => classes.find((c) => c.id === id))
+        .filter((c): c is ClassOption => Boolean(c?.id && c?.name)),
     });
     setDialogOpen(true);
   };
   const save = () => {
+    const classIds = form.classes.map((c) => c.id!).filter((id) => id !== undefined);
     if (editing) {
       updateSubject({
         path: { id: editing.id! },
         body: {
           name: form.name || undefined,
-          class_ids: form.class_ids,
+          class_ids: classIds,
         },
       });
     } else {
       createSubject({
         body: {
           name: form.name,
-          class_ids: form.class_ids,
+          class_ids: classIds,
         },
       });
     }
@@ -214,25 +223,37 @@ function AdminSubjects() {
                 </div>
                 <div className="space-y-2">
                   <Label>Kelas</Label>
-                  <div className="max-h-[200px] space-y-2 overflow-y-auto rounded-md border p-3">
-                    {classes.map((c) => (
-                      <label
-                        key={c.id}
-                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
-                      >
-                        <Checkbox
-                          checked={form.class_ids.includes(c.id!)}
-                          onCheckedChange={() => toggleClass(c.id!)}
-                        />
-                        {c.name}
-                      </label>
-                    ))}
-                    {classes.length === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        Belum ada kelas. Buat kelas dulu.
-                      </p>
-                    )}
-                  </div>
+                  <Combobox
+                    multiple
+                    autoHighlight
+                    items={classes as ClassOption[]}
+                    value={form.classes}
+                    onValueChange={(next) => setForm((prev) => ({ ...prev, classes: next ?? [] }))}
+                    itemToStringLabel={(c: ClassOption) => c.name ?? ""}
+                  >
+                    <ComboboxChips ref={comboboxAnchor} className="w-full">
+                      <ComboboxValue>
+                        {(values: ClassOption[]) => (
+                          <>
+                            {values.map((c) => (
+                              <ComboboxChip key={c.id}>{c.name}</ComboboxChip>
+                            ))}
+                            <ComboboxChipsInput placeholder="Pilih kelas..." />
+                          </>
+                        )}
+                      </ComboboxValue>
+                    </ComboboxChips>
+                    <ComboboxContent anchor={comboboxAnchor}>
+                      <ComboboxEmpty>Kelas tidak ditemukan</ComboboxEmpty>
+                      <ComboboxList>
+                        {(c: ClassOption) => (
+                          <ComboboxItem key={c.id} value={c}>
+                            {c.name}
+                          </ComboboxItem>
+                        )}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
                 </div>
                 <div className="flex justify-end gap-3 pt-2">
                   <Button
