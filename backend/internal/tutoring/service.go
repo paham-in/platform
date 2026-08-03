@@ -139,6 +139,30 @@ func (s *Service) CreateBooking(studentID uint, input CreateBookingInput) (*Book
 		return nil, errors.New("start_time harus sebelum end_time")
 	}
 
+	// cek konflik jadwal guru: confirmed & pending memblokir slot.
+	newStart, err := timeToMinutes(input.StartTime)
+	if err != nil {
+		return nil, errors.New("start_time tidak valid")
+	}
+	newEnd, err := timeToMinutes(input.EndTime)
+	if err != nil {
+		return nil, errors.New("end_time tidak valid")
+	}
+	existing, err := s.repo.ListBookingsByTeacherAndDate(input.TeacherID, input.Date, []string{"confirmed", "pending"})
+	if err != nil {
+		return nil, err
+	}
+	for _, b := range existing {
+		bStart, err1 := timeToMinutes(b.StartTime)
+		bEnd, err2 := timeToMinutes(b.EndTime)
+		if err1 != nil || err2 != nil {
+			continue
+		}
+		if hasOverlap(newStart, newEnd, bStart, bEnd) {
+			return nil, errors.New("guru sudah memiliki booking pada jam tersebut")
+		}
+	}
+
 	booking := models.Booking{
 		TeacherID: input.TeacherID,
 		StudentID: studentID,
@@ -157,6 +181,20 @@ func (s *Service) CreateBooking(studentID uint, input CreateBookingInput) (*Book
 	}
 	r := toBookingResponse(*created)
 	return &r, nil
+}
+
+// timeToMinutes mengubah "HH:mm" menjadi menit sejak tengah malam.
+func timeToMinutes(t string) (int, error) {
+	parsed, err := time.Parse("15:04", t)
+	if err != nil {
+		return 0, err
+	}
+	return parsed.Hour()*60 + parsed.Minute(), nil
+}
+
+// hasOverlap mengembalikan true jika dua interval waktu saling tumpang tindih.
+func hasOverlap(start1, end1, start2, end2 int) bool {
+	return start1 < end2 && start2 < end1
 }
 
 func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*BookingResponse, error) {

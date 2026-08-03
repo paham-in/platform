@@ -65,6 +65,18 @@ func (r *Repository) CreateBooking(booking *models.Booking) error {
 	return r.db.Create(booking).Error
 }
 
+// ListBookingsByTeacherAndDate mengembalikan booking guru pada tanggal tertentu
+// dengan status tertentu (untuk cek konflik jadwal).
+func (r *Repository) ListBookingsByTeacherAndDate(teacherID uint, date string, statuses []string) ([]models.Booking, error) {
+	var bookings []models.Booking
+	if err := r.db.
+		Where("teacher_id = ? AND date = ? AND status IN ?", teacherID, date, statuses).
+		Find(&bookings).Error; err != nil {
+		return nil, err
+	}
+	return bookings, nil
+}
+
 func (r *Repository) UpdateBookingStatus(id uint, status string) error {
 	return r.db.Model(&models.Booking{}).Where("id = ?", id).Update("status", status).Error
 }
