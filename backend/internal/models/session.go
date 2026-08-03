@@ -1,6 +1,14 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
+
+// SessionTTL adalah umur sesi. Dipakai untuk sliding expiration:
+// tiap kali token dipakai, ExpiresAt diperpanjang ke sekarang + SessionTTL.
+const SessionTTL = 7 * 24 * time.Hour
 
 type Session struct {
 	gorm.Model

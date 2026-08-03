@@ -47,6 +47,8 @@ func SessionResolver(db *gorm.DB) fiber.Handler {
 		if err := db.Preload("Roles").First(&user, session.UserID).Error; err != nil {
 			return c.Status(401).JSON(fiber.Map{"error": "user tidak ditemukan"})
 		}
+		// sliding expiration: perpanjang masa sesi pada tiap request yang valid
+		db.Model(&models.Session{}).Where("id = ?", session.ID).Update("expires_at", time.Now().Add(models.SessionTTL).Unix())
 		c.Locals("user_id", user.ID)
 		c.Locals("roles", extractRoles(db, user.ID))
 		c.Locals("user", &user)
@@ -69,6 +71,8 @@ func OptionalSessionResolver(db *gorm.DB) fiber.Handler {
 		if err := db.Preload("Roles").First(&user, session.UserID).Error; err != nil {
 			return c.Next()
 		}
+		// sliding expiration: perpanjang masa sesi pada tiap request yang valid
+		db.Model(&models.Session{}).Where("id = ?", session.ID).Update("expires_at", time.Now().Add(models.SessionTTL).Unix())
 		c.Locals("user_id", user.ID)
 		c.Locals("roles", extractRoles(db, user.ID))
 		c.Locals("user", &user)

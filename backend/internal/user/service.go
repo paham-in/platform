@@ -10,7 +10,8 @@ import (
 	"bimbel2/backend/internal/models"
 )
 
-const sessionDuration = 30 * 24 * time.Hour // 1 bulan
+// sessionDuration dipakai untuk sliding expiration: diperpanjang tiap token dipakai.
+const sessionDuration = models.SessionTTL // 7 hari
 
 type AuthResponse struct {
 	Token string       `json:"token"`
@@ -128,6 +129,9 @@ func (s *Service) ValidateSession(token string) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	// sliding expiration: perpanjang masa sesi pada tiap pemakaian yang valid.
+	// non-fatal — kalau update gagal, sesi tetap valid untuk request ini.
+	_ = s.sessionRepo.Touch(session.ID, time.Now().Add(sessionDuration).Unix())
 	return s.userRepo.Get(session.UserID)
 }
 

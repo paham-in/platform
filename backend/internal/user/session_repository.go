@@ -35,3 +35,7 @@ func (r *SessionRepository) Delete(token string) error {
 func (r *SessionRepository) DeleteAllByUser(userID uint) error {
 	return r.db.Where("user_id = ?", userID).Delete(&models.Session{}).Error
 }
+
+func (r *SessionRepository) Touch(id uint, expiresAt int64) error {
+	return r.db.Model(&models.Session{}).Where("id = ?", id).Update("expires_at", expiresAt).Error
+}
