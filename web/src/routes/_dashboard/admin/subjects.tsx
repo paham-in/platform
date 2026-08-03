@@ -71,7 +71,7 @@ function AdminSubjects() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<SubjectSubjectResponse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<SubjectSubjectResponse | null>(null);
-  const [form, setForm] = useState({ name: "", description: "", class_ids: [] as number[] });
+  const [form, setForm] = useState({ name: "", class_ids: [] as number[] });
   const perPage = 5;
 
   const { mutate: createSubject } = useMutation({
@@ -113,14 +113,13 @@ function AdminSubjects() {
 
   const openAdd = () => {
     setEditing(null);
-    setForm({ name: "", description: "", class_ids: [] });
+    setForm({ name: "", class_ids: [] });
     setDialogOpen(true);
   };
   const openEdit = (s: SubjectSubjectResponse) => {
     setEditing(s);
     setForm({
       name: s.name ?? "",
-      description: s.description ?? "",
       class_ids: s.class_ids ?? [],
     });
     setDialogOpen(true);
@@ -131,7 +130,6 @@ function AdminSubjects() {
         path: { id: editing.id! },
         body: {
           name: form.name || undefined,
-          description: form.description || undefined,
           class_ids: form.class_ids,
         },
       });
@@ -139,7 +137,6 @@ function AdminSubjects() {
       createSubject({
         body: {
           name: form.name,
-          description: form.description,
           class_ids: form.class_ids,
         },
       });
@@ -216,17 +213,6 @@ function AdminSubjects() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="desc">Deskripsi</Label>
-                  <Input
-                    id="desc"
-                    value={form.description}
-                    onChange={(e) =>
-                      setForm({ ...form, description: e.target.value })
-                    }
-                    placeholder="Deskripsi singkat"
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label>Kelas</Label>
                   <div className="max-h-[200px] space-y-2 overflow-y-auto rounded-md border p-3">
                     {classes.map((c) => (
@@ -270,7 +256,6 @@ function AdminSubjects() {
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Nama</TableHead>
                   <TableHead>Slug</TableHead>
-                  <TableHead>Deskripsi</TableHead>
                   <TableHead>Kelas</TableHead>
                   <TableHead>Jumlah Materi</TableHead>
                   <TableHead className="pr-6 text-right">Aksi</TableHead>
@@ -282,9 +267,6 @@ function AdminSubjects() {
                     <TableCell className="pl-6 font-medium">{s.name}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {s.slug}
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate text-muted-foreground">
-                      {s.description}
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate text-muted-foreground">
                       {classNames(s.class_ids)}
@@ -310,7 +292,7 @@ function AdminSubjects() {
                 {paged.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={5}
                       className="p-8 text-center text-muted-foreground"
                     >
                       Tidak ada mata pelajaran ditemukan

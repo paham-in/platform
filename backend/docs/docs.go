@@ -3524,9 +3524,6 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
-                "description": {
-                    "type": "string"
-                },
                 "name": {
                     "type": "string"
                 }
@@ -3559,9 +3556,6 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
-                "description": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
                 },
@@ -3584,9 +3578,6 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
-                },
-                "description": {
-                    "type": "string"
                 },
                 "name": {
                     "type": "string"

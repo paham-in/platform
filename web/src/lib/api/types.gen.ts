@@ -268,7 +268,6 @@ export type QuestionpackageUpdateInput = {
 
 export type SubjectCreateInput = {
     class_ids?: Array<number>;
-    description?: string;
     name?: string;
 };
 
@@ -282,7 +281,6 @@ export type SubjectMessageResponse = {
 
 export type SubjectSubjectResponse = {
     class_ids?: Array<number>;
-    description?: string;
     id?: number;
     material_count?: number;
     name?: string;
@@ -291,7 +289,6 @@ export type SubjectSubjectResponse = {
 
 export type SubjectUpdateInput = {
     class_ids?: Array<number>;
-    description?: string;
     name?: string;
 };
 

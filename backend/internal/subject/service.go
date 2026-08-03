@@ -18,7 +18,6 @@ type SubjectResponse struct {
 	ID            uint   `json:"id"`
 	Name          string `json:"name"`
 	Slug          string `json:"slug"`
-	Description   string `json:"description"`
 	MaterialCount int64  `json:"material_count"`
 	ClassIDs      []uint `json:"class_ids"`
 }
@@ -45,17 +44,15 @@ func (s *Service) Get(id uint) (*SubjectResponse, error) {
 }
 
 type CreateInput struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	ClassIDs    []uint `json:"class_ids"`
+	Name     string `json:"name"`
+	ClassIDs []uint `json:"class_ids"`
 }
 
 func (s *Service) Create(input CreateInput) (*SubjectResponse, error) {
 	slug := strings.ToLower(strings.ReplaceAll(input.Name, " ", "-"))
 	subject := models.Subject{
-		Name:        input.Name,
-		Slug:        slug,
-		Description: input.Description,
+		Name: input.Name,
+		Slug: slug,
 	}
 	if err := s.repo.Create(&subject); err != nil {
 		return nil, err
@@ -69,9 +66,8 @@ func (s *Service) Create(input CreateInput) (*SubjectResponse, error) {
 }
 
 type UpdateInput struct {
-	Name        *string `json:"name"`
-	Description *string `json:"description"`
-	ClassIDs    *[]uint `json:"class_ids"`
+	Name     *string `json:"name"`
+	ClassIDs *[]uint `json:"class_ids"`
 }
 
 func (s *Service) Update(id uint, input UpdateInput) (*SubjectResponse, error) {
@@ -79,9 +75,6 @@ func (s *Service) Update(id uint, input UpdateInput) (*SubjectResponse, error) {
 	if input.Name != nil {
 		updates["name"] = *input.Name
 		updates["slug"] = strings.ToLower(strings.ReplaceAll(*input.Name, " ", "-"))
-	}
-	if input.Description != nil {
-		updates["description"] = *input.Description
 	}
 	if len(updates) > 0 {
 		if err := s.repo.Update(id, updates); err != nil {
@@ -107,7 +100,6 @@ func (s *Service) buildResponse(sub models.Subject) (*SubjectResponse, error) {
 		ID:            sub.ID,
 		Name:          sub.Name,
 		Slug:          sub.Slug,
-		Description:   sub.Description,
 		MaterialCount: count,
 		ClassIDs:      classIDs,
 	}, nil

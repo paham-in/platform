@@ -426,8 +426,6 @@ definitions:
         items:
           type: integer
         type: array
-      description:
-        type: string
       name:
         type: string
     type: object
@@ -449,8 +447,6 @@ definitions:
         items:
           type: integer
         type: array
-      description:
-        type: string
       id:
         type: integer
       material_count:
@@ -466,8 +462,6 @@ definitions:
         items:
           type: integer
         type: array
-      description:
-        type: string
       name:
         type: string
     type: object

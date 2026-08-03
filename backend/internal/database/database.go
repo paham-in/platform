@@ -117,5 +117,10 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE classes DROP COLUMN description")
 	}
 
+	// migrate subjects -- drop description column (tidak dipakai)
+	if db.Migrator().HasColumn(&models.Subject{}, "description") {
+		db.Exec("ALTER TABLE subjects DROP COLUMN description")
+	}
+
 	log.Println("Migration completed")
 }
