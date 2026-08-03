@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"slices"
 	"time"
 
 	"bimbel2/backend/internal/models"
@@ -67,7 +68,7 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 		if avatarURL != "" && user.AvatarURL != avatarURL {
 			s.userRepo.UpdateAvatar(user.ID, avatarURL)
 		}
-		token, err := s.createSession(user.ID)
+		token, err := s.createSessionForLogin(user)
 		if err != nil {
 			return nil, errInternal
 		}
@@ -81,7 +82,7 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 		if avatarURL != "" {
 			s.userRepo.UpdateAvatar(user.ID, avatarURL)
 		}
-		token, err := s.createSession(user.ID)
+		token, err := s.createSessionForLogin(user)
 		if err != nil {
 			return nil, errInternal
 		}
@@ -100,11 +101,22 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 		return nil, errInternal
 	}
 
-	token, err := s.createSession(user.ID)
+	token, err := s.createSessionForLogin(user)
 	if err != nil {
 		return nil, errInternal
 	}
 	return &AuthResponse{Token: token, User: toResponse(*user)}, nil
+}
+
+// createSessionForLogin membuat sesi baru. Untuk user ber-role student,
+// semua sesi lama dihapus dulu (pembatasan satu perangkat — anti berbagi akun).
+func (s *Service) createSessionForLogin(user *models.User) (string, error) {
+	if slices.Contains(roleNames(*user), "student") {
+		if err := s.sessionRepo.DeleteAllByUser(user.ID); err != nil {
+			return "", err
+		}
+	}
+	return s.createSession(user.ID)
 }
 
 func (s *Service) Logout(token string) error {

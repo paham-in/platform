@@ -31,3 +31,7 @@ func (r *SessionRepository) GetByToken(token string) (*models.Session, error) {
 func (r *SessionRepository) Delete(token string) error {
 	return r.db.Where("token = ?", token).Delete(&models.Session{}).Error
 }
+
+func (r *SessionRepository) DeleteAllByUser(userID uint) error {
+	return r.db.Where("user_id = ?", userID).Delete(&models.Session{}).Error
+}
