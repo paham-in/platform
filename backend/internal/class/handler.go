@@ -53,8 +53,7 @@ func (h *Handler) AdminListClasses(c *fiber.Ctx) error {
 // @Router       /admin/classes [post]
 func (h *Handler) AdminCreateClass(c *fiber.Ctx) error {
 	var input struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
+		Name string `json:"name"`
 	}
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
@@ -63,7 +62,7 @@ func (h *Handler) AdminCreateClass(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "nama wajib diisi"})
 	}
 
-	class, err := h.svc.Create(input.Name, input.Description)
+	class, err := h.svc.Create(input.Name)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menyimpan data"})
 	}
@@ -89,14 +88,13 @@ func (h *Handler) AdminUpdateClass(c *fiber.Ctx) error {
 	}
 
 	var input struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
+		Name string `json:"name"`
 	}
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 
-	class, err := h.svc.Update(uint(id), input.Name, input.Description)
+	class, err := h.svc.Update(uint(id), input.Name)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengupdate data"})
 	}

@@ -15,10 +15,9 @@ func NewService(repo *Repository) *Service {
 }
 
 type ClassResponse struct {
-	ID          uint   `json:"id"`
-	Name        string `json:"name"`
-	Slug        string `json:"slug"`
-	Description string `json:"description"`
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
 }
 
 func (s *Service) List() ([]ClassResponse, error) {
@@ -42,12 +41,11 @@ func (s *Service) Get(id uint) (*ClassResponse, error) {
 	return &r, nil
 }
 
-func (s *Service) Create(name, description string) (*ClassResponse, error) {
+func (s *Service) Create(name string) (*ClassResponse, error) {
 	slug := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
 	class := models.Class{
-		Name:        name,
-		Slug:        slug,
-		Description: description,
+		Name: name,
+		Slug: slug,
 	}
 	if err := s.repo.Create(&class); err != nil {
 		return nil, err
@@ -56,14 +54,11 @@ func (s *Service) Create(name, description string) (*ClassResponse, error) {
 	return &r, nil
 }
 
-func (s *Service) Update(id uint, name, description string) (*ClassResponse, error) {
+func (s *Service) Update(id uint, name string) (*ClassResponse, error) {
 	updates := map[string]interface{}{}
 	if name != "" {
 		updates["name"] = name
 		updates["slug"] = strings.ToLower(strings.ReplaceAll(name, " ", "-"))
-	}
-	if description != "" {
-		updates["description"] = description
 	}
 	if err := s.repo.Update(id, updates); err != nil {
 		return nil, err
@@ -77,9 +72,8 @@ func (s *Service) Delete(id uint) error {
 
 func toResponse(c models.Class) ClassResponse {
 	return ClassResponse{
-		ID:          c.ID,
-		Name:        c.Name,
-		Slug:        c.Slug,
-		Description: c.Description,
+		ID:   c.ID,
+		Name: c.Name,
+		Slug: c.Slug,
 	}
 }

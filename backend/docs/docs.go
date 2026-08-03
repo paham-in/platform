@@ -3012,9 +3012,6 @@ const docTemplate = `{
         "class.ClassResponse": {
             "type": "object",
             "properties": {
-                "description": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
                 },

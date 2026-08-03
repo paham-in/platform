@@ -60,7 +60,7 @@ function AdminClasses() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<ClassClassResponse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<ClassClassResponse | null>(null);
-  const [form, setForm] = useState({ name: "", description: "" });
+  const [form, setForm] = useState({ name: "" });
   const perPage = 5;
 
   const { mutate: createClass } = useMutation({
@@ -90,23 +90,23 @@ function AdminClasses() {
 
   const openAdd = () => {
     setEditing(null);
-    setForm({ name: "", description: "" });
+    setForm({ name: "" });
     setDialogOpen(true);
   };
   const openEdit = (c: ClassClassResponse) => {
     setEditing(c);
-    setForm({ name: c.name ?? "", description: c.description ?? "" });
+    setForm({ name: c.name ?? "" });
     setDialogOpen(true);
   };
   const save = () => {
     if (editing) {
       updateClass({
         path: { id: editing.id! },
-        body: { name: form.name, description: form.description },
+        body: { name: form.name },
       });
     } else {
       createClass({
-        body: { name: form.name, description: form.description },
+        body: { name: form.name },
       });
     }
   };
@@ -158,17 +158,6 @@ function AdminClasses() {
                     placeholder="Nama kelas (cth: Kelas 10 IPA)"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="desc">Deskripsi</Label>
-                  <Input
-                    id="desc"
-                    value={form.description}
-                    onChange={(e) =>
-                      setForm({ ...form, description: e.target.value })
-                    }
-                    placeholder="Deskripsi singkat"
-                  />
-                </div>
                 <div className="flex justify-end gap-3 pt-2">
                   <Button
                     variant="outline"
@@ -191,7 +180,6 @@ function AdminClasses() {
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Nama</TableHead>
                   <TableHead>Slug</TableHead>
-                  <TableHead>Deskripsi</TableHead>
                   <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
@@ -201,9 +189,6 @@ function AdminClasses() {
                     <TableCell className="pl-6 font-medium">{c.name}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {c.slug}
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate text-muted-foreground">
-                      {c.description}
                     </TableCell>
                     <TableCell className="pr-6 text-right">
                       <DropdownMenu>
@@ -225,7 +210,7 @@ function AdminClasses() {
                 {paged.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={4}
+                      colSpan={3}
                       className="p-8 text-center text-muted-foreground"
                     >
                       Tidak ada kelas ditemukan

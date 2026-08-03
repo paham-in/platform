@@ -65,7 +65,6 @@ export type ChapterUpdateInput = {
 };
 
 export type ClassClassResponse = {
-    description?: string;
     id?: number;
     name?: string;
     slug?: string;

@@ -95,8 +95,6 @@ definitions:
     type: object
   class.ClassResponse:
     properties:
-      description:
-        type: string
       id:
         type: integer
       name:

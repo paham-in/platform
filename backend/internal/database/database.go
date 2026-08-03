@@ -112,5 +112,10 @@ func Migrate(db *gorm.DB) {
 		db.Exec("CREATE INDEX idx_subject_images_user_id ON subject_images(user_id)")
 	}
 
+	// migrate classes -- drop description column (tidak dipakai)
+	if db.Migrator().HasColumn(&models.Class{}, "description") {
+		db.Exec("ALTER TABLE classes DROP COLUMN description")
+	}
+
 	log.Println("Migration completed")
 }
