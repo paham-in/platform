@@ -1,0 +1,22 @@
+# jangan ikut ke build context — tidak diperlukan
+node_modules
+dist
+dist-ssr
+
+# env & file lokal
+.env
+.env.*
+*.local
+
+# git
+.git
+.gitignore
+
+# editor & os
+.vscode
+.idea
+.DS_Store
+
+# hasil tooling
+.tanstack
+*.log
