@@ -33,6 +33,23 @@ func hasRole(c *fiber.Ctx, role string) bool {
 	return false
 }
 
+// ListTeachers returns all teachers (role teacher) for booking
+// @Summary      List teachers
+// @Description  Mengembalikan daftar guru yang tersedia untuk dibooking murid
+// @Tags         Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} TeacherResponse
+// @Router       /tutoring/teachers [get]
+func (h *Handler) ListTeachers(c *fiber.Ctx) error {
+	teachers, err := h.svc.ListTeachers()
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(teachers)
+}
+
 // ListAvailability returns availability slots (teacher: own, student: by teacher_id)
 // @Summary      List availability
 // @Description  Returns availability slots. Teachers see their own; students pass ?teacher_id=
@@ -218,6 +235,7 @@ func Routes(auth fiber.Router, db *gorm.DB) {
 	svc := NewService(repo)
 	h := NewHandler(svc)
 
+	auth.Get("/tutoring/teachers", h.ListTeachers)
 	auth.Get("/tutoring/availability", h.ListAvailability)
 	auth.Post("/tutoring/availability", h.CreateAvailability)
 	auth.Delete("/tutoring/availability/:id", h.DeleteAvailability)

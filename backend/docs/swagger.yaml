@@ -543,6 +543,17 @@ definitions:
       message:
         type: string
     type: object
+  tutoring.TeacherResponse:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
   upload.UploadResponse:
     properties:
       file_name:
@@ -2351,6 +2362,25 @@ paths:
       security:
       - BearerAuth: []
       summary: Update booking status
+      tags:
+      - Tutoring
+  /tutoring/teachers:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar guru yang tersedia untuk dibooking murid
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/tutoring.TeacherResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List teachers
       tags:
       - Tutoring
 schemes:

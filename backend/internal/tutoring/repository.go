@@ -22,6 +22,20 @@ func (r *Repository) ListAvailability(teacherID uint) ([]models.Availability, er
 	return slots, nil
 }
 
+func (r *Repository) ListTeachers() ([]models.User, error) {
+	var users []models.User
+	if err := r.db.
+		Joins("JOIN user_roles ON user_roles.user_id = users.id").
+		Joins("JOIN roles ON roles.id = user_roles.role_id").
+		Where("roles.name = ?", "teacher").
+		Preload("Roles").
+		Order("users.name").
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (r *Repository) CreateAvailability(slot *models.Availability) error {
 	return r.db.Create(slot).Error
 }

@@ -29,6 +29,13 @@ type BookingResponse struct {
 	CreatedAt string `json:"created_at"`
 }
 
+type TeacherResponse struct {
+	ID        uint   `json:"id"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	AvatarURL string `json:"avatar_url"`
+}
+
 type Service struct {
 	repo *Repository
 }
@@ -76,6 +83,18 @@ func (s *Service) CreateAvailability(teacherID uint, input CreateAvailabilityInp
 
 func (s *Service) DeleteAvailability(id, teacherID uint) error {
 	return s.repo.DeleteAvailability(id, teacherID)
+}
+
+func (s *Service) ListTeachers() ([]TeacherResponse, error) {
+	users, err := s.repo.ListTeachers()
+	if err != nil {
+		return nil, err
+	}
+	res := make([]TeacherResponse, len(users))
+	for i, u := range users {
+		res[i] = TeacherResponse{ID: u.ID, Name: u.Name, Email: u.Email, AvatarURL: u.AvatarURL}
+	}
+	return res, nil
 }
 
 func (s *Service) ListTeacherBookings(teacherID uint) ([]BookingResponse, error) {

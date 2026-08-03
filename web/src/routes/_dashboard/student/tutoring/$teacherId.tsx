@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getAdminUsersOptions, getTutoringAvailabilityOptions, postTutoringBookingsMutation, getTutoringBookingsQueryKey } from "@/lib/api/@tanstack/react-query.gen"
+import { getTutoringTeachersOptions, getTutoringAvailabilityOptions, postTutoringBookingsMutation, getTutoringBookingsQueryKey } from "@/lib/api/@tanstack/react-query.gen"
 import { Calendar, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -13,7 +13,7 @@ import { toast } from "sonner"
 function BookTeacher() {
   const { teacherId } = Route.useParams()
   const qc = useQueryClient()
-  const { data: allUsers = [] } = useQuery(getAdminUsersOptions())
+  const { data: teachers = [] } = useQuery(getTutoringTeachersOptions())
   const { data: slots = [], isLoading } = useQuery(getTutoringAvailabilityOptions({ query: { teacher_id: Number(teacherId) } }))
 
   const [selectedSlot, setSelectedSlot] = useState<{ day: number; start: string; end: string } | null>(null)
@@ -21,7 +21,7 @@ function BookTeacher() {
   const [note, setNote] = useState("")
   const [bookOpen, setBookOpen] = useState(false)
 
-  const teacher = allUsers.find((u) => u.id === Number(teacherId))
+  const teacher = teachers.find((u) => u.id === Number(teacherId))
   const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
 
   const { mutate: createBooking, isPending } = useMutation({
@@ -47,7 +47,13 @@ function BookTeacher() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">{teacher.name?.[0]}</div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
+          {teacher.avatar_url ? (
+            <img src={teacher.avatar_url} alt={teacher.name} className="h-12 w-12 rounded-full object-cover" />
+          ) : (
+            teacher.name?.[0]
+          )}
+        </div>
         <div>
           <h2 className="text-xl font-bold">{teacher.name}</h2>
           <p className="text-sm text-muted-foreground">{teacher.email}</p>

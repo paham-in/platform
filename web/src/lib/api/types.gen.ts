@@ -340,6 +340,13 @@ export type TutoringMessageResponse = {
     message?: string;
 };
 
+export type TutoringTeacherResponse = {
+    avatar_url?: string;
+    email?: string;
+    id?: number;
+    name?: string;
+};
+
 export type UploadUploadResponse = {
     file_name?: string;
     id?: number;
@@ -2124,3 +2131,19 @@ export type PatchTutoringBookingsByIdResponses = {
 };
 
 export type PatchTutoringBookingsByIdResponse = PatchTutoringBookingsByIdResponses[keyof PatchTutoringBookingsByIdResponses];
+
+export type GetTutoringTeachersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/tutoring/teachers';
+};
+
+export type GetTutoringTeachersResponses = {
+    /**
+     * OK
+     */
+    200: Array<TutoringTeacherResponse>;
+};
+
+export type GetTutoringTeachersResponse = GetTutoringTeachersResponses[keyof GetTutoringTeachersResponses];
