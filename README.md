@@ -77,7 +77,7 @@ Spesifikasi API tersedia dalam format OpenAPI/Swagger yang dibangkitkan otomatis
 
 ## Status Proyek
 
-Proyek dalam pengembangan aktif. Lihat `PRD.md` untuk detail produk dan `PROGRESS.md` untuk perkembangan fitur.
+Proyek ini masih dalam pengembangan aktif — fitur baru terus ditambahkan dan disempurnakan secara berkala.
 
 ---
 
