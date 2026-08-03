@@ -6,10 +6,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { client } from "@/lib/api/client.gen"
 
 function LoginPage() {
   const googleLogin = () => {
-    window.location.href = "http://localhost:8080/auth/google"
+    const baseUrl = client.getConfig().baseUrl || "http://localhost:8080/"
+    window.location.href = `${baseUrl.replace(/\/+$/, "")}/auth/google`
   }
 
   return (
