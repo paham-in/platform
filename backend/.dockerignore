@@ -1,0 +1,13 @@
+# jangan ikut ke image — data sensitif
+.env
+
+# artefak lokal yang tidak diperlukan saat build
+bin/
+tmp/
+*.exe
+*.db
+*.log
+
+# git
+.git
+.gitignore
