@@ -39,3 +39,13 @@ func (r *SessionRepository) DeleteAllByUser(userID uint) error {
 func (r *SessionRepository) Touch(id uint, expiresAt int64) error {
 	return r.db.Model(&models.Session{}).Where("id = ?", id).Update("expires_at", expiresAt).Error
 }
+
+// DeleteExpired menghapus semua sesi yang sudah kedaluwarsa (expires_at <= now).
+// Mengembalikan jumlah sesi yang dihapus. Dipanggil berkala oleh background job.
+func (r *SessionRepository) DeleteExpired(now time.Time) (int64, error) {
+	res := r.db.Unscoped().Where("expires_at <= ?", now.Unix()).Delete(&models.Session{})
+	if res.Error != nil {
+		return 0, res.Error
+	}
+	return res.RowsAffected, nil
+}

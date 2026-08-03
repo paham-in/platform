@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"bimbel2/backend/internal/answer"
 	"bimbel2/backend/internal/config"
@@ -106,9 +107,36 @@ func main() {
 	forum.AdminRoutes(admin, db)
 	invoice.AdminRoutes(admin, db)
 
+	// background job: hapus sesi yang sudah kedaluwarsa setiap 1 jam
+	startSessionCleanup(db)
+
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)
 	log.Fatal(app.Listen(":" + port))
+}
+
+func startSessionCleanup(db *gorm.DB) {
+	sessionRepo := user.NewSessionRepository(db)
+	go func() {
+		// jalankan sekali saat boot, lalu berkala
+		cleanupExpiredSessions(sessionRepo)
+		ticker := time.NewTicker(time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			cleanupExpiredSessions(sessionRepo)
+		}
+	}()
+}
+
+func cleanupExpiredSessions(repo *user.SessionRepository) {
+	deleted, err := repo.DeleteExpired(time.Now())
+	if err != nil {
+		log.Printf("[session-cleanup] gagal hapus sesi expired: %v", err)
+		return
+	}
+	if deleted > 0 {
+		log.Printf("[session-cleanup] %d sesi kedaluwarsa dihapus", deleted)
+	}
 }
 
 func ensureAdminRole(db *gorm.DB, user *models.User) {
