@@ -52,6 +52,13 @@ function AdminUsers() {
   const { data: users = [], isLoading } = useQuery(getAdminUsersOptions())
   const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
+
+  const roleOptions = [
+    { label: "Semua Role", value: "all" },
+    { label: "Murid", value: "student" },
+    { label: "Guru", value: "teacher" },
+    { label: "Admin", value: "admin" },
+  ]
   const [editing, setEditing] = useState<UserAdminUserResponse | null>(null)
   const [selectedRoles, setSelectedRoles] = useState<string[]>([])
   const [page, setPage] = useState(1)
@@ -143,13 +150,12 @@ function AdminUsers() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Cari nama atau email..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
           </div>
-          <Select value={roleFilter} onValueChange={(v) => { if (v) { setRoleFilter(v); setPage(1) } }}>
+          <Select items={roleOptions} value={roleFilter} onValueChange={(v) => { if (v) { setRoleFilter(v); setPage(1) } }}>
             <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Role" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Semua Role</SelectItem>
-              <SelectItem value="student">Murid</SelectItem>
-              <SelectItem value="teacher">Guru</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
+              {roleOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
