@@ -7,8 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState, useEffect } from "react"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getAdminUsersOptions, getAdminInvoicesOptions, getAdminInvoicesQueryKey, patchAdminInvoicesByIdToggleMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { useQuery } from "@tanstack/react-query"
+import { getAdminUsersOptions, getAdminInvoicesOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, MoreVertical, CheckCircle2, XCircle, Search, Trash2 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CreateInvoiceDialog, DeleteInvoiceDialog } from "@/components/admin/payments"
+import { CreateInvoiceDialog, DeleteInvoiceDialog, ToggleInvoiceDialog } from "@/components/admin/payments"
 import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
 
 const paymentsDetailSearchSchema = z.object({
@@ -49,11 +49,11 @@ function PaymentsDetail() {
 
   const statusFilter = statusParam ?? "all"
 
-  const qc = useQueryClient()
   const { data: users = [], isLoading: usersLoading } = useQuery(getAdminUsersOptions())
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery(getAdminInvoicesOptions({ query: { user_id: Number(userId) } }))
   const [createOpen, setCreateOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<InvoiceInvoiceResponse | null>(null)
+  const [toggleTarget, setToggleTarget] = useState<{ invoices: InvoiceInvoiceResponse[]; status: "paid" | "pending" } | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 
   const statusOptions = [
@@ -87,10 +87,6 @@ function PaymentsDetail() {
     })
   }
 
-  const { mutate: toggleInvoice } = useMutation({
-    ...patchAdminInvoicesByIdToggleMutation(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: getAdminInvoicesQueryKey() }),
-  })
 
   if (!isLoading && !user) {
     return (
@@ -139,12 +135,8 @@ function PaymentsDetail() {
         {selectedIds.size > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">{selectedIds.size} dipilih</span>
-            <Button size="sm" onClick={() => { selectedIds.forEach((id) => { const inv = userInvoices.find(i => i.id === id); if (inv?.status === "pending") toggleInvoice({ path: { id } }) }); setSelectedIds(new Set()) }}>
-              Lunas
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => { selectedIds.forEach((id) => { const inv = userInvoices.find(i => i.id === id); if (inv?.status === "paid") toggleInvoice({ path: { id } }) }); setSelectedIds(new Set()) }}>
-              Pending
-            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setToggleTarget({ invoices: userInvoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "pending"), status: "paid" })}>Lunas</Button>
+            <Button size="sm" variant="outline" onClick={() => setToggleTarget({ invoices: userInvoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "paid"), status: "pending" })}>Pending</Button>
           </div>
         )}
         <Button className="ml-auto" onClick={() => setCreateOpen(true)}>
@@ -218,7 +210,7 @@ function PaymentsDetail() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => toggleInvoice({ path: { id: inv.id! } })}>
+                          <DropdownMenuItem onClick={() => setToggleTarget({ invoices: [inv], status: inv.status === "paid" ? "pending" : "paid" })}>
                             {inv.status === "paid" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                             {inv.status === "paid" ? "Pending" : "Lunas"}
                           </DropdownMenuItem>
@@ -242,6 +234,17 @@ function PaymentsDetail() {
 
       {deleteTarget && (
         <DeleteInvoiceDialog invoice={deleteTarget} onClose={() => setDeleteTarget(null)} />
+      )}
+
+      {toggleTarget && (
+        <ToggleInvoiceDialog
+          invoices={toggleTarget.invoices}
+          targetStatus={toggleTarget.status}
+          onClose={() => {
+            setSelectedIds(new Set())
+            setToggleTarget(null)
+          }}
+        />
       )}
     </main>
   )
