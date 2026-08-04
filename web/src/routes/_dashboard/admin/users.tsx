@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -48,11 +49,16 @@ function RoleBadge({ role }: { role: string }) {
   )
 }
 
+const usersSearchSchema = z.object({
+  role: z.enum(["all", "student", "teacher", "admin"]).catch("all"),
+})
+
 function AdminUsers() {
   const qc = useQueryClient()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const { role: roleFilter } = Route.useSearch()
   const { data: users = [], isLoading } = useQuery(getAdminUsersOptions())
   const [search, setSearch] = useState("")
-  const [roleFilter, setRoleFilter] = useState("all")
 
   const roleOptions = [
     { label: "Semua Role", value: "all" },
@@ -122,7 +128,7 @@ function AdminUsers() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Cari nama atau email..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
           </div>
-          <Select items={roleOptions} value={roleFilter} onValueChange={(v) => { if (v) { setRoleFilter(v); setPage(1) } }}>
+          <Select items={roleOptions} value={roleFilter} onValueChange={(v) => { if (v) { navigate({ search: { role: v as "all" | "student" | "teacher" | "admin" }, replace: true }); setPage(1) } }}>
             <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Role" /></SelectTrigger>
             <SelectContent>
               {roleOptions.map((opt) => (
@@ -252,4 +258,5 @@ function AdminUsers() {
 
 export const Route = createFileRoute("/_dashboard/admin/users")({
   component: AdminUsers,
+  validateSearch: usersSearchSchema,
 })
