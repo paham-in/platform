@@ -26,7 +26,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { getAdminUsersOptions, getAdminUsersQueryKey, deleteAdminUsersByIdMutation, patchAdminUsersByIdRoleMutation } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
-import { Search, MoreVertical, Shield, Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { Search, MoreVertical, Shield, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -120,14 +120,6 @@ function AdminUsers() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
-
   return (
     <>
       <main className="p-6">
@@ -161,7 +153,20 @@ function AdminUsers() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paged.map((u) => (
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell className="pl-6"><div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+                        <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+                      </div></TableCell>
+                      <TableCell><div className="h-4 w-32 rounded bg-muted animate-pulse" /></TableCell>
+                      <TableCell><div className="h-5 w-16 rounded-full bg-muted animate-pulse" /></TableCell>
+                      <TableCell><div className="h-4 w-20 rounded bg-muted animate-pulse" /></TableCell>
+                      <TableCell className="pr-6 text-right"><div className="h-8 w-8 rounded border bg-muted animate-pulse ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : paged.map((u) => (
                   <TableRow key={u.id}>
                     <TableCell className="pl-6"><div className="flex items-center gap-3">
                       {u.avatar_url ? (
@@ -196,7 +201,7 @@ function AdminUsers() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {paged.length === 0 && (<TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Tidak ada user ditemukan</TableCell></TableRow>)}
+                {!isLoading && paged.length === 0 && (<TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Tidak ada user ditemukan</TableCell></TableRow>)}
               </TableBody>
             </Table>
           </CardContent>
