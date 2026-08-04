@@ -33,6 +33,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const ROLE_LABELS: Record<string, string> = { student: "Murid", teacher: "Guru", admin: "Admin" }
 const ROLE_STYLES: Record<string, string> = {
@@ -157,13 +158,13 @@ function AdminUsers() {
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={`skeleton-${i}`}>
                       <TableCell className="pl-6"><div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
-                        <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <Skeleton className="h-4 w-24" />
                       </div></TableCell>
-                      <TableCell><div className="h-4 w-32 rounded bg-muted animate-pulse" /></TableCell>
-                      <TableCell><div className="h-5 w-16 rounded-full bg-muted animate-pulse" /></TableCell>
-                      <TableCell><div className="h-4 w-20 rounded bg-muted animate-pulse" /></TableCell>
-                      <TableCell className="pr-6 text-right"><div className="h-8 w-8 rounded border bg-muted animate-pulse ml-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
                     </TableRow>
                   ))
                 ) : paged.map((u) => (
