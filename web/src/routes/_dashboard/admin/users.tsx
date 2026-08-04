@@ -23,9 +23,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { getAdminUsersOptions, getAdminUsersQueryKey, getSubjectsOptions, deleteAdminUsersByIdMutation, patchAdminUsersByIdRoleMutation, patchAdminUsersByIdSubjectsMutation } from "@/lib/api/@tanstack/react-query.gen"
-import type { UserAdminUserResponse, UserSubjectInfo } from "@/lib/api/types.gen"
-import { Search, MoreVertical, Shield, BookOpen, Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { getAdminUsersOptions, getAdminUsersQueryKey, deleteAdminUsersByIdMutation, patchAdminUsersByIdRoleMutation } from "@/lib/api/@tanstack/react-query.gen"
+import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import { Search, MoreVertical, Shield, Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -65,11 +65,6 @@ function AdminUsers() {
   const [page, setPage] = useState(1)
   const perPage = 5
   const [deleteConfirm, setDeleteConfirm] = useState<UserAdminUserResponse | null>(null)
-  const [subjectsOpen, setSubjectsOpen] = useState(false)
-  const [editingSubjects, setEditingSubjects] = useState<UserAdminUserResponse | null>(null)
-  const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([])
-
-  const { data: subjects = [] } = useQuery(getSubjectsOptions())
 
   const { mutate: deleteUser } = useMutation({
     ...deleteAdminUsersByIdMutation(),
@@ -81,12 +76,6 @@ function AdminUsers() {
     ...patchAdminUsersByIdRoleMutation(),
     onSuccess: () => { closeEdit(); toast.success("Role berhasil diubah"); qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }) },
     onError: (err: any) => toast.error(err.error || "Gagal mengubah role"),
-  })
-
-  const { mutate: updateTeacherSubjects } = useMutation({
-    ...patchAdminUsersByIdSubjectsMutation(),
-    onSuccess: () => { setSubjectsOpen(false); toast.success("Mata pelajaran berhasil diubah"); qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }) },
-    onError: (err: any) => toast.error(err.error || "Gagal mengubah mata pelajaran"),
   })
 
   const filtered = users.filter((u) => {
@@ -107,27 +96,6 @@ function AdminUsers() {
     setSelectedRoles((prev) =>
       prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
     )
-  }
-
-  const openSubjects = (u: UserAdminUserResponse) => {
-    setEditingSubjects(u)
-    setSelectedSubjectIds((u.subjects ?? []).map((s: UserSubjectInfo) => s.id!).filter((id) => id !== undefined))
-    setSubjectsOpen(true)
-  }
-
-  const toggleSubject = (subjectId: number) => {
-    setSelectedSubjectIds((prev) =>
-      prev.includes(subjectId) ? prev.filter((id) => id !== subjectId) : [...prev, subjectId]
-    )
-  }
-
-  const saveSubjects = () => {
-    if (editingSubjects) {
-      updateTeacherSubjects({
-        path: { id: editingSubjects.id! },
-        body: { subject_ids: selectedSubjectIds },
-      })
-    }
   }
 
   const save = () => {
@@ -204,11 +172,6 @@ function AdminUsers() {
                           <DropdownMenuItem onClick={() => openEdit(u)}>
                             <Shield className="h-4 w-4" /> Ganti Role
                           </DropdownMenuItem>
-                          {(u.roles ?? []).includes("teacher") && (
-                            <DropdownMenuItem onClick={() => openSubjects(u)}>
-                              <BookOpen className="h-4 w-4" /> Atur Mata Pelajaran
-                            </DropdownMenuItem>
-                          )}
                           <DropdownMenuItem onClick={() => setDeleteConfirm(u)}>
                             <Trash2 className="h-4 w-4" /> Hapus
                           </DropdownMenuItem>
@@ -262,40 +225,6 @@ function AdminUsers() {
           <DialogFooter>
             <Button variant="outline" onClick={closeEdit}>Batal</Button>
             <Button onClick={save} disabled={selectedRoles.length === 0}>Simpan</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>}
-
-      {editingSubjects && <Dialog open={subjectsOpen} onOpenChange={(open) => !open && setSubjectsOpen(false)}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Atur Mata Pelajaran</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">
-              {editingSubjects.name} — {editingSubjects.email}
-            </p>
-          </div>
-          <div className="space-y-3 pt-2">
-            <p className="text-sm font-medium">Mata pelajaran yang diajarkan (centang semua yang sesuai)</p>
-            <div className="max-h-[240px] space-y-2 overflow-y-auto rounded-md border p-3">
-              {subjects.map((s) => (
-                <label key={s.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted">
-                  <Checkbox
-                    checked={selectedSubjectIds.includes(s.id!)}
-                    onCheckedChange={() => toggleSubject(s.id!)}
-                  />
-                  {s.name}
-                </label>
-              ))}
-              {subjects.length === 0 && (
-                <p className="text-sm text-muted-foreground">Belum ada mata pelajaran. Buat dulu di menu Mata Pelajaran.</p>
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSubjectsOpen(false)}>Batal</Button>
-            <Button onClick={saveSubjects}>Simpan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>}
