@@ -50,8 +50,8 @@ function RoleBadge({ role }: { role: string }) {
 }
 
 const usersSearchSchema = z.object({
-  role: z.enum(["all", "student", "teacher", "admin"]).catch("all"),
-  search: z.string().catch(""),
+  role: z.enum(["student", "teacher", "admin"]).optional(),
+  search: z.string().optional(),
 })
 
 function AdminUsers() {
@@ -85,8 +85,8 @@ function AdminUsers() {
   })
 
   const filtered = users.filter((u) => {
-    const matchSearch = (u.name ?? "").toLowerCase().includes(search.toLowerCase()) || (u.email ?? "").toLowerCase().includes(search.toLowerCase())
-    const matchRole = roleFilter === "all" || (u.roles ?? []).includes(roleFilter)
+    const matchSearch = !search || (u.name ?? "").toLowerCase().includes(search.toLowerCase()) || (u.email ?? "").toLowerCase().includes(search.toLowerCase())
+    const matchRole = !roleFilter || (u.roles ?? []).includes(roleFilter)
     return matchSearch && matchRole
   })
   const totalPages = Math.ceil(filtered.length / perPage)
@@ -126,9 +126,9 @@ function AdminUsers() {
         <div className="mb-4 flex flex-wrap items-center gap-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Cari nama atau email..." className="pl-9" value={search} onChange={(e) => { navigate({ search: (prev) => ({ ...prev, search: e.target.value }), replace: true }); setPage(1) }} />
+            <Input placeholder="Cari nama atau email..." className="pl-9" value={search ?? ""} onChange={(e) => { navigate({ search: (prev) => ({ ...prev, search: e.target.value || undefined }), replace: true }); setPage(1) }} />
           </div>
-          <Select items={roleOptions} value={roleFilter} onValueChange={(v) => { if (v) { navigate({ search: (prev) => ({ ...prev, role: v as "all" | "student" | "teacher" | "admin" }), replace: true }); setPage(1) } }}>
+          <Select items={roleOptions} value={roleFilter ?? "all"} onValueChange={(v) => { if (v) { navigate({ search: (prev) => ({ ...prev, role: v === "all" ? undefined : v as "student" | "teacher" | "admin" }), replace: true }); setPage(1) } }}>
             <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Role" /></SelectTrigger>
             <SelectContent>
               {roleOptions.map((opt) => (
