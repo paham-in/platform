@@ -58,7 +58,9 @@ function AdminUsers() {
   const qc = useQueryClient()
   const navigate = useNavigate({ from: Route.fullPath })
   const { role: roleFilter, search } = Route.useSearch()
-  const { data: users = [], isLoading } = useQuery(getAdminUsersOptions())
+  const { data: users = [], isLoading } = useQuery(getAdminUsersOptions({
+    query: { search, role: roleFilter },
+  }))
 
   const roleOptions = [
     { label: "Semua Role", value: "all" },
@@ -84,13 +86,8 @@ function AdminUsers() {
     onError: (err: any) => toast.error(err.error || "Gagal mengubah role"),
   })
 
-  const filtered = users.filter((u) => {
-    const matchSearch = !search || (u.name ?? "").toLowerCase().includes(search.toLowerCase()) || (u.email ?? "").toLowerCase().includes(search.toLowerCase())
-    const matchRole = !roleFilter || (u.roles ?? []).includes(roleFilter)
-    return matchSearch && matchRole
-  })
-  const totalPages = Math.ceil(filtered.length / perPage)
-  const paged = filtered.slice((page - 1) * perPage, page * perPage)
+  const totalPages = Math.ceil(users.length / perPage)
+  const paged = users.slice((page - 1) * perPage, page * perPage)
 
   const openEdit = (u: UserAdminUserResponse) => {
     setEditing(u)

@@ -1645,6 +1645,15 @@ paths:
       consumes:
       - application/json
       description: Mengembalikan daftar semua user (admin only)
+      parameters:
+      - description: Filter by name or email
+        in: query
+        name: search
+        type: string
+      - description: Filter by role (student/teacher/admin)
+        in: query
+        name: role
+        type: string
       produces:
       - application/json
       responses:

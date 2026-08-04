@@ -34,9 +34,23 @@ func (r *UserRepository) Create(user *models.User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *UserRepository) List() ([]models.User, error) {
+func (r *UserRepository) List(search string, role string) ([]models.User, error) {
+	query := r.db.Preload("Roles").Preload("Subjects").Order("created_at desc")
+
+	if search != "" {
+		like := "%" + search + "%"
+		query = query.Where("name ILIKE ? OR email ILIKE ?", like, like)
+	}
+
+	if role != "" {
+		query = query.Joins("JOIN user_roles ON user_roles.user_id = users.id").
+			Joins("JOIN roles ON roles.id = user_roles.role_id").
+			Where("roles.name = ?", role).
+			Group("users.id")
+	}
+
 	var users []models.User
-	if err := r.db.Preload("Roles").Preload("Subjects").Order("created_at desc").Find(&users).Error; err != nil {
+	if err := query.Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil

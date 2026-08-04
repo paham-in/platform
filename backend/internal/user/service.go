@@ -178,8 +178,8 @@ func roleNames(u models.User) []string {
 	return names
 }
 
-func (s *Service) ListUsers() ([]AdminUserResponse, error) {
-	users, err := s.userRepo.List()
+func (s *Service) ListUsers(search string, role string) ([]AdminUserResponse, error) {
+	users, err := s.userRepo.List(search, role)
 	if err != nil {
 		return nil, err
 	}

@@ -72,11 +72,16 @@ func (h *Handler) Me(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
+// @Param        search query    string false "Filter by name or email"
+// @Param        role    query    string false "Filter by role (student/teacher/admin)"
 // @Success      200 {array} AdminUserResponse
 // @Failure      500 {object} ErrorResponse
 // @Router       /admin/users [get]
 func (h *Handler) AdminListUsers(c *fiber.Ctx) error {
-	users, err := h.svc.ListUsers()
+	search := c.Query("search", "")
+	role := c.Query("role", "")
+
+	users, err := h.svc.ListUsers(search, role)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data user"})
 	}

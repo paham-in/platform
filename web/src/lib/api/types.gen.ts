@@ -1394,7 +1394,16 @@ export type DeleteAdminSubjectsBySubjectIdImagesByIdResponse = DeleteAdminSubjec
 export type GetAdminUsersData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Filter by name or email
+         */
+        search?: string;
+        /**
+         * Filter by role (student/teacher/admin)
+         */
+        role?: string;
+    };
     url: '/admin/users';
 };
 
