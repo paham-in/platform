@@ -21,7 +21,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { getAdminUsersOptions, getAdminUsersQueryKey, deleteAdminUsersByIdMutation, patchAdminUsersByIdRoleMutation } from "@/lib/api/@tanstack/react-query.gen"
@@ -58,6 +58,19 @@ function AdminUsers() {
   const qc = useQueryClient()
   const navigate = useNavigate({ from: Route.fullPath })
   const { role: roleFilter, search } = Route.useSearch()
+  const [searchInput, setSearchInput] = useState(search ?? "")
+
+  // Sync URL → local state when search changes externally
+  useEffect(() => { setSearchInput(search ?? "") }, [search])
+
+  // Debounce search → navigate to URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({ search: (prev) => ({ ...prev, search: searchInput || undefined }), replace: true })
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput])
+
   const { data: users = [], isLoading } = useQuery(getAdminUsersOptions({
     query: { search, role: roleFilter },
   }))
@@ -123,7 +136,7 @@ function AdminUsers() {
         <div className="mb-4 flex flex-wrap items-center gap-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Cari nama atau email..." className="pl-9" value={search ?? ""} onChange={(e) => { navigate({ search: (prev) => ({ ...prev, search: e.target.value || undefined }), replace: true }); setPage(1) }} />
+            <Input placeholder="Cari nama atau email..." className="pl-9" value={searchInput} onChange={(e) => { setSearchInput(e.target.value); setPage(1) }} />
           </div>
           <Select items={roleOptions} value={roleFilter ?? "all"} onValueChange={(v) => { if (v) { navigate({ search: (prev) => ({ ...prev, role: v === "all" ? undefined : v as "student" | "teacher" | "admin" }), replace: true }); setPage(1) } }}>
             <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Role" /></SelectTrigger>
