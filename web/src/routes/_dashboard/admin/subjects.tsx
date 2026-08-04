@@ -53,7 +53,8 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import type { SubjectSubjectResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import {
   ChevronLeft,
   ChevronRight,
@@ -64,7 +65,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -75,13 +76,20 @@ import type { ClassClassResponse } from "@/lib/api/types.gen";
 
 type ClassOption = Pick<ClassClassResponse, "id" | "name">;
 
+const subjectsSearchSchema = z.object({
+  search: z.string().optional(),
+  class: z.string().optional(),
+});
+
 function AdminSubjects() {
   const qc = useQueryClient();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { search: searchParam, class: classParam } = Route.useSearch();
   const { data: subjects = [], isLoading } = useQuery(getSubjectsOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
   const comboboxAnchor = useComboboxAnchor();
-  const [search, setSearch] = useState("");
-  const [classFilter, setClassFilter] = useState("all");
+  const [searchInput, setSearchInput] = useState(searchParam ?? "");
+  const classFilter = classParam ?? "all";
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<SubjectSubjectResponse | null>(null);
@@ -114,7 +122,7 @@ function AdminSubjects() {
   });
 
   const filtered = subjects.filter((s) => {
-    const matchSearch = (s.name ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchSearch = !searchParam || (s.name ?? "").toLowerCase().includes(searchParam.toLowerCase());
     const matchClass =
       classFilter === "all" || (s.class_ids ?? []).includes(Number(classFilter));
     return matchSearch && matchClass;
@@ -163,6 +171,20 @@ function AdminSubjects() {
       .filter(Boolean)
       .join(", ") ?? "-";
 
+  // Sync URL → local state when search changes externally
+  useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam]);
+
+  // Debounce search → navigate to URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({
+        search: (prev) => ({ ...prev, search: searchInput || undefined }),
+        replace: true,
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -182,9 +204,9 @@ function AdminSubjects() {
               <Input
                 placeholder="Cari mata pelajaran..."
                 className="pl-9"
-                value={search}
+                value={searchInput}
                 onChange={(e) => {
-                  setSearch(e.target.value);
+                  setSearchInput(e.target.value);
                   setPage(1);
                 }}
               />
@@ -192,7 +214,15 @@ function AdminSubjects() {
             <Select
               items={classOptions}
               value={classFilter}
-              onValueChange={(v) => { setClassFilter(v ?? "all"); setPage(1); }}
+              onValueChange={(v) => {
+                if (v) {
+                  navigate({
+                    search: (prev) => ({ ...prev, class: v === "all" ? undefined : v }),
+                    replace: true,
+                  });
+                  setPage(1);
+                }
+              }}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter Kelas" />
@@ -381,4 +411,5 @@ function AdminSubjects() {
 
 export const Route = createFileRoute("/_dashboard/admin/subjects")({
   component: AdminSubjects,
+  validateSearch: subjectsSearchSchema,
 });

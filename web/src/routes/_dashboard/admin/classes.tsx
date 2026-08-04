@@ -33,7 +33,8 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import type { ClassClassResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import {
   ChevronLeft,
   ChevronRight,
@@ -44,7 +45,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -52,10 +53,16 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
+const classesSearchSchema = z.object({
+  search: z.string().optional(),
+});
+
 function AdminClasses() {
   const qc = useQueryClient();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { search: searchParam } = Route.useSearch();
   const { data: classes = [], isLoading } = useQuery(getAdminClassesOptions());
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState(searchParam ?? "");
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<ClassClassResponse | null>(null);
@@ -83,7 +90,7 @@ function AdminClasses() {
   });
 
   const filtered = classes.filter((c) =>
-    (c.name ?? "").toLowerCase().includes(search.toLowerCase()),
+    !searchParam || (c.name ?? "").toLowerCase().includes(searchParam.toLowerCase()),
   );
   const totalPages = Math.ceil(filtered.length / perPage);
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
@@ -111,6 +118,20 @@ function AdminClasses() {
     }
   };
 
+  // Sync URL → local state when search changes externally
+  useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam]);
+
+  // Debounce search → navigate to URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({
+        search: (prev) => ({ ...prev, search: searchInput || undefined }),
+        replace: true,
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -129,9 +150,9 @@ function AdminClasses() {
             <Input
               placeholder="Cari kelas..."
               className="pl-9"
-              value={search}
+              value={searchInput}
               onChange={(e) => {
-                setSearch(e.target.value);
+                setSearchInput(e.target.value);
                 setPage(1);
               }}
             />
@@ -271,4 +292,5 @@ function AdminClasses() {
 
 export const Route = createFileRoute("/_dashboard/admin/classes")({
   component: AdminClasses,
+  validateSearch: classesSearchSchema,
 });
