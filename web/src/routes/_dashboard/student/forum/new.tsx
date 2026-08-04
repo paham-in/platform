@@ -1,6 +1,7 @@
 import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
 import { TiptapEditor } from "@/components/ui/tiptap-editor"
 import {
   Select,
@@ -18,7 +19,7 @@ import { postQuestionsByQuestionIdImages } from "@/lib/api/sdk.gen"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { ArrowLeft, Loader2, ImagePlus, X } from "lucide-react"
+import { ArrowLeft, ImagePlus, X } from "lucide-react"
 
 function NewQuestion() {
   const qc = useQueryClient()
@@ -161,7 +162,7 @@ function NewQuestion() {
         <div className="flex justify-end gap-3">
           <Link to="/student/forum"><Button variant="outline">Batal</Button></Link>
           <Button onClick={submit} disabled={!content || isPending || uploading}>
-            {(isPending || uploading) && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+            {(isPending || uploading) && <Spinner />}
             {uploading ? "Mengupload gambar..." : "Kirim"}
           </Button>
         </div>

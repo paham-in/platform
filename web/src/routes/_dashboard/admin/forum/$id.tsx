@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { RichContent } from "@/components/ui/rich-content"
+import { Spinner } from "@/components/ui/spinner"
 import { TiptapEditor } from "@/components/ui/tiptap-editor"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import "katex/dist/katex.min.css"
@@ -190,7 +191,7 @@ function ForumDetail() {
               onClick={() => submitAnswer({ path: { question_id: questionId }, body: { content: answerContent } })}
               disabled={!answerContent || isPending}
             >
-              {isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              {isPending && <Spinner />}
               <Send className="mr-1 h-4 w-4" /> Kirim Jawaban
             </Button>
           </div>

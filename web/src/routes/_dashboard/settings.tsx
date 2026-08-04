@@ -17,6 +17,7 @@ import {
   patchMeMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Spinner } from "@/components/ui/spinner"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { BookOpen, Loader2, Save } from "lucide-react"
@@ -170,7 +171,7 @@ function SettingsPage() {
           className="w-full"
         >
           {updateProfile.isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner />
           ) : (
             <Save className="mr-2 h-4 w-4" />
           )}

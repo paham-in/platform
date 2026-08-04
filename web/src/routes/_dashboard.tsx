@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { getMeOptions, postLogoutMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -175,7 +176,7 @@ function DashboardLayout() {
 
           <div className="space-y-1 border-t pt-4">
             <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-muted-foreground" onClick={() => setLogoutConfirmOpen(true)} disabled={logout.isPending}>
-              <LogOut className="h-4 w-4" /> {logout.isPending ? "..." : "Keluar"}
+              {logout.isPending ? <Spinner /> : <LogOut className="h-4 w-4" />} Keluar
             </Button>
           </div>
         </div>

@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminChaptersOptions, getAdminQuestionsBankQueryKey, postAdminQuestionsBankMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E"]
@@ -128,7 +129,7 @@ function NewQuestion() {
             onClick={save}
             disabled={!chapterId || !question || options.filter((o) => stripHtml(o) !== "").length < 2 || isPending}
           >
-            {isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+            {isPending && <Spinner />}
             Simpan
           </Button>
         </div>

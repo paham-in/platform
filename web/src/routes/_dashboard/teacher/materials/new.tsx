@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -27,7 +28,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Loader2, Type, Video } from "lucide-react";
+import { ArrowLeft, Type, Video } from "lucide-react";
 import { toast } from "sonner";
 import { useDraft } from "@/lib/use-draft";
 import { cn } from "@/lib/utils";
@@ -241,7 +242,7 @@ function NewMaterial() {
           <div className="flex justify-end gap-3 pt-4">
             <Link to="/teacher/materials"><Button variant="outline" type="button">Batal</Button></Link>
             <Button onClick={save} disabled={!title || !chapterId || isPending || (type === "video" && !videoUrl)}>
-              {isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              {isPending && <Spinner />}
               Simpan
             </Button>
           </div>

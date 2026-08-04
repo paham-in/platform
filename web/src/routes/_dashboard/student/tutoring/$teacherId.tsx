@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Spinner } from "@/components/ui/spinner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getTutoringTeachersOptions, getTutoringAvailabilityOptions, postTutoringBookingsMutation, getTutoringBookingsQueryKey } from "@/lib/api/@tanstack/react-query.gen"
 import { CalendarIcon, Loader2 } from "lucide-react"
@@ -129,7 +130,7 @@ function BookTeacher() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setBookOpen(false)}>Batal</Button>
-            <Button onClick={handleBook} disabled={!date || isPending}>{isPending ? "..." : "Kirim Booking"}</Button>
+            <Button onClick={handleBook} disabled={!date || isPending}>{isPending ? <Spinner /> : "Kirim Booking"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

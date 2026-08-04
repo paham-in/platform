@@ -27,6 +27,7 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import {
   getSubjectsOptions,
   getAdminSubjectsBySubjectIdImagesQueryKey,
@@ -176,7 +177,7 @@ export function GalleryPicker({
                             disabled={deleting}
                             onClick={() => deleteImage({ path: { subject_id: Number(subjectId), id: img.id! } })}
                           >
-                            {deleting && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                            {deleting && <Spinner className="h-3 w-3" />}
                             Hapus
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -244,7 +245,7 @@ function UploadDialog({ subjectId, onDone }: { subjectId: string; onDone: () => 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Batal</Button>
             <Button onClick={submit} disabled={!files?.length || uploading}>
-              {uploading && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              {uploading && <Spinner />}
               Upload
             </Button>
           </DialogFooter>

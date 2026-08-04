@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Spinner } from "@/components/ui/spinner"
 import { Input } from "@/components/ui/input"
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { useState } from "react"
@@ -108,7 +109,7 @@ function TeacherAvailability() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>Batal</Button>
             <Button onClick={() => createSlot({ body: { day_of_week: Number(dayOfWeek), start_time: startTime, end_time: endTime } })} disabled={!dayOfWeek || !startTime || !endTime || isPending}>
-              {isPending ? "..." : "Simpan"}
+              {isPending ? <Spinner /> : "Simpan"}
             </Button>
           </DialogFooter>
         </DialogContent>
