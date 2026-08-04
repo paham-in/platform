@@ -51,14 +51,14 @@ function RoleBadge({ role }: { role: string }) {
 
 const usersSearchSchema = z.object({
   role: z.enum(["all", "student", "teacher", "admin"]).catch("all"),
+  search: z.string().catch(""),
 })
 
 function AdminUsers() {
   const qc = useQueryClient()
   const navigate = useNavigate({ from: Route.fullPath })
-  const { role: roleFilter } = Route.useSearch()
+  const { role: roleFilter, search } = Route.useSearch()
   const { data: users = [], isLoading } = useQuery(getAdminUsersOptions())
-  const [search, setSearch] = useState("")
 
   const roleOptions = [
     { label: "Semua Role", value: "all" },
@@ -126,9 +126,9 @@ function AdminUsers() {
         <div className="mb-4 flex flex-wrap items-center gap-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Cari nama atau email..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
+            <Input placeholder="Cari nama atau email..." className="pl-9" value={search} onChange={(e) => { navigate({ search: (prev) => ({ ...prev, search: e.target.value }), replace: true }); setPage(1) }} />
           </div>
-          <Select items={roleOptions} value={roleFilter} onValueChange={(v) => { if (v) { navigate({ search: { role: v as "all" | "student" | "teacher" | "admin" }, replace: true }); setPage(1) } }}>
+          <Select items={roleOptions} value={roleFilter} onValueChange={(v) => { if (v) { navigate({ search: (prev) => ({ ...prev, role: v as "all" | "student" | "teacher" | "admin" }), replace: true }); setPage(1) } }}>
             <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Role" /></SelectTrigger>
             <SelectContent>
               {roleOptions.map((opt) => (
