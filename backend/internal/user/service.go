@@ -96,9 +96,17 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 		Email:     email,
 		GoogleID:  googleID,
 		AvatarURL: avatarURL,
-		Roles:     []models.Role{{Name: "student"}},
 	}
 	if err := s.userRepo.Create(user); err != nil {
+		return nil, errInternal
+	}
+
+	// assign default student role via association
+	var studentRole models.Role
+	if err := s.userRepo.db.Where("name = ?", "student").First(&studentRole).Error; err != nil {
+		return nil, errInternal
+	}
+	if err := s.userRepo.db.Model(user).Association("Roles").Append(&studentRole); err != nil {
 		return nil, errInternal
 	}
 
