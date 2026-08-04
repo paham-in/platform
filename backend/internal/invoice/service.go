@@ -27,7 +27,7 @@ func NewService(repo *Repository) *Service {
 	return &Service{repo: repo}
 }
 
-var monthRegex = regexp.MustCompile(`^\d{4}-(0[1-9]|1[0-2])$`)
+var dateRegex = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 
 func (s *Service) ListByUser(userID uint) ([]InvoiceResponse, error) {
 	invoices, err := s.repo.ListByUser(userID)
@@ -49,8 +49,8 @@ func (s *Service) Create(input CreateInput) (*InvoiceResponse, error) {
 	if input.Amount <= 0 {
 		return nil, errors.New("amount harus lebih dari 0")
 	}
-	if !monthRegex.MatchString(input.StartDate) || !monthRegex.MatchString(input.EndDate) {
-		return nil, errors.New("format tanggal harus YYYY-MM")
+	if !dateRegex.MatchString(input.StartDate) || !dateRegex.MatchString(input.EndDate) {
+		return nil, errors.New("format tanggal harus YYYY-MM-DD")
 	}
 	if input.StartDate > input.EndDate {
 		return nil, errors.New("start_date tidak boleh setelah end_date")

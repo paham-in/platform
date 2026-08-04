@@ -41,8 +41,8 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
       body: {
         user_id: user.id!,
         amount: parseFloat(amount),
-        start_date: format(startDate, "yyyy-MM"),
-        end_date: format(endDate, "yyyy-MM"),
+        start_date: format(startDate, "yyyy-MM-dd"),
+        end_date: format(endDate, "yyyy-MM-dd"),
         note: note,
       },
     })
@@ -65,7 +65,7 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label>Dari Bulan</Label>
+              <Label>Dari Tanggal</Label>
               <Popover>
                 <PopoverTrigger
                   render={
@@ -77,7 +77,7 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
                   }
                 >
                   <CalendarIcon />
-                  {startDate ? format(startDate, "MMMM yyyy", { locale: id }) : <span>Pilih bulan</span>}
+                  {startDate ? format(startDate, "dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar mode="single" selected={startDate} onSelect={setStartDate} />
@@ -85,7 +85,7 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
               </Popover>
             </div>
             <div className="space-y-1.5">
-              <Label>Sampai Bulan</Label>
+              <Label>Sampai Tanggal</Label>
               <Popover>
                 <PopoverTrigger
                   render={
@@ -97,7 +97,7 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
                   }
                 >
                   <CalendarIcon />
-                  {endDate ? format(endDate, "MMMM yyyy", { locale: id }) : <span>Pilih bulan</span>}
+                  {endDate ? format(endDate, "dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar mode="single" selected={endDate} onSelect={setEndDate} />
@@ -107,7 +107,7 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
           </div>
           <div className="space-y-1.5">
             <Label>Catatan (opsional)</Label>
-            <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Pembayaran bulan..." />
+            <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Pembayaran..." />
           </div>
         </div>
         <DialogFooter>

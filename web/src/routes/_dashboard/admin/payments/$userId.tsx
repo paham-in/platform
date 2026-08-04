@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState, useEffect } from "react"
+import { format, parseISO } from "date-fns"
+import { id } from "date-fns/locale"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getAdminUsersOptions, getAdminInvoicesOptions, getAdminInvoicesQueryKey, patchAdminInvoicesByIdToggleMutation } from "@/lib/api/@tanstack/react-query.gen"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -192,7 +194,7 @@ function PaymentsDetail() {
                       <Checkbox checked={selectedIds.has(inv.id!)} onCheckedChange={() => toggleSelect(inv.id!)} />
                     </TableCell>
                     <TableCell className="pl-0 font-medium">
-                      {inv.start_date} — {inv.end_date}
+                      {inv.start_date && inv.end_date ? `${format(parseISO(inv.start_date), "dd MMM yyyy", { locale: id })} — ${format(parseISO(inv.end_date), "dd MMM yyyy", { locale: id })}` : "—"}
                     </TableCell>
                     <TableCell>Rp {inv.amount?.toLocaleString("id-ID")}</TableCell>
                     <TableCell>
