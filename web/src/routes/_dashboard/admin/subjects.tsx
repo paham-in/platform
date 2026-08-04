@@ -58,7 +58,6 @@ import { z } from "zod";
 import {
   ChevronLeft,
   ChevronRight,
-  Loader2,
   MoreVertical,
   Pencil,
   Plus,
@@ -66,6 +65,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -183,14 +183,6 @@ function AdminSubjects() {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
 
   return (
     <>
@@ -319,7 +311,17 @@ function AdminSubjects() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paged.map((s) => (
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell className="pl-6"><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell className="max-w-[200px]"><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                      <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : paged.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell className="pl-6 font-medium">{s.name}</TableCell>
                     <TableCell className="text-muted-foreground">
@@ -346,7 +348,7 @@ function AdminSubjects() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {paged.length === 0 && (
+                {!isLoading && paged.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={5}
