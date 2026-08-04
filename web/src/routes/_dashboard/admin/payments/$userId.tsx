@@ -3,7 +3,7 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState, useEffect } from "react"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
@@ -58,7 +58,7 @@ function PaymentsDetail() {
     },
   }))
   const [createOpen, setCreateOpen] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<InvoiceInvoiceResponse | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<InvoiceInvoiceResponse[] | null>(null)
   const [toggleTarget, setToggleTarget] = useState<{ invoices: InvoiceInvoiceResponse[]; status: "paid" | "pending" } | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 
@@ -131,11 +131,20 @@ function PaymentsDetail() {
           </SelectContent>
         </Select>
         {selectedIds.size > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">{selectedIds.size} dipilih</span>
-            <Button size="sm" variant="ghost" onClick={() => setToggleTarget({ invoices: invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "pending"), status: "paid" })}>Lunas</Button>
-            <Button size="sm" variant="outline" onClick={() => setToggleTarget({ invoices: invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "paid"), status: "pending" })}>Pending</Button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="outline">Aksi</Button>} />
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setToggleTarget({ invoices: invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "pending"), status: "paid" })}>
+                <CheckCircle2 className="h-4 w-4" /> Lunas
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setToggleTarget({ invoices: invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "paid"), status: "pending" })}>
+                <XCircle className="h-4 w-4" /> Pending
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setDeleteTarget(invoices.filter((i) => selectedIds.has(i.id!)))}>
+                <Trash2 className="h-4 w-4 text-destructive" /> Hapus
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
         <Button className="ml-auto" onClick={() => setCreateOpen(true)}>
           <Plus className="h-4 w-4" /> Buat Invoice
@@ -212,7 +221,7 @@ function PaymentsDetail() {
                             {inv.status === "paid" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                             {inv.status === "paid" ? "Pending" : "Lunas"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDeleteTarget(inv)}>
+                          <DropdownMenuItem onClick={() => setDeleteTarget([inv])}>
                             <Trash2 className="h-4 w-4 text-destructive" /> Hapus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -222,6 +231,15 @@ function PaymentsDetail() {
                 ))
               )}
             </TableBody>
+            {selectedIds.size > 0 && (
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={8} className="text-sm text-muted-foreground">
+                    {selectedIds.size} dipilih
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            )}
           </Table>
         </CardContent>
       </Card>
@@ -231,7 +249,7 @@ function PaymentsDetail() {
       )}
 
       {deleteTarget && (
-        <DeleteInvoiceDialog invoice={deleteTarget} onClose={() => setDeleteTarget(null)} />
+        <DeleteInvoiceDialog invoices={deleteTarget} onClose={() => { setDeleteTarget(null); setSelectedIds(new Set()) }} />
       )}
 
       {toggleTarget && (
