@@ -87,6 +87,11 @@ function TeacherPickerDialog({ open, onOpenChange }: { open: boolean; onOpenChan
   const [subjectFilter, setSubjectFilter] = useState("all")
   const [search, setSearch] = useState("")
 
+  const subjectOptions = [
+    { label: "Semua Subjek", value: "all" },
+    ...subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) })),
+  ]
+
   const filteredTeachers = teachers.filter((t: TutoringTeacherResponse) => {
     const matchSubject = subjectFilter === "all" || (t.subjects ?? []).some((s) => s.id === Number(subjectFilter))
     const matchSearch = !search || (t.name ?? "").toLowerCase().includes(search.toLowerCase())
@@ -110,14 +115,13 @@ function TeacherPickerDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Select value={subjectFilter} onValueChange={(v) => setSubjectFilter(v ?? "all")}>
+            <Select items={subjectOptions} value={subjectFilter} onValueChange={(v) => setSubjectFilter(v ?? "all")}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Filter Subjek" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Subjek</SelectItem>
-                {subjects.map((s) => (
-                  <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                {subjectOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -98,6 +98,9 @@ function EditMaterial() {
   const availableChapters = subjectId
     ? allChapters.filter((c) => String(c.subject_id) === subjectId)
     : [];
+  const classOptions = classes.map((c) => ({ label: c.name ?? "", value: String(c.id) }));
+  const subjectOptions = availableSubjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }));
+  const chapterOptions = availableChapters.map((c) => ({ label: c.title ?? "", value: String(c.id) }));
 
   const { mutate: update, isPending } = useMutation({
     ...patchAdminMaterialsByIdMutation(),
@@ -149,6 +152,7 @@ function EditMaterial() {
             <div className="space-y-2">
               <Label>Kelas</Label>
               <Select
+                items={classOptions}
                 value={classId}
                 onValueChange={(v) => { setClassId(v ?? ""); setSubjectId(""); setChapterId(""); }}
               >
@@ -158,8 +162,8 @@ function EditMaterial() {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {classes.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                  {classOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -167,6 +171,7 @@ function EditMaterial() {
             <div className="space-y-2">
               <Label>Subjek</Label>
               <Select
+                items={subjectOptions}
                 value={subjectId}
                 onValueChange={(v) => { setSubjectId(v ?? ""); setChapterId(""); }}
                 disabled={!classId}
@@ -177,8 +182,8 @@ function EditMaterial() {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {availableSubjects.map((s) => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                  {subjectOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -186,6 +191,7 @@ function EditMaterial() {
             <div className="space-y-2">
               <Label>Chapter</Label>
               <Select
+                items={chapterOptions}
                 value={chapterId}
                 onValueChange={(v) => setChapterId(v ?? "")}
                 disabled={!subjectId}
@@ -196,8 +202,8 @@ function EditMaterial() {
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {availableChapters.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.title}</SelectItem>
+                  {chapterOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

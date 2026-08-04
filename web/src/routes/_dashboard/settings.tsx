@@ -33,6 +33,11 @@ function SettingsPage() {
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([])
   const [initialized, setInitialized] = useState(false)
 
+  const classOptions = [
+    { label: "Tidak ada", value: "none" },
+    ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id!) })),
+  ]
+
   const roles = user?.roles ?? []
   const isTeacher = roles.includes("teacher")
   const isStudent = roles.includes("student")
@@ -110,17 +115,16 @@ function SettingsPage() {
           {isStudent && (
             <div className="space-y-2">
               <Label htmlFor="class">Kelas</Label>
-              <Select value={classId} onValueChange={(v) => setClassId(v ?? "none")}>
+              <Select items={classOptions} value={classId} onValueChange={(v) => setClassId(v ?? "none")}>
                 <SelectTrigger id="class" className="w-full">
                   <SelectValue placeholder="Pilih kelas">
                     {classId === "none" ? "Tidak ada" : classes.find((c) => String(c.id) === classId)?.name ?? classId}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Tidak ada</SelectItem>
-                  {classes.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id!)}>
-                      {c.name}
+                  {classOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

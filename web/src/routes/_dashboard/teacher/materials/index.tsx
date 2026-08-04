@@ -63,6 +63,11 @@ function AdminMaterials() {
   const [pendingStatus, setPendingStatus] = useState<{ id: number; status: string } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
 
+  const classOptions = [
+    { label: "Semua Kelas", value: "all" },
+    ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id) })),
+  ];
+
   const { mutate: deleteMaterial } = useMutation({
     ...deleteAdminMaterialsByIdMutation(),
     onSuccess: () => {
@@ -117,6 +122,7 @@ function AdminMaterials() {
               />
             </div>
             <Select
+              items={classOptions}
               value={classFilter}
               onValueChange={(v) => { setClassFilter(v ?? "all"); setPage(1); }}
             >
@@ -124,9 +130,8 @@ function AdminMaterials() {
                 <SelectValue placeholder="Filter Kelas" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Kelas</SelectItem>
-                {classes.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                {classOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

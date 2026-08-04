@@ -39,6 +39,12 @@ function PaymentsDetail() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
 
+  const statusOptions = [
+    { label: "Semua", value: "all" },
+    { label: "Lunas", value: "paid" },
+    { label: "Pending", value: "pending" },
+  ]
+
   const user = users.find((u) => u.id === Number(userId))
   const userInvoices = invoices.filter((inv) => {
     const matchStatus = statusFilter === "all" || inv.status === statusFilter
@@ -144,12 +150,12 @@ function PaymentsDetail() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Cari periode atau catatan..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <Select value={statusFilter} onValueChange={(v) => { if (v) { setStatusFilter(v); setSelectedIds(new Set()) } }}>
+        <Select items={statusOptions} value={statusFilter} onValueChange={(v) => { if (v) { setStatusFilter(v); setSelectedIds(new Set()) } }}>
           <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Status" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Semua</SelectItem>
-            <SelectItem value="paid">Lunas</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
+            {statusOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         {selectedIds.size > 0 && (

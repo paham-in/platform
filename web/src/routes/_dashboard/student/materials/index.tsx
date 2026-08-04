@@ -38,6 +38,15 @@ function MaterialsPage() {
     }
   }, [user, filterInited])
 
+  const classOptions = [
+    { label: "Semua Kelas", value: "all" },
+    ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id) })),
+  ]
+  const subjectOptions = [
+    { label: "Semua Subjek", value: "all" },
+    ...subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) })),
+  ]
+
   const filtered = chapters.filter((c) => {
     const matchSearch = (c.title ?? "").toLowerCase().includes(search.toLowerCase())
     const matchClass = classFilter === "all" || String(c.class_id) === classFilter
@@ -70,29 +79,27 @@ function MaterialsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={classFilter} onValueChange={(v) => { setClassFilter(v ?? "all"); setSubjectFilter("all") }}>
+        <Select items={classOptions} value={classFilter} onValueChange={(v) => { setClassFilter(v ?? "all"); setSubjectFilter("all") }}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter Kelas">
               {classFilter === "all" ? "Semua Kelas" : classes.find((c) => String(c.id) === classFilter)?.name}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Semua Kelas</SelectItem>
-            {classes.map((c) => (
-              <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+            {classOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Select value={subjectFilter} onValueChange={(v) => setSubjectFilter(v ?? "all")}>
+        <Select items={subjectOptions} value={subjectFilter} onValueChange={(v) => setSubjectFilter(v ?? "all")}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter Subjek">
               {subjectFilter === "all" ? "Semua Subjek" : subjects.find((s) => String(s.id) === subjectFilter)?.name}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Semua Subjek</SelectItem>
-            {subjects.map((s) => (
-              <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+            {subjectOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -110,9 +117,7 @@ function MaterialsPage() {
           <Link key={c.id} to="/student/materials/chapters/$id" params={{ id: String(c.id!) }}>
             <Card className="cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
               {c.cover_url ? (
-                <div className="aspect-video w-full overflow-hidden">
-                  <img src={c.cover_url} alt="" className="h-full w-full object-cover" />
-                </div>
+                <img src={c.cover_url} alt="" className="aspect-video w-full object-cover" />
               ) : (
                 <div className="flex aspect-video w-full items-center justify-center bg-muted/30">
                   <BookOpen className="h-8 w-8 text-muted-foreground/40" />

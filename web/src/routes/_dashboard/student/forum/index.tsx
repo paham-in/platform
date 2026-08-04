@@ -27,6 +27,11 @@ function ForumPage() {
   const [search, setSearch] = useState("")
   const [subjectFilter, setSubjectFilter] = useState("all")
 
+  const subjectOptions = [
+    { label: "Semua Subjek", value: "all" },
+    ...subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) })),
+  ]
+
   const filtered = questions.filter((q) => {
     const matchSearch = (q.plain_content ?? "").toLowerCase().includes(search.toLowerCase())
     const matchSubject = subjectFilter === "all" || String(q.subject_id) === subjectFilter
@@ -75,15 +80,14 @@ function ForumPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={subjectFilter} onValueChange={(v) => setSubjectFilter(v ?? "all")}>
+        <Select items={subjectOptions} value={subjectFilter} onValueChange={(v) => setSubjectFilter(v ?? "all")}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter Subjek" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Semua Subjek</SelectItem>
-            {subjects.map((s) => (
-              <SelectItem key={s.id} value={String(s.id)}>
-                {s.name}
+            {subjectOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
               </SelectItem>
             ))}
           </SelectContent>

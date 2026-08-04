@@ -27,6 +27,8 @@ function NewQuestion() {
   const [content, setContent] = useState("")
   const [subjectId, setSubjectId] = useState("")
   const [images, setImages] = useState<File[]>([])
+
+  const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -102,14 +104,14 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Subjek (opsional)</Label>
-          <Select value={subjectId} onValueChange={(v) => setSubjectId(v ?? "")}>
+          <Select items={subjectOptions} value={subjectId} onValueChange={(v) => setSubjectId(v ?? "")}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Pilih subjek" />
             </SelectTrigger>
             <SelectContent>
-              {subjects.map((s) => (
-                <SelectItem key={s.id} value={String(s.id)}>
-                  {s.name}
+              {subjectOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
                 </SelectItem>
               ))}
             </SelectContent>

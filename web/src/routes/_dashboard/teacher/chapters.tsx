@@ -87,6 +87,12 @@ function AdminChapters() {
   const [coverView, setCoverView] = useState<ChapterChapterResponse | null>(null);
   const perPage = 5;
 
+  const classOptions = [
+    { label: "Semua Kelas", value: "all" },
+    ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id) })),
+  ];
+  const formClassOptions = classes.map((c) => ({ label: c.name ?? "", value: String(c.id) }));
+
   const { mutateAsync: createChapter } = useMutation({
     ...postAdminChaptersMutation(),
     onSuccess: () => {
@@ -108,6 +114,7 @@ function AdminChapters() {
   const availableSubjects = form.class_id
     ? subjects.filter((s) => (s.class_ids ?? []).includes(Number(form.class_id)))
     : [];
+  const subjectOptions = availableSubjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }));
 
   const filtered = chapters.filter((c) => {
     const matchSearch = (c.title ?? "").toLowerCase().includes(search.toLowerCase());
@@ -202,6 +209,7 @@ function AdminChapters() {
               />
             </div>
             <Select
+              items={classOptions}
               value={classFilter}
               onValueChange={(v) => {
                 setClassFilter(v ?? "all");
@@ -212,10 +220,9 @@ function AdminChapters() {
                 <SelectValue placeholder="Filter Kelas" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Kelas</SelectItem>
-                {classes.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>
-                    {c.name}
+                {classOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -270,6 +277,7 @@ function AdminChapters() {
                 <div className="space-y-2">
                   <Label>Kelas</Label>
                   <Select
+                    items={formClassOptions}
                     value={form.class_id}
                     onValueChange={(v) =>
                       setForm({ ...form, class_id: v ?? "", subject_id: "" })
@@ -281,9 +289,9 @@ function AdminChapters() {
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {classes.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {c.name}
+                      {formClassOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -293,6 +301,7 @@ function AdminChapters() {
                   <Label>Subjek</Label>
                   <Select
                     key={`subject-${form.class_id}`}
+                    items={subjectOptions}
                     value={form.subject_id}
                     onValueChange={(v) =>
                       setForm({ ...form, subject_id: v ?? "" })
@@ -305,9 +314,9 @@ function AdminChapters() {
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {availableSubjects.map((s) => (
-                        <SelectItem key={s.id} value={String(s.id)}>
-                          {s.name}
+                      {subjectOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
                         </SelectItem>
                       ))}
                     </SelectContent>

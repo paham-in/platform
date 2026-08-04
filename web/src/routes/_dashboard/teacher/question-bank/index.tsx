@@ -42,6 +42,12 @@ function TeacherQuestionBank() {
     explanation: "",
   })
 
+  const chapterOptions = [
+    { label: "Semua Chapter", value: "all" },
+    ...chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) })),
+  ]
+  const formChapterOptions = chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) }))
+
   const { mutate: updateQuestion } = useMutation({
     ...patchAdminQuestionsBankByIdMutation(),
     onSuccess: () => {
@@ -103,12 +109,11 @@ function TeacherQuestionBank() {
 
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
-            <Select value={chapterFilter} onValueChange={(v) => { setChapterFilter(v ?? "all"); setPage(1) }}>
+            <Select items={chapterOptions} value={chapterFilter} onValueChange={(v) => { setChapterFilter(v ?? "all"); setPage(1) }}>
               <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filter Chapter" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Semua Chapter</SelectItem>
-                {chapters.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>{c.title}</SelectItem>
+                {chapterOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -178,11 +183,11 @@ function TeacherQuestionBank() {
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
               <Label>Chapter</Label>
-              <Select value={form.chapter_id} onValueChange={(v) => setForm({ ...form, chapter_id: v ?? "" })}>
+              <Select items={formChapterOptions} value={form.chapter_id} onValueChange={(v) => setForm({ ...form, chapter_id: v ?? "" })}>
                 <SelectTrigger className="w-full"><SelectValue placeholder="Pilih chapter" /></SelectTrigger>
                 <SelectContent>
-                  {chapters.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.title}</SelectItem>
+                  {formChapterOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

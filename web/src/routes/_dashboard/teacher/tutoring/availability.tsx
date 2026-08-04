@@ -23,6 +23,7 @@ function TeacherAvailability() {
   const [deleteId, setDeleteId] = useState<number | null>(null)
 
   const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
+  const dayOptions = dayNames.map((name, i) => ({ label: name, value: String(i) }))
 
   const grouped: Record<number, typeof slots> = {}
   slots.forEach((s) => {
@@ -84,11 +85,11 @@ function TeacherAvailability() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>Hari</Label>
-              <Select value={dayOfWeek} onValueChange={(v) => v && setDayOfWeek(v)}>
+              <Select items={dayOptions} value={dayOfWeek} onValueChange={(v) => v && setDayOfWeek(v)}>
                 <SelectTrigger><SelectValue placeholder="Pilih hari" /></SelectTrigger>
                 <SelectContent>
-                  {dayNames.map((name, i) => (
-                    <SelectItem key={i} value={String(i)}>{name}</SelectItem>
+                  {dayOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

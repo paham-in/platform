@@ -53,6 +53,8 @@ export function GalleryPicker({
   const [subjectId, setSubjectId] = useState("")
   const [search, setSearch] = useState("")
 
+  const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
+
   const queryKey = subjectId
     ? getAdminSubjectsBySubjectIdImagesQueryKey({ path: { subject_id: Number(subjectId) }, query: { q: search || undefined } })
     : [] as any
@@ -102,13 +104,13 @@ export function GalleryPicker({
         <div className="space-y-4">
           <div>
             <Label>Mata Pelajaran</Label>
-            <Select value={subjectId} onValueChange={(v) => handleSubjectChange(v ?? "")}>
+            <Select items={subjectOptions} value={subjectId} onValueChange={(v) => handleSubjectChange(v ?? "")}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Pilih subjek" />
               </SelectTrigger>
               <SelectContent>
-                {subjects.map((s) => (
-                  <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                {subjectOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

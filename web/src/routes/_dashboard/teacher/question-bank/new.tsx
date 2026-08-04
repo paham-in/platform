@@ -27,6 +27,8 @@ function NewQuestion() {
   const [correctIndex, setCorrectIndex] = useState(0)
   const [explanation, setExplanation] = useState("")
 
+  const chapterOptions = chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) }))
+
   const { mutate: createQuestion, isPending } = useMutation({
     ...postAdminQuestionsBankMutation(),
     onSuccess: () => {
@@ -61,11 +63,11 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Chapter</Label>
-          <Select value={chapterId} onValueChange={(v) => setChapterId(v ?? "")}>
+          <Select items={chapterOptions} value={chapterId} onValueChange={(v) => setChapterId(v ?? "")}>
             <SelectTrigger className="w-full"><SelectValue placeholder="Pilih chapter" /></SelectTrigger>
             <SelectContent>
-              {chapters.map((c) => (
-                <SelectItem key={c.id} value={String(c.id)}>{c.title}</SelectItem>
+              {chapterOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>

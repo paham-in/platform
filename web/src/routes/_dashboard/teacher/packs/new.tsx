@@ -52,6 +52,10 @@ function NewPackage() {
   const [page, setPage] = useState(1);
 
   const { data: chapters = [] } = useQuery(getAdminChaptersOptions());
+  const chapterOptions = [
+    { label: "Semua Chapter", value: "all" },
+    ...chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) })),
+  ];
   const { data: paged } = useQuery<QuestionbankPaginatedResponse>({
     queryKey: getAdminQuestionsBankPaginatedQueryKey({ query: { chapter_id: chapterFilter, page, per_page: 10 } }),
     queryFn: async () => {
@@ -148,6 +152,7 @@ function NewPackage() {
               <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-4">
                   <Select
+                    items={chapterOptions}
                     value={chapterFilter === undefined ? "all" : String(chapterFilter)}
                     onValueChange={(v) => {
                       setChapterFilter(v === "all" ? undefined : Number(v));
@@ -158,10 +163,9 @@ function NewPackage() {
                       <SelectValue placeholder="Filter Chapter" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Semua Chapter</SelectItem>
-                      {chapters.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {c.title}
+                      {chapterOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
