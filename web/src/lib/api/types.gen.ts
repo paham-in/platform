@@ -379,6 +379,10 @@ export type UserSubjectInfo = {
     name?: string;
 };
 
+export type UserUpdateRoleRequest = {
+    roles?: Array<string>;
+};
+
 export type UserUserResponse = {
     avatar_url?: string;
     class_id?: number;
@@ -1485,9 +1489,7 @@ export type PatchAdminUsersByIdRoleData = {
     /**
      * Role baru
      */
-    body: {
-        [key: string]: unknown;
-    };
+    body: UserUpdateRoleRequest;
     path: {
         /**
          * User ID

@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 import { getAdminUsersOptions, getAdminUsersQueryKey, getSubjectsOptions, deleteAdminUsersByIdMutation, patchAdminUsersByIdRoleMutation, patchAdminUsersByIdSubjectsMutation } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminUserResponse, UserSubjectInfo } from "@/lib/api/types.gen"
 import { Search, MoreVertical, Shield, BookOpen, Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
@@ -72,17 +73,20 @@ function AdminUsers() {
 
   const { mutate: deleteUser } = useMutation({
     ...deleteAdminUsersByIdMutation(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }),
+    onSuccess: () => { toast.success("User berhasil dihapus"); qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }) },
+    onError: (err: any) => toast.error(err.error || "Gagal menghapus user"),
   })
 
   const { mutate: updateRole } = useMutation({
     ...patchAdminUsersByIdRoleMutation(),
-    onSuccess: () => { closeEdit(); qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }) },
+    onSuccess: () => { closeEdit(); toast.success("Role berhasil diubah"); qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }) },
+    onError: (err: any) => toast.error(err.error || "Gagal mengubah role"),
   })
 
   const { mutate: updateTeacherSubjects } = useMutation({
     ...patchAdminUsersByIdSubjectsMutation(),
-    onSuccess: () => { setSubjectsOpen(false); qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }) },
+    onSuccess: () => { setSubjectsOpen(false); toast.success("Mata pelajaran berhasil diubah"); qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }) },
+    onError: (err: any) => toast.error(err.error || "Gagal mengubah mata pelajaran"),
   })
 
   const filtered = users.filter((u) => {

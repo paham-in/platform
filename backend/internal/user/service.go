@@ -207,6 +207,11 @@ func subjectInfos(subjects []models.Subject) []SubjectInfo {
 	return res
 }
 
+// UpdateRoleRequest adalah body request untuk update role user
+type UpdateRoleRequest struct {
+	Roles []string `json:"roles" example:"[\"student\",\"teacher\"]"`
+}
+
 type SetTeacherSubjectsInput struct {
 	SubjectIDs []uint `json:"subject_ids"`
 }

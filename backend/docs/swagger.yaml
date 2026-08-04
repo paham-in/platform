@@ -608,6 +608,16 @@ definitions:
       name:
         type: string
     type: object
+  user.UpdateRoleRequest:
+    properties:
+      roles:
+        example:
+        - '["student"'
+        - '"teacher"]'
+        items:
+          type: string
+        type: array
+    type: object
   user.UserResponse:
     properties:
       avatar_url:
@@ -1733,7 +1743,7 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/user.UpdateRoleRequest'
       produces:
       - application/json
       responses:

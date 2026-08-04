@@ -90,8 +90,8 @@ func (h *Handler) AdminListUsers(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id   path      int    true "User ID"
-// @Param        body body      object true "Role baru"
+// @Param        id   path      int                      true "User ID"
+// @Param        body body      UpdateRoleRequest        true "Role baru"
 // @Success      200  {object}  MessageResponse
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse

@@ -1751,7 +1751,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/user.UpdateRoleRequest"
                         }
                     }
                 ],
@@ -3801,6 +3801,21 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "user.UpdateRoleRequest": {
+            "type": "object",
+            "properties": {
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"student\"",
+                        "\"teacher\"]"
+                    ]
                 }
             }
         },

@@ -44,14 +44,18 @@ func (r *UserRepository) List() ([]models.User, error) {
 
 func (r *UserRepository) UpdateRole(id uint, roles []string) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.User{}).Where("id = ?", id).Association("Roles").Clear(); err != nil {
+		var user models.User
+		if err := tx.First(&user, id).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&user).Association("Roles").Clear(); err != nil {
 			return err
 		}
 		var roleModels []models.Role
 		if err := tx.Where("name IN ?", roles).Find(&roleModels).Error; err != nil {
 			return err
 		}
-		return tx.Model(&models.User{}).Where("id = ?", id).Association("Roles").Append(roleModels)
+		return tx.Model(&user).Association("Roles").Append(&roleModels)
 	})
 }
 
