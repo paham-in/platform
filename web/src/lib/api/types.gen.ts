@@ -646,6 +646,14 @@ export type GetAdminInvoicesData = {
          * Filter by user ID
          */
         user_id?: number;
+        /**
+         * Filter by status (paid/pending)
+         */
+        status?: string;
+        /**
+         * Search by note, start_date, or end_date
+         */
+        search?: string;
     };
     url: '/admin/invoices';
 };

@@ -54,6 +54,8 @@ func (h *Handler) MyInvoices(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        user_id query int false "Filter by user ID"
+// @Param        status query string false "Filter by status (paid/pending)"
+// @Param        search query string false "Search by note, start_date, or end_date"
 // @Success      200 {array} InvoiceResponse
 // @Router       /admin/invoices [get]
 func (h *Handler) AdminListInvoices(c *fiber.Ctx) error {
@@ -65,7 +67,9 @@ func (h *Handler) AdminListInvoices(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "user_id tidak valid"})
 	}
-	invoices, err := h.svc.ListByUser(uint(userID))
+	status := c.Query("status")
+	search := c.Query("search")
+	invoices, err := h.svc.ListByUserFiltered(uint(userID), status, search)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}

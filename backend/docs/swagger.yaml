@@ -902,6 +902,14 @@ paths:
         in: query
         name: user_id
         type: integer
+      - description: Filter by status (paid/pending)
+        in: query
+        name: status
+        type: string
+      - description: Search by note, start_date, or end_date
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:

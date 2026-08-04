@@ -37,6 +37,14 @@ func (s *Service) ListByUser(userID uint) ([]InvoiceResponse, error) {
 	return toResponses(invoices), nil
 }
 
+func (s *Service) ListByUserFiltered(userID uint, status, search string) ([]InvoiceResponse, error) {
+	invoices, err := s.repo.ListByUserFiltered(userID, status, search)
+	if err != nil {
+		return nil, err
+	}
+	return toResponses(invoices), nil
+}
+
 type CreateInput struct {
 	UserID    uint    `json:"user_id"`
 	Amount    float64 `json:"amount"`

@@ -50,7 +50,13 @@ function PaymentsDetail() {
   const statusFilter = statusParam ?? "all"
 
   const { data: users = [], isLoading: usersLoading } = useQuery(getAdminUsersOptions())
-  const { data: invoices = [], isLoading: invoicesLoading } = useQuery(getAdminInvoicesOptions({ query: { user_id: Number(userId) } }))
+  const { data: invoices = [], isLoading: invoicesLoading } = useQuery(getAdminInvoicesOptions({
+    query: {
+      user_id: Number(userId),
+      status: statusFilter === "all" ? undefined : statusFilter,
+      search: searchParam || undefined,
+    },
+  }))
   const [createOpen, setCreateOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<InvoiceInvoiceResponse | null>(null)
   const [toggleTarget, setToggleTarget] = useState<{ invoices: InvoiceInvoiceResponse[]; status: "paid" | "pending" } | null>(null)
@@ -64,19 +70,11 @@ function PaymentsDetail() {
 
   const user = users.find((u) => u.id === Number(userId))
   const isLoading = usersLoading || invoicesLoading
-  const userInvoices = invoices.filter((inv) => {
-    const matchStatus = statusFilter === "all" || inv.status === statusFilter
-    const matchSearch = !searchInput
-      || (inv.note ?? "").toLowerCase().includes(searchInput.toLowerCase())
-      || (inv.start_date ?? "").includes(searchInput)
-      || (inv.end_date ?? "").includes(searchInput)
-    return matchStatus && matchSearch
-  })
 
-  const allSelected = userInvoices.length > 0 && selectedIds.size === userInvoices.length
+  const allSelected = invoices.length > 0 && selectedIds.size === invoices.length
   const toggleAll = () => {
     if (allSelected) setSelectedIds(new Set())
-    else setSelectedIds(new Set(userInvoices.map((inv) => inv.id!)))
+    else setSelectedIds(new Set(invoices.map((inv) => inv.id!)))
   }
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => {
@@ -135,8 +133,8 @@ function PaymentsDetail() {
         {selectedIds.size > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">{selectedIds.size} dipilih</span>
-            <Button size="sm" variant="ghost" onClick={() => setToggleTarget({ invoices: userInvoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "pending"), status: "paid" })}>Lunas</Button>
-            <Button size="sm" variant="outline" onClick={() => setToggleTarget({ invoices: userInvoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "paid"), status: "pending" })}>Pending</Button>
+            <Button size="sm" variant="ghost" onClick={() => setToggleTarget({ invoices: invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "pending"), status: "paid" })}>Lunas</Button>
+            <Button size="sm" variant="outline" onClick={() => setToggleTarget({ invoices: invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "paid"), status: "pending" })}>Pending</Button>
           </div>
         )}
         <Button className="ml-auto" onClick={() => setCreateOpen(true)}>
@@ -173,14 +171,14 @@ function PaymentsDetail() {
                     <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
                   </TableRow>
                 ))
-              ) : userInvoices.length === 0 ? (
+              ) : invoices.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="p-8 text-center text-muted-foreground">
                     Belum ada invoice
                   </TableCell>
                 </TableRow>
               ) : (
-                userInvoices.map((inv) => (
+                invoices.map((inv) => (
                   <TableRow key={inv.id}>
                     <TableCell className="w-10 pl-4">
                       <Checkbox checked={selectedIds.has(inv.id!)} onCheckedChange={() => toggleSelect(inv.id!)} />

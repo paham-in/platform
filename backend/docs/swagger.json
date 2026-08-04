@@ -422,6 +422,18 @@
                         "description": "Filter by user ID",
                         "name": "user_id",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status (paid/pending)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by note, start_date, or end_date",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {
