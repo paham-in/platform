@@ -3,28 +3,11 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState, useEffect } from "react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-import { getAdminUsersOptions, getAdminUsersQueryKey, deleteAdminUsersByIdMutation, patchAdminUsersByIdRoleMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { useQuery } from "@tanstack/react-query"
+import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
 import { Search, MoreVertical, Shield, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 import {
@@ -34,21 +17,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-
-const ROLE_LABELS: Record<string, string> = { student: "Murid", teacher: "Guru", admin: "Admin" }
-const ROLE_STYLES: Record<string, string> = {
-  student: "bg-green-100 text-green-700",
-  teacher: "bg-blue-100 text-blue-700",
-  admin: "bg-purple-100 text-purple-700",
-}
-
-function RoleBadge({ role }: { role: string }) {
-  return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${ROLE_STYLES[role] || ""}`}>
-      {ROLE_LABELS[role] || role}
-    </span>
-  )
-}
+import { RoleBadge, EditRoleDialog, DeleteUserDialog } from "@/components/admin/users"
 
 const usersSearchSchema = z.object({
   role: z.enum(["student", "teacher", "admin"]).optional(),
@@ -56,7 +25,6 @@ const usersSearchSchema = z.object({
 })
 
 function AdminUsers() {
-  const qc = useQueryClient()
   const navigate = useNavigate({ from: Route.fullPath })
   const { role: roleFilter, search } = Route.useSearch()
   const [searchInput, setSearchInput] = useState(search ?? "")
@@ -83,43 +51,12 @@ function AdminUsers() {
     { label: "Admin", value: "admin" },
   ]
   const [editing, setEditing] = useState<UserAdminUserResponse | null>(null)
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([])
   const [page, setPage] = useState(1)
   const perPage = 5
   const [deleteConfirm, setDeleteConfirm] = useState<UserAdminUserResponse | null>(null)
 
-  const { mutate: deleteUser } = useMutation({
-    ...deleteAdminUsersByIdMutation(),
-    onSuccess: () => { toast.success("User berhasil dihapus"); qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }) },
-    onError: (err: any) => toast.error(err.error || "Gagal menghapus user"),
-  })
-
-  const { mutate: updateRole } = useMutation({
-    ...patchAdminUsersByIdRoleMutation(),
-    onSuccess: () => { closeEdit(); toast.success("Role berhasil diubah"); qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() }) },
-    onError: (err: any) => toast.error(err.error || "Gagal mengubah role"),
-  })
-
   const totalPages = Math.ceil(users.length / perPage)
   const paged = users.slice((page - 1) * perPage, page * perPage)
-
-  const openEdit = (u: UserAdminUserResponse) => {
-    setEditing(u)
-    setSelectedRoles(u.roles ?? [])
-  }
-  const closeEdit = () => setEditing(null)
-
-  const toggleRole = (role: string) => {
-    setSelectedRoles((prev) =>
-      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
-    )
-  }
-
-  const save = () => {
-    if (editing && selectedRoles.length > 0) {
-      updateRole({ path: { id: editing.id! }, body: { roles: selectedRoles } })
-    }
-  }
 
   return (
     <>
@@ -191,7 +128,7 @@ function AdminUsers() {
                             <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => openEdit(u)}>
+                          <DropdownMenuItem onClick={() => setEditing(u)}>
                             <Shield className="h-4 w-4" /> Ganti Role
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setDeleteConfirm(u)}>
@@ -218,56 +155,8 @@ function AdminUsers() {
         </Card>
       </main>
 
-      {editing && <Dialog open onOpenChange={(open) => !open && closeEdit()}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Edit Role User</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">
-              {editing.name} — {editing.email}
-            </p>
-          </div>
-          <div className="space-y-3 pt-2">
-            <p className="text-sm font-medium">Role (centang semua yang sesuai)</p>
-            {["student", "teacher", "admin"].map((role) => (
-              <label key={role} className="flex items-center gap-3 rounded-lg border p-3 cursor-pointer hover:bg-muted/50">
-                <Checkbox
-                  checked={selectedRoles.includes(role)}
-                  onCheckedChange={() => toggleRole(role)}
-                />
-                <RoleBadge role={role} />
-                <span className="ml-auto text-sm text-muted-foreground">{ROLE_LABELS[role]}</span>
-              </label>
-            ))}
-            {selectedRoles.length === 0 && (
-              <p className="text-xs text-destructive">Minimal 1 role harus dipilih</p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={closeEdit}>Batal</Button>
-            <Button onClick={save} disabled={selectedRoles.length === 0}>Simpan</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>}
-
-      {deleteConfirm && <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Hapus User</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah kamu yakin ingin menghapus <strong>{deleteConfirm.name}</strong>? Aksi ini tidak dapat dibatalkan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
-            <Button variant="destructive" onClick={() => {
-              deleteUser({ path: { id: deleteConfirm.id! } })
-              setDeleteConfirm(null)
-            }}>Hapus</Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>}
+      {editing && <EditRoleDialog user={editing} onClose={() => setEditing(null)} />}
+      {deleteConfirm && <DeleteUserDialog user={deleteConfirm} onClose={() => setDeleteConfirm(null)} />}
     </>
   )
 }
