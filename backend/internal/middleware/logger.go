@@ -7,6 +7,6 @@ import (
 
 func RequestLogger() fiber.Handler {
 	return logger.New(logger.Config{
-		Format: "[${ip}] ${method} ${path} ${status} ${latency}\n",
+		Format: "${method} ${path}${query} ${status} ${latency}\n",
 	})
 }
