@@ -78,7 +78,7 @@ type ClassOption = Pick<ClassClassResponse, "id" | "name">;
 
 const subjectsSearchSchema = z.object({
   search: z.string().optional(),
-  class: z.string().optional(),
+  class: z.coerce.number().optional(),
 });
 
 function AdminSubjects() {
@@ -89,7 +89,7 @@ function AdminSubjects() {
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
   const comboboxAnchor = useComboboxAnchor();
   const [searchInput, setSearchInput] = useState(searchParam ?? "");
-  const classFilter = classParam ?? "all";
+  const classFilter = classParam; // number | undefined
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<SubjectSubjectResponse | null>(null);
@@ -123,8 +123,7 @@ function AdminSubjects() {
 
   const filtered = subjects.filter((s) => {
     const matchSearch = !searchParam || (s.name ?? "").toLowerCase().includes(searchParam.toLowerCase());
-    const matchClass =
-      classFilter === "all" || (s.class_ids ?? []).includes(Number(classFilter));
+    const matchClass = classFilter === undefined || (s.class_ids ?? []).includes(classFilter);
     return matchSearch && matchClass;
   });
   const totalPages = Math.ceil(filtered.length / perPage);
@@ -213,11 +212,11 @@ function AdminSubjects() {
             </div>
             <Select
               items={classOptions}
-              value={classFilter}
+              value={classFilter === undefined ? "all" : String(classFilter)}
               onValueChange={(v) => {
                 if (v) {
                   navigate({
-                    search: (prev) => ({ ...prev, class: v === "all" ? undefined : v }),
+                    search: (prev) => ({ ...prev, class: v === "all" ? undefined : Number(v) }),
                     replace: true,
                   });
                   setPage(1);
