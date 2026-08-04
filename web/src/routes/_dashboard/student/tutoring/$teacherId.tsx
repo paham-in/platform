@@ -4,9 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getTutoringTeachersOptions, getTutoringAvailabilityOptions, postTutoringBookingsMutation, getTutoringBookingsQueryKey } from "@/lib/api/@tanstack/react-query.gen"
-import { Calendar, Loader2 } from "lucide-react"
+import { CalendarIcon, Loader2 } from "lucide-react"
+import { format } from "date-fns"
+import { id } from "date-fns/locale"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -78,7 +82,7 @@ function BookTeacher() {
               <Card key={s.id} className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedSlot?.day === s.day_of_week && selectedSlot?.start === s.start_time ? "ring-2 ring-primary" : ""}`}
                 onClick={() => { setSelectedSlot({ day: s.day_of_week!, start: s.start_time!, end: s.end_time! }); setBookOpen(true) }}>
                 <CardContent className="flex items-center gap-3 p-4">
-                  <Calendar className="h-5 w-5 text-primary" />
+                  <CalendarIcon className="h-5 w-5 text-primary" />
                   <div>
                     <p className="font-medium">{dayNames[s.day_of_week!]}</p>
                     <p className="text-sm text-muted-foreground">{s.start_time} - {s.end_time}</p>
@@ -96,7 +100,31 @@ function BookTeacher() {
           <div className="space-y-4">
             <div className="space-y-1.5"><Label>Guru</Label><p className="text-sm text-muted-foreground">{teacher.name}</p></div>
             {selectedSlot && <div className="space-y-1.5"><Label>Slot</Label><p className="text-sm text-muted-foreground">{dayNames[selectedSlot.day]} — {selectedSlot.start} - {selectedSlot.end}</p></div>}
-            <div className="space-y-1.5"><Label>Tanggal</Label><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} min={new Date().toISOString().split("T")[0]} /></div>
+            <div className="space-y-1.5">
+              <Label>Tanggal</Label>
+              <Popover>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      data-empty={!date}
+                      className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+                    />
+                  }
+                >
+                  <CalendarIcon />
+                  {date ? format(new Date(date + "T00:00:00"), "EEE, dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    disabled={{ before: new Date() }}
+                    selected={date ? new Date(date + "T00:00:00") : undefined}
+                    onSelect={(d) => setDate(d ? format(d, "yyyy-MM-dd") : "")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
             <div className="space-y-1.5"><Label>Catatan (opsional)</Label><Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Materi yang ingin dibahas..." /></div>
           </div>
           <DialogFooter>

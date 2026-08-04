@@ -93,9 +93,10 @@ function TeacherPickerDialog({ open, onOpenChange }: { open: boolean; onOpenChan
   ]
 
   const filteredTeachers = teachers.filter((t: TutoringTeacherResponse) => {
+    const hasSubject = (t.subjects ?? []).length > 0
     const matchSubject = subjectFilter === "all" || (t.subjects ?? []).some((s) => s.id === Number(subjectFilter))
     const matchSearch = !search || (t.name ?? "").toLowerCase().includes(search.toLowerCase())
-    return matchSubject && matchSearch
+    return hasSubject && matchSubject && matchSearch
   })
 
   return (
