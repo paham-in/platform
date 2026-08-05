@@ -1,15 +1,8 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -18,31 +11,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 import {
   getAdminQuestionsOptions,
-  getAdminQuestionsQueryKey,
-  deleteAdminQuestionsByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
-import { Search, MoreVertical, Trash2, ChevronLeft, ChevronRight, Loader2, Eye } from "lucide-react"
-import { toast } from "sonner"
+import { Search, MoreVertical, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react"
+import { DeleteQuestionDialog } from "@/components/admin/forum"
 
 function AdminForum() {
-  const qc = useQueryClient()
   const { data: questions = [], isLoading } = useQuery(getAdminQuestionsOptions())
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; content: string } | null>(null)
   const perPage = 10
-
-  const { mutate: deleteQuestion } = useMutation({
-    ...deleteAdminQuestionsByIdMutation(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getAdminQuestionsQueryKey() })
-      toast.success("Pertanyaan berhasil dihapus")
-    },
-    onError: () => toast.error("Gagal menghapus pertanyaan"),
-  })
 
   const filtered = questions.filter((q) =>
     (q.plain_content ?? "").toLowerCase().includes(search.toLowerCase()) ||
@@ -50,14 +31,6 @@ function AdminForum() {
   )
   const totalPages = Math.ceil(filtered.length / perPage)
   const paged = filtered.slice((page - 1) * perPage, page * perPage)
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
 
   return (
     <>
@@ -89,7 +62,17 @@ function AdminForum() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paged.map((q) => (
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell className="pl-6"><Skeleton className="h-4 w-40" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : paged.map((q) => (
                   <TableRow key={q.id}>
                     <TableCell className="pl-6 font-medium">{q.plain_content?.slice(0, 80)}</TableCell>
                     <TableCell className="text-muted-foreground">{q.user_name}</TableCell>
@@ -120,7 +103,7 @@ function AdminForum() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {paged.length === 0 && (
+                {!isLoading && paged.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="p-8 text-center text-muted-foreground">
                       Tidak ada pertanyaan
@@ -146,23 +129,9 @@ function AdminForum() {
         </Card>
       </main>
 
-      {deleteConfirm && <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Pertanyaan</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah kamu yakin ingin menghapus <strong>{deleteConfirm.content}</strong>?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
-            <Button variant="destructive" onClick={() => {
-              deleteQuestion({ path: { id: deleteConfirm.id } })
-              setDeleteConfirm(null)
-            }}>Hapus</Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>}
+      {deleteConfirm && (
+        <DeleteQuestionDialog question={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+      )}
     </>
   )
 }
