@@ -73,6 +73,7 @@ func main() {
 	subject.Routes(app, db)
 	forum.Routes(app, db)
 	answer.PublicRoutes(app, db)
+	push.PublicRoutes(app, db, cfg.VapidPublicKey)
 	if minioClient != nil {
 		upload.PublicRoutes(app, db, minioClient)
 	}

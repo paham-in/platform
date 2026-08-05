@@ -74,10 +74,17 @@ func (h *Handler) PublicKey(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"public_key": h.svc.vapidPublicKey})
 }
 
+// PublicRoutes mendaftarkan endpoint yang tidak butuh auth (public-key).
+func PublicRoutes(app fiber.Router, db *gorm.DB, vapidPublicKey string) {
+	svc := NewService(db, vapidPublicKey, "", "")
+	h := NewHandler(svc)
+
+	app.Get("/push/public-key", h.PublicKey)
+}
+
 func Routes(auth fiber.Router, db *gorm.DB, vapidPublicKey, vapidPrivateKey, vapidSubject string) {
 	svc := NewService(db, vapidPublicKey, vapidPrivateKey, vapidSubject)
 	h := NewHandler(svc)
 
-	auth.Get("/push/public-key", h.PublicKey)
 	auth.Post("/push/subscribe", h.Subscribe)
 }
