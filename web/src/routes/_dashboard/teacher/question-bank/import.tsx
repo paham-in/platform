@@ -1,11 +1,12 @@
 import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
 import { RichContent } from "@/components/ui/rich-content"
+import { Badge } from "@/components/ui/badge"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getAdminChaptersOptions, getAdminQuestionsBankOptions, getAdminQuestionsBankQueryKey, postAdminQuestionsBankMutation } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
@@ -246,27 +247,28 @@ function ImportQuestions() {
             <div className="space-y-3">
               {questions.map((q, i) => (
                 <Card key={i}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
+                  <CardHeader className="flex flex-row items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
                       <Checkbox
                         checked={selected.has(i)}
                         onCheckedChange={() => toggleOne(i)}
-                        className="mt-1"
                       />
+                      <span className="font-medium text-muted-foreground">Pertanyaan ke-{i + 1}</span>
+                    </div>
+                    {isDuplicate(i) && (
+                      <Badge variant="warning" className="shrink-0">
+                        <XCircle className="h-3 w-3" /> Duplikat
+                      </Badge>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-start gap-3">
                       <div className="flex-1 space-y-2">
-                        <div className="font-medium">
-                          <span className="mr-1 text-muted-foreground">{i + 1}.</span>
-                          {q.question ? <RichContent html={q.question} /> : <span className="text-muted-foreground">(kosong)</span>}
-                          {isDuplicate(i) && (
-                            <span className="ml-2 inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                              <XCircle className="h-3 w-3" /> Duplikat
-                            </span>
-                          )}
-                        </div>
+                        {q.question ? <RichContent html={q.question} /> : <span className="text-muted-foreground">(kosong)</span>}
                         {q.options.length > 0 && (
-                          <div className="grid gap-1 pl-6 text-sm">
+                          <div className="grid gap-1 text-sm">
                             {q.options.map((opt, oi) => (
-                              <div key={oi} className="flex items-start gap-2">
+                              <div key={oi} className="flex items-center gap-2">
                                 <span className={`shrink-0 rounded px-1.5 text-xs font-semibold ${
                                   q.correctIndex === oi ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
                                 }`}>
@@ -277,17 +279,18 @@ function ImportQuestions() {
                             ))}
                           </div>
                         )}
-                        {q.explanation && (
-                          <div className="pl-6 text-xs text-muted-foreground">
-                            <span className="font-medium">Pembahasan:</span> <RichContent html={q.explanation} />
-                          </div>
-                        )}
                         {q.options.length === 0 && (
                           <p className="text-xs text-amber-600">Soal tanpa opsi — periksa format sebelum import.</p>
                         )}
                       </div>
                     </div>
                   </CardContent>
+                  {q.explanation && (
+                    <CardFooter className="flex flex-col items-start gap-1 border-t">
+                      <span className="text-sm font-semibold text-muted-foreground">Pembahasan</span>
+                      <RichContent html={q.explanation} />
+                    </CardFooter>
+                  )}
                 </Card>
               ))}
             </div>
