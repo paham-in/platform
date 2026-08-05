@@ -149,38 +149,27 @@ function ImportQuestions() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-lg border bg-muted/30 p-3 text-sm">
-                <p className="mb-2 font-semibold">Contoh format</p>
-                <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-muted-foreground">{`--- pertanyaan
-Siapa presiden RI?
---- jawaban
-a. Soekarno
-b. Moh. Hatta
-c. Soeharto
-d. B.J. Habibie
---- kunci
-a
---- pembahasan
-Soekarno...
-
---- pertanyaan
-Perhatikan pernyataan:
-1. Soekarno presiden pertama
-2. Hatta wakil presiden
-Manakah yang benar?
---- jawaban
-a. 1 dan 2
-b. 1 saja
-c. 2 saja
---- kunci
-a`}</pre>
+                <p className="mb-2 font-semibold">Contoh format (tabel)</p>
+                <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-muted-foreground">{`┌───────────────────────────────┐
+│ Siapa presiden RI?            │  ← row 1: soal
+├───────────────────────────────┤
+│ a. Soekarno                   │  ← row 2: opsi
+│ b. Moh. Hatta                 │
+│ c. Soeharto                   │
+│ d. B.J. Habibie               │
+├───────────────────────────────┤
+│ Soekarno...                   │  ← row 3: pembahasan
+└───────────────────────────────┘`}</pre>
+                <p className="mt-2 text-xs text-muted-foreground">Buat 1 tabel dengan 1 kolom. Opsi yang benar di-<em>highlight</em> (mis. kuning).</p>
               </div>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p><span className="font-medium text-foreground">Aturan:</span></p>
                 <ul className="list-disc space-y-1 pl-5">
-                  <li>Setiap soal diawali <code className="rounded bg-muted px-1">--- pertanyaan</code>, lalu isi pertanyaan bebas (boleh berisi list/poin).</li>
-                  <li><code className="rounded bg-muted px-1">--- jawaban</code> lalu opsi <code className="rounded bg-muted px-1">a.</code>–<code className="rounded bg-muted px-1">e.</code> satu per baris.</li>
-                  <li><code className="rounded bg-muted px-1">--- kunci</code> lalu huruf jawaban benar (mis. <code className="rounded bg-muted px-1">a</code>).</li>
-                  <li><code className="rounded bg-muted px-1">--- pembahasan</code> opsional untuk penjelasan.</li>
+                  <li>Setiap soal dibuat dalam <strong>1 tabel berisi 1 kolom</strong> (Insert → Table → 1 kolom).</li>
+                  <li><strong>Row 1</strong> = pertanyaan (boleh berisi poin/list).</li>
+                  <li><strong>Row 2</strong> = opsi jawaban <code className="rounded bg-muted px-1">a.</code>–<code className="rounded bg-muted px-1">e.</code> satu per baris.</li>
+                  <li>Opsi yang benar di-<em>highlight</em> (mis. warna kuning) → otomatis jadi kunci jawaban.</li>
+                  <li><strong>Row 3</strong> (opsional) = pembahasan.</li>
                   <li>Rumus dari Equation Editor Word (Insert → Equation / Alt+=) otomatis dikonversi ke LaTeX.</li>
                 </ul>
               </div>

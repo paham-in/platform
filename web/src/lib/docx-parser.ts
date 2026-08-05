@@ -831,48 +831,52 @@ const TEMPLATE_DOCUMENT_XML = `<?xml version="1.0" encoding="UTF-8" standalone="
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
             xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">
   <w:body>
-    <w:p><w:r><w:t>--- pertanyaan</w:t></w:r></w:p>
-    <w:p><w:r><w:t>Siapa presiden pertama Republik Indonesia?</w:t></w:r></w:p>
-    <w:p><w:r><w:t>--- jawaban</w:t></w:r></w:p>
-    <w:p><w:r><w:t>a. Soekarno</w:t></w:r></w:p>
-    <w:p><w:r><w:t>b. Moh. Hatta</w:t></w:r></w:p>
-    <w:p><w:r><w:t>c. Soeharto</w:t></w:r></w:p>
-    <w:p><w:r><w:t>d. B.J. Habibie</w:t></w:r></w:p>
-    <w:p><w:r><w:t>--- kunci</w:t></w:r></w:p>
-    <w:p><w:r><w:t>a</w:t></w:r></w:p>
-    <w:p><w:r><w:t>--- pembahasan</w:t></w:r></w:p>
-    <w:p><w:r><w:t>Soekarno adalah proklamator sekaligus presiden pertama RI.</w:t></w:r></w:p>
+    <!-- Soal 1: tabel 1 kolom, row1 soal, row2 opsi (highlight jawaban benar), row3 pembahasan -->
+    <w:tbl>
+      <w:tr><w:tc><w:p><w:r><w:t>Siapa presiden pertama Republik Indonesia?</w:t></w:r></w:p></w:tc></w:tr>
+      <w:tr><w:tc>
+        <w:p><w:r><w:rPr><w:highlight w:val="yellow"/></w:rPr><w:t>a. Soekarno</w:t></w:r></w:p>
+        <w:p><w:r><w:t>b. Moh. Hatta</w:t></w:r></w:p>
+        <w:p><w:r><w:t>c. Soeharto</w:t></w:r></w:p>
+        <w:p><w:r><w:t>d. B.J. Habibie</w:t></w:r></w:p>
+      </w:tc></w:tr>
+      <w:tr><w:tc><w:p><w:r><w:t>Soekarno adalah proklamator sekaligus presiden pertama RI.</w:t></w:r></w:p></w:tc></w:tr>
+    </w:tbl>
 
-    <w:p><w:r><w:t>--- pertanyaan</w:t></w:r></w:p>
-    <w:p><w:r><w:t>Perhatikan pernyataan berikut:</w:t></w:r></w:p>
-    <w:p><w:r><w:t>1. Soekarno presiden pertama.</w:t></w:r></w:p>
-    <w:p><w:r><w:t>2. Moh. Hatta wakil presiden pertama.</w:t></w:r></w:p>
-    <w:p><w:r><w:t>Manakah yang benar?</w:t></w:r></w:p>
-    <w:p><w:r><w:t>--- jawaban</w:t></w:r></w:p>
-    <w:p><w:r><w:t>a. 1 dan 2</w:t></w:r></w:p>
-    <w:p><w:r><w:t>b. 1 saja</w:t></w:r></w:p>
-    <w:p><w:r><w:t>c. 2 saja</w:t></w:r></w:p>
-    <w:p><w:r><w:t>d. Semua salah</w:t></w:r></w:p>
-    <w:p><w:r><w:t>--- kunci</w:t></w:r></w:p>
-    <w:p><w:r><w:t>a</w:t></w:r></w:p>
+    <!-- Soal 2: pertanyaan berisi poin, highlight opsi c -->
+    <w:tbl>
+      <w:tr><w:tc>
+        <w:p><w:r><w:t>Perhatikan pernyataan berikut:</w:t></w:r></w:p>
+        <w:p><w:r><w:t>1. Soekarno presiden pertama.</w:t></w:r></w:p>
+        <w:p><w:r><w:t>2. Moh. Hatta wakil presiden pertama.</w:t></w:r></w:p>
+        <w:p><w:r><w:t>Manakah yang benar?</w:t></w:r></w:p>
+      </w:tc></w:tr>
+      <w:tr><w:tc>
+        <w:p><w:r><w:t>a. 1 dan 2</w:t></w:r></w:p>
+        <w:p><w:r><w:t>b. 1 saja</w:t></w:r></w:p>
+        <w:p><w:r><w:rPr><w:highlight w:val="yellow"/></w:rPr><w:t>c. 2 saja</w:t></w:r></w:p>
+        <w:p><w:r><w:t>d. Semua salah</w:t></w:r></w:p>
+      </w:tc></w:tr>
+    </w:tbl>
 
-    <w:p><w:r><w:t>--- pertanyaan</w:t></w:r></w:p>
-    <w:p><w:r><w:t>Bentuk pecahan dari a dibagi b adalah:</w:t></w:r></w:p>
-    <w:p><w:r><w:t>--- jawaban</w:t></w:r></w:p>
-    <w:p>
-      <w:r><w:t>a. </w:t></w:r>
-      <m:oMath>
-        <m:f>
-          <m:num><m:r><m:t>a</m:t></m:r></m:num>
-          <m:den><m:r><m:t>b</m:t></m:r></m:den>
-        </m:f>
-      </m:oMath>
-    </w:p>
-    <w:p><w:r><w:t>b. ab</w:t></w:r></w:p>
-    <w:p><w:r><w:t>c. a+b</w:t></w:r></w:p>
-    <w:p><w:r><w:t>d. a-b</w:t></w:r></w:p>
-    <w:p><w:r><w:t>--- kunci</w:t></w:r></w:p>
-    <w:p><w:r><w:t>a</w:t></w:r></w:p>
+    <!-- Soal 3: opsi mengandung rumus, highlight opsi a -->
+    <w:tbl>
+      <w:tr><w:tc><w:p><w:r><w:t>Bentuk pecahan dari a dibagi b adalah:</w:t></w:r></w:p></w:tc></w:tr>
+      <w:tr><w:tc>
+        <w:p>
+          <w:r><w:rPr><w:highlight w:val="yellow"/></w:rPr><w:t>a. </w:t></w:r>
+          <m:oMath>
+            <m:f>
+              <m:num><m:r><m:t>a</m:t></m:r></m:num>
+              <m:den><m:r><m:t>b</m:t></m:r></m:den>
+            </m:f>
+          </m:oMath>
+        </w:p>
+        <w:p><w:r><w:t>b. ab</w:t></w:r></w:p>
+        <w:p><w:r><w:t>c. a+b</w:t></w:r></w:p>
+        <w:p><w:r><w:t>d. a-b</w:t></w:r></w:p>
+      </w:tc></w:tr>
+    </w:tbl>
   </w:body>
 </w:document>`
 
