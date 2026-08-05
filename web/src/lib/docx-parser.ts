@@ -408,15 +408,36 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
 }
 
+type SectionName = "pertanyaan" | "jawaban" | "kunci" | "pembahasan"
+
+/**
+ * Deteksi apakah paragraf adalah header section (`--- pertanyaan` dsb).
+ * Toleran terhadap spasi & huruf besar/kecil.
+ */
+function isSectionHeader(text: string): SectionName | null {
+  const m = text.match(/^---\s*([a-zA-Z]+)\s*$/)
+  if (!m) return null
+  const name = m[1].toLowerCase()
+  if (name === "pertanyaan" || name === "jawaban" || name === "kunci" || name === "pembahasan") {
+    return name
+  }
+  return null
+}
+
 /**
  * Build soal dari paragraf hasil parsing.
- * Struktur yang dikenali:
- *  - `1. teks` atau `1) teks` → soal baru
- *  - `A. teks` / `A) teks` / `A.` → opsi jawaban
- *  - `Pembahasan: teks` → explanation (merapat ke soal terakhir)
- *  - `Kunci: A` / `Jawaban: A` → correct_index (merapat ke soal terakhir)
+ * Mendukung dua format:
+ *  1. Format section (utama): `--- pertanyaan` / `--- jawaban` / `--- kunci` / `--- pembahasan`
+ *  2. Format natural (fallback): `1.` / `A.` / `Kunci:` / `Pembahasan:`
+ * Mode section dipilih jika dokumen mengandung baris `--- <nama>`.
  */
 export function buildQuestions(paras: ParsedParagraph[]): ImportQuestion[] {
+  const hasSection = paras.some((p) => isSectionHeader(p.text.trim()))
+  return hasSection ? buildQuestionsSection(paras) : buildQuestionsNatural(paras)
+}
+
+/** Format natural (logika lama): `1.` soal, `A.` opsi, `Kunci:`, `Pembahasan:` */
+function buildQuestionsNatural(paras: ParsedParagraph[]): ImportQuestion[] {
   const questions: ImportQuestion[] = []
   let current: ImportQuestion | null = null
 
@@ -481,6 +502,80 @@ export function buildQuestions(paras: ParsedParagraph[]): ImportQuestion[] {
   return questions
 }
 
+/** Format section: `--- pertanyaan` / `--- jawaban` / `--- kunci` / `--- pembahasan` */
+function buildQuestionsSection(paras: ParsedParagraph[]): ImportQuestion[] {
+  const questions: ImportQuestion[] = []
+  let current: ImportQuestion | null = null
+  let section: SectionName | null = null
+  const buffer: ParsedParagraph[] = [] // kumpulan paragraf untuk section aktif
+
+  const optionPattern = /^[a-e][.)]\s*(.*)$/i
+  const keyContentPattern = /(?:kunci\s*[:=]\s*)?([A-Ea-e])/i
+
+  const flushQuestion = () => {
+    if (current) {
+      questions.push(current)
+      current = null
+    }
+  }
+
+  const flushSection = () => {
+    if (!current || section === null) return
+    const joined = buffer
+      .filter((p) => p.text.trim() !== "")
+      .map((p) => p.html || `<p>${p.text}</p>`)
+      .join("")
+    if (section === "pertanyaan") {
+      current.question = joined
+    } else if (section === "pembahasan") {
+      current.explanation = joined
+    }
+    buffer.length = 0
+  }
+
+  const startSection = (s: SectionName) => {
+    flushSection()
+    section = s
+  }
+
+  for (const para of paras) {
+    const text = para.text.trim()
+    const header = isSectionHeader(text)
+    if (header) {
+      startSection(header)
+      if (header === "pertanyaan") {
+        flushQuestion()
+        current = { question: "", options: [], correctIndex: 0, explanation: "" }
+      }
+      continue
+    }
+    if (!current || section === null) continue
+
+    if (section === "jawaban") {
+      const m = text.match(optionPattern)
+      if (m) {
+        current.options.push(stripPrefix(para.html, "option"))
+      }
+      // Baris tanpa pola opsi di dalam jawaban diabaikan
+    } else if (section === "kunci") {
+      const km = text.match(keyContentPattern)
+      if (km) {
+        const idx = km[1].toUpperCase().charCodeAt(0) - 65
+        if (idx >= 0 && idx < current.options.length) {
+          current.correctIndex = idx
+        }
+      }
+    } else {
+      // pertanyaan / pembahasan → buffer untuk digabung saat section berubah
+      buffer.push(para)
+    }
+  }
+
+  flushSection()
+  flushQuestion()
+  return questions
+}
+
 type StripKind = "question" | "option" | "explanation"
 
 /**
@@ -539,23 +634,36 @@ const TEMPLATE_DOCUMENT_XML = `<?xml version="1.0" encoding="UTF-8" standalone="
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
             xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">
   <w:body>
-    <w:p><w:r><w:t>1. Siapa presiden pertama Republik Indonesia?</w:t></w:r></w:p>
-    <w:p><w:r><w:t>A. Soekarno</w:t></w:r></w:p>
-    <w:p><w:r><w:t>B. Moh. Hatta</w:t></w:r></w:p>
-    <w:p><w:r><w:t>C. Soeharto</w:t></w:r></w:p>
-    <w:p><w:r><w:t>D. B.J. Habibie</w:t></w:r></w:p>
-    <w:p><w:r><w:t>Pembahasan: Soekarno adalah proklamator sekaligus presiden pertama RI.</w:t></w:r></w:p>
-    <w:p><w:r><w:t>Kunci: A</w:t></w:r></w:p>
-    <w:p><w:r><w:t>2. Hasil dari 2 + 3 x 4 adalah ...</w:t></w:r></w:p>
-    <w:p><w:r><w:t>A. 14</w:t></w:r></w:p>
-    <w:p><w:r><w:t>B. 20</w:t></w:r></w:p>
-    <w:p><w:r><w:t>C. 24</w:t></w:r></w:p>
-    <w:p><w:r><w:t>D. 9</w:t></w:r></w:p>
-    <w:p><w:r><w:t>Pembahasan: Kerjakan perkalian dulu, 2 + 12 = 14.</w:t></w:r></w:p>
-    <w:p><w:r><w:t>Kunci: A</w:t></w:r></w:p>
-    <w:p><w:r><w:t>3. Bentuk pecahan dari a dibagi b adalah:</w:t></w:r></w:p>
+    <w:p><w:r><w:t>--- pertanyaan</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Siapa presiden pertama Republik Indonesia?</w:t></w:r></w:p>
+    <w:p><w:r><w:t>--- jawaban</w:t></w:r></w:p>
+    <w:p><w:r><w:t>a. Soekarno</w:t></w:r></w:p>
+    <w:p><w:r><w:t>b. Moh. Hatta</w:t></w:r></w:p>
+    <w:p><w:r><w:t>c. Soeharto</w:t></w:r></w:p>
+    <w:p><w:r><w:t>d. B.J. Habibie</w:t></w:r></w:p>
+    <w:p><w:r><w:t>--- kunci</w:t></w:r></w:p>
+    <w:p><w:r><w:t>a</w:t></w:r></w:p>
+    <w:p><w:r><w:t>--- pembahasan</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Soekarno adalah proklamator sekaligus presiden pertama RI.</w:t></w:r></w:p>
+
+    <w:p><w:r><w:t>--- pertanyaan</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Perhatikan pernyataan berikut:</w:t></w:r></w:p>
+    <w:p><w:r><w:t>1. Soekarno presiden pertama.</w:t></w:r></w:p>
+    <w:p><w:r><w:t>2. Moh. Hatta wakil presiden pertama.</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Manakah yang benar?</w:t></w:r></w:p>
+    <w:p><w:r><w:t>--- jawaban</w:t></w:r></w:p>
+    <w:p><w:r><w:t>a. 1 dan 2</w:t></w:r></w:p>
+    <w:p><w:r><w:t>b. 1 saja</w:t></w:r></w:p>
+    <w:p><w:r><w:t>c. 2 saja</w:t></w:r></w:p>
+    <w:p><w:r><w:t>d. Semua salah</w:t></w:r></w:p>
+    <w:p><w:r><w:t>--- kunci</w:t></w:r></w:p>
+    <w:p><w:r><w:t>a</w:t></w:r></w:p>
+
+    <w:p><w:r><w:t>--- pertanyaan</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Bentuk pecahan dari a dibagi b adalah:</w:t></w:r></w:p>
+    <w:p><w:r><w:t>--- jawaban</w:t></w:r></w:p>
     <w:p>
-      <w:r><w:t>A. </w:t></w:r>
+      <w:r><w:t>a. </w:t></w:r>
       <m:oMath>
         <m:f>
           <m:num><m:r><m:t>a</m:t></m:r></m:num>
@@ -563,11 +671,11 @@ const TEMPLATE_DOCUMENT_XML = `<?xml version="1.0" encoding="UTF-8" standalone="
         </m:f>
       </m:oMath>
     </w:p>
-    <w:p><w:r><w:t>B. ab</w:t></w:r></w:p>
-    <w:p><w:r><w:t>C. a+b</w:t></w:r></w:p>
-    <w:p><w:r><w:t>D. a-b</w:t></w:r></w:p>
-    <w:p><w:r><w:t>Pembahasan: Pecahan a/b berarti a dibagi b.</w:t></w:r></w:p>
-    <w:p><w:r><w:t>Kunci: A</w:t></w:r></w:p>
+    <w:p><w:r><w:t>b. ab</w:t></w:r></w:p>
+    <w:p><w:r><w:t>c. a+b</w:t></w:r></w:p>
+    <w:p><w:r><w:t>d. a-b</w:t></w:r></w:p>
+    <w:p><w:r><w:t>--- kunci</w:t></w:r></w:p>
+    <w:p><w:r><w:t>a</w:t></w:r></w:p>
   </w:body>
 </w:document>`
 
