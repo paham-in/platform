@@ -12,7 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminChaptersOptions, getAdminQuestionsBankOptions, getAdminQuestionsBankQueryKey, patchAdminQuestionsBankByIdMutation, deleteAdminQuestionsBankByIdMutation } from "@/lib/api/@tanstack/react-query.gen";
 import type { QuestionbankQuestionResponse } from "@/lib/api/types.gen";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Loader2, MoreVertical, Pencil, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, MoreVertical, Pencil, Plus, Trash2, ChevronLeft, ChevronRight, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E"]
@@ -118,9 +118,14 @@ function TeacherQuestionBank() {
               </SelectContent>
             </Select>
           </div>
-          <Link to="/teacher/question-bank/new">
-            <Button><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/teacher/question-bank/import">
+              <Button variant="outline"><UploadCloud className="mr-1 h-4 w-4" /> Import dari Word</Button>
+            </Link>
+            <Link to="/teacher/question-bank/new">
+              <Button><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
+            </Link>
+          </div>
         </div>
 
         <Card className="pt-0 gap-0 pb-0">
