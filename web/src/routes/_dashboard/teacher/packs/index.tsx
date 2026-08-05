@@ -2,36 +2,18 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  getAdminQuestionPackagesOptions,
-  getAdminQuestionPackagesQueryKey,
-  deleteAdminQuestionPackagesByIdMutation,
-} from "@/lib/api/@tanstack/react-query.gen";
+import { useQuery } from "@tanstack/react-query";
+import { getAdminQuestionPackagesOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { Link } from "@tanstack/react-router";
-import { Eye, Loader2, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { Eye, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { DeletePackageDialog } from "@/components/teacher/packs";
 
 function TeacherQuestionPackages() {
-  const qc = useQueryClient();
   const { data: packages = [], isLoading } = useQuery(getAdminQuestionPackagesOptions());
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
-
-  const { mutate: deletePackage, isPending: isDeleting } = useMutation({
-    ...deleteAdminQuestionPackagesByIdMutation(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getAdminQuestionPackagesQueryKey() });
-      setDeleteConfirm(null);
-      toast.success("Paket soal berhasil dihapus");
-    },
-    onError: (err: any) => toast.error(err?.error || "Gagal menghapus paket"),
-  });
-
-  if (isLoading)
-    return <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
   return (
     <>
@@ -56,7 +38,17 @@ function TeacherQuestionPackages() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {packages.length === 0 ? (
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell className="pl-6"><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : packages.length === 0 ? (
                   <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada paket soal</TableCell></TableRow>
                 ) : packages.map((pkg) => (
                   <TableRow key={pkg.id}>
@@ -98,26 +90,7 @@ function TeacherQuestionPackages() {
       </main>
 
       {deleteConfirm && (
-        <AlertDialog open onOpenChange={() => setDeleteConfirm(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Hapus Paket Soal</AlertDialogTitle>
-              <AlertDialogDescription>
-                Yakin ingin menghapus paket "{deleteConfirm.name}"? Soal tidak akan terhapus.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
-              <Button
-                variant="destructive"
-                disabled={isDeleting}
-                onClick={() => deletePackage({ path: { id: deleteConfirm.id } })}
-              >
-                Hapus
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <DeletePackageDialog pkg={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
       )}
     </>
   );
