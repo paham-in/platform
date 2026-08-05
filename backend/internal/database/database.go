@@ -106,6 +106,11 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE question_images DROP COLUMN url")
 	}
 
+	// backfill: pertanyaan open yang sudah punya jawaban → status answered
+	db.Exec(`UPDATE questions SET status = 'answered'
+		WHERE status = 'open'
+		AND id IN (SELECT DISTINCT question_id FROM answers WHERE deleted_at IS NULL)`)
+
 	// migrate subject_images -- add user_id column
 	if !db.Migrator().HasColumn(&models.SubjectImage{}, "user_id") {
 		db.Exec("ALTER TABLE subject_images ADD COLUMN user_id BIGINT NOT NULL DEFAULT 0")

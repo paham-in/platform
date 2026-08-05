@@ -63,6 +63,11 @@ func (s *Service) Create(questionID, userID uint, content string) (*models.Answe
 		return nil, err
 	}
 
+	// Pertanyaan sudah dijawab → ubah status dari "open" menjadi "answered".
+	if err := s.questionRepo.MarkAnswered(questionID); err != nil {
+		return nil, err
+	}
+
 	// reload with User preloaded
 	if err := s.repo.ReloadWithUser(&answer); err != nil {
 		return nil, err
@@ -85,4 +90,11 @@ func (r *QuestionRepository) GetByID(id uint) (*models.Question, error) {
 		return nil, err
 	}
 	return &q, nil
+}
+
+// MarkAnswered mengubah status pertanyaan menjadi "answered" jika masih "open".
+func (r *QuestionRepository) MarkAnswered(id uint) error {
+	return r.db.Model(&models.Question{}).
+		Where("id = ? AND status = ?", id, "open").
+		Update("status", "answered").Error
 }

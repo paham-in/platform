@@ -2,17 +2,26 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   getQuestionsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
-import { Search, ChevronLeft, ChevronRight, Loader2, Eye, MessageSquare } from "lucide-react"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { z } from "zod"
+import { useState, useEffect } from "react"
+import { Search, ChevronLeft, ChevronRight, Eye, MessageSquare } from "lucide-react"
+
+const forumSearchSchema = z.object({
+  search: z.string().optional(),
+  unanswered: z.coerce.boolean().optional(),
+})
 
 function TeacherForum() {
-  const [search, setSearch] = useState("")
-  const [unansweredOnly, setUnansweredOnly] = useState(false)
+  const navigate = useNavigate({ from: Route.fullPath })
+  const { search: searchParam, unanswered: unansweredParam } = Route.useSearch()
+  const [searchInput, setSearchInput] = useState(searchParam ?? "")
+  const unansweredOnly = unansweredParam ?? false
   const [page, setPage] = useState(1)
   const perPage = 10
 
@@ -21,19 +30,25 @@ function TeacherForum() {
   )
 
   const filtered = questions.filter((q) =>
-    (q.plain_content ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    (q.user_name ?? "").toLowerCase().includes(search.toLowerCase())
+    (q.plain_content ?? "").toLowerCase().includes(searchParam?.toLowerCase() ?? "") ||
+    (q.user_name ?? "").toLowerCase().includes(searchParam?.toLowerCase() ?? "")
   )
   const totalPages = Math.ceil(filtered.length / perPage)
   const paged = filtered.slice((page - 1) * perPage, page * perPage)
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
+  // Sync URL → local state when search changes externally
+  useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
+
+  // Debounce search → navigate to URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({
+        search: (prev) => ({ ...prev, search: searchInput || undefined }),
+        replace: true,
+      })
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput])
 
   return (
     <main className="p-6">
@@ -45,14 +60,19 @@ function TeacherForum() {
           <Input
             placeholder="Cari pertanyaan atau user..."
             className="pl-9"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            value={searchInput}
+            onChange={(e) => { setSearchInput(e.target.value); setPage(1) }}
           />
         </div>
         <Button
           variant={unansweredOnly ? "default" : "outline"}
-          size="sm"
-          onClick={() => { setUnansweredOnly(!unansweredOnly); setPage(1) }}
+          onClick={() => {
+            navigate({
+              search: (prev) => ({ ...prev, unanswered: unansweredOnly ? undefined : "true" }),
+              replace: true,
+            })
+            setPage(1)
+          }}
         >
           <MessageSquare className="h-4 w-4" /> Belum Terjawab
         </Button>
@@ -72,7 +92,18 @@ function TeacherForum() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paged.map((q) => (
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    <TableCell className="pl-6"><Skeleton className="h-4 w-40" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
+                  </TableRow>
+                ))
+              ) : paged.map((q) => (
                 <TableRow key={q.id}>
                   <TableCell className="pl-6 font-medium max-w-[300px] truncate">{q.plain_content}</TableCell>
                   <TableCell className="text-muted-foreground">{q.user_name}</TableCell>
@@ -94,7 +125,7 @@ function TeacherForum() {
                   </TableCell>
                 </TableRow>
               ))}
-              {paged.length === 0 && (
+              {!isLoading && paged.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="p-8 text-center text-muted-foreground">
                     Tidak ada pertanyaan
@@ -124,4 +155,5 @@ function TeacherForum() {
 
 export const Route = createFileRoute("/_dashboard/teacher/forum/")({
   component: TeacherForum,
+  validateSearch: forumSearchSchema,
 })
