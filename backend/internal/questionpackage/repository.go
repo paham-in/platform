@@ -4,6 +4,7 @@ import (
 	"bimbel2/backend/internal/models"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Repository struct {
@@ -53,5 +54,12 @@ func (r *Repository) SetQuestions(pkgID uint, questionIDs []uint) error {
 }
 
 func (r *Repository) Delete(id uint) error {
-	return r.db.Delete(&models.QuestionPackage{}, id).Error
+	// Hard delete + bersihkan relasi many2many (package_questions).
+	// Select(clause.Associations) membuat GORM menghapus baris join
+	// yang merujuk ke paket ini, lalu menghapus paket secara permanen.
+	var pkg models.QuestionPackage
+	if err := r.db.Unscoped().First(&pkg, id).Error; err != nil {
+		return err
+	}
+	return r.db.Unscoped().Select(clause.Associations).Delete(&pkg).Error
 }
