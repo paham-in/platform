@@ -513,6 +513,14 @@ function htmlHasMark(html: string): boolean {
 }
 
 /**
+ * Hapus tag <mark> dari HTML — highlight hanya dipakai untuk deteksi
+ * jawaban benar, tidak ikut tersimpan ke konten tiptap.
+ */
+function stripMark(html: string): string {
+  return html.replace(/<mark[^>]*>/g, "").replace(/<\/mark>/g, "")
+}
+
+/**
  * Parse format tabel: 1 tabel = 1 soal.
  * - Row 1 → pertanyaan
  * - Row 2 → opsi jawaban (tiap paragraf = satu opsi; yang di-highlight = benar)
@@ -547,9 +555,10 @@ export function parseTableQuestions(doc: Document, numbering?: Map<number, "ol" 
     const optionParas = rowParas[1] ?? []
     for (const p of optionParas) {
       if (p.text.trim() === "") continue
-      const optionHtml = stripPrefix(p.html, "option")
+      let optionHtml = stripPrefix(p.html, "option")
       if (htmlHasMark(optionHtml) && correctIndex === 0) {
         correctIndex = options.length // opsi yang benar (sebelum push)
+        optionHtml = stripMark(optionHtml) // highlight tidak ikut tersimpan
       }
       options.push(optionHtml)
     }
