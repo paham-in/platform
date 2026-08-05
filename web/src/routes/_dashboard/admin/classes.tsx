@@ -1,21 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -24,15 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  deleteAdminClassesByIdMutation,
-  getAdminClassesOptions,
-  getAdminClassesQueryKey,
-  patchAdminClassesByIdMutation,
-  postAdminClassesMutation,
-} from "@/lib/api/@tanstack/react-query.gen";
+import { getAdminClassesOptions } from "@/lib/api/@tanstack/react-query.gen";
 import type { ClassClassResponse } from "@/lib/api/types.gen";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import {
@@ -52,42 +31,21 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { ClassFormDialog, DeleteClassDialog } from "@/components/admin/classes";
 
 const classesSearchSchema = z.object({
   search: z.string().optional(),
 });
 
 function AdminClasses() {
-  const qc = useQueryClient();
   const navigate = useNavigate({ from: Route.fullPath });
   const { search: searchParam } = Route.useSearch();
   const { data: classes = [], isLoading } = useQuery(getAdminClassesOptions());
   const [searchInput, setSearchInput] = useState(searchParam ?? "");
   const [page, setPage] = useState(1);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<ClassClassResponse | null>(null);
+  const [formTarget, setFormTarget] = useState<{ open: boolean; editing: ClassClassResponse | null }>({ open: false, editing: null });
   const [deleteConfirm, setDeleteConfirm] = useState<ClassClassResponse | null>(null);
-  const [form, setForm] = useState({ name: "" });
   const perPage = 5;
-
-  const { mutate: createClass } = useMutation({
-    ...postAdminClassesMutation(),
-    onSuccess: () => {
-      setDialogOpen(false);
-      qc.invalidateQueries({ queryKey: getAdminClassesQueryKey() });
-    },
-  });
-  const { mutate: updateClass } = useMutation({
-    ...patchAdminClassesByIdMutation(),
-    onSuccess: () => {
-      setDialogOpen(false);
-      qc.invalidateQueries({ queryKey: getAdminClassesQueryKey() });
-    },
-  });
-  const { mutate: deleteClass } = useMutation({
-    ...deleteAdminClassesByIdMutation(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: getAdminClassesQueryKey() }),
-  });
 
   const filtered = classes.filter((c) =>
     !searchParam || (c.name ?? "").toLowerCase().includes(searchParam.toLowerCase()),
@@ -95,28 +53,8 @@ function AdminClasses() {
   const totalPages = Math.ceil(filtered.length / perPage);
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
-  const openAdd = () => {
-    setEditing(null);
-    setForm({ name: "" });
-    setDialogOpen(true);
-  };
-  const openEdit = (c: ClassClassResponse) => {
-    setEditing(c);
-    setForm({ name: c.name ?? "" });
-    setDialogOpen(true);
-  };
-  const save = () => {
-    if (editing) {
-      updateClass({
-        path: { id: editing.id! },
-        body: { name: form.name },
-      });
-    } else {
-      createClass({
-        body: { name: form.name },
-      });
-    }
-  };
+  const openAdd = () => setFormTarget({ open: true, editing: null });
+  const openEdit = (c: ClassClassResponse) => setFormTarget({ open: true, editing: c });
 
   // Sync URL → local state when search changes externally
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam]);
@@ -157,42 +95,9 @@ function AdminClasses() {
               }}
             />
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <Button onClick={openAdd}>
-              <Plus className="mr-1 h-4 w-4" /> Tambah
-            </Button>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editing ? "Edit Kelas" : "Tambah Kelas"}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nama</Label>
-                  <Input
-                    id="name"
-                    value={form.name}
-                    onChange={(e) =>
-                      setForm({ ...form, name: e.target.value })
-                    }
-                    placeholder="Nama kelas (cth: Kelas 10 IPA)"
-                  />
-                </div>
-                <div className="flex justify-end gap-3 pt-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setDialogOpen(false)}
-                  >
-                    Batal
-                  </Button>
-                  <Button onClick={save}>
-                    {editing ? "Simpan" : "Tambah"}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={openAdd}>
+            <Plus className="mr-1 h-4 w-4" /> Tambah
+          </Button>
         </div>
         <Card className="pt-0 gap-0 pb-0">
           <CardContent className="p-0">
@@ -269,23 +174,13 @@ function AdminClasses() {
         </Card>
       </main>
 
-      {deleteConfirm && <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Kelas</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah kamu yakin ingin menghapus <strong>{deleteConfirm.name}</strong>? Aksi ini tidak dapat dibatalkan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
-            <Button variant="destructive" onClick={() => {
-              deleteClass({ path: { id: deleteConfirm.id! } })
-              setDeleteConfirm(null)
-            }}>Hapus</Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>}
+      {formTarget.open && (
+        <ClassFormDialog class={formTarget.editing ?? undefined} onClose={() => setFormTarget({ open: false, editing: null })} />
+      )}
+
+      {deleteConfirm && (
+        <DeleteClassDialog class={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+      )}
     </>
   );
 }
