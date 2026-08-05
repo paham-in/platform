@@ -7,16 +7,26 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
 import { RichContent } from "@/components/ui/rich-content"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getAdminChaptersOptions, getAdminQuestionsBankQueryKey, postAdminQuestionsBankMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminChaptersOptions, getAdminQuestionsBankOptions, getAdminQuestionsBankQueryKey, postAdminQuestionsBankMutation } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { ArrowLeft, UploadCloud, FileText, CheckCircle2, XCircle, Download, HelpCircle } from "lucide-react"
 import { toast } from "sonner"
 import { unzipDocx, parseDocumentXml, buildQuestions, generateTemplateDocx, type ImportQuestion } from "@/lib/docx-parser"
 
+function stripHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html")
+  return (doc.body.textContent || "").trim()
+}
+
+function normalizeQuestion(html: string): string {
+  return stripHtml(html).toLowerCase().replace(/\s+/g, " ").trim()
+}
+
 function ImportQuestions() {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { data: chapters = [] } = useQuery(getAdminChaptersOptions())
+  const { data: existingQuestions = [] } = useQuery(getAdminQuestionsBankOptions())
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [parsing, setParsing] = useState(false)
@@ -27,6 +37,10 @@ function ImportQuestions() {
   const [parseError, setParseError] = useState("")
 
   const chapterOptions = chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) }))
+
+  // Set soal yang sudah ada (normalized) untuk deteksi duplikasi
+  const existingSet = new Set(existingQuestions.map((q) => normalizeQuestion(q.question ?? "")))
+  const isDuplicate = (i: number) => existingSet.has(normalizeQuestion(questions[i]?.question ?? ""))
 
   const { mutate: createQuestion, isPending } = useMutation({
     ...postAdminQuestionsBankMutation(),
@@ -49,7 +63,12 @@ function ImportQuestions() {
         setParseError("Tidak ada soal yang terdeteksi. Pastikan format: nomor soal di paragraf sendiri, opsi A/B/C/D di baris terpisah.")
       } else {
         setQuestions(parsed)
-        setSelected(new Set(parsed.map((_, i) => i)))
+        // Auto-uncheck soal yang sudah ada (duplikat) — user bisa centang ulang manual
+        const initial = new Set<number>()
+        parsed.forEach((q, i) => {
+          if (!existingSet.has(normalizeQuestion(q.question ?? ""))) initial.add(i)
+        })
+        setSelected(initial)
       }
     } catch (err: any) {
       setParseError(err?.message || "Gagal membaca file. Pastikan file .docx valid.")
@@ -238,6 +257,11 @@ B. 20
                         <div className="font-medium">
                           <span className="mr-1 text-muted-foreground">{i + 1}.</span>
                           {q.question ? <RichContent html={q.question} /> : <span className="text-muted-foreground">(kosong)</span>}
+                          {isDuplicate(i) && (
+                            <span className="ml-2 inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                              <XCircle className="h-3 w-3" /> Duplikat
+                            </span>
+                          )}
                         </div>
                         {q.options.length > 0 && (
                           <div className="grid gap-1 pl-6 text-sm">

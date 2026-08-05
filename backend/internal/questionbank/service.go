@@ -2,6 +2,8 @@ package questionbank
 
 import (
 	"errors"
+	"regexp"
+	"strings"
 
 	"bimbel2/backend/internal/models"
 )
@@ -58,6 +60,17 @@ type CreateInput struct {
 	Explanation  string   `json:"explanation"`
 }
 
+var htmlTagRe = regexp.MustCompile(`<[^>]*>`)
+
+// normalizeQuestionText membandingkan soal dengan mengabaikan tag HTML,
+// whitespace berlebih, dan huruf besar/kecil — agar duplikasi terdeteksi
+// walau format HTMLnya sedikit berbeda (mis. hasil import docx vs manual).
+func normalizeQuestionText(s string) string {
+	s = htmlTagRe.ReplaceAllString(s, " ")
+	s = strings.Join(strings.Fields(s), " ")
+	return strings.ToLower(s)
+}
+
 func (s *Service) Create(input CreateInput) (*QuestionResponse, error) {
 	if input.Question == "" {
 		return nil, errors.New("pertanyaan wajib diisi")
@@ -70,6 +83,18 @@ func (s *Service) Create(input CreateInput) (*QuestionResponse, error) {
 	}
 	if input.CorrectIndex < 0 || input.CorrectIndex >= len(input.Options) {
 		return nil, errors.New("correct_index tidak valid")
+	}
+
+	// Cek duplikasi: soal dengan pertanyaan sama (normalized) di chapter yang sama.
+	existing, err := s.repo.ListByChapter(input.ChapterID)
+	if err != nil {
+		return nil, err
+	}
+	norm := normalizeQuestionText(input.Question)
+	for _, e := range existing {
+		if normalizeQuestionText(e.Question) == norm {
+			return nil, errors.New("soal dengan pertanyaan yang sama sudah ada di chapter ini")
+		}
 	}
 
 	q := models.QuestionBank{
