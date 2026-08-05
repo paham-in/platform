@@ -392,7 +392,8 @@ export function buildQuestions(paras: ParsedParagraph[]): ImportQuestion[] {
 
     const explanationMatch = text.match(explanationPattern)
     if (explanationMatch && current) {
-      current.explanation = para.html || `<p>${text}</p>`
+      const body = explanationMatch[1].trim()
+      current.explanation = stripPrefix(para.html, text, body)
       continue
     }
 
@@ -411,7 +412,7 @@ export function buildQuestions(paras: ParsedParagraph[]): ImportQuestion[] {
       flush()
       const body = qMatch[2].trim()
       current = {
-        question: body ? (para.html || `<p>${body}</p>`) : "",
+        question: stripPrefix(para.html, text, body),
         options: [],
         correctIndex: 0,
         explanation: "",
@@ -422,7 +423,7 @@ export function buildQuestions(paras: ParsedParagraph[]): ImportQuestion[] {
     const oMatch = text.match(optionPattern)
     if (oMatch && current) {
       const body = oMatch[2].trim()
-      current.options.push(body ? (para.html || `<p>${body}</p>`) : `<p>${body}</p>`)
+      current.options.push(stripPrefix(para.html, text, body))
       continue
     }
 
@@ -436,6 +437,40 @@ export function buildQuestions(paras: ParsedParagraph[]): ImportQuestion[] {
 
   flush()
   return questions
+}
+
+/**
+ * Buat HTML untuk body (tanpa prefix nomor/huruf seperti "1.", "A.", "Pembahasan:").
+ * `text` adalah teks polos penuh (mis. "1. Siapa presiden?"), `body` adalah teks tanpa prefix.
+ * Kalau `html` tersedia, hitung berapa banyak karakter prefix yang dihapus dari `text`
+ * lalu potong prefix yang sama dari awal konten `<p>`.
+ */
+function stripPrefix(html: string, text: string, body: string): string {
+  // Kalau body kosong, jadikan paragraf kosong biar konsisten
+  if (!body) return `<p></p>`
+
+  // Prefix = bagian yang tidak termasuk body di teks polos
+  const textIndex = text.indexOf(body)
+  if (textIndex > 0 && html) {
+    // Hapus prefix dari awal konten <p>...
+    // Cari isi di dalam <p>...</p>
+    const innerMatch = html.match(/^<p>(.*)<\/p>$/s)
+    if (innerMatch) {
+      let inner = innerMatch[1]
+      // Hapus prefix (teksIndex karakter) dari awal inner
+      // Prefix terdiri dari teks polos + spasi — potong karakter yang sama dari inner
+      const prefix = text.slice(0, textIndex)
+      if (inner.startsWith(prefix)) {
+        inner = inner.slice(prefix.length)
+      } else {
+        // Fallback: potong berdasarkan teksIndex (perkiraan)
+        inner = inner.slice(textIndex)
+      }
+      return `<p>${inner}</p>`
+    }
+  }
+  // Fallback: wrap body langsung
+  return `<p>${body}</p>`
 }
 
 // ============================================================
