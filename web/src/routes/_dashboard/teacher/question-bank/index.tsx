@@ -6,13 +6,14 @@ import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminChaptersOptions, getAdminQuestionsBankOptions, getAdminQuestionsBankQueryKey, patchAdminQuestionsBankByIdMutation, deleteAdminQuestionsBankByIdMutation } from "@/lib/api/@tanstack/react-query.gen";
 import type { QuestionbankQuestionResponse } from "@/lib/api/types.gen";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Loader2, MoreVertical, Pencil, Plus, Trash2, ChevronLeft, ChevronRight, UploadCloud } from "lucide-react";
+import { MoreVertical, Pencil, Plus, Trash2, ChevronLeft, ChevronRight, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E"]
@@ -100,8 +101,6 @@ function TeacherQuestionBank() {
     })
   }
 
-  if (isLoading) return <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-
   return (
     <>
       <main className="p-6">
@@ -141,7 +140,17 @@ function TeacherQuestionBank() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paged.length === 0 ? (
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell className="pl-6"><Skeleton className="h-4 w-56" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : paged.length === 0 ? (
                   <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada soal</TableCell></TableRow>
                 ) : paged.map((q) => (
                   <TableRow key={q.id}>
