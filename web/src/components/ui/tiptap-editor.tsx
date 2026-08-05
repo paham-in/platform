@@ -88,9 +88,9 @@ export function TiptapEditor({
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
   });
 
-  // sync content prop changes (e.g. draft restore)
+  // sync content prop changes (e.g. draft restore, reset to empty)
   useEffect(() => {
-    if (editor && content && editor.getHTML() !== content) {
+    if (editor && editor.getHTML() !== content) {
       editor.commands.setContent(content)
     }
   }, [editor, content])

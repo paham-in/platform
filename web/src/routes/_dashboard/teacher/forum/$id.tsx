@@ -1,35 +1,23 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { RichContent } from "@/components/ui/rich-content"
-import { Spinner } from "@/components/ui/spinner"
-import { TiptapEditor } from "@/components/ui/tiptap-editor"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Skeleton } from "@/components/ui/skeleton"
+import { YoutubeEmbed } from "@/components/ui/youtube-embed"
+import { useQuery } from "@tanstack/react-query"
 import "katex/dist/katex.min.css"
 import {
   getQuestionsByIdOptions,
   getQuestionsByQuestionIdAnswersOptions,
-  getQuestionsByQuestionIdAnswersQueryKey,
-  postQuestionsByQuestionIdAnswersMutation,
-  deleteQuestionsByQuestionIdAnswersByIdMutation,
   getQuestionsByQuestionIdImagesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useParams } from "@tanstack/react-router"
-import { toast } from "sonner"
-import { Loader2, Send, Trash2 } from "lucide-react"
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog"
+import { Trash2 } from "lucide-react"
+import type { AnswerAnswerResponse } from "@/lib/api/types.gen"
+import { DeleteAnswerDialog } from "@/components/teacher/forum"
+import { AnswerForm } from "@/components/forum"
 
 function ForumDetail() {
-  const qc = useQueryClient()
   const { id } = useParams({ from: "/_dashboard/teacher/forum/$id" })
   const questionId = Number(id)
 
@@ -37,39 +25,30 @@ function ForumDetail() {
   const { data: answers = [] } = useQuery(
     getQuestionsByQuestionIdAnswersOptions({ path: { question_id: questionId } })
   )
-  const [answerContent, setAnswerContent] = useState("")
   const { data: images = [] } = useQuery(
     getQuestionsByQuestionIdImagesOptions({ path: { question_id: questionId } })
   )
 
-  const { mutate: submitAnswer, isPending } = useMutation({
-    ...postQuestionsByQuestionIdAnswersMutation(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getQuestionsByQuestionIdAnswersQueryKey({ path: { question_id: questionId } }) })
-      setAnswerContent("")
-      toast.success("Jawaban berhasil dikirim")
-    },
-    onError: (err: any) => {
-      toast.error(err?.error || err?.message || "Gagal mengirim jawaban")
-    },
-  })
-
-  const { mutate: deleteAnswer } = useMutation({
-    ...deleteQuestionsByQuestionIdAnswersByIdMutation(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getQuestionsByQuestionIdAnswersQueryKey({ path: { question_id: questionId } }) })
-      toast.success("Jawaban berhasil dihapus")
-    },
-    onError: (err: any) => {
-      toast.error(err?.error || err?.message || "Gagal menghapus jawaban")
-    },
-  })
+  const [deleting, setDeleting] = useState<AnswerAnswerResponse | null>(null)
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <main className="mx-auto w-full max-w-3xl space-y-6 p-6">
+        <Skeleton className="h-5 w-24 rounded-full" />
+        <Skeleton className="h-8 w-2/3" />
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-5 w-5 rounded-full" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-4" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <Skeleton className="h-24 w-full" />
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      </main>
     )
   }
 
@@ -109,7 +88,7 @@ function ForumDetail() {
       </div>
 
       {question.content && (
-        <RichContent html={question.content} />
+        <RichContent html={question.content} className="mt-3" />
       )}
 
       {/* Images */}
@@ -132,71 +111,56 @@ function ForumDetail() {
         <h2 className="text-lg font-semibold">Jawaban ({answers.length})</h2>
 
         {answers.length === 0 && (
-          <p className="text-sm text-muted-foreground">Belum ada jawaban.</p>
+          <Card>
+            <CardContent className="p-6 text-center text-sm text-muted-foreground">
+              Belum ada jawaban.
+            </CardContent>
+          </Card>
         )}
 
         {answers.map((a) => (
-          <div key={a.id} className="rounded-lg border p-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Card key={a.id}>
+            <CardHeader className="flex flex-row items-center gap-3">
               {a.user_avatar ? (
-                <img src={a.user_avatar} alt="" className="h-5 w-5 rounded-full" />
+                <img src={a.user_avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
               ) : (
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
                   {a.user_name?.[0]}
                 </div>
               )}
-              <span className="font-medium text-foreground">{a.user_name}</span>
-              <span>•</span>
-              <span>{a.created_at}</span>
-
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">{a.user_name}</p>
+                <p className="text-xs text-muted-foreground">{a.created_at}</p>
+              </div>
               {a.is_owner && (
-                <div className="ml-auto">
-                  <AlertDialog>
-                    <AlertDialogTrigger render={<Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" />}>
-                      <Trash2 className="h-4 w-4" />
-                    </AlertDialogTrigger>
-                    <AlertDialogContent size="sm">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Hapus Jawaban</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Yakin ingin menghapus jawaban ini? Tindakan ini tidak bisa dibatalkan.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction
-                          variant="destructive"
-                          onClick={() => deleteAnswer({ path: { question_id: questionId, id: a.id! } })}
-                        >
-                          Hapus
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={() => setDeleting(a)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               )}
-            </div>
-            <RichContent html={a.content ?? ""} />
-          </div>
+            </CardHeader>
+            <CardContent>
+              {a.content && <RichContent html={a.content} />}
+              {a.video_url && <YoutubeEmbed url={a.video_url} className="mt-3" />}
+            </CardContent>
+          </Card>
         ))}
       </section>
 
-      {/* Answer form — hide if owner */}
-      {!isOwner && (
-        <section className="mt-6 space-y-3 rounded-lg border p-4">
-          <h3 className="text-sm font-semibold">Tulis Jawaban</h3>
-          <TiptapEditor content={answerContent} onChange={setAnswerContent} allowImages={false} />
-          <div className="flex justify-end">
-            <Button
-              onClick={() => submitAnswer({ path: { question_id: questionId }, body: { content: answerContent } })}
-              disabled={!answerContent || isPending}
-            >
-              {isPending && <Spinner />}
-              <Send className="mr-1 h-4 w-4" /> Kirim Jawaban
-            </Button>
-          </div>
-        </section>
+      {deleting && (
+        <DeleteAnswerDialog
+          answer={deleting}
+          questionId={questionId}
+          onClose={() => setDeleting(null)}
+        />
       )}
+
+      {/* Answer form — hide if owner */}
+      {!isOwner && <AnswerForm questionId={questionId} />}
     </main>
   )
 }

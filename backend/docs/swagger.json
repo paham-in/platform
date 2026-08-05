@@ -2987,6 +2987,9 @@
                 },
                 "user_name": {
                     "type": "string"
+                },
+                "video_url": {
+                    "type": "string"
                 }
             }
         },
@@ -2994,6 +2997,9 @@
             "type": "object",
             "properties": {
                 "content": {
+                    "type": "string"
+                },
+                "video_url": {
                     "type": "string"
                 }
             }

@@ -16,10 +16,14 @@ definitions:
         type: string
       user_name:
         type: string
+      video_url:
+        type: string
     type: object
   answer.CreateAnswerInput:
     properties:
       content:
+        type: string
+      video_url:
         type: string
     type: object
   answer.ErrorResponse:

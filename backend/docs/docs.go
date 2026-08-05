@@ -2990,6 +2990,9 @@ const docTemplate = `{
                 },
                 "user_name": {
                     "type": "string"
+                },
+                "video_url": {
+                    "type": "string"
                 }
             }
         },
@@ -2997,6 +3000,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
+                    "type": "string"
+                },
+                "video_url": {
                     "type": "string"
                 }
             }

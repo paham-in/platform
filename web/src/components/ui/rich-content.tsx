@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
 import katex from "katex";
 
-export function RichContent({ html }: { html: string }) {
+import { cn } from "@/lib/utils"
+
+export function RichContent({ html, className }: { html: string; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export function RichContent({ html }: { html: string }) {
   return (
     <div
       ref={ref}
-      className="prose dark:prose-invert max-w-none prose-img:mx-auto prose-img:block"
+      className={cn("prose dark:prose-invert max-w-none prose-img:mx-auto prose-img:block", className)}
     />
   );
 }

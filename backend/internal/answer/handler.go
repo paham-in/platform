@@ -1,6 +1,7 @@
 package answer
 
 import (
+	"regexp"
 	"strconv"
 	"time"
 
@@ -28,6 +29,7 @@ type AnswerResponse struct {
 	ID           uint   `json:"id"`
 	Content      string `json:"content"`
 	PlainContent string `json:"plain_content"`
+	VideoURL     string `json:"video_url"`
 	UserName     string `json:"user_name"`
 	UserAvatar   string `json:"user_avatar,omitempty"`
 	IsOwner      bool   `json:"is_owner"`
@@ -35,7 +37,24 @@ type AnswerResponse struct {
 }
 
 type CreateAnswerInput struct {
-	Content string `json:"content"`
+	Content  string `json:"content"`
+	VideoURL string `json:"video_url"`
+}
+
+// reYoutube memvalidasi link YouTube (youtube.com/watch|embed|shorts atau youtu.be).
+var reYoutube = regexp.MustCompile(`^(https?://)?(www\.)?(youtube\.com/(watch\?v=|embed/|shorts/)|youtu\.be/)[a-zA-Z0-9_-]{11}`)
+
+func hasTeacherRole(c *fiber.Ctx) bool {
+	u, ok := c.Locals("user").(*models.User)
+	if !ok || u == nil {
+		return false
+	}
+	for _, r := range u.Roles {
+		if r.Name == "teacher" {
+			return true
+		}
+	}
+	return false
 }
 
 type MessageResponse struct {
@@ -78,6 +97,7 @@ func (h *Handler) ListAnswers(c *fiber.Ctx) error {
 			ID:           a.ID,
 			Content:      a.Content,
 			PlainContent: a.PlainContent,
+			VideoURL:     a.VideoURL,
 			UserName:     a.User.Name,
 			UserAvatar:   a.User.AvatarURL,
 			IsOwner:      a.UserID == currentUser,
@@ -114,11 +134,19 @@ func (h *Handler) CreateAnswer(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
-	if input.Content == "" {
-		return c.Status(400).JSON(ErrorResponse{Error: "content wajib diisi"})
+	if input.Content == "" && input.VideoURL == "" {
+		return c.Status(400).JSON(ErrorResponse{Error: "content atau video_url wajib diisi"})
+	}
+	if input.VideoURL != "" {
+		if !hasTeacherRole(c) {
+			return c.Status(403).JSON(ErrorResponse{Error: "hanya guru yang bisa menjawab dengan video"})
+		}
+		if !reYoutube.MatchString(input.VideoURL) {
+			return c.Status(400).JSON(ErrorResponse{Error: "format video_url tidak valid"})
+		}
 	}
 
-	answer, err := h.svc.Create(uint(questionID), userID, input.Content)
+	answer, err := h.svc.Create(uint(questionID), userID, input.Content, input.VideoURL)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
@@ -127,6 +155,7 @@ func (h *Handler) CreateAnswer(c *fiber.Ctx) error {
 		ID:           answer.ID,
 		Content:      answer.Content,
 		PlainContent: answer.PlainContent,
+		VideoURL:     answer.VideoURL,
 		UserName:     answer.User.Name,
 		UserAvatar:   answer.User.AvatarURL,
 		IsOwner:      true,

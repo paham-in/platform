@@ -96,6 +96,11 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE questions ADD COLUMN plain_content TEXT NOT NULL DEFAULT ''")
 	}
 
+	// migrate answers -- add video_url
+	if !db.Migrator().HasColumn(&models.Answer{}, "video_url") {
+		db.Exec("ALTER TABLE answers ADD COLUMN video_url VARCHAR(500) NOT NULL DEFAULT ''")
+	}
+
 	// migrate questions -- drop upvotes
 	if db.Migrator().HasColumn(&models.Question{}, "upvotes") {
 		db.Exec("ALTER TABLE questions DROP COLUMN upvotes")

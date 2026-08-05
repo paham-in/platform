@@ -12,10 +12,12 @@ export type AnswerAnswerResponse = {
     plain_content?: string;
     user_avatar?: string;
     user_name?: string;
+    video_url?: string;
 };
 
 export type AnswerCreateAnswerInput = {
     content?: string;
+    video_url?: string;
 };
 
 export type AnswerErrorResponse = {

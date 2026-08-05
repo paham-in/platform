@@ -50,7 +50,7 @@ func (s *Service) Delete(id, userID uint) error {
 	return s.repo.Delete(id)
 }
 
-func (s *Service) Create(questionID, userID uint, content string) (*models.Answer, error) {
+func (s *Service) Create(questionID, userID uint, content, videoURL string) (*models.Answer, error) {
 	question, err := s.questionRepo.GetByID(questionID)
 	if err != nil {
 		return nil, errors.New("pertanyaan tidak ditemukan")
@@ -65,6 +65,7 @@ func (s *Service) Create(questionID, userID uint, content string) (*models.Answe
 		UserID:       userID,
 		Content:      content,
 		PlainContent: stripHTML(content),
+		VideoURL:     videoURL,
 	}
 	if err := s.repo.Create(&answer); err != nil {
 		return nil, err
@@ -79,6 +80,9 @@ func (s *Service) Create(questionID, userID uint, content string) (*models.Answe
 	if s.pushSvc != nil {
 		title := "Pertanyaanmu dijawab"
 		body := stripHTML(content)
+		if body == "" && videoURL != "" {
+			body = "Menjawab dengan video"
+		}
 		if len(body) > 80 {
 			body = body[:80] + "..."
 		}

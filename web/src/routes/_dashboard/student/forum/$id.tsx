@@ -1,21 +1,19 @@
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { RichContent } from "@/components/ui/rich-content"
-import { Spinner } from "@/components/ui/spinner"
-import { TiptapEditor } from "@/components/ui/tiptap-editor"
+import { YoutubeEmbed } from "@/components/ui/youtube-embed"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import "katex/dist/katex.min.css"
 import {
   getQuestionsByIdOptions,
   getQuestionsByQuestionIdAnswersOptions,
   getQuestionsByQuestionIdAnswersQueryKey,
-  postQuestionsByQuestionIdAnswersMutation,
   deleteQuestionsByQuestionIdAnswersByIdMutation,
   getQuestionsByQuestionIdImagesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Loader2, Send, Trash2 } from "lucide-react"
+import { Loader2, Trash2 } from "lucide-react"
+import { AnswerForm } from "@/components/forum"
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -37,22 +35,9 @@ function ForumDetail() {
   const { data: answers = [] } = useQuery(
     getQuestionsByQuestionIdAnswersOptions({ path: { question_id: questionId } })
   )
-  const [answerContent, setAnswerContent] = useState("")
   const { data: images = [] } = useQuery(
     getQuestionsByQuestionIdImagesOptions({ path: { question_id: questionId } })
   )
-
-  const { mutate: submitAnswer, isPending } = useMutation({
-    ...postQuestionsByQuestionIdAnswersMutation(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getQuestionsByQuestionIdAnswersQueryKey({ path: { question_id: questionId } }) })
-      setAnswerContent("")
-      toast.success("Jawaban berhasil dikirim")
-    },
-    onError: (err: any) => {
-      toast.error(err?.error || err?.message || "Gagal mengirim jawaban")
-    },
-  })
 
   const { mutate: deleteAnswer } = useMutation({
     ...deleteQuestionsByQuestionIdAnswersByIdMutation(),
@@ -176,27 +161,14 @@ function ForumDetail() {
                 </div>
               )}
             </div>
-            <RichContent html={a.content ?? ""} />
+            {a.content && <RichContent html={a.content} />}
+            {a.video_url && <YoutubeEmbed url={a.video_url} className="mt-3" />}
           </div>
         ))}
       </section>
 
       {/* Answer form — hide if owner */}
-      {!isOwner && (
-        <section className="mt-6 space-y-3 rounded-lg border p-4">
-          <h3 className="text-sm font-semibold">Tulis Jawaban</h3>
-          <TiptapEditor content={answerContent} onChange={setAnswerContent} allowImages={false} />
-          <div className="flex justify-end">
-            <Button
-              onClick={() => submitAnswer({ path: { question_id: questionId }, body: { content: answerContent } })}
-              disabled={!answerContent || isPending}
-            >
-              {isPending && <Spinner />}
-              <Send className="mr-1 h-4 w-4" /> Kirim Jawaban
-            </Button>
-          </div>
-        </section>
-      )}
+      {!isOwner && <AnswerForm questionId={questionId} />}
     </main>
   )
 }
