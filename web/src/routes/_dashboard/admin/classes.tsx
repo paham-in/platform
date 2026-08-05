@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -17,7 +18,6 @@ import { z } from "zod";
 import {
   ChevronLeft,
   ChevronRight,
-  Loader2,
   MoreVertical,
   Pencil,
   Plus,
@@ -70,14 +70,6 @@ function AdminClasses() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   return (
     <>
       <main className="p-6">
@@ -110,7 +102,15 @@ function AdminClasses() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paged.map((c) => (
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell className="pl-6"><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : paged.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="pl-6 font-medium">{c.name}</TableCell>
                     <TableCell className="text-muted-foreground">
@@ -133,7 +133,7 @@ function AdminClasses() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {paged.length === 0 && (
+                {!isLoading && paged.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={3}
