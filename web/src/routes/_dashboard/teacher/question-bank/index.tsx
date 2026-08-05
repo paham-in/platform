@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { PreviewQuestionDialog, DeleteQuestionDialog } from "@/components/teacher/question-bank";
 import { useQuery } from "@tanstack/react-query";
-import { getAdminChaptersOptions, getAdminQuestionsBankOptions } from "@/lib/api/@tanstack/react-query.gen";
+import { getAdminChaptersOptions, getAdminQuestionsBankOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen";
 import type { QuestionbankQuestionResponse } from "@/lib/api/types.gen";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { MoreVertical, Pencil, Plus, Trash2, ChevronLeft, ChevronRight, UploadCloud, Search, Eye } from "lucide-react";
@@ -31,6 +31,7 @@ function TeacherQuestionBank() {
   const { chapter: chapterParam, search: searchParam, created_by: createdByParam } = Route.useSearch()
   const { data: questions = [], isLoading } = useQuery(getAdminQuestionsBankOptions({ query: { created_by: createdByParam } }))
   const { data: chapters = [] } = useQuery(getAdminChaptersOptions())
+  const { data: users = [] } = useQuery(getAdminUsersOptions())
 
   const chapterFilter = chapterParam // number | undefined
   const createdByFilter = createdByParam // number | undefined
@@ -46,14 +47,12 @@ function TeacherQuestionBank() {
     ...chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) })),
   ]
 
-  // Daftar guru pembuat unik dari data soal (untuk filter dropdown)
-  const creatorMap = new Map<number, string>()
-  questions.forEach((q) => {
-    if (q.user_id != null && q.user_name) creatorMap.set(q.user_id, q.user_name)
-  })
+  // Daftar guru (dari users) untuk filter dropdown — sumber stabil,
+  // tidak bergantung pada hasil query soal yang sedang ter-filter.
+  const teacherUsers = users.filter((u) => (u.roles ?? []).includes("teacher"))
   const creatorOptions = [
     { label: "Semua Guru", value: "all" },
-    ...Array.from(creatorMap.entries()).map(([id, name]) => ({ label: name, value: String(id) })),
+    ...teacherUsers.map((u) => ({ label: u.name ?? "-", value: String(u.id) })),
   ]
 
   const filtered = questions.filter((q) => {
