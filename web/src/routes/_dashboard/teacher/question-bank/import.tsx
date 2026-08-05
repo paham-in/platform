@@ -139,15 +139,15 @@ function ImportQuestions() {
 
         {/* Cara penulisan format */}
         <Card>
-          <CardContent className="p-5">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 font-medium">
-                <HelpCircle className="h-4 w-4 text-muted-foreground" /> Cara Penulisan Format
-              </div>
-              <Button variant="outline" size="sm" onClick={downloadTemplate}>
-                <Download className="mr-1 h-4 w-4" /> Download Template
-              </Button>
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <div className="flex items-center gap-2 font-medium">
+              <HelpCircle className="h-4 w-4 text-muted-foreground" /> Cara Penulisan Format
             </div>
+            <Button variant="outline" size="sm" onClick={downloadTemplate}>
+              <Download className="mr-1 h-4 w-4" /> Download Template
+            </Button>
+          </CardHeader>
+          <CardContent>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-lg border bg-muted/30 p-3 text-sm">
                 <p className="mb-2 font-semibold">Contoh format (tabel)</p>
@@ -180,7 +180,7 @@ function ImportQuestions() {
 
         {/* Upload */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent>
             <input
               ref={fileInputRef}
               type="file"
