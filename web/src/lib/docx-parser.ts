@@ -78,6 +78,34 @@ function collectMathText(el: Element): string {
     .join("")
 }
 
+/** Cek apakah run memiliki format tertentu di <w:rPr> (bold/italic/underline). */
+function runHasFormat(run: Element, fmt: "b" | "i" | "u"): boolean {
+  const rPr = Array.from(run.children).find((c) => c.localName === "rPr")
+  if (!rPr) return false
+  return Array.from(rPr.children).some((c) => c.localName === fmt)
+}
+
+/**
+ * Buat HTML untuk sebuah run (<w:r>), termasuk formatting dasar dari <w:rPr>.
+ * - <w:b/> → <strong>
+ * - <w:i/> → <em>
+ * - <w:u/> → <u>
+ */
+function collectRunHtml(run: Element): string {
+  const text = collectText(run)
+  if (!text) return ""
+
+  const bold = runHasFormat(run, "b")
+  const italic = runHasFormat(run, "i")
+  const underline = runHasFormat(run, "u")
+
+  let out: string = text
+  if (bold) out = `<strong>${out}</strong>`
+  if (italic) out = `<em>${out}</em>`
+  if (underline) out = `<u>${out}</u>`
+  return out
+}
+
 // Simbol-simbol umum yang sering muncul di Equation Editor Word (OMML).
 // Key = karakter unicode yang ditulis Word di dalam <m:t>.
 const SYMBOL_MAP: Record<string, string> = {
@@ -332,9 +360,10 @@ export function parseDocumentXml(doc: Document): ParsedParagraph[] {
 
       if (localName === "r") {
         const runText = collectText(child)
+        const runHtml = collectRunHtml(child)
         if (runText) {
           text += runText
-          html += runText
+          html += runHtml || runText
         }
       } else if (localName === "hyperlink" || localName === "sdt" || localName === "ins" || localName === "del") {
         const runText = collectText(child)
@@ -459,19 +488,47 @@ type StripKind = "question" | "option" | "explanation"
  * Memakai regex berbasis jenis elemen agar aman — tidak mengandalkan kesejajaran
  * index antara text polos dan HTML (yang bisa berbeda karena math span).
  */
+/**
+ * Hapus prefix (nomor/huruf/pembahasan) dari awal konten <p> secara struktural.
+ * Memakai DOMParser agar aman terhadap formatting yang membungkus prefix
+ * (mis. <strong>1.</strong>) dan math span — tidak memotong tag HTML.
+ */
 function stripPrefix(html: string, kind: StripKind): string {
-  const innerMatch = html.match(/^<p>(.*)<\/p>$/s)
-  if (!innerMatch) return html
+  const prefixRe =
+    kind === "question"
+      ? /^\d+[.)]\s*/
+      : kind === "option"
+        ? /^[A-Ea-e][.)]\s*/
+        : /^pembahasan\s*[:=]\s*/i
 
-  let inner = innerMatch[1]
-  if (kind === "question") {
-    inner = inner.replace(/^\d+[.)]\s*/, "")
-  } else if (kind === "option") {
-    inner = inner.replace(/^[A-Ea-e][.)]\s*/, "")
-  } else if (kind === "explanation") {
-    inner = inner.replace(/^pembahasan\s*[:=]\s*/i, "")
+  const doc = new DOMParser().parseFromString(html, "text/html")
+  const p = doc.body.firstElementChild
+  if (!p) return html
+
+  // Telusuri text node pertama di dalam <p>, dan hapus prefix dari situ.
+  // Jika text node masih punya sisa setelah prefix, sisanya jadi teks baru
+  // di depan; jika habis, hapus text node (dan tag format kosong yang tersisa).
+  const walker = doc.createTreeWalker(p, NodeFilter.SHOW_TEXT)
+  let node: Text | null = walker.nextNode() as Text | null
+  while (node) {
+    const match = node.textContent?.match(prefixRe)
+    if (match) {
+      const rest = node.textContent!.slice(match[0].length)
+      if (rest) {
+        node.textContent = rest
+      } else {
+        node.remove()
+        // Hapus elemen format kosong (strong/em/u) yang ditinggalkan
+        p.querySelectorAll("strong, em, u").forEach((el) => {
+          if (!el.textContent?.trim()) el.remove()
+        })
+      }
+      break
+    }
+    node = walker.nextNode() as Text | null
   }
-  return `<p>${inner}</p>`
+
+  return p.outerHTML
 }
 
 // ============================================================
