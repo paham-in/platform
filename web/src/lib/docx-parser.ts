@@ -139,6 +139,20 @@ function mapSymbols(s: string): string {
   return out
 }
 
+/**
+ * Escape karakter khusus LaTeX pada teks literal (dari <m:t>).
+ * Mencegah KaTeX gagal parse saat teks mengandung %, _, {, }, #, $, ^, ~, \.
+ * (Simbol-simbol dari SYMBOL_MAP tetap utuh karena escaping dilakukan sebelum mapSymbols.)
+ */
+function escapeLatexText(s: string): string {
+  return s
+    .replace(/\\/g, "\\textbackslash{}")
+    .replace(/([%#&_{}])/g, "\\$1")
+    .replace(/\^/g, "\\^{}")
+    .replace(/~/g, "\\textasciitilde{}")
+    .replace(/\$/g, "\\$")
+}
+
 /** Konversi <m:oMath> / <m:oMathPara> menjadi string LaTeX */
 export function ommlToLatex(omath: Element): string {
   let out = ""
@@ -156,7 +170,7 @@ function convertMathElement(el: Element): string {
       return ommlToLatex(el)
     case "r": {
       // Math run: <m:r><m:t>text</m:t></m:r>
-      return mapSymbols(collectMathText(el))
+      return mapSymbols(escapeLatexText(collectMathText(el)))
     }
     case "f": {
       // Fraction: <m:f><m:num>..</m:num><m:den>..</m:den></m:f>
@@ -245,7 +259,7 @@ function convertMathElement(el: Element): string {
     case "e":
       return childrenToLatex(el)
     case "t":
-      return mapSymbols(el.textContent ?? "")
+      return mapSymbols(escapeLatexText(el.textContent ?? ""))
     // Prudential / metadata elements — skip
     case "dPr":
     case "rPr":
@@ -331,8 +345,10 @@ export function parseDocumentXml(doc: Document): ParsedParagraph[] {
       } else if (isMathNode(child)) {
         const latex = ommlToLatex(child)
         if (latex) {
+          // Sinkronkan spasi text & html agar stripPrefix tidak merusak markup.
+          // text pakai " $...$ ", html pakai " <span>...</span> " (sama-sama spasi di kedua sisi).
           text += ` $${latex}$ `
-          html += `<span data-type="inline-math" data-latex="${escapeHtml(latex)}">${escapeHtml(latex)}</span>`
+          html += ` <span data-type="inline-math" data-latex="${escapeHtml(latex)}">${escapeHtml(latex)}</span> `
         }
       } else if (localName === "pPr" || localName === "bookmarkStart" || localName === "bookmarkEnd") {
         // structural — ignore
@@ -392,8 +408,7 @@ export function buildQuestions(paras: ParsedParagraph[]): ImportQuestion[] {
 
     const explanationMatch = text.match(explanationPattern)
     if (explanationMatch && current) {
-      const body = explanationMatch[1].trim()
-      current.explanation = stripPrefix(para.html, text, body)
+      current.explanation = stripPrefix(para.html, "explanation")
       continue
     }
 
@@ -410,9 +425,8 @@ export function buildQuestions(paras: ParsedParagraph[]): ImportQuestion[] {
     const qMatch = text.match(questionPattern)
     if (qMatch) {
       flush()
-      const body = qMatch[2].trim()
       current = {
-        question: stripPrefix(para.html, text, body),
+        question: stripPrefix(para.html, "question"),
         options: [],
         correctIndex: 0,
         explanation: "",
@@ -422,8 +436,7 @@ export function buildQuestions(paras: ParsedParagraph[]): ImportQuestion[] {
 
     const oMatch = text.match(optionPattern)
     if (oMatch && current) {
-      const body = oMatch[2].trim()
-      current.options.push(stripPrefix(para.html, text, body))
+      current.options.push(stripPrefix(para.html, "option"))
       continue
     }
 
@@ -439,38 +452,26 @@ export function buildQuestions(paras: ParsedParagraph[]): ImportQuestion[] {
   return questions
 }
 
+type StripKind = "question" | "option" | "explanation"
+
 /**
  * Buat HTML untuk body (tanpa prefix nomor/huruf seperti "1.", "A.", "Pembahasan:").
- * `text` adalah teks polos penuh (mis. "1. Siapa presiden?"), `body` adalah teks tanpa prefix.
- * Kalau `html` tersedia, hitung berapa banyak karakter prefix yang dihapus dari `text`
- * lalu potong prefix yang sama dari awal konten `<p>`.
+ * Memakai regex berbasis jenis elemen agar aman — tidak mengandalkan kesejajaran
+ * index antara text polos dan HTML (yang bisa berbeda karena math span).
  */
-function stripPrefix(html: string, text: string, body: string): string {
-  // Kalau body kosong, jadikan paragraf kosong biar konsisten
-  if (!body) return `<p></p>`
+function stripPrefix(html: string, kind: StripKind): string {
+  const innerMatch = html.match(/^<p>(.*)<\/p>$/s)
+  if (!innerMatch) return html
 
-  // Prefix = bagian yang tidak termasuk body di teks polos
-  const textIndex = text.indexOf(body)
-  if (textIndex > 0 && html) {
-    // Hapus prefix dari awal konten <p>...
-    // Cari isi di dalam <p>...</p>
-    const innerMatch = html.match(/^<p>(.*)<\/p>$/s)
-    if (innerMatch) {
-      let inner = innerMatch[1]
-      // Hapus prefix (teksIndex karakter) dari awal inner
-      // Prefix terdiri dari teks polos + spasi — potong karakter yang sama dari inner
-      const prefix = text.slice(0, textIndex)
-      if (inner.startsWith(prefix)) {
-        inner = inner.slice(prefix.length)
-      } else {
-        // Fallback: potong berdasarkan teksIndex (perkiraan)
-        inner = inner.slice(textIndex)
-      }
-      return `<p>${inner}</p>`
-    }
+  let inner = innerMatch[1]
+  if (kind === "question") {
+    inner = inner.replace(/^\d+[.)]\s*/, "")
+  } else if (kind === "option") {
+    inner = inner.replace(/^[A-Ea-e][.)]\s*/, "")
+  } else if (kind === "explanation") {
+    inner = inner.replace(/^pembahasan\s*[:=]\s*/i, "")
   }
-  // Fallback: wrap body langsung
-  return `<p>${body}</p>`
+  return `<p>${inner}</p>`
 }
 
 // ============================================================

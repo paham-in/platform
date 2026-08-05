@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -9,14 +11,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
+import { RichContent } from "@/components/ui/rich-content";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminChaptersOptions, getAdminQuestionsBankOptions, getAdminQuestionsBankQueryKey, patchAdminQuestionsBankByIdMutation, deleteAdminQuestionsBankByIdMutation } from "@/lib/api/@tanstack/react-query.gen";
 import type { QuestionbankQuestionResponse } from "@/lib/api/types.gen";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { MoreVertical, Pencil, Plus, Trash2, ChevronLeft, ChevronRight, UploadCloud } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { MoreVertical, Pencil, Plus, Trash2, ChevronLeft, ChevronRight, UploadCloud, Search, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E"]
+
+const questionBankSearchSchema = z.object({
+  chapter: z.coerce.number().optional(),
+  search: z.string().optional(),
+})
 
 function stripHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html")
@@ -25,14 +33,18 @@ function stripHtml(html: string): string {
 
 function TeacherQuestionBank() {
   const qc = useQueryClient()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const { chapter: chapterParam, search: searchParam } = Route.useSearch()
   const { data: questions = [], isLoading } = useQuery(getAdminQuestionsBankOptions())
   const { data: chapters = [] } = useQuery(getAdminChaptersOptions())
 
-  const [chapterFilter, setChapterFilter] = useState("all")
+  const chapterFilter = chapterParam // number | undefined
+  const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const [page, setPage] = useState(1)
   const perPage = 10
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<QuestionbankQuestionResponse | null>(null)
+  const [previewTarget, setPreviewTarget] = useState<QuestionbankQuestionResponse | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<QuestionbankQuestionResponse | null>(null)
 
   const [form, setForm] = useState({
@@ -69,9 +81,11 @@ function TeacherQuestionBank() {
     onError: (err: any) => toast.error(err?.error || "Gagal menghapus soal"),
   })
 
-  const filtered = chapterFilter === "all"
-    ? questions
-    : questions.filter((q) => String(q.chapter_id) === chapterFilter)
+  const filtered = questions.filter((q) => {
+    const matchChapter = chapterFilter === undefined || q.chapter_id === chapterFilter
+    const matchSearch = !searchParam || (stripHtml(q.question ?? "")).toLowerCase().includes(searchParam.toLowerCase())
+    return matchChapter && matchSearch
+  })
   const totalPages = Math.ceil(filtered.length / perPage)
   const paged = filtered.slice((page - 1) * perPage, page * perPage)
 
@@ -101,6 +115,20 @@ function TeacherQuestionBank() {
     })
   }
 
+  // Sync URL → local state when search changes externally
+  useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
+
+  // Debounce search → navigate to URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({
+        search: (prev) => ({ ...prev, search: searchInput || undefined }),
+        replace: true,
+      })
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput])
+
   return (
     <>
       <main className="p-6">
@@ -108,7 +136,28 @@ function TeacherQuestionBank() {
 
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
-            <Select items={chapterOptions} value={chapterFilter} onValueChange={(v) => { setChapterFilter(v ?? "all"); setPage(1) }}>
+            <div className="relative max-w-sm flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Cari soal..."
+                className="pl-9"
+                value={searchInput}
+                onChange={(e) => { setSearchInput(e.target.value); setPage(1) }}
+              />
+            </div>
+            <Select
+              items={chapterOptions}
+              value={chapterFilter === undefined ? "all" : String(chapterFilter)}
+              onValueChange={(v) => {
+                if (v) {
+                  navigate({
+                    search: (prev) => ({ ...prev, chapter: v === "all" ? undefined : Number(v) }),
+                    replace: true,
+                  })
+                  setPage(1)
+                }
+              }}
+            >
               <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filter Chapter" /></SelectTrigger>
               <SelectContent>
                 {chapterOptions.map((opt) => (
@@ -164,6 +213,9 @@ function TeacherQuestionBank() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => setPreviewTarget(q)}>
+                            <Eye className="h-4 w-4" /> Preview
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openEdit(q)}>
                             <Pencil className="h-4 w-4" /> Edit
                           </DropdownMenuItem>
@@ -262,6 +314,54 @@ function TeacherQuestionBank() {
         </DialogContent>
       </Dialog>
 
+      {/* preview dialog */}
+      {previewTarget && (
+        <Dialog open onOpenChange={(o) => !o && setPreviewTarget(null)}>
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader><DialogTitle>Preview Soal</DialogTitle></DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Chapter</Label>
+                <p className="text-sm">{previewTarget.chapter_title || "-"}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Pertanyaan</Label>
+                <div className="rounded-md border bg-muted/30 p-3">
+                  <RichContent html={previewTarget.question ?? ""} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Opsi Jawaban</Label>
+                <div className="grid gap-1.5">
+                  {(previewTarget.options ?? []).map((opt, i) => (
+                    <div key={i} className="flex items-start gap-2 rounded-md border p-2 text-sm">
+                      <span className="shrink-0 rounded bg-muted px-1.5 text-xs font-semibold text-muted-foreground">
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                      <div className="flex-1"><RichContent html={opt} /></div>
+                      {i === previewTarget.correct_index && (
+                        <span className="ml-auto shrink-0 text-xs font-medium text-green-700">✓ Benar</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {previewTarget.explanation && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Pembahasan</Label>
+                  <div className="rounded-md border bg-muted/30 p-3 text-muted-foreground">
+                    <RichContent html={previewTarget.explanation} />
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setPreviewTarget(null)}>Tutup</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {deleteConfirm && (
         <AlertDialog open onOpenChange={(o) => !o && setDeleteConfirm(null)}>
           <AlertDialogContent>
@@ -282,4 +382,5 @@ function TeacherQuestionBank() {
 
 export const Route = createFileRoute("/_dashboard/teacher/question-bank/")({
   component: TeacherQuestionBank,
+  validateSearch: questionBankSearchSchema,
 })

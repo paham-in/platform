@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
+import { RichContent } from "@/components/ui/rich-content"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getAdminChaptersOptions, getAdminQuestionsBankQueryKey, postAdminQuestionsBankMutation } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
@@ -236,7 +237,7 @@ B. 20
                       <div className="flex-1 space-y-2">
                         <div className="font-medium">
                           <span className="mr-1 text-muted-foreground">{i + 1}.</span>
-                          {q.question ? <span dangerouslySetInnerHTML={{ __html: q.question }} /> : <span className="text-muted-foreground">(kosong)</span>}
+                          {q.question ? <RichContent html={q.question} /> : <span className="text-muted-foreground">(kosong)</span>}
                         </div>
                         {q.options.length > 0 && (
                           <div className="grid gap-1 pl-6 text-sm">
@@ -247,14 +248,14 @@ B. 20
                                 }`}>
                                   {String.fromCharCode(65 + oi)}
                                 </span>
-                                <span dangerouslySetInnerHTML={{ __html: opt }} />
+                                <div className="flex-1"><RichContent html={opt} /></div>
                               </div>
                             ))}
                           </div>
                         )}
                         {q.explanation && (
                           <div className="pl-6 text-xs text-muted-foreground">
-                            <span className="font-medium">Pembahasan:</span> <span dangerouslySetInnerHTML={{ __html: q.explanation }} />
+                            <span className="font-medium">Pembahasan:</span> <RichContent html={q.explanation} />
                           </div>
                         )}
                         {q.options.length === 0 && (
