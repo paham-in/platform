@@ -281,6 +281,28 @@ definitions:
       video_url:
         type: string
     type: object
+  push.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  push.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  push.SubscribeInput:
+    properties:
+      endpoint:
+        type: string
+      keys:
+        properties:
+          auth:
+            type: string
+          p256dh:
+            type: string
+        type: object
+    type: object
   questionbank.AnswerResponse:
     properties:
       content:
@@ -2053,6 +2075,49 @@ paths:
       summary: Update profile
       tags:
       - Auth
+  /push/public-key:
+    get:
+      description: Mengembalikan VAPID public key untuk web push
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: VAPID public key
+      tags:
+      - Push
+  /push/subscribe:
+    post:
+      consumes:
+      - application/json
+      description: Menyimpan subscription push notification untuk user
+      parameters:
+      - description: Subscription data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/push.SubscribeInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/push.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/push.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Subscribe push
+      tags:
+      - Push
   /questions:
     get:
       consumes:

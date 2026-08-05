@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as DashboardTestWebPushRouteImport } from './routes/_dashboard/test-web-push'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard/settings'
 import { Route as DashboardTeacherTutoringRouteImport } from './routes/_dashboard/teacher/tutoring'
 import { Route as DashboardTeacherDashboardRouteImport } from './routes/_dashboard/teacher/dashboard'
@@ -72,6 +73,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardTestWebPushRoute = DashboardTestWebPushRouteImport.update({
+  id: '/test-web-push',
+  path: '/test-web-push',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
@@ -309,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/settings': typeof DashboardSettingsRoute
+  '/test-web-push': typeof DashboardTestWebPushRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/classes': typeof DashboardAdminClassesRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
@@ -354,6 +361,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/settings': typeof DashboardSettingsRoute
+  '/test-web-push': typeof DashboardTestWebPushRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/classes': typeof DashboardAdminClassesRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
@@ -399,6 +407,7 @@ export interface FileRoutesById {
   '/_dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
+  '/_dashboard/test-web-push': typeof DashboardTestWebPushRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_dashboard/admin/classes': typeof DashboardAdminClassesRoute
   '/_dashboard/admin/dashboard': typeof DashboardAdminDashboardRoute
@@ -446,6 +455,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/settings'
+    | '/test-web-push'
     | '/auth/callback'
     | '/admin/classes'
     | '/admin/dashboard'
@@ -491,6 +501,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/settings'
+    | '/test-web-push'
     | '/auth/callback'
     | '/admin/classes'
     | '/admin/dashboard'
@@ -535,6 +546,7 @@ export interface FileRouteTypes {
     | '/_dashboard'
     | '/login'
     | '/_dashboard/settings'
+    | '/_dashboard/test-web-push'
     | '/auth/callback'
     | '/_dashboard/admin/classes'
     | '/_dashboard/admin/dashboard'
@@ -613,6 +625,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_dashboard/test-web-push': {
+      id: '/_dashboard/test-web-push'
+      path: '/test-web-push'
+      fullPath: '/test-web-push'
+      preLoaderRoute: typeof DashboardTestWebPushRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/_dashboard/settings': {
       id: '/_dashboard/settings'
@@ -962,6 +981,7 @@ const DashboardTeacherQuestionBankIdRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardTestWebPushRoute: typeof DashboardTestWebPushRoute
   DashboardAdminClassesRoute: typeof DashboardAdminClassesRoute
   DashboardAdminDashboardRoute: typeof DashboardAdminDashboardRoute
   DashboardAdminSubjectsRoute: typeof DashboardAdminSubjectsRoute
@@ -999,6 +1019,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardTestWebPushRoute: DashboardTestWebPushRoute,
   DashboardAdminClassesRoute: DashboardAdminClassesRoute,
   DashboardAdminDashboardRoute: DashboardAdminDashboardRoute,
   DashboardAdminSubjectsRoute: DashboardAdminSubjectsRoute,

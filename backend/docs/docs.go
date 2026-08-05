@@ -2197,6 +2197,74 @@ const docTemplate = `{
                 }
             }
         },
+        "/push/public-key": {
+            "get": {
+                "description": "Mengembalikan VAPID public key untuk web push",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Push"
+                ],
+                "summary": "VAPID public key",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/push/subscribe": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyimpan subscription push notification untuk user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Push"
+                ],
+                "summary": "Subscribe push",
+                "parameters": [
+                    {
+                        "description": "Subscription data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/push.SubscribeInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/push.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/push.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/questions": {
             "get": {
                 "security": [
@@ -3331,6 +3399,41 @@ const docTemplate = `{
                 },
                 "video_url": {
                     "type": "string"
+                }
+            }
+        },
+        "push.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "push.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "push.SubscribeInput": {
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "string"
+                },
+                "keys": {
+                    "type": "object",
+                    "properties": {
+                        "auth": {
+                            "type": "string"
+                        },
+                        "p256dh": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         },

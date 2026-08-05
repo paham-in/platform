@@ -6,6 +6,7 @@ import (
 
 	"bimbel2/backend/internal/middleware"
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/push"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -171,10 +172,11 @@ func PublicRoutes(app fiber.Router, db *gorm.DB) {
 	app.Get("/questions/:question_id/answers", middleware.OptionalSessionResolver(db), h.ListAnswers)
 }
 
-func AuthRoutes(app fiber.Router, db *gorm.DB) {
+func AuthRoutes(app fiber.Router, db *gorm.DB, pushSvc *push.Service) {
 	repo := NewRepository(db)
 	questionRepo := NewQuestionRepository(db)
 	svc := NewService(repo, questionRepo)
+	svc.SetPushService(pushSvc)
 	h := NewHandler(svc)
 
 	app.Post("/questions/:question_id/answers", h.CreateAnswer)

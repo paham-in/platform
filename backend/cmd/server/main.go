@@ -16,6 +16,7 @@ import (
 	"bimbel2/backend/internal/invoice"
 	"bimbel2/backend/internal/tutoring"
 	"bimbel2/backend/internal/material"
+	"bimbel2/backend/internal/push"
 	"bimbel2/backend/internal/questionbank"
 	"bimbel2/backend/internal/questionpackage"
 	"bimbel2/backend/internal/storage"
@@ -83,7 +84,9 @@ func main() {
 	chapter.PublicRoutes(auth, db, minioClient)
 	material.PublicRoutes(auth, db)
 		tutoring.Routes(auth, db)
-	answer.AuthRoutes(auth, db)
+	pushSvc := push.NewService(db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
+	push.Routes(auth, db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
+	answer.AuthRoutes(auth, db, pushSvc)
 	invoice.AuthRoutes(auth, db)
 	if minioClient != nil {
 		upload.AuthRoutes(auth, db, minioClient)

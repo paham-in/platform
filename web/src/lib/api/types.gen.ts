@@ -185,6 +185,22 @@ export type MaterialUpdateInput = {
     video_url?: string;
 };
 
+export type PushErrorResponse = {
+    error?: string;
+};
+
+export type PushMessageResponse = {
+    message?: string;
+};
+
+export type PushSubscribeInput = {
+    endpoint?: string;
+    keys?: {
+        auth?: string;
+        p256dh?: string;
+    };
+};
+
 export type QuestionbankAnswerResponse = {
     content?: string;
     id?: number;
@@ -1799,6 +1815,52 @@ export type PatchMeResponses = {
 };
 
 export type PatchMeResponse = PatchMeResponses[keyof PatchMeResponses];
+
+export type GetPushPublicKeyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/push/public-key';
+};
+
+export type GetPushPublicKeyResponses = {
+    /**
+     * OK
+     */
+    200: {
+        [key: string]: string;
+    };
+};
+
+export type GetPushPublicKeyResponse = GetPushPublicKeyResponses[keyof GetPushPublicKeyResponses];
+
+export type PostPushSubscribeData = {
+    /**
+     * Subscription data
+     */
+    body: PushSubscribeInput;
+    path?: never;
+    query?: never;
+    url: '/push/subscribe';
+};
+
+export type PostPushSubscribeErrors = {
+    /**
+     * Bad Request
+     */
+    400: PushErrorResponse;
+};
+
+export type PostPushSubscribeError = PostPushSubscribeErrors[keyof PostPushSubscribeErrors];
+
+export type PostPushSubscribeResponses = {
+    /**
+     * OK
+     */
+    200: PushMessageResponse;
+};
+
+export type PostPushSubscribeResponse = PostPushSubscribeResponses[keyof PostPushSubscribeResponses];
 
 export type GetQuestionsData = {
     body?: never;

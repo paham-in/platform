@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/push"
 
 	"gorm.io/gorm"
 )
@@ -22,10 +23,16 @@ func stripHTML(s string) string {
 type Service struct {
 	repo      *Repository
 	questionRepo *QuestionRepository
+	pushSvc   *push.Service
 }
 
 func NewService(repo *Repository, questionRepo *QuestionRepository) *Service {
 	return &Service{repo: repo, questionRepo: questionRepo}
+}
+
+// SetPushService menginjeksi push service untuk notifikasi (opsional).
+func (s *Service) SetPushService(p *push.Service) {
+	s.pushSvc = p
 }
 
 func (s *Service) ListByQuestion(questionID uint) ([]models.Answer, error) {
@@ -68,11 +75,36 @@ func (s *Service) Create(questionID, userID uint, content string) (*models.Answe
 		return nil, err
 	}
 
+	// Kirim push notification ke pemilik pertanyaan (student).
+	if s.pushSvc != nil {
+		title := "Pertanyaanmu dijawab"
+		body := stripHTML(content)
+		if len(body) > 80 {
+			body = body[:80] + "..."
+		}
+		s.pushSvc.NotifyUser(question.UserID, title, body, "/student/forum/"+formatUint(questionID))
+	}
+
 	// reload with User preloaded
 	if err := s.repo.ReloadWithUser(&answer); err != nil {
 		return nil, err
 	}
 	return &answer, nil
+}
+
+// formatUint helper kecil untuk mengubah uint jadi string.
+func formatUint(v uint) string {
+	if v == 0 {
+		return "0"
+	}
+	buf := [20]byte{}
+	i := len(buf)
+	for v > 0 {
+		i--
+		buf[i] = byte('0' + v%10)
+		v /= 10
+	}
+	return string(buf[i:])
 }
 
 // Tiny repo interface for question lookup to avoid circular import

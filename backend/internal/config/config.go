@@ -20,6 +20,9 @@ type Config struct {
 	GoogleClientSecret string
 	GoogleCallbackURL  string
 	AppURL             string
+	VapidPublicKey     string
+	VapidPrivateKey    string
+	VapidSubject       string
 	MinioEndpoint      string
 	MinioAccessKey     string
 	MinioSecretKey     string
@@ -44,6 +47,9 @@ func Load() *Config {
 		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
 		GoogleCallbackURL:  getEnv("GOOGLE_CALLBACK_URL", "http://localhost:8080/auth/google/callback"),
 		AppURL:             getEnv("APP_URL", "http://localhost:5173"),
+		VapidPublicKey:     getEnv("VAPID_PUBLIC_KEY", ""),
+		VapidPrivateKey:    getEnv("VAPID_PRIVATE_KEY", ""),
+		VapidSubject:       getEnv("VAPID_SUBJECT", "mailto:admin@paham.in"),
 		MinioEndpoint:      getEnv("MINIO_ENDPOINT", "stb:9000"),
 		MinioAccessKey:     getEnv("MINIO_ACCESS_KEY", "minioadmin"),
 		MinioSecretKey:     getEnv("MINIO_SECRET_KEY", "minioadmin"),
