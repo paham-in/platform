@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminChaptersOptions, getAdminQuestionsBankQueryKey, postAdminQuestionsBankMutation } from "@/lib/api/@tanstack/react-query.gen";
@@ -24,8 +25,12 @@ function NewQuestion() {
 
   const [chapterId, setChapterId] = useState("")
   const [question, setQuestion] = useState("")
-  const [options, setOptions] = useState<string[]>(["", "", "", ""])
-  const [correctIndex, setCorrectIndex] = useState(0)
+  const [answers, setAnswers] = useState<{ content: string; is_correct: boolean }[]>([
+    { content: "", is_correct: false },
+    { content: "", is_correct: false },
+    { content: "", is_correct: false },
+    { content: "", is_correct: false },
+  ])
   const [explanation, setExplanation] = useState("")
 
   const chapterOptions = chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) }))
@@ -41,17 +46,26 @@ function NewQuestion() {
   })
 
   const save = () => {
-    const validOptions = options.filter((o) => stripHtml(o) !== "")
+    const validAnswers = answers.filter((a) => stripHtml(a.content) !== "")
     createQuestion({
       body: {
         chapter_id: Number(chapterId),
         question,
-        options: validOptions,
-        correct_index: correctIndex,
+        answers: validAnswers,
         explanation,
       },
     })
   }
+
+  const toggleCorrect = (i: number) => {
+    setAnswers((prev) => {
+      const next = [...prev]
+      next[i] = { ...next[i], is_correct: !next[i].is_correct }
+      return next
+    })
+  }
+
+  const validCount = answers.filter((a) => stripHtml(a.content) !== "").length
 
   return (
     <main className="p-6">
@@ -81,28 +95,26 @@ function NewQuestion() {
 
         <div className="space-y-3">
           <Label>Opsi Jawaban</Label>
-          {options.map((opt, i) => (
+          {answers.map((ans, i) => (
             <div key={i} className="flex items-start gap-2">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-sm font-medium">{OPTION_LABELS[i]}</span>
               <div className="flex-1 rounded-md border">
                 <TiptapEditor
-                  content={opt}
+                  content={ans.content}
                   onChange={(html) => {
-                    const next = [...options]
-                    next[i] = html
-                    setOptions(next)
+                    const next = [...answers]
+                    next[i] = { ...next[i], content: html }
+                    setAnswers(next)
                   }}
                 />
               </div>
-              <Button
-                type="button"
-                variant={correctIndex === i ? "default" : "outline"}
-                size="sm"
-                className="mt-1"
-                onClick={() => setCorrectIndex(i)}
-              >
-                {correctIndex === i ? "Benar" : "Jadikan"}
-              </Button>
+              <label className="mt-1 flex items-center gap-1.5 text-sm">
+                <Checkbox
+                  checked={ans.is_correct}
+                  onCheckedChange={() => toggleCorrect(i)}
+                />
+                Benar
+              </label>
             </div>
           ))}
           <Button
@@ -110,9 +122,9 @@ function NewQuestion() {
             variant="ghost"
             size="sm"
             onClick={() => {
-              if (options.length < 5) setOptions([...options, ""])
+              if (answers.length < 5) setAnswers([...answers, { content: "", is_correct: false }])
             }}
-            disabled={options.length >= 5}
+            disabled={answers.length >= 5}
           >
             + Tambah Opsi
           </Button>
@@ -127,7 +139,7 @@ function NewQuestion() {
           <Link to="/teacher/question-bank"><Button variant="outline">Batal</Button></Link>
           <Button
             onClick={save}
-            disabled={!chapterId || !question || options.filter((o) => stripHtml(o) !== "").length < 2 || isPending}
+            disabled={!chapterId || !question || validCount < 2 || isPending}
           >
             {isPending && <Spinner />}
             Simpan

@@ -281,6 +281,15 @@ definitions:
       video_url:
         type: string
     type: object
+  questionbank.AnswerResponse:
+    properties:
+      content:
+        type: string
+      id:
+        type: integer
+      is_correct:
+        type: boolean
+    type: object
   questionbank.BulkDeleteFailedItem:
     properties:
       error:
@@ -301,16 +310,14 @@ definitions:
     type: object
   questionbank.CreateInput:
     properties:
+      answers:
+        items:
+          $ref: '#/definitions/questionbank.QuestionbankAnswerInput'
+        type: array
       chapter_id:
-        type: integer
-      correct_index:
         type: integer
       explanation:
         type: string
-      options:
-        items:
-          type: string
-        type: array
       question:
         type: string
       user_id:
@@ -343,22 +350,20 @@ definitions:
     type: object
   questionbank.QuestionResponse:
     properties:
+      answers:
+        items:
+          $ref: '#/definitions/questionbank.AnswerResponse'
+        type: array
       chapter_id:
         type: integer
       chapter_title:
         type: string
-      correct_index:
-        type: integer
       created_at:
         type: string
       explanation:
         type: string
       id:
         type: integer
-      options:
-        items:
-          type: string
-        type: array
       question:
         type: string
       user_id:
@@ -366,18 +371,23 @@ definitions:
       user_name:
         type: string
     type: object
+  questionbank.QuestionbankAnswerInput:
+    properties:
+      content:
+        type: string
+      is_correct:
+        type: boolean
+    type: object
   questionbank.UpdateInput:
     properties:
+      answers:
+        items:
+          $ref: '#/definitions/questionbank.QuestionbankAnswerInput'
+        type: array
       chapter_id:
-        type: integer
-      correct_index:
         type: integer
       explanation:
         type: string
-      options:
-        items:
-          type: string
-        type: array
       question:
         type: string
     type: object
@@ -406,10 +416,6 @@ definitions:
     properties:
       id:
         type: integer
-      options:
-        items:
-          type: string
-        type: array
       question:
         type: string
     type: object

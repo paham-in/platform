@@ -8,17 +8,22 @@ import (
 	"bimbel2/backend/internal/models"
 )
 
+type AnswerResponse struct {
+	ID        uint   `json:"id"`
+	Content   string `json:"content"`
+	IsCorrect bool   `json:"is_correct"`
+}
+
 type QuestionResponse struct {
-	ID           uint     `json:"id"`
-	UserID       uint     `json:"user_id"`
-	UserName     string   `json:"user_name"`
-	ChapterID    uint     `json:"chapter_id"`
-	ChapterTitle string   `json:"chapter_title"`
-	Question     string   `json:"question"`
-	Options      []string `json:"options"`
-	CorrectIndex int      `json:"correct_index"`
-	Explanation  string   `json:"explanation"`
-	CreatedAt    string   `json:"created_at"`
+	ID           uint             `json:"id"`
+	UserID       uint             `json:"user_id"`
+	UserName     string           `json:"user_name"`
+	ChapterID    uint             `json:"chapter_id"`
+	ChapterTitle string           `json:"chapter_title"`
+	Question     string           `json:"question"`
+	Answers      []AnswerResponse `json:"answers"`
+	Explanation  string           `json:"explanation"`
+	CreatedAt    string           `json:"created_at"`
 }
 
 type Service struct {
@@ -62,13 +67,17 @@ func (s *Service) Get(id uint) (*QuestionResponse, error) {
 	return &r, nil
 }
 
+type QuestionbankAnswerInput struct {
+	Content   string `json:"content"`
+	IsCorrect bool   `json:"is_correct"`
+}
+
 type CreateInput struct {
-	UserID       uint     `json:"user_id"`
-	ChapterID    uint     `json:"chapter_id"`
-	Question     string   `json:"question"`
-	Options      []string `json:"options"`
-	CorrectIndex int      `json:"correct_index"`
-	Explanation  string   `json:"explanation"`
+	UserID      uint                     `json:"user_id"`
+	ChapterID   uint                     `json:"chapter_id"`
+	Question    string                   `json:"question"`
+	Answers     []QuestionbankAnswerInput `json:"answers"`
+	Explanation string                   `json:"explanation"`
 }
 
 var htmlTagRe = regexp.MustCompile(`<[^>]*>`)
@@ -89,11 +98,8 @@ func (s *Service) Create(input CreateInput) (*QuestionResponse, error) {
 	if input.ChapterID == 0 {
 		return nil, errors.New("chapter wajib diisi")
 	}
-	if len(input.Options) < 2 {
+	if len(input.Answers) < 2 {
 		return nil, errors.New("minimal 2 opsi jawaban")
-	}
-	if input.CorrectIndex < 0 || input.CorrectIndex >= len(input.Options) {
-		return nil, errors.New("correct_index tidak valid")
 	}
 
 	// Cek duplikasi: soal dengan pertanyaan sama (normalized) di chapter yang sama.
@@ -109,12 +115,21 @@ func (s *Service) Create(input CreateInput) (*QuestionResponse, error) {
 	}
 
 	q := models.QuestionBank{
-		UserID:       input.UserID,
-		ChapterID:    input.ChapterID,
-		Question:     input.Question,
-		Options:      input.Options,
-		CorrectIndex: input.CorrectIndex,
-		Explanation:  input.Explanation,
+		UserID:      input.UserID,
+		ChapterID:   input.ChapterID,
+		Question:    input.Question,
+		Explanation: input.Explanation,
+	}
+	// Build answers dengan sort_order sesuai urutan input.
+	for i, a := range input.Answers {
+		if a.Content == "" {
+			continue
+		}
+		q.Answers = append(q.Answers, models.QuestionbankAnswer{
+			Content:   a.Content,
+			IsCorrect: a.IsCorrect,
+			SortOrder: i,
+		})
 	}
 	if err := s.repo.Create(&q); err != nil {
 		return nil, err
@@ -128,11 +143,10 @@ func (s *Service) Create(input CreateInput) (*QuestionResponse, error) {
 }
 
 type UpdateInput struct {
-	ChapterID    *uint     `json:"chapter_id"`
-	Question     *string   `json:"question"`
-	Options      *[]string `json:"options"`
-	CorrectIndex *int      `json:"correct_index"`
-	Explanation  *string   `json:"explanation"`
+	ChapterID   *uint                     `json:"chapter_id"`
+	Question    *string                   `json:"question"`
+	Answers     *[]QuestionbankAnswerInput `json:"answers"`
+	Explanation *string                   `json:"explanation"`
 }
 
 func (s *Service) Update(id uint, input UpdateInput) (*QuestionResponse, error) {
@@ -143,17 +157,17 @@ func (s *Service) Update(id uint, input UpdateInput) (*QuestionResponse, error) 
 	if input.Question != nil {
 		updates["question"] = *input.Question
 	}
-	if input.Options != nil {
-		updates["options"] = *input.Options
-	}
-	if input.CorrectIndex != nil {
-		updates["correct_index"] = *input.CorrectIndex
-	}
 	if input.Explanation != nil {
 		updates["explanation"] = *input.Explanation
 	}
 	if len(updates) > 0 {
 		if err := s.repo.Update(id, updates); err != nil {
+			return nil, err
+		}
+	}
+	// Update answers: replace seluruh relasi (hapus lama + insert baru).
+	if input.Answers != nil {
+		if err := s.repo.ReplaceAnswers(id, *input.Answers); err != nil {
 			return nil, err
 		}
 	}
@@ -247,6 +261,14 @@ func (s *Service) toResponse(q models.QuestionBank) QuestionResponse {
 	if q.User.ID != 0 {
 		userName = q.User.Name
 	}
+	answers := make([]AnswerResponse, len(q.Answers))
+	for i, a := range q.Answers {
+		answers[i] = AnswerResponse{
+			ID:        a.ID,
+			Content:   a.Content,
+			IsCorrect: a.IsCorrect,
+		}
+	}
 	return QuestionResponse{
 		ID:           q.ID,
 		UserID:       q.UserID,
@@ -254,8 +276,7 @@ func (s *Service) toResponse(q models.QuestionBank) QuestionResponse {
 		ChapterID:    q.ChapterID,
 		ChapterTitle: title,
 		Question:     q.Question,
-		Options:      q.Options,
-		CorrectIndex: q.CorrectIndex,
+		Answers:      answers,
 		Explanation:  q.Explanation,
 		CreatedAt:    q.CreatedAt.Format("2006-01-02 15:04"),
 	}

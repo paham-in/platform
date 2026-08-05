@@ -102,8 +102,7 @@ function ImportQuestions() {
         body: {
           chapter_id: Number(chapterId),
           question: q.question,
-          options: q.options,
-          correct_index: q.correctIndex,
+          answers: q.options.map((opt, idx) => ({ content: opt, is_correct: idx === q.correctIndex })),
           explanation: q.explanation,
         },
       })

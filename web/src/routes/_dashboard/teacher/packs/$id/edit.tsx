@@ -46,7 +46,7 @@ function EditPackage() {
       setDescription(existing.description ?? "");
       const next = new Map<number, QuestionbankQuestionResponse>();
       (existing.questions ?? []).forEach((q) => {
-        if (q.id != null) next.set(q.id, { id: q.id, question: q.question ?? "", options: q.options ?? [] });
+        if (q.id != null) next.set(q.id, { id: q.id, question: q.question ?? "", answers: [] });
       });
       setSelectedIds(next);
     }
@@ -244,7 +244,7 @@ function EditPackage() {
                               {stripHtml(q.question ?? "")}
                             </TableCell>
                             <TableCell className="text-muted-foreground">{q.chapter_title || "-"}</TableCell>
-                            <TableCell className="text-muted-foreground">{q.options?.length ?? 0}</TableCell>
+                            <TableCell className="text-muted-foreground">{q.answers?.length ?? 0}</TableCell>
                           </TableRow>
                         ))
                       )}
@@ -302,9 +302,9 @@ function EditPackage() {
                       dangerouslySetInnerHTML={{ __html: q.question ?? "" }}
                     />
                     <div className="mt-3 space-y-1">
-                      {(q.options ?? []).map((opt, oi) => (
+                      {(q.answers ?? []).map((ans, oi) => (
                         <p key={oi} className="text-sm text-muted-foreground">
-                          {String.fromCharCode(65 + oi)}. {opt}
+                          {String.fromCharCode(65 + oi)}. <span dangerouslySetInnerHTML={{ __html: ans.content ?? "" }} />
                         </p>
                       ))}
                     </div>

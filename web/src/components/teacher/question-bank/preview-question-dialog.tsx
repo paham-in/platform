@@ -32,13 +32,15 @@ export function PreviewQuestionDialog({ question, onClose }: PreviewQuestionDial
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Opsi Jawaban</Label>
             <div className="grid gap-1.5">
-              {(question.options ?? []).map((opt, i) => (
+              {(question.answers ?? []).map((ans, i) => (
                 <div key={i} className="flex items-start gap-2 rounded-md border p-2 text-sm">
-                  <span className="shrink-0 rounded bg-muted px-1.5 text-xs font-semibold text-muted-foreground">
+                  <span className={`shrink-0 rounded px-1.5 text-xs font-semibold ${
+                    ans.is_correct ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
+                  }`}>
                     {String.fromCharCode(65 + i)}
                   </span>
-                  <div className="flex-1"><RichContent html={opt} /></div>
-                  {i === question.correct_index && (
+                  <div className="flex-1"><RichContent html={ans.content ?? ""} /></div>
+                  {ans.is_correct && (
                     <span className="ml-auto shrink-0 text-xs font-medium text-green-700">✓ Benar</span>
                   )}
                 </div>

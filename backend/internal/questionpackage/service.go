@@ -8,18 +8,15 @@ import (
 
 // QuestionBankMini — simplified view of a question for package response
 type QuestionBankMini struct {
-	ID           uint     `json:"id"`
-	ChapterID    uint     `json:"chapter_id"`
-	Question     string   `json:"question"`
-	Options      []string `json:"options"`
-	CorrectIndex int      `json:"correct_index"`
+	ID        uint   `json:"id"`
+	ChapterID uint   `json:"chapter_id"`
+	Question  string `json:"question"`
 }
 
 // PackageQuestionResponse
 type PackageQuestionResponse struct {
-	ID        uint               `json:"id"`
-	Question  string             `json:"question"`
-	Options   []string           `json:"options"`
+	ID       uint   `json:"id"`
+	Question string `json:"question"`
 }
 
 // PackageResponse
@@ -132,9 +129,8 @@ func (s *Service) toResponse(pkg models.QuestionPackage) PackageResponse {
 	questions := make([]PackageQuestionResponse, len(pkg.Questions))
 	for i, q := range pkg.Questions {
 		questions[i] = PackageQuestionResponse{
-			ID:        q.ID,
-			Question:  q.Question,
-			Options:   q.Options,
+			ID:       q.ID,
+			Question: q.Question,
 		}
 	}
 	return PackageResponse{

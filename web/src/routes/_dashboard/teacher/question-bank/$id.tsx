@@ -72,16 +72,16 @@ function QuestionDetail() {
         </Card>
 
         <div className="space-y-2">
-          {(question.options ?? []).map((opt, i) => (
+          {(question.answers ?? []).map((ans, i) => (
             <Card key={i} className="pt-0 gap-0 pb-0">
               <CardContent className="flex items-start gap-2 p-3">
                 <span className={`shrink-0 rounded px-1.5 text-xs font-semibold ${
-                  i === question.correct_index ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
+                  ans.is_correct ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
                 }`}>
                   {String.fromCharCode(65 + i)}
                 </span>
-                <div className="flex-1"><RichContent html={opt} /></div>
-                {i === question.correct_index && (
+                <div className="flex-1"><RichContent html={ans.content ?? ""} /></div>
+                {ans.is_correct && (
                   <span className="ml-auto shrink-0 text-xs font-medium text-green-700">✓ Benar</span>
                 )}
               </CardContent>

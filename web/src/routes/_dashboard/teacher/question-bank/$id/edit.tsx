@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminChaptersOptions, getAdminQuestionsBankOptions, getAdminQuestionsBankQueryKey, patchAdminQuestionsBankByIdMutation } from "@/lib/api/@tanstack/react-query.gen";
@@ -28,8 +29,9 @@ function EditQuestion() {
   const question = questions.find((q) => q.id === Number(id))
   const [chapterId, setChapterId] = useState(String(question?.chapter_id ?? ""))
   const [questionText, setQuestionText] = useState(question?.question ?? "")
-  const [options, setOptions] = useState<string[]>([...(question?.options ?? []), "", "", "", ""].slice(0, 4))
-  const [correctIndex, setCorrectIndex] = useState(question?.correct_index ?? 0)
+  const [answers, setAnswers] = useState<{ content: string; is_correct: boolean }[]>(
+    [...(question?.answers ?? []).map((a) => ({ content: a.content ?? "", is_correct: a.is_correct ?? false })), { content: "", is_correct: false }, { content: "", is_correct: false }, { content: "", is_correct: false }, { content: "", is_correct: false }].slice(0, 4)
+  )
   const [explanation, setExplanation] = useState(question?.explanation ?? "")
 
   const chapterOptions = chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) }))
@@ -71,14 +73,13 @@ function EditQuestion() {
   }
 
   const save = () => {
-    const validOptions = options.filter((o) => stripHtml(o) !== "")
+    const validAnswers = answers.filter((a) => stripHtml(a.content) !== "")
     updateQuestion({
       path: { id: Number(id) },
       body: {
         chapter_id: Number(chapterId),
         question: questionText,
-        options: validOptions,
-        correct_index: correctIndex,
+        answers: validAnswers,
         explanation,
       },
     })
@@ -112,28 +113,30 @@ function EditQuestion() {
 
         <div className="space-y-3">
           <Label>Opsi Jawaban</Label>
-          {options.map((opt, i) => (
+          {answers.map((ans, i) => (
             <div key={i} className="flex items-start gap-2">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-sm font-medium">{OPTION_LABELS[i]}</span>
               <div className="flex-1 rounded-md border">
                 <TiptapEditor
-                  content={opt}
+                  content={ans.content}
                   onChange={(html) => {
-                    const next = [...options]
-                    next[i] = html
-                    setOptions(next)
+                    const next = [...answers]
+                    next[i] = { ...next[i], content: html }
+                    setAnswers(next)
                   }}
                 />
               </div>
-              <Button
-                type="button"
-                variant={correctIndex === i ? "default" : "outline"}
-                size="sm"
-                className="mt-1"
-                onClick={() => setCorrectIndex(i)}
-              >
-                {correctIndex === i ? "Benar" : "Jadikan"}
-              </Button>
+              <label className="mt-1 flex items-center gap-1.5 text-sm">
+                <Checkbox
+                  checked={ans.is_correct}
+                  onCheckedChange={() => {
+                    const next = [...answers]
+                    next[i] = { ...next[i], is_correct: !next[i].is_correct }
+                    setAnswers(next)
+                  }}
+                />
+                Benar
+              </label>
             </div>
           ))}
           <Button
@@ -141,9 +144,9 @@ function EditQuestion() {
             variant="ghost"
             size="sm"
             onClick={() => {
-              if (options.length < 5) setOptions([...options, ""])
+              if (answers.length < 5) setAnswers([...answers, { content: "", is_correct: false }])
             }}
-            disabled={options.length >= 5}
+            disabled={answers.length >= 5}
           >
             + Tambah Opsi
           </Button>
@@ -158,7 +161,7 @@ function EditQuestion() {
           <Link to="/teacher/question-bank"><Button variant="outline">Batal</Button></Link>
           <Button
             onClick={save}
-            disabled={!chapterId || !questionText || options.filter((o) => stripHtml(o) !== "").length < 2 || isPending}
+            disabled={!chapterId || !questionText || answers.filter((a) => stripHtml(a.content) !== "").length < 2 || isPending}
           >
             {isPending && <Spinner />}
             Simpan

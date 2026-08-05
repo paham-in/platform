@@ -209,7 +209,7 @@ function TeacherQuestionBank() {
                     <TableCell className="pl-0 font-medium max-w-[400px] truncate">{stripHtml(q.question ?? "")}</TableCell>
                     <TableCell className="text-muted-foreground">{q.user_name || "-"}</TableCell>
                     <TableCell className="text-muted-foreground">{q.chapter_title || "-"}</TableCell>
-                    <TableCell className="text-muted-foreground">{q.options?.length ?? 0}</TableCell>
+                    <TableCell className="text-muted-foreground">{q.answers?.length ?? 0}</TableCell>
                     <TableCell className="text-muted-foreground">{q.created_at}</TableCell>
                     <TableCell className="pr-6 text-right">
                       <DropdownMenu>

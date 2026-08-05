@@ -72,13 +72,6 @@ function PackageDetail() {
                     className="mt-1 text-sm leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: q.question ?? "" }}
                   />
-                  <div className="mt-3 space-y-1">
-                    {(q.options ?? []).map((opt, oi) => (
-                      <p key={oi} className="text-sm text-muted-foreground">
-                        {String.fromCharCode(65 + oi)}. {opt}
-                      </p>
-                    ))}
-                  </div>
                 </CardContent>
               </Card>
             ))}

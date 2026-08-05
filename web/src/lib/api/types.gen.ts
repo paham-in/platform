@@ -185,6 +185,12 @@ export type MaterialUpdateInput = {
     video_url?: string;
 };
 
+export type QuestionbankAnswerResponse = {
+    content?: string;
+    id?: number;
+    is_correct?: boolean;
+};
+
 export type QuestionbankBulkDeleteFailedItem = {
     error?: string;
     id?: number;
@@ -196,10 +202,9 @@ export type QuestionbankBulkDeleteResult = {
 };
 
 export type QuestionbankCreateInput = {
+    answers?: Array<QuestionbankQuestionbankAnswerInput>;
     chapter_id?: number;
-    correct_index?: number;
     explanation?: string;
-    options?: Array<string>;
     question?: string;
     user_id?: number;
 };
@@ -221,23 +226,26 @@ export type QuestionbankPaginationMeta = {
 };
 
 export type QuestionbankQuestionResponse = {
+    answers?: Array<QuestionbankAnswerResponse>;
     chapter_id?: number;
     chapter_title?: string;
-    correct_index?: number;
     created_at?: string;
     explanation?: string;
     id?: number;
-    options?: Array<string>;
     question?: string;
     user_id?: number;
     user_name?: string;
 };
 
+export type QuestionbankQuestionbankAnswerInput = {
+    content?: string;
+    is_correct?: boolean;
+};
+
 export type QuestionbankUpdateInput = {
+    answers?: Array<QuestionbankQuestionbankAnswerInput>;
     chapter_id?: number;
-    correct_index?: number;
     explanation?: string;
-    options?: Array<string>;
     question?: string;
 };
 
@@ -257,7 +265,6 @@ export type QuestionpackageMessageResponse = {
 
 export type QuestionpackagePackageQuestionResponse = {
     id?: number;
-    options?: Array<string>;
     question?: string;
 };
 

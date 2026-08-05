@@ -3334,6 +3334,20 @@ const docTemplate = `{
                 }
             }
         },
+        "questionbank.AnswerResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_correct": {
+                    "type": "boolean"
+                }
+            }
+        },
         "questionbank.BulkDeleteFailedItem": {
             "type": "object",
             "properties": {
@@ -3365,20 +3379,17 @@ const docTemplate = `{
         "questionbank.CreateInput": {
             "type": "object",
             "properties": {
-                "chapter_id": {
-                    "type": "integer"
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/questionbank.QuestionbankAnswerInput"
+                    }
                 },
-                "correct_index": {
+                "chapter_id": {
                     "type": "integer"
                 },
                 "explanation": {
                     "type": "string"
-                },
-                "options": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "question": {
                     "type": "string"
@@ -3430,14 +3441,17 @@ const docTemplate = `{
         "questionbank.QuestionResponse": {
             "type": "object",
             "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/questionbank.AnswerResponse"
+                    }
+                },
                 "chapter_id": {
                     "type": "integer"
                 },
                 "chapter_title": {
                     "type": "string"
-                },
-                "correct_index": {
-                    "type": "integer"
                 },
                 "created_at": {
                     "type": "string"
@@ -3447,12 +3461,6 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
-                },
-                "options": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "question": {
                     "type": "string"
@@ -3465,23 +3473,31 @@ const docTemplate = `{
                 }
             }
         },
+        "questionbank.QuestionbankAnswerInput": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "is_correct": {
+                    "type": "boolean"
+                }
+            }
+        },
         "questionbank.UpdateInput": {
             "type": "object",
             "properties": {
-                "chapter_id": {
-                    "type": "integer"
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/questionbank.QuestionbankAnswerInput"
+                    }
                 },
-                "correct_index": {
+                "chapter_id": {
                     "type": "integer"
                 },
                 "explanation": {
                     "type": "string"
-                },
-                "options": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "question": {
                     "type": "string"
@@ -3526,12 +3542,6 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "integer"
-                },
-                "options": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "question": {
                     "type": "string"

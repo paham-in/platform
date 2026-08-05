@@ -16,7 +16,9 @@ func NewRepository(db *gorm.DB) *Repository {
 
 func (r *Repository) ListByChapter(chapterID uint) ([]models.QuestionBank, error) {
 	var questions []models.QuestionBank
-	if err := r.db.Where("chapter_id = ?", chapterID).Preload("User").Order("created_at desc").Find(&questions).Error; err != nil {
+	if err := r.db.Where("chapter_id = ?", chapterID).Preload("User").Preload("Answers", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sort_order asc")
+	}).Order("created_at desc").Find(&questions).Error; err != nil {
 		return nil, err
 	}
 	return questions, nil
@@ -31,7 +33,9 @@ func (r *Repository) List() ([]models.QuestionBank, error) {
 // (bank bersama) jika createdBy == 0.
 func (r *Repository) ListFiltered(createdBy uint) ([]models.QuestionBank, error) {
 	var questions []models.QuestionBank
-	q := r.db.Preload("User").Order("created_at desc")
+	q := r.db.Preload("User").Preload("Answers", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sort_order asc")
+	}).Order("created_at desc")
 	if createdBy > 0 {
 		q = q.Where("user_id = ?", createdBy)
 	}
@@ -43,7 +47,9 @@ func (r *Repository) ListFiltered(createdBy uint) ([]models.QuestionBank, error)
 
 func (r *Repository) Get(id uint) (*models.QuestionBank, error) {
 	var q models.QuestionBank
-	if err := r.db.First(&q, id).Error; err != nil {
+	if err := r.db.Preload("Answers", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sort_order asc")
+	}).First(&q, id).Error; err != nil {
 		return nil, err
 	}
 	return &q, nil
@@ -69,7 +75,9 @@ func (r *Repository) ListPaginated(chapterID uint, page, perPage int) ([]models.
 		page = 1
 	}
 	offset := (page - 1) * perPage
-	q := r.db.Order("created_at desc")
+	q := r.db.Preload("Answers", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sort_order asc")
+	}).Order("created_at desc")
 	if chapterID > 0 {
 		q = q.Where("chapter_id = ?", chapterID)
 	}
@@ -82,6 +90,28 @@ func (r *Repository) ListPaginated(chapterID uint, page, perPage int) ([]models.
 
 func (r *Repository) Create(q *models.QuestionBank) error {
 	return r.db.Create(q).Error
+}
+
+// ReplaceAnswers menghapus semua jawaban lama soal ini lalu insert yang baru.
+func (r *Repository) ReplaceAnswers(questionID uint, answers []QuestionbankAnswerInput) error {
+	if err := r.db.Where("question_id = ?", questionID).Delete(&models.QuestionbankAnswer{}).Error; err != nil {
+		return err
+	}
+	for i, a := range answers {
+		if a.Content == "" {
+			continue
+		}
+		ans := models.QuestionbankAnswer{
+			QuestionID: questionID,
+			Content:    a.Content,
+			IsCorrect:  a.IsCorrect,
+			SortOrder:  i,
+		}
+		if err := r.db.Create(&ans).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *Repository) Update(id uint, updates map[string]any) error {
