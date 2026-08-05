@@ -25,15 +25,17 @@ func NewHandler(svc *Service) *Handler {
 
 // ListQuestions mengembalikan daftar soal bank
 // @Summary      List question bank
-// @Description  Mengembalikan daftar soal, bisa difilter dengan chapter_id
+// @Description  Mengembalikan daftar soal, bisa difilter dengan chapter_id dan created_by
 // @Tags         QuestionBank
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        chapter_id query int false "Filter by chapter ID"
+// @Param        created_by query int false "Filter by creator user ID"
 // @Success      200 {array} QuestionResponse
 // @Router       /admin/questions-bank [get]
 func (h *Handler) ListQuestions(c *fiber.Ctx) error {
+	// Support filter chapter + created_by (server-side).
 	if chapterIDStr := c.Query("chapter_id"); chapterIDStr != "" {
 		chapterID, err := strconv.ParseUint(chapterIDStr, 10, 64)
 		if err != nil {
@@ -46,7 +48,8 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 		return c.JSON(questions)
 	}
 
-	questions, err := h.svc.List()
+	createdBy, _ := strconv.ParseUint(c.Query("created_by"), 10, 64)
+	questions, err := h.svc.ListFiltered(uint(createdBy))
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
@@ -68,6 +71,11 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 	var input CreateInput
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+
+	// Ambil user_id dari session (pembuat soal) — tidak bisa dipalsukan frontend.
+	if userID, ok := c.Locals("user_id").(uint); ok && userID > 0 {
+		input.UserID = userID
 	}
 
 	question, err := h.svc.Create(input)

@@ -16,15 +16,26 @@ func NewRepository(db *gorm.DB) *Repository {
 
 func (r *Repository) ListByChapter(chapterID uint) ([]models.QuestionBank, error) {
 	var questions []models.QuestionBank
-	if err := r.db.Where("chapter_id = ?", chapterID).Order("created_at desc").Find(&questions).Error; err != nil {
+	if err := r.db.Where("chapter_id = ?", chapterID).Preload("User").Order("created_at desc").Find(&questions).Error; err != nil {
 		return nil, err
 	}
 	return questions, nil
 }
 
 func (r *Repository) List() ([]models.QuestionBank, error) {
+	return r.ListFiltered(0)
+}
+
+// ListFiltered mengembalikan daftar soal. Jika createdBy > 0, filter hanya
+// soal yang dibuat user tersebut. Semua guru tetap bisa melihat semua soal
+// (bank bersama) jika createdBy == 0.
+func (r *Repository) ListFiltered(createdBy uint) ([]models.QuestionBank, error) {
 	var questions []models.QuestionBank
-	if err := r.db.Order("created_at desc").Find(&questions).Error; err != nil {
+	q := r.db.Preload("User").Order("created_at desc")
+	if createdBy > 0 {
+		q = q.Where("user_id = ?", createdBy)
+	}
+	if err := q.Find(&questions).Error; err != nil {
 		return nil, err
 	}
 	return questions, nil

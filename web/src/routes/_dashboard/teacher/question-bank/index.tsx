@@ -18,6 +18,7 @@ import { MoreVertical, Pencil, Plus, Trash2, ChevronLeft, ChevronRight, UploadCl
 const questionBankSearchSchema = z.object({
   chapter: z.coerce.number().optional(),
   search: z.string().optional(),
+  created_by: z.coerce.number().optional(),
 })
 
 function stripHtml(html: string): string {
@@ -27,11 +28,12 @@ function stripHtml(html: string): string {
 
 function TeacherQuestionBank() {
   const navigate = useNavigate({ from: Route.fullPath })
-  const { chapter: chapterParam, search: searchParam } = Route.useSearch()
-  const { data: questions = [], isLoading } = useQuery(getAdminQuestionsBankOptions())
+  const { chapter: chapterParam, search: searchParam, created_by: createdByParam } = Route.useSearch()
+  const { data: questions = [], isLoading } = useQuery(getAdminQuestionsBankOptions({ query: { created_by: createdByParam } }))
   const { data: chapters = [] } = useQuery(getAdminChaptersOptions())
 
   const chapterFilter = chapterParam // number | undefined
+  const createdByFilter = createdByParam // number | undefined
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const [page, setPage] = useState(1)
   const perPage = 10
@@ -42,6 +44,16 @@ function TeacherQuestionBank() {
   const chapterOptions = [
     { label: "Semua Chapter", value: "all" },
     ...chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) })),
+  ]
+
+  // Daftar guru pembuat unik dari data soal (untuk filter dropdown)
+  const creatorMap = new Map<number, string>()
+  questions.forEach((q) => {
+    if (q.user_id != null && q.user_name) creatorMap.set(q.user_id, q.user_name)
+  })
+  const creatorOptions = [
+    { label: "Semua Guru", value: "all" },
+    ...Array.from(creatorMap.entries()).map(([id, name]) => ({ label: name, value: String(id) })),
   ]
 
   const filtered = questions.filter((q) => {
@@ -116,6 +128,26 @@ function TeacherQuestionBank() {
                 ))}
               </SelectContent>
             </Select>
+            <Select
+              items={creatorOptions}
+              value={createdByFilter === undefined ? "all" : String(createdByFilter)}
+              onValueChange={(v) => {
+                if (v) {
+                  navigate({
+                    search: (prev) => ({ ...prev, created_by: v === "all" ? undefined : Number(v) }),
+                    replace: true,
+                  })
+                  setPage(1)
+                }
+              }}
+            >
+              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Filter Guru" /></SelectTrigger>
+              <SelectContent>
+                {creatorOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex items-center gap-2">
             {selectedIds.size > 0 && (
@@ -144,6 +176,7 @@ function TeacherQuestionBank() {
                     <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
                   </TableHead>
                   <TableHead className="pl-0">Pertanyaan</TableHead>
+                  <TableHead>Pembuat</TableHead>
                   <TableHead>Chapter</TableHead>
                   <TableHead>Jumlah Opsi</TableHead>
                   <TableHead>Tanggal</TableHead>
@@ -157,13 +190,14 @@ function TeacherQuestionBank() {
                       <TableCell className="w-10 pl-4"><Skeleton className="h-4 w-4" /></TableCell>
                       <TableCell className="pl-0"><Skeleton className="h-4 w-56" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                       <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
                     </TableRow>
                   ))
                 ) : paged.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Belum ada soal</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="p-8 text-center text-muted-foreground">Belum ada soal</TableCell></TableRow>
                 ) : paged.map((q) => (
                   <TableRow key={q.id}>
                     <TableCell className="w-10 pl-4">
@@ -173,6 +207,7 @@ function TeacherQuestionBank() {
                       />
                     </TableCell>
                     <TableCell className="pl-0 font-medium max-w-[400px] truncate">{stripHtml(q.question ?? "")}</TableCell>
+                    <TableCell className="text-muted-foreground">{q.user_name || "-"}</TableCell>
                     <TableCell className="text-muted-foreground">{q.chapter_title || "-"}</TableCell>
                     <TableCell className="text-muted-foreground">{q.options?.length ?? 0}</TableCell>
                     <TableCell className="text-muted-foreground">{q.created_at}</TableCell>

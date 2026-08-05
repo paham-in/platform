@@ -201,6 +201,7 @@ export type QuestionbankCreateInput = {
     explanation?: string;
     options?: Array<string>;
     question?: string;
+    user_id?: number;
 };
 
 export type QuestionbankErrorResponse = {
@@ -228,6 +229,8 @@ export type QuestionbankQuestionResponse = {
     id?: number;
     options?: Array<string>;
     question?: string;
+    user_id?: number;
+    user_name?: string;
 };
 
 export type QuestionbankUpdateInput = {
@@ -1087,6 +1090,10 @@ export type GetAdminQuestionsBankData = {
          * Filter by chapter ID
          */
         chapter_id?: number;
+        /**
+         * Filter by creator user ID
+         */
+        created_by?: number;
     };
     url: '/admin/questions-bank';
 };

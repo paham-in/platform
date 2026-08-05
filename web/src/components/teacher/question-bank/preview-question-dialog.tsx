@@ -20,6 +20,10 @@ export function PreviewQuestionDialog({ question, onClose }: PreviewQuestionDial
             <p className="text-sm">{question.chapter_title || "-"}</p>
           </div>
           <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Pembuat</Label>
+            <p className="text-sm">{question.user_name || "-"}</p>
+          </div>
+          <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Pertanyaan</Label>
             <div className="rounded-md border bg-muted/30 p-3">
               <RichContent html={question.question ?? ""} />

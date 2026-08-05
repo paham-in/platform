@@ -528,7 +528,7 @@ export const getAdminQuestionsBankQueryKey = (options?: Options<GetAdminQuestion
 /**
  * List question bank
  *
- * Mengembalikan daftar soal, bisa difilter dengan chapter_id
+ * Mengembalikan daftar soal, bisa difilter dengan chapter_id dan created_by
  */
 export const getAdminQuestionsBankOptions = (options?: Options<GetAdminQuestionsBankData>) => queryOptions<GetAdminQuestionsBankResponse, DefaultError, GetAdminQuestionsBankResponse, ReturnType<typeof getAdminQuestionsBankQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {

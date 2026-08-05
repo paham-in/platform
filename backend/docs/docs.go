@@ -1049,7 +1049,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan daftar soal, bisa difilter dengan chapter_id",
+                "description": "Mengembalikan daftar soal, bisa difilter dengan chapter_id dan created_by",
                 "consumes": [
                     "application/json"
                 ],
@@ -1065,6 +1065,12 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Filter by chapter ID",
                         "name": "chapter_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by creator user ID",
+                        "name": "created_by",
                         "in": "query"
                     }
                 ],
@@ -3376,6 +3382,9 @@ const docTemplate = `{
                 },
                 "question": {
                     "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -3446,6 +3455,12 @@ const docTemplate = `{
                     }
                 },
                 "question": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                },
+                "user_name": {
                     "type": "string"
                 }
             }

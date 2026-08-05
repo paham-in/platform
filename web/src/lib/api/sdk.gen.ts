@@ -342,7 +342,7 @@ export const deleteAdminQuestionsBank = <ThrowOnError extends boolean = false>(o
 /**
  * List question bank
  *
- * Mengembalikan daftar soal, bisa difilter dengan chapter_id
+ * Mengembalikan daftar soal, bisa difilter dengan chapter_id dan created_by
  */
 export const getAdminQuestionsBank = <ThrowOnError extends boolean = false>(options?: Options<GetAdminQuestionsBankData, ThrowOnError>): RequestResult<GetAdminQuestionsBankResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminQuestionsBankResponses, unknown, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],

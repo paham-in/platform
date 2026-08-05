@@ -54,7 +54,9 @@ function QuestionDetail() {
           </Link>
           <div className="flex-1">
             <h1 className="text-2xl font-bold tracking-tight">Detail Soal</h1>
-            <p className="text-sm text-muted-foreground">{question.chapter_title || "-"}</p>
+            <p className="text-sm text-muted-foreground">
+              {question.chapter_title || "-"} · Dibuat oleh {question.user_name || "-"}
+            </p>
           </div>
           <Link to="/teacher/question-bank/$id/edit" params={{ id }}>
             <Button variant="outline">

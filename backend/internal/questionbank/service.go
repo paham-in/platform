@@ -10,6 +10,8 @@ import (
 
 type QuestionResponse struct {
 	ID           uint     `json:"id"`
+	UserID       uint     `json:"user_id"`
+	UserName     string   `json:"user_name"`
 	ChapterID    uint     `json:"chapter_id"`
 	ChapterTitle string   `json:"chapter_title"`
 	Question     string   `json:"question"`
@@ -43,6 +45,14 @@ func (s *Service) List() ([]QuestionResponse, error) {
 	return s.toResponses(questions), nil
 }
 
+func (s *Service) ListFiltered(createdBy uint) ([]QuestionResponse, error) {
+	questions, err := s.repo.ListFiltered(createdBy)
+	if err != nil {
+		return nil, err
+	}
+	return s.toResponses(questions), nil
+}
+
 func (s *Service) Get(id uint) (*QuestionResponse, error) {
 	q, err := s.repo.Get(id)
 	if err != nil {
@@ -53,6 +63,7 @@ func (s *Service) Get(id uint) (*QuestionResponse, error) {
 }
 
 type CreateInput struct {
+	UserID       uint     `json:"user_id"`
 	ChapterID    uint     `json:"chapter_id"`
 	Question     string   `json:"question"`
 	Options      []string `json:"options"`
@@ -98,6 +109,7 @@ func (s *Service) Create(input CreateInput) (*QuestionResponse, error) {
 	}
 
 	q := models.QuestionBank{
+		UserID:       input.UserID,
 		ChapterID:    input.ChapterID,
 		Question:     input.Question,
 		Options:      input.Options,
@@ -231,8 +243,14 @@ func (s *Service) toResponse(q models.QuestionBank) QuestionResponse {
 	if q.Chapter.ID != 0 {
 		title = q.Chapter.Title
 	}
+	userName := ""
+	if q.User.ID != 0 {
+		userName = q.User.Name
+	}
 	return QuestionResponse{
 		ID:           q.ID,
+		UserID:       q.UserID,
+		UserName:     userName,
 		ChapterID:    q.ChapterID,
 		ChapterTitle: title,
 		Question:     q.Question,
