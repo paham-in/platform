@@ -4,6 +4,7 @@ import (
 	"bimbel2/backend/internal/models"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Repository struct {
@@ -119,7 +120,14 @@ func (r *Repository) Update(id uint, updates map[string]any) error {
 }
 
 func (r *Repository) Delete(id uint) error {
-	return r.db.Unscoped().Delete(&models.QuestionBank{}, id).Error
+	// Hard delete soal + bersihkan relasi has-many (questionbank_answers).
+	// Select(clause.Associations) membuat GORM menghapus answers yang
+	// merujuk ke soal ini sebelum menghapus soal.
+	var q models.QuestionBank
+	if err := r.db.Unscoped().First(&q, id).Error; err != nil {
+		return err
+	}
+	return r.db.Unscoped().Select(clause.Associations).Delete(&q).Error
 }
 
 // PackageUsage menyimpan nama paket soal yang memakai suatu pertanyaan.
