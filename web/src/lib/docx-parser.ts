@@ -12,8 +12,20 @@ import JSZip from "jszip"
 export interface ParsedParagraph {
   /** Teks biasa (tanpa math) untuk deteksi struktur */
   text: string
-  /** HTML (dengan math LaTeX embedded) untuk disimpan ke DB */
+  /**
+   * HTML (dengan math LaTeX embedded).
+   * Untuk paragraf normal: dibungkus `<p>...</p>`.
+   * Untuk list item: konten dalam (tanpa `<p>`), akan dibungkus `<li>` oleh `paragraphsToHtml`.
+   */
   html: string
+  /** Jika paragraf adalah item auto-numbering Word → tipe list yang akan dirender */
+  listType?: "ol" | "ul"
+}
+
+/** Hasil unzip .docx: document.xml + map numbering (numId → tipe list) */
+export interface DocxContext {
+  doc: Document
+  numbering: Map<number, "ol" | "ul">
 }
 
 export interface ImportQuestion {
@@ -332,28 +344,95 @@ function isMathNode(el: Element): boolean {
 }
 
 /**
- * Baca word/document.xml dari file .docx
+ * Baca word/document.xml (+ word/numbering.xml untuk auto-numbering list)
+ * dari file .docx
  */
-export async function unzipDocx(file: File): Promise<Document> {
+export async function unzipDocx(file: File): Promise<DocxContext> {
   const zip = await JSZip.loadAsync(file)
   const xmlFile = zip.file("word/document.xml")
   if (!xmlFile) throw new Error("File .docx tidak valid: word/document.xml tidak ditemukan")
   const xmlStr = await xmlFile.async("string")
-  return new DOMParser().parseFromString(xmlStr, "application/xml")
+  const doc = new DOMParser().parseFromString(xmlStr, "application/xml")
+
+  // Parse numbering.xml → map numId → tipe list (ol/ul)
+  const numbering = new Map<number, "ol" | "ul">()
+  const numFile = zip.file("word/numbering.xml")
+  if (numFile) {
+    const numXml = await numFile.async("string")
+    const numDoc = new DOMParser().parseFromString(numXml, "application/xml")
+    numberingFromXml(numDoc, numbering)
+  }
+
+  return { doc, numbering }
+}
+
+/**
+ * Parse word/numbering.xml dan isi `numbering` dengan mapping numId → list type.
+ * Struktur:
+ *   <w:numbering>
+ *     <w:abstractNum w:abstractNumId="0">
+ *       <w:lvl w:ilvl="0"><w:numFmt w:val="decimal"/>...</w:lvl>
+ *     </w:abstractNum>
+ *     <w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num>
+ *   </w:numbering>
+ */
+function numberingFromXml(doc: Document, numbering: Map<number, "ol" | "ul">): void {
+  // abstractNumId → ilvl → numFmt
+  const abstractFmts = new Map<number, Map<number, string>>()
+
+  for (const abstractNum of descendants(doc.documentElement, "abstractNum")) {
+    const idAttr = abstractNum.getAttribute("w:abstractNumId")
+    if (idAttr === null) continue
+    const id = parseInt(idAttr, 10)
+    const lvls = new Map<number, string>()
+    for (const lvl of descendants(abstractNum, "lvl")) {
+      const ilvlAttr = firstDescendant(lvl, "ilvl")?.getAttribute("w:val")
+      const fmtEl = firstDescendant(lvl, "numFmt")
+      const fmt = fmtEl?.getAttribute("w:val")
+      if (ilvlAttr != null && fmt) {
+        lvls.set(parseInt(ilvlAttr, 10), fmt)
+      }
+    }
+    abstractFmts.set(id, lvls)
+  }
+
+  for (const num of descendants(doc.documentElement, "num")) {
+    const numIdAttr = num.getAttribute("w:numId")
+    if (numIdAttr === null) continue
+    const numId = parseInt(numIdAttr, 10)
+    const absIdAttr = firstDescendant(num, "abstractNumId")?.getAttribute("w:val")
+    const absId = absIdAttr ? parseInt(absIdAttr, 10) : -1
+    const fmt = abstractFmts.get(absId)?.get(0) ?? "decimal"
+    // bullet → ul, semua format angka/huruf lain → ol
+    numbering.set(numId, fmt === "bullet" ? "ul" : "ol")
+  }
+}
+
+/** Deteksi list type dari <w:pPr> (auto-numbering Word). */
+function detectListType(pPr: Element, numbering: Map<number, "ol" | "ul">): "ol" | "ul" | undefined {
+  const numPr = children(pPr).find((c) => c.localName === "numPr")
+  if (!numPr) return undefined
+  const numIdEl = children(numPr).find((c) => c.localName === "numId")
+  const numId = numIdEl ? parseInt(numIdEl.getAttribute("w:val") ?? "0", 10) : 0
+  return numbering.get(numId)
 }
 
 /**
  * Parse document.xml → array paragraf.
  * Setiap paragraf punya `text` (polos) dan `html` (dengan math LaTeX embedded).
+ * Paragraf auto-numbering Word (punya <w:numPr>) diberi `listType` dan html-nya
+ * tidak dibungkus `<p>` (akan dibungkus `<li>` oleh `paragraphsToHtml`).
  */
-export function parseDocumentXml(doc: Document): ParsedParagraph[] {
+export function parseDocumentXml(doc: Document, numbering?: Map<number, "ol" | "ul">): ParsedParagraph[] {
   // Semua elemen <w:p> di seluruh dokumen (localName "p")
   const paragraphs = descendants(doc.documentElement, "p")
   const result: ParsedParagraph[] = []
+  const numMap = numbering ?? new Map<number, "ol" | "ul">()
 
   for (const p of paragraphs) {
     let text = ""
     let html = ""
+    let listType: "ol" | "ul" | undefined
 
     for (const child of children(p)) {
       const localName = child.localName
@@ -379,7 +458,9 @@ export function parseDocumentXml(doc: Document): ParsedParagraph[] {
           text += ` $${latex}$ `
           html += ` <span data-type="inline-math" data-latex="${escapeHtml(latex)}">${escapeHtml(latex)}</span> `
         }
-      } else if (localName === "pPr" || localName === "bookmarkStart" || localName === "bookmarkEnd") {
+      } else if (localName === "pPr") {
+        listType = detectListType(child, numMap)
+      } else if (localName === "bookmarkStart" || localName === "bookmarkEnd") {
         // structural — ignore
       } else {
         // Fallback: text inside
@@ -396,12 +477,43 @@ export function parseDocumentXml(doc: Document): ParsedParagraph[] {
     if (cleanText) {
       result.push({
         text: cleanText,
-        html: cleanHtml ? `<p>${cleanHtml}</p>` : "",
+        html: listType ? (cleanHtml || escapeHtml(cleanText)) : (cleanHtml ? `<p>${cleanHtml}</p>` : ""),
+        listType,
       })
     }
   }
 
   return result
+}
+
+/**
+ * Gabungkan paragraf menjadi HTML, mengelompokkan list item berurutan
+ * menjadi <ol>/<ul>. Paragraf normal → <p>...</p>, list item → <li>...
+ */
+export function paragraphsToHtml(paras: ParsedParagraph[]): string {
+  let out = ""
+  let i = 0
+  while (i < paras.length) {
+    const p = paras[i]
+    if (p.listType) {
+      const type = p.listType
+      const items: string[] = []
+      while (i < paras.length && paras[i].listType === type) {
+        const item = paras[i]
+        if (item.text.trim() !== "") {
+          items.push(`<li>${item.html || escapeHtml(item.text)}</li>`)
+        }
+        i++
+      }
+      if (items.length > 0) out += `<${type}>${items.join("")}</${type}>`
+    } else {
+      if (p.text.trim() !== "") {
+        out += p.html || `<p>${escapeHtml(p.text)}</p>`
+      }
+      i++
+    }
+  }
+  return out
 }
 
 function escapeHtml(s: string): string {
@@ -521,10 +633,7 @@ function buildQuestionsSection(paras: ParsedParagraph[]): ImportQuestion[] {
 
   const flushSection = () => {
     if (!current || section === null) return
-    const joined = buffer
-      .filter((p) => p.text.trim() !== "")
-      .map((p) => p.html || `<p>${p.text}</p>`)
-      .join("")
+    const joined = paragraphsToHtml(buffer)
     if (section === "pertanyaan") {
       current.question = joined
     } else if (section === "pembahasan") {
