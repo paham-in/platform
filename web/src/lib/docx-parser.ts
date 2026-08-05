@@ -90,11 +90,19 @@ function collectMathText(el: Element): string {
     .join("")
 }
 
-/** Cek apakah run memiliki format tertentu di <w:rPr> (bold/italic/underline). */
-function runHasFormat(run: Element, fmt: "b" | "i" | "u"): boolean {
+/** Cek apakah run memiliki format tertentu di <w:rPr> (bold/italic/underline/highlight). */
+function runHasFormat(run: Element, fmt: "b" | "i" | "u" | "highlight"): boolean {
   const rPr = Array.from(run.children).find((c) => c.localName === "rPr")
   if (!rPr) return false
   return Array.from(rPr.children).some((c) => c.localName === fmt)
+}
+
+/** Ambil warna highlight dari <w:rPr><w:highlight w:val="..."/></w:rPr> (jika ada). */
+function runHighlightColor(run: Element): string | null {
+  const rPr = Array.from(run.children).find((c) => c.localName === "rPr")
+  if (!rPr) return null
+  const hl = Array.from(rPr.children).find((c) => c.localName === "highlight")
+  return hl ? (hl.getAttribute("w:val") ?? "yellow") : null
 }
 
 /**
@@ -102,6 +110,7 @@ function runHasFormat(run: Element, fmt: "b" | "i" | "u"): boolean {
  * - <w:b/> → <strong>
  * - <w:i/> → <em>
  * - <w:u/> → <u>
+ * - <w:highlight/> → <mark>
  */
 function collectRunHtml(run: Element): string {
   const text = collectText(run)
@@ -110,11 +119,14 @@ function collectRunHtml(run: Element): string {
   const bold = runHasFormat(run, "b")
   const italic = runHasFormat(run, "i")
   const underline = runHasFormat(run, "u")
+  const highlight = runHasFormat(run, "highlight")
+  const hlColor = runHighlightColor(run)
 
   let out: string = text
   if (bold) out = `<strong>${out}</strong>`
   if (italic) out = `<em>${out}</em>`
   if (underline) out = `<u>${out}</u>`
+  if (highlight) out = hlColor && hlColor !== "none" ? `<mark data-color="${hlColor}">${out}</mark>` : `<mark>${out}</mark>`
   return out
 }
 
@@ -418,72 +430,140 @@ function detectListType(pPr: Element, numbering: Map<number, "ol" | "ul">): "ol"
 }
 
 /**
+ * Parse satu elemen <w:p> → ParsedParagraph (atau null jika kosong).
+ * Reusable untuk dokumen biasa maupun paragraf di dalam tabel.
+ */
+function parseParagraphElement(p: Element, numbering: Map<number, "ol" | "ul">): ParsedParagraph | null {
+  let text = ""
+  let html = ""
+  let listType: "ol" | "ul" | undefined
+
+  for (const child of children(p)) {
+    const localName = child.localName
+
+    if (localName === "r") {
+      const runText = collectText(child)
+      const runHtml = collectRunHtml(child)
+      if (runText) {
+        text += runText
+        html += runHtml || runText
+      }
+    } else if (localName === "hyperlink" || localName === "sdt" || localName === "ins" || localName === "del") {
+      const runText = collectText(child)
+      if (runText) {
+        text += runText
+        html += runText
+      }
+    } else if (isMathNode(child)) {
+      const latex = ommlToLatex(child)
+      if (latex) {
+        // Sinkronkan spasi text & html agar stripPrefix tidak merusak markup.
+        // text pakai " $...$ ", html pakai " <span>...</span> " (sama-sama spasi di kedua sisi).
+        text += ` $${latex}$ `
+        html += ` <span data-type="inline-math" data-latex="${escapeHtml(latex)}">${escapeHtml(latex)}</span> `
+      }
+    } else if (localName === "pPr") {
+      listType = detectListType(child, numbering)
+    } else if (localName === "bookmarkStart" || localName === "bookmarkEnd") {
+      // structural — ignore
+    } else {
+      // Fallback: text inside
+      const runText = collectText(child)
+      if (runText) {
+        text += runText
+        html += runText
+      }
+    }
+  }
+
+  const cleanText = text.trim()
+  const cleanHtml = html.trim()
+  if (!cleanText) return null
+
+  return {
+    text: cleanText,
+    html: listType ? (cleanHtml || escapeHtml(cleanText)) : (cleanHtml ? `<p>${cleanHtml}</p>` : ""),
+    listType,
+  }
+}
+
+/**
  * Parse document.xml → array paragraf.
  * Setiap paragraf punya `text` (polos) dan `html` (dengan math LaTeX embedded).
  * Paragraf auto-numbering Word (punya <w:numPr>) diberi `listType` dan html-nya
  * tidak dibungkus `<p>` (akan dibungkus `<li>` oleh `paragraphsToHtml`).
  */
 export function parseDocumentXml(doc: Document, numbering?: Map<number, "ol" | "ul">): ParsedParagraph[] {
-  // Semua elemen <w:p> di seluruh dokumen (localName "p")
+  const numMap = numbering ?? new Map<number, "ol" | "ul">()
   const paragraphs = descendants(doc.documentElement, "p")
   const result: ParsedParagraph[] = []
-  const numMap = numbering ?? new Map<number, "ol" | "ul">()
-
   for (const p of paragraphs) {
-    let text = ""
-    let html = ""
-    let listType: "ol" | "ul" | undefined
+    const parsed = parseParagraphElement(p, numMap)
+    if (parsed) result.push(parsed)
+  }
+  return result
+}
 
-    for (const child of children(p)) {
-      const localName = child.localName
+/**
+ * Cek apakah string HTML mengandung <mark> (hasil highlight Word).
+ * Dipakai untuk mendeteksi opsi yang benar di format tabel.
+ */
+function htmlHasMark(html: string): boolean {
+  return /<mark[\s>]/.test(html)
+}
 
-      if (localName === "r") {
-        const runText = collectText(child)
-        const runHtml = collectRunHtml(child)
-        if (runText) {
-          text += runText
-          html += runHtml || runText
-        }
-      } else if (localName === "hyperlink" || localName === "sdt" || localName === "ins" || localName === "del") {
-        const runText = collectText(child)
-        if (runText) {
-          text += runText
-          html += runText
-        }
-      } else if (isMathNode(child)) {
-        const latex = ommlToLatex(child)
-        if (latex) {
-          // Sinkronkan spasi text & html agar stripPrefix tidak merusak markup.
-          // text pakai " $...$ ", html pakai " <span>...</span> " (sama-sama spasi di kedua sisi).
-          text += ` $${latex}$ `
-          html += ` <span data-type="inline-math" data-latex="${escapeHtml(latex)}">${escapeHtml(latex)}</span> `
-        }
-      } else if (localName === "pPr") {
-        listType = detectListType(child, numMap)
-      } else if (localName === "bookmarkStart" || localName === "bookmarkEnd") {
-        // structural — ignore
-      } else {
-        // Fallback: text inside
-        const runText = collectText(child)
-        if (runText) {
-          text += runText
-          html += runText
-        }
+/**
+ * Parse format tabel: 1 tabel = 1 soal.
+ * - Row 1 → pertanyaan
+ * - Row 2 → opsi jawaban (tiap paragraf = satu opsi; yang di-highlight = benar)
+ * - Row 3 (opsional) → pembahasan
+ */
+export function parseTableQuestions(doc: Document, numbering?: Map<number, "ol" | "ul">): ImportQuestion[] {
+  const numMap = numbering ?? new Map<number, "ol" | "ul">()
+  const tables = descendants(doc.documentElement, "tbl")
+  const questions: ImportQuestion[] = []
+
+  for (const tbl of tables) {
+    const rows = descendants(tbl, "tr")
+    if (rows.length === 0) continue
+
+    const getRowParagraphs = (row: Element): ParsedParagraph[] => {
+      const paras: ParsedParagraph[] = []
+      // Ambil semua <w:p> di dalam row (dalam cell)
+      for (const p of descendants(row, "p")) {
+        const parsed = parseParagraphElement(p, numMap)
+        if (parsed) paras.push(parsed)
       }
+      return paras
     }
 
-    const cleanText = text.trim()
-    const cleanHtml = html.trim()
-    if (cleanText) {
-      result.push({
-        text: cleanText,
-        html: listType ? (cleanHtml || escapeHtml(cleanText)) : (cleanHtml ? `<p>${cleanHtml}</p>` : ""),
-        listType,
-      })
+    const rowParas = rows.map(getRowParagraphs)
+    // Row 1 = pertanyaan
+    const question = paragraphsToHtml(rowParas[0] ?? [])
+
+    // Row 2 = opsi (jika ada)
+    const options: string[] = []
+    let correctIndex = 0
+    const optionParas = rowParas[1] ?? []
+    for (const p of optionParas) {
+      if (p.text.trim() === "") continue
+      const optionHtml = stripPrefix(p.html, "option")
+      if (htmlHasMark(optionHtml) && correctIndex === 0) {
+        correctIndex = options.length // opsi yang benar (sebelum push)
+      }
+      options.push(optionHtml)
+    }
+    if (correctIndex >= options.length) correctIndex = 0
+
+    // Row 3 (opsional) = pembahasan
+    const explanation = rows.length >= 3 ? paragraphsToHtml(rowParas[2] ?? []) : ""
+
+    if (question && options.length >= 2) {
+      questions.push({ question, options, correctIndex, explanation })
     }
   }
 
-  return result
+  return questions
 }
 
 /**
@@ -537,15 +617,23 @@ function isSectionHeader(text: string): SectionName | null {
 }
 
 /**
- * Build soal dari paragraf hasil parsing.
- * Mendukung dua format:
- *  1. Format section (utama): `--- pertanyaan` / `--- jawaban` / `--- kunci` / `--- pembahasan`
- *  2. Format natural (fallback): `1.` / `A.` / `Kunci:` / `Pembahasan:`
- * Mode section dipilih jika dokumen mengandung baris `--- <nama>`.
+ * Build soal dari hasil parsing docx.
+ * Mendukung tiga format (dideteksi otomatis, prioritas tinggi → rendah):
+ *  1. Tabel: 1 tabel = 1 soal (row 1 soal, row 2 opsi + highlight benar, row 3 pembahasan)
+ *  2. Section: `--- pertanyaan` / `--- jawaban` / `--- kunci` / `--- pembahasan`
+ *  3. Natural (fallback): `1.` / `A.` / `Kunci:` / `Pembahasan:`
  */
-export function buildQuestions(paras: ParsedParagraph[]): ImportQuestion[] {
+export function buildQuestions(doc: Document, paras: ParsedParagraph[], numbering?: Map<number, "ol" | "ul">): ImportQuestion[] {
+  // 1. Format tabel
+  const tableQuestions = parseTableQuestions(doc, numbering)
+  if (tableQuestions.length > 0) return tableQuestions
+
+  // 2. Format section
   const hasSection = paras.some((p) => isSectionHeader(p.text.trim()))
-  return hasSection ? buildQuestionsSection(paras) : buildQuestionsNatural(paras)
+  if (hasSection) return buildQuestionsSection(paras)
+
+  // 3. Format natural
+  return buildQuestionsNatural(paras)
 }
 
 /** Format natural (logika lama): `1.` soal, `A.` opsi, `Kunci:`, `Pembahasan:` */
@@ -722,8 +810,8 @@ function stripPrefix(html: string, kind: StripKind): string {
         node.textContent = rest
       } else {
         node.remove()
-        // Hapus elemen format kosong (strong/em/u) yang ditinggalkan
-        p.querySelectorAll("strong, em, u").forEach((el) => {
+        // Hapus elemen format kosong (strong/em/u/mark) yang ditinggalkan
+        p.querySelectorAll("strong, em, u, mark").forEach((el) => {
           if (!el.textContent?.trim()) el.remove()
         })
       }

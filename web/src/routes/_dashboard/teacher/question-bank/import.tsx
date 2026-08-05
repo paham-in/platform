@@ -58,7 +58,7 @@ function ImportQuestions() {
     try {
       const { doc, numbering } = await unzipDocx(file)
       const paras = parseDocumentXml(doc, numbering)
-      const parsed = buildQuestions(paras)
+      const parsed = buildQuestions(doc, paras, numbering)
       if (parsed.length === 0) {
         setParseError("Tidak ada soal yang terdeteksi. Pastikan format: nomor soal di paragraf sendiri, opsi A/B/C/D di baris terpisah.")
       } else {
