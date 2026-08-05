@@ -26,7 +26,7 @@ func NewHandler(svc *Service) *Handler {
 // ListQuestions mengembalikan daftar soal bank
 // @Summary      List question bank
 // @Description  Mengembalikan daftar soal, bisa difilter dengan chapter_id dan created_by
-// @Tags         QuestionBank
+// @Tags         QuestionbankQuestion
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
@@ -59,7 +59,7 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 // CreateQuestion menambah soal baru
 // @Summary      Create question
 // @Description  Menambah soal baru ke bank soal
-// @Tags         QuestionBank
+// @Tags         QuestionbankQuestion
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
@@ -88,7 +88,7 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 // UpdateQuestion mengubah soal
 // @Summary      Update question
 // @Description  Mengubah soal di bank soal
-// @Tags         QuestionBank
+// @Tags         QuestionbankQuestion
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
@@ -118,7 +118,7 @@ func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
 // DeleteQuestions menghapus banyak soal sekaligus
 // @Summary      Bulk delete questions
 // @Description  Menghapus banyak soal dari bank soal dalam satu request
-// @Tags         QuestionBank
+// @Tags         QuestionbankQuestion
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
@@ -142,7 +142,7 @@ func (h *Handler) BulkDeleteQuestions(c *fiber.Ctx) error {
 // ListQuestionsPaginated mengembalikan daftar soal bank dengan pagination
 // @Summary      List question bank (paginated)
 // @Description  Mengembalikan daftar soal dengan pagination, bisa difilter dengan chapter_id
-// @Tags         QuestionBank
+// @Tags         QuestionbankQuestion
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth

@@ -1057,7 +1057,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "QuestionBank"
+                    "QuestionbankQuestion"
                 ],
                 "summary": "List question bank",
                 "parameters": [
@@ -1100,7 +1100,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "QuestionBank"
+                    "QuestionbankQuestion"
                 ],
                 "summary": "Create question",
                 "parameters": [
@@ -1143,7 +1143,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "QuestionBank"
+                    "QuestionbankQuestion"
                 ],
                 "summary": "Bulk delete questions",
                 "parameters": [
@@ -1182,7 +1182,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "QuestionBank"
+                    "QuestionbankQuestion"
                 ],
                 "summary": "List question bank (paginated)",
                 "parameters": [
@@ -1230,7 +1230,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "QuestionBank"
+                    "QuestionbankQuestion"
                 ],
                 "summary": "Update question",
                 "parameters": [

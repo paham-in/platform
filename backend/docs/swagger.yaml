@@ -1345,7 +1345,7 @@ paths:
       - BearerAuth: []
       summary: Bulk delete questions
       tags:
-      - QuestionBank
+      - QuestionbankQuestion
     get:
       consumes:
       - application/json
@@ -1373,7 +1373,7 @@ paths:
       - BearerAuth: []
       summary: List question bank
       tags:
-      - QuestionBank
+      - QuestionbankQuestion
     post:
       consumes:
       - application/json
@@ -1400,7 +1400,7 @@ paths:
       - BearerAuth: []
       summary: Create question
       tags:
-      - QuestionBank
+      - QuestionbankQuestion
   /admin/questions-bank/{id}:
     patch:
       consumes:
@@ -1433,7 +1433,7 @@ paths:
       - BearerAuth: []
       summary: Update question
       tags:
-      - QuestionBank
+      - QuestionbankQuestion
   /admin/questions-bank/paginated:
     get:
       consumes:
@@ -1464,7 +1464,7 @@ paths:
       - BearerAuth: []
       summary: List question bank (paginated)
       tags:
-      - QuestionBank
+      - QuestionbankQuestion
   /admin/questions/{id}:
     delete:
       consumes:

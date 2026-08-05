@@ -15,8 +15,8 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) ListByChapter(chapterID uint) ([]models.QuestionBank, error) {
-	var questions []models.QuestionBank
+func (r *Repository) ListByChapter(chapterID uint) ([]models.QuestionbankQuestion, error) {
+	var questions []models.QuestionbankQuestion
 	if err := r.db.Where("chapter_id = ?", chapterID).Preload("User").Preload("Answers", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order asc")
 	}).Order("created_at desc").Find(&questions).Error; err != nil {
@@ -25,15 +25,15 @@ func (r *Repository) ListByChapter(chapterID uint) ([]models.QuestionBank, error
 	return questions, nil
 }
 
-func (r *Repository) List() ([]models.QuestionBank, error) {
+func (r *Repository) List() ([]models.QuestionbankQuestion, error) {
 	return r.ListFiltered(0)
 }
 
 // ListFiltered mengembalikan daftar soal. Jika createdBy > 0, filter hanya
 // soal yang dibuat user tersebut. Semua guru tetap bisa melihat semua soal
 // (bank bersama) jika createdBy == 0.
-func (r *Repository) ListFiltered(createdBy uint) ([]models.QuestionBank, error) {
-	var questions []models.QuestionBank
+func (r *Repository) ListFiltered(createdBy uint) ([]models.QuestionbankQuestion, error) {
+	var questions []models.QuestionbankQuestion
 	q := r.db.Preload("User").Preload("Answers", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order asc")
 	}).Order("created_at desc")
@@ -46,8 +46,8 @@ func (r *Repository) ListFiltered(createdBy uint) ([]models.QuestionBank, error)
 	return questions, nil
 }
 
-func (r *Repository) Get(id uint) (*models.QuestionBank, error) {
-	var q models.QuestionBank
+func (r *Repository) Get(id uint) (*models.QuestionbankQuestion, error) {
+	var q models.QuestionbankQuestion
 	if err := r.db.Preload("Answers", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order asc")
 	}).First(&q, id).Error; err != nil {
@@ -57,7 +57,7 @@ func (r *Repository) Get(id uint) (*models.QuestionBank, error) {
 }
 
 func (r *Repository) Count(chapterID uint) (int64, error) {
-	q := r.db.Model(&models.QuestionBank{})
+	q := r.db.Model(&models.QuestionbankQuestion{})
 	if chapterID > 0 {
 		q = q.Where("chapter_id = ?", chapterID)
 	}
@@ -68,7 +68,7 @@ func (r *Repository) Count(chapterID uint) (int64, error) {
 	return count, nil
 }
 
-func (r *Repository) ListPaginated(chapterID uint, page, perPage int) ([]models.QuestionBank, error) {
+func (r *Repository) ListPaginated(chapterID uint, page, perPage int) ([]models.QuestionbankQuestion, error) {
 	if perPage <= 0 {
 		perPage = 10
 	}
@@ -82,14 +82,14 @@ func (r *Repository) ListPaginated(chapterID uint, page, perPage int) ([]models.
 	if chapterID > 0 {
 		q = q.Where("chapter_id = ?", chapterID)
 	}
-	var questions []models.QuestionBank
+	var questions []models.QuestionbankQuestion
 	if err := q.Limit(perPage).Offset(offset).Find(&questions).Error; err != nil {
 		return nil, err
 	}
 	return questions, nil
 }
 
-func (r *Repository) Create(q *models.QuestionBank) error {
+func (r *Repository) Create(q *models.QuestionbankQuestion) error {
 	return r.db.Create(q).Error
 }
 
@@ -116,14 +116,14 @@ func (r *Repository) ReplaceAnswers(questionID uint, answers []QuestionbankAnswe
 }
 
 func (r *Repository) Update(id uint, updates map[string]any) error {
-	return r.db.Model(&models.QuestionBank{}).Where("id = ?", id).Updates(updates).Error
+	return r.db.Model(&models.QuestionbankQuestion{}).Where("id = ?", id).Updates(updates).Error
 }
 
 func (r *Repository) Delete(id uint) error {
 	// Hard delete soal + bersihkan relasi has-many (questionbank_answers).
 	// Select(clause.Associations) membuat GORM menghapus answers yang
 	// merujuk ke soal ini sebelum menghapus soal.
-	var q models.QuestionBank
+	var q models.QuestionbankQuestion
 	if err := r.db.Unscoped().First(&q, id).Error; err != nil {
 		return err
 	}

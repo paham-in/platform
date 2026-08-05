@@ -33,7 +33,7 @@ func Migrate(db *gorm.DB) {
 	// clean up orphaned subject_images before AutoMigrate (FK constraint)
 	db.Exec("DELETE FROM subject_images WHERE user_id NOT IN (SELECT id FROM users)")
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.Role{}, &models.QuestionBank{}, &models.QuestionbankAnswer{}, &models.QuestionPackage{}, &models.TeacherSubject{})
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackage{}, &models.TeacherSubject{})
 
 	// seed default roles
 	for _, name := range []string{"student", "teacher", "admin"} {

@@ -1054,7 +1054,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "QuestionBank"
+                    "QuestionbankQuestion"
                 ],
                 "summary": "List question bank",
                 "parameters": [
@@ -1097,7 +1097,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "QuestionBank"
+                    "QuestionbankQuestion"
                 ],
                 "summary": "Create question",
                 "parameters": [
@@ -1140,7 +1140,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "QuestionBank"
+                    "QuestionbankQuestion"
                 ],
                 "summary": "Bulk delete questions",
                 "parameters": [
@@ -1179,7 +1179,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "QuestionBank"
+                    "QuestionbankQuestion"
                 ],
                 "summary": "List question bank (paginated)",
                 "parameters": [
@@ -1227,7 +1227,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "QuestionBank"
+                    "QuestionbankQuestion"
                 ],
                 "summary": "Update question",
                 "parameters": [

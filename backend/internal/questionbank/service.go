@@ -114,7 +114,7 @@ func (s *Service) Create(input CreateInput) (*QuestionResponse, error) {
 		}
 	}
 
-	q := models.QuestionBank{
+	q := models.QuestionbankQuestion{
 		UserID:      input.UserID,
 		ChapterID:   input.ChapterID,
 		Question:    input.Question,
@@ -252,7 +252,7 @@ func (s *Service) ListPaginated(chapterID uint, page, perPage int) (*PaginatedRe
 	}, nil
 }
 
-func (s *Service) toResponse(q models.QuestionBank) QuestionResponse {
+func (s *Service) toResponse(q models.QuestionbankQuestion) QuestionResponse {
 	title := ""
 	if q.Chapter.ID != 0 {
 		title = q.Chapter.Title
@@ -282,7 +282,7 @@ func (s *Service) toResponse(q models.QuestionBank) QuestionResponse {
 	}
 }
 
-func (s *Service) toResponses(questions []models.QuestionBank) []QuestionResponse {
+func (s *Service) toResponses(questions []models.QuestionbankQuestion) []QuestionResponse {
 	result := make([]QuestionResponse, len(questions))
 	for i, q := range questions {
 		result[i] = s.toResponse(q)

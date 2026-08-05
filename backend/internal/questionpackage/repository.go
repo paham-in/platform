@@ -44,7 +44,7 @@ func (r *Repository) SetQuestions(pkgID uint, questionIDs []uint) error {
 	if err := r.db.First(&pkg, pkgID).Error; err != nil {
 		return err
 	}
-	var questions []models.QuestionBank
+	var questions []models.QuestionbankQuestion
 	if len(questionIDs) > 0 {
 		if err := r.db.Where("id IN ?", questionIDs).Find(&questions).Error; err != nil {
 			return err

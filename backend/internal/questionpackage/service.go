@@ -6,8 +6,8 @@ import (
 	"bimbel2/backend/internal/models"
 )
 
-// QuestionBankMini — simplified view of a question for package response
-type QuestionBankMini struct {
+// QuestionbankQuestionMini — simplified view of a question for package response
+type QuestionbankQuestionMini struct {
 	ID        uint   `json:"id"`
 	ChapterID uint   `json:"chapter_id"`
 	Question  string `json:"question"`
