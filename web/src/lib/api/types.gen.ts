@@ -185,6 +185,16 @@ export type MaterialUpdateInput = {
     video_url?: string;
 };
 
+export type QuestionbankBulkDeleteFailedItem = {
+    error?: string;
+    id?: number;
+};
+
+export type QuestionbankBulkDeleteResult = {
+    deleted?: Array<number>;
+    failed?: Array<QuestionbankBulkDeleteFailedItem>;
+};
+
 export type QuestionbankCreateInput = {
     chapter_id?: number;
     correct_index?: number;
@@ -195,10 +205,6 @@ export type QuestionbankCreateInput = {
 
 export type QuestionbankErrorResponse = {
     error?: string;
-};
-
-export type QuestionbankMessageResponse = {
-    message?: string;
 };
 
 export type QuestionbankPaginatedResponse = {
@@ -1052,6 +1058,27 @@ export type GetAdminQuestionsResponses = {
 
 export type GetAdminQuestionsResponse = GetAdminQuestionsResponses[keyof GetAdminQuestionsResponses];
 
+export type DeleteAdminQuestionsBankData = {
+    /**
+     * Daftar ID soal yang akan dihapus
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path?: never;
+    query?: never;
+    url: '/admin/questions-bank';
+};
+
+export type DeleteAdminQuestionsBankResponses = {
+    /**
+     * OK
+     */
+    200: QuestionbankBulkDeleteResult;
+};
+
+export type DeleteAdminQuestionsBankResponse = DeleteAdminQuestionsBankResponses[keyof DeleteAdminQuestionsBankResponses];
+
 export type GetAdminQuestionsBankData = {
     body?: never;
     path?: never;
@@ -1129,27 +1156,6 @@ export type GetAdminQuestionsBankPaginatedResponses = {
 };
 
 export type GetAdminQuestionsBankPaginatedResponse = GetAdminQuestionsBankPaginatedResponses[keyof GetAdminQuestionsBankPaginatedResponses];
-
-export type DeleteAdminQuestionsBankByIdData = {
-    body?: never;
-    path: {
-        /**
-         * Question ID
-         */
-        id: number;
-    };
-    query?: never;
-    url: '/admin/questions-bank/{id}';
-};
-
-export type DeleteAdminQuestionsBankByIdResponses = {
-    /**
-     * OK
-     */
-    200: QuestionbankMessageResponse;
-};
-
-export type DeleteAdminQuestionsBankByIdResponse = DeleteAdminQuestionsBankByIdResponses[keyof DeleteAdminQuestionsBankByIdResponses];
 
 export type PatchAdminQuestionsBankByIdData = {
     /**

@@ -281,6 +281,24 @@ definitions:
       video_url:
         type: string
     type: object
+  questionbank.BulkDeleteFailedItem:
+    properties:
+      error:
+        type: string
+      id:
+        type: integer
+    type: object
+  questionbank.BulkDeleteResult:
+    properties:
+      deleted:
+        items:
+          type: integer
+        type: array
+      failed:
+        items:
+          $ref: '#/definitions/questionbank.BulkDeleteFailedItem'
+        type: array
+    type: object
   questionbank.CreateInput:
     properties:
       chapter_id:
@@ -299,11 +317,6 @@ definitions:
   questionbank.ErrorResponse:
     properties:
       error:
-        type: string
-    type: object
-  questionbank.MessageResponse:
-    properties:
-      message:
         type: string
     type: object
   questionbank.PaginatedResponse:
@@ -1298,6 +1311,29 @@ paths:
       - Admin
       - Admin
   /admin/questions-bank:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus banyak soal dari bank soal dalam satu request
+      parameters:
+      - description: Daftar ID soal yang akan dihapus
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionbank.BulkDeleteResult'
+      security:
+      - BearerAuth: []
+      summary: Bulk delete questions
+      tags:
+      - QuestionBank
     get:
       consumes:
       - application/json
@@ -1349,28 +1385,6 @@ paths:
       tags:
       - QuestionBank
   /admin/questions-bank/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Menghapus soal dari bank soal
-      parameters:
-      - description: Question ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/questionbank.MessageResponse'
-      security:
-      - BearerAuth: []
-      summary: Delete question
-      tags:
-      - QuestionBank
     patch:
       consumes:
       - application/json

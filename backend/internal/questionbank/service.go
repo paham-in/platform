@@ -148,8 +148,45 @@ func (s *Service) Update(id uint, input UpdateInput) (*QuestionResponse, error) 
 	return s.Get(id)
 }
 
-func (s *Service) Delete(id uint) error {
-	return s.repo.Delete(id)
+// BulkDeleteResult berisi hasil hapus banyak soal sekaligus.
+type BulkDeleteResult struct {
+	Deleted []uint               `json:"deleted"`
+	Failed  []BulkDeleteFailedItem `json:"failed"`
+}
+
+// BulkDeleteFailedItem berisi kegagalan hapus satu soal.
+type BulkDeleteFailedItem struct {
+	ID    uint   `json:"id"`
+	Error string `json:"error"`
+}
+
+// BulkDelete menghapus banyak soal sekaligus (satu request).
+// Soal yang dipakai di paket ditolak dan dicatat di `failed`.
+func (s *Service) BulkDelete(ids []uint) BulkDeleteResult {
+	result := BulkDeleteResult{}
+	for _, id := range ids {
+		// Cek apakah soal masih dipakai di paket soal — jika ya, tolak hard delete
+		// agar tidak merusak referensi (foreign key) di tabel package_questions.
+		usages, err := s.repo.ListPackageUsages(id)
+		if err != nil {
+			result.Failed = append(result.Failed, BulkDeleteFailedItem{ID: id, Error: err.Error()})
+			continue
+		}
+		if len(usages) > 0 {
+			names := make([]string, 0, len(usages))
+			for _, u := range usages {
+				names = append(names, u.Name)
+			}
+			result.Failed = append(result.Failed, BulkDeleteFailedItem{ID: id, Error: "soal digunakan di paket: " + strings.Join(names, ", ")})
+			continue
+		}
+		if err := s.repo.Delete(id); err != nil {
+			result.Failed = append(result.Failed, BulkDeleteFailedItem{ID: id, Error: err.Error()})
+		} else {
+			result.Deleted = append(result.Deleted, id)
+		}
+	}
+	return result
 }
 
 type PaginationMeta struct {

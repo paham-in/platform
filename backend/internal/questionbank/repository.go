@@ -80,3 +80,22 @@ func (r *Repository) Update(id uint, updates map[string]any) error {
 func (r *Repository) Delete(id uint) error {
 	return r.db.Unscoped().Delete(&models.QuestionBank{}, id).Error
 }
+
+// PackageUsage menyimpan nama paket soal yang memakai suatu pertanyaan.
+type PackageUsage struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+// ListPackageUsages mengembalikan daftar paket soal yang memakai pertanyaan ini
+// (via tabel many2many package_questions).
+func (r *Repository) ListPackageUsages(questionID uint) ([]PackageUsage, error) {
+	var usages []PackageUsage
+	err := r.db.Table("package_questions").
+		Select("question_packages.id as id, question_packages.name as name").
+		Joins("JOIN question_packages ON question_packages.id = package_questions.question_package_id").
+		Where("package_questions.question_bank_id = ?", questionID).
+		Order("question_packages.name").
+		Scan(&usages).Error
+	return usages, err
+}

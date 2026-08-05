@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,7 +36,8 @@ function TeacherQuestionBank() {
   const [page, setPage] = useState(1)
   const perPage = 10
   const [previewTarget, setPreviewTarget] = useState<QuestionbankQuestionResponse | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<QuestionbankQuestionResponse | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<QuestionbankQuestionResponse[] | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 
   const chapterOptions = [
     { label: "Semua Chapter", value: "all" },
@@ -49,6 +51,20 @@ function TeacherQuestionBank() {
   })
   const totalPages = Math.ceil(filtered.length / perPage)
   const paged = filtered.slice((page - 1) * perPage, page * perPage)
+
+  const allSelected = paged.length > 0 && selectedIds.size === paged.length
+  const toggleAll = () => {
+    if (allSelected) setSelectedIds(new Set())
+    else setSelectedIds(new Set(paged.map((q) => q.id!).filter((id) => id !== undefined)))
+  }
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   // Sync URL → local state when search changes externally
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
@@ -102,6 +118,14 @@ function TeacherQuestionBank() {
             </Select>
           </div>
           <div className="flex items-center gap-2">
+            {selectedIds.size > 0 && (
+              <Button
+                variant="destructive"
+                onClick={() => setDeleteConfirm(questions.filter((q) => q.id != null && selectedIds.has(q.id)))}
+              >
+                <Trash2 className="mr-1 h-4 w-4" /> Hapus Terpilih ({selectedIds.size})
+              </Button>
+            )}
             <Link to="/teacher/question-bank/import">
               <Button variant="outline"><UploadCloud className="mr-1 h-4 w-4" /> Import dari Word</Button>
             </Link>
@@ -116,7 +140,10 @@ function TeacherQuestionBank() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
-                  <TableHead className="pl-6">Pertanyaan</TableHead>
+                  <TableHead className="w-10 pl-4">
+                    <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
+                  </TableHead>
+                  <TableHead className="pl-0">Pertanyaan</TableHead>
                   <TableHead>Chapter</TableHead>
                   <TableHead>Jumlah Opsi</TableHead>
                   <TableHead>Tanggal</TableHead>
@@ -127,7 +154,8 @@ function TeacherQuestionBank() {
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={`skeleton-${i}`}>
-                      <TableCell className="pl-6"><Skeleton className="h-4 w-56" /></TableCell>
+                      <TableCell className="w-10 pl-4"><Skeleton className="h-4 w-4" /></TableCell>
+                      <TableCell className="pl-0"><Skeleton className="h-4 w-56" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
@@ -135,10 +163,16 @@ function TeacherQuestionBank() {
                     </TableRow>
                   ))
                 ) : paged.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada soal</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Belum ada soal</TableCell></TableRow>
                 ) : paged.map((q) => (
                   <TableRow key={q.id}>
-                    <TableCell className="pl-6 font-medium max-w-[400px] truncate">{stripHtml(q.question ?? "")}</TableCell>
+                    <TableCell className="w-10 pl-4">
+                      <Checkbox
+                        checked={selectedIds.has(q.id!)}
+                        onCheckedChange={() => toggleSelect(q.id!)}
+                      />
+                    </TableCell>
+                    <TableCell className="pl-0 font-medium max-w-[400px] truncate">{stripHtml(q.question ?? "")}</TableCell>
                     <TableCell className="text-muted-foreground">{q.chapter_title || "-"}</TableCell>
                     <TableCell className="text-muted-foreground">{q.options?.length ?? 0}</TableCell>
                     <TableCell className="text-muted-foreground">{q.created_at}</TableCell>
@@ -154,7 +188,7 @@ function TeacherQuestionBank() {
                           <DropdownMenuItem render={<Link to="/teacher/question-bank/$id/edit" params={{ id: String(q.id!) }} />}>
                             <Pencil className="h-4 w-4" /> Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDeleteConfirm(q)}>
+                          <DropdownMenuItem onClick={() => setDeleteConfirm([q])}>
                             <Trash2 className="h-4 w-4" /> Hapus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -183,7 +217,7 @@ function TeacherQuestionBank() {
       )}
 
       {deleteConfirm && (
-        <DeleteQuestionDialog question={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+        <DeleteQuestionDialog questions={deleteConfirm} onClose={() => { setDeleteConfirm(null); setSelectedIds(new Set()) }} />
       )}
     </>
   )

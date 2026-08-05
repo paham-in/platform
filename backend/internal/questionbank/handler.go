@@ -107,26 +107,28 @@ func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
 	return c.JSON(question)
 }
 
-// DeleteQuestion menghapus soal
-// @Summary      Delete question
-// @Description  Menghapus soal dari bank soal
+// DeleteQuestions menghapus banyak soal sekaligus
+// @Summary      Bulk delete questions
+// @Description  Menghapus banyak soal dari bank soal dalam satu request
 // @Tags         QuestionBank
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "Question ID"
-// @Success      200 {object} MessageResponse
-// @Router       /admin/questions-bank/{id} [delete]
-func (h *Handler) DeleteQuestion(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
-	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+// @Param        body body object true "Daftar ID soal yang akan dihapus" SchemaExample({"ids":[1,2,3]})
+// @Success      200 {object} BulkDeleteResult
+// @Router       /admin/questions-bank [delete]
+func (h *Handler) BulkDeleteQuestions(c *fiber.Ctx) error {
+	var input struct {
+		Ids []uint `json:"ids"`
 	}
-
-	if err := h.svc.Delete(uint(id)); err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
-	return c.JSON(MessageResponse{Message: "soal berhasil dihapus"})
+	if len(input.Ids) == 0 {
+		return c.Status(400).JSON(ErrorResponse{Error: "ids wajib diisi"})
+	}
+	result := h.svc.BulkDelete(input.Ids)
+	return c.JSON(result)
 }
 
 // ListQuestionsPaginated mengembalikan daftar soal bank dengan pagination
@@ -168,5 +170,5 @@ func Routes(admin fiber.Router, db *gorm.DB) {
 	admin.Get("/questions-bank/paginated", h.ListQuestionsPaginated)
 	admin.Post("/questions-bank", h.CreateQuestion)
 	admin.Patch("/questions-bank/:id", h.UpdateQuestion)
-	admin.Delete("/questions-bank/:id", h.DeleteQuestion)
+	admin.Delete("/questions-bank", h.BulkDeleteQuestions)
 }

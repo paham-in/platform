@@ -1122,6 +1122,43 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus banyak soal dari bank soal dalam satu request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionBank"
+                ],
+                "summary": "Bulk delete questions",
+                "parameters": [
+                    {
+                        "description": "Daftar ID soal yang akan dihapus",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/questionbank.BulkDeleteResult"
+                        }
+                    }
+                }
             }
         },
         "/admin/questions-bank/paginated": {
@@ -1173,41 +1210,6 @@ const docTemplate = `{
             }
         },
         "/admin/questions-bank/{id}": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Menghapus soal dari bank soal",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "QuestionBank"
-                ],
-                "summary": "Delete question",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Question ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/questionbank.MessageResponse"
-                        }
-                    }
-                }
-            },
             "patch": {
                 "security": [
                     {
@@ -3326,6 +3328,34 @@ const docTemplate = `{
                 }
             }
         },
+        "questionbank.BulkDeleteFailedItem": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "questionbank.BulkDeleteResult": {
+            "type": "object",
+            "properties": {
+                "deleted": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "failed": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/questionbank.BulkDeleteFailedItem"
+                    }
+                }
+            }
+        },
         "questionbank.CreateInput": {
             "type": "object",
             "properties": {
@@ -3353,14 +3383,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "questionbank.MessageResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
                     "type": "string"
                 }
             }
