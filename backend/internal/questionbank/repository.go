@@ -17,7 +17,7 @@ func NewRepository(db *gorm.DB) *Repository {
 
 func (r *Repository) ListByChapter(chapterID uint) ([]models.QuestionbankQuestion, error) {
 	var questions []models.QuestionbankQuestion
-	if err := r.db.Where("chapter_id = ?", chapterID).Preload("User").Preload("Answers", func(db *gorm.DB) *gorm.DB {
+	if err := r.db.Where("chapter_id = ?", chapterID).Preload("User").Preload("Chapter").Preload("Answers", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order asc")
 	}).Order("created_at desc").Find(&questions).Error; err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (r *Repository) List() ([]models.QuestionbankQuestion, error) {
 // (bank bersama) jika createdBy == 0.
 func (r *Repository) ListFiltered(createdBy uint) ([]models.QuestionbankQuestion, error) {
 	var questions []models.QuestionbankQuestion
-	q := r.db.Preload("User").Preload("Answers", func(db *gorm.DB) *gorm.DB {
+	q := r.db.Preload("User").Preload("Chapter").Preload("Answers", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order asc")
 	}).Order("created_at desc")
 	if createdBy > 0 {
@@ -48,7 +48,7 @@ func (r *Repository) ListFiltered(createdBy uint) ([]models.QuestionbankQuestion
 
 func (r *Repository) Get(id uint) (*models.QuestionbankQuestion, error) {
 	var q models.QuestionbankQuestion
-	if err := r.db.Preload("Answers", func(db *gorm.DB) *gorm.DB {
+	if err := r.db.Preload("User").Preload("Chapter").Preload("Answers", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order asc")
 	}).First(&q, id).Error; err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (r *Repository) ListPaginated(chapterID uint, page, perPage int) ([]models.
 		page = 1
 	}
 	offset := (page - 1) * perPage
-	q := r.db.Preload("Answers", func(db *gorm.DB) *gorm.DB {
+	q := r.db.Preload("User").Preload("Chapter").Preload("Answers", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order asc")
 	}).Order("created_at desc")
 	if chapterID > 0 {
