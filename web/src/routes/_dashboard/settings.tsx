@@ -17,10 +17,12 @@ import {
   patchMeMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { BookOpen, Loader2, Save } from "lucide-react"
+import { getPushPublicKey, postPushSubscribe } from "@/lib/api/sdk.gen"
+import { BookOpen, Loader2, Save, Bell, BellOff } from "lucide-react"
 import { toast } from "sonner"
 
 function SettingsPage() {
@@ -33,6 +35,11 @@ function SettingsPage() {
   const [classId, setClassId] = useState("")
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([])
   const [initialized, setInitialized] = useState(false)
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">(
+    typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
+  )
+  const [notifSubscribing, setNotifSubscribing] = useState(false)
+  const [showNotifHelp, setShowNotifHelp] = useState(false)
 
   const classOptions = [
     { label: "Tidak ada", value: "none" },
@@ -97,6 +104,92 @@ function SettingsPage() {
     if (Object.keys(body).length === 0) return
     updateProfile.mutate({ body })
   }
+
+  const enableNotifications = async () => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      toast.error("Browser tidak mendukung notifikasi push")
+      setNotifPermission("unsupported")
+      return
+    }
+    setNotifSubscribing(true)
+    try {
+      const perm = await Notification.requestPermission()
+      setNotifPermission(perm)
+      if (perm !== "granted") {
+        toast.error("Izin notifikasi ditolak")
+        return
+      }
+
+      const reg = await navigator.serviceWorker.register("/sw.js")
+      const pub = await getPushPublicKey()
+      const pubKey = pub?.data?.public_key
+      if (!pubKey) {
+        toast.error("Konfigurasi push belum siap")
+        return
+      }
+      const applicationServerKey = urlBase64ToUint8Array(pubKey)
+
+      const subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: applicationServerKey as unknown as BufferSource,
+      })
+
+      const subJson = subscription.toJSON()
+      await postPushSubscribe({
+        body: {
+          endpoint: subJson.endpoint ?? "",
+          keys: { p256dh: subJson.keys?.p256dh ?? "", auth: subJson.keys?.auth ?? "" },
+        },
+      })
+
+      toast.success("Notifikasi diaktifkan. Kamu akan mendapat pemberitahuan saat ada jawaban baru.")
+    } catch (err: any) {
+      toast.error(err?.message || "Gagal mengaktifkan notifikasi")
+    } finally {
+      setNotifSubscribing(false)
+    }
+  }
+
+  // Tampilkan dialog instruksi cara mengubah izin notifikasi di browser.
+  const openBrowserSettings = () => setShowNotifHelp(true)
+
+  // Deteksi browser untuk menampilkan instruksi yang sesuai.
+  const browserName = (() => {
+    const ua = navigator.userAgent
+    if (ua.includes("Firefox")) return "Firefox"
+    if (ua.includes("Edg/")) return "Edge"
+    if (ua.includes("Chrome")) return "Chrome"
+    if (ua.includes("Safari")) return "Safari"
+    return "Browser"
+  })()
+
+  const notifHelpSteps =
+    browserName === "Chrome" || browserName === "Edge"
+      ? [
+          `Buka ikon gembok di samping alamat situs (${browserName})`,
+          "Klik 'Izin situs' atau 'Notifikasi'",
+          "Ubah status notifikasi menjadi 'Izinkan'",
+          "Refresh halaman ini, lalu klik 'Aktifkan'",
+        ]
+      : browserName === "Firefox"
+        ? [
+            "Klik ikon gembok di samping alamat situs",
+            "Pilih 'Edit izin situs...' atau 'Notifikasi'",
+            "Ubah status notifikasi menjadi 'Izinkan'",
+            "Refresh halaman ini, lalu klik 'Aktifkan'",
+          ]
+        : browserName === "Safari"
+          ? [
+              "Klik 'Safari' di menu bar → 'Pengaturan'",
+              "Tab 'Situs Web' → 'Notifikasi'",
+              "Cari situs ini, ubah menjadi 'Izinkan'",
+              "Refresh halaman ini, lalu klik 'Aktifkan'",
+            ]
+          : [
+              "Buka pengaturan notifikasi di browser kamu",
+              "Cari izin untuk situs ini dan ubah menjadi 'Izinkan'",
+              "Refresh halaman ini, lalu klik 'Aktifkan'",
+            ]
 
   return (
     <main className="p-6">
@@ -164,6 +257,48 @@ function SettingsPage() {
         </Card>
       )}
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" /> Notifikasi
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Aktifkan notifikasi untuk mendapat pemberitahuan saat pertanyaanmu dijawab.
+          </p>
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="flex items-center gap-3">
+              {notifPermission === "granted" ? (
+                <Bell className="h-5 w-5 text-green-600" />
+              ) : (
+                <BellOff className="h-5 w-5 text-muted-foreground" />
+              )}
+              <div>
+                <p className="text-sm font-medium">
+                  {notifPermission === "granted" ? "Notifikasi aktif" : "Notifikasi nonaktif"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {notifPermission === "granted"
+                    ? "Kamu akan menerima notifikasi di browser."
+                    : notifPermission === "denied"
+                      ? "Izin ditolak. Ubah di pengaturan browser untuk mengaktifkan."
+                      : "Belum diaktifkan."}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant={notifPermission === "granted" ? "outline" : "default"}
+              size="sm"
+              onClick={notifPermission === "denied" ? openBrowserSettings : enableNotifications}
+              disabled={notifPermission === "granted" || notifSubscribing}
+            >
+              {notifSubscribing ? <Spinner /> : notifPermission === "granted" ? "Aktif" : notifPermission === "denied" ? "Buka Pengaturan" : "Aktifkan"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div>
         <Button
           onClick={handleSave}
@@ -179,8 +314,39 @@ function SettingsPage() {
         </Button>
       </div>
       </div>
+
+      <Dialog open={showNotifHelp} onOpenChange={setShowNotifHelp}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mengaktifkan Notifikasi ({browserName})</DialogTitle>
+            <DialogDescription>
+              Izin notifikasi diblokir di browser. Ikuti langkah berikut untuk mengizinkan:
+            </DialogDescription>
+          </DialogHeader>
+          <ol className="list-decimal space-y-2 pl-5 text-sm">
+            {notifHelpSteps.map((step, i) => (
+              <li key={i}>{step}</li>
+            ))}
+          </ol>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNotifHelp(false)}>Tutup</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   )
+}
+
+// helper: konversi base64url VAPID key ke Uint8Array (dibutuhkan pushManager.subscribe)
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/")
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
 }
 
 export const Route = createFileRoute("/_dashboard/settings")({
