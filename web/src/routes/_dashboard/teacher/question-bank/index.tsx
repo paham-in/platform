@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { PreviewQuestionDialog, DeleteQuestionDialog, EditQuestionDialog } from "@/components/teacher/question-bank";
+import { PreviewQuestionDialog, DeleteQuestionDialog } from "@/components/teacher/question-bank";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminChaptersOptions, getAdminQuestionsBankOptions } from "@/lib/api/@tanstack/react-query.gen";
 import type { QuestionbankQuestionResponse } from "@/lib/api/types.gen";
@@ -34,7 +34,6 @@ function TeacherQuestionBank() {
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const [page, setPage] = useState(1)
   const perPage = 10
-  const [editTarget, setEditTarget] = useState<QuestionbankQuestionResponse | null>(null)
   const [previewTarget, setPreviewTarget] = useState<QuestionbankQuestionResponse | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<QuestionbankQuestionResponse | null>(null)
 
@@ -42,7 +41,6 @@ function TeacherQuestionBank() {
     { label: "Semua Chapter", value: "all" },
     ...chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) })),
   ]
-  const formChapterOptions = chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) }))
 
   const filtered = questions.filter((q) => {
     const matchChapter = chapterFilter === undefined || q.chapter_id === chapterFilter
@@ -51,8 +49,6 @@ function TeacherQuestionBank() {
   })
   const totalPages = Math.ceil(filtered.length / perPage)
   const paged = filtered.slice((page - 1) * perPage, page * perPage)
-
-  const openEdit = (q: QuestionbankQuestionResponse) => setEditTarget(q)
 
   // Sync URL → local state when search changes externally
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
@@ -155,7 +151,7 @@ function TeacherQuestionBank() {
                           <DropdownMenuItem onClick={() => setPreviewTarget(q)}>
                             <Eye className="h-4 w-4" /> Preview
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEdit(q)}>
+                          <DropdownMenuItem render={<Link to="/teacher/question-bank/$id/edit" params={{ id: String(q.id!) }} />}>
                             <Pencil className="h-4 w-4" /> Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setDeleteConfirm(q)}>
@@ -180,15 +176,6 @@ function TeacherQuestionBank() {
           )}
         </Card>
       </main>
-
-      {/* edit dialog */}
-      {editTarget && (
-        <EditQuestionDialog
-          question={editTarget}
-          chapters={formChapterOptions}
-          onClose={() => setEditTarget(null)}
-        />
-      )}
 
       {/* preview dialog */}
       {previewTarget && (
