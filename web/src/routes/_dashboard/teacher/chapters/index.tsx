@@ -43,8 +43,9 @@ import {
 import { postAdminChaptersByIdCover } from "@/lib/api/sdk.gen";
 import type { ChapterChapterResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   ImageIcon,
@@ -376,7 +377,11 @@ function AdminChapters() {
               <TableBody>
                 {paged.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell className="pl-6 font-medium">{c.title}</TableCell>
+                    <TableCell className="pl-6 font-medium">
+                      <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId: String(c.id!) }} className="hover:underline">
+                        {c.title}
+                      </Link>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {c.class_name}
                     </TableCell>
@@ -396,6 +401,11 @@ function AdminChapters() {
                             <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
+                          <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId: String(c.id!) }}>
+                            <DropdownMenuItem>
+                              <BookOpen className="h-4 w-4" /> Materi
+                            </DropdownMenuItem>
+                          </Link>
                           <DropdownMenuItem disabled={!c.cover_url} onClick={() => setCoverView(c)}>
                             <ImageIcon className="h-4 w-4" /> Lihat Cover
                           </DropdownMenuItem>
@@ -485,6 +495,6 @@ function AdminChapters() {
   );
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/chapters")({
+export const Route = createFileRoute("/_dashboard/teacher/chapters/")({
   component: AdminChapters,
 });

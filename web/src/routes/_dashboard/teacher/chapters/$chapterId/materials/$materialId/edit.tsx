@@ -11,20 +11,10 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import {
-  getAdminChaptersOptions,
-  getAdminClassesOptions,
   getAdminMaterialsByIdOptions,
   getAdminMaterialsQueryKey,
-  getSubjectsOptions,
   patchAdminMaterialsByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,19 +30,13 @@ function extractYoutubeId(url: string): string {
 }
 
 function EditMaterial() {
-  const { id } = useParams({ from: "/_dashboard/teacher/materials/$id/edit" });
+  const { chapterId, materialId } = useParams({ from: "/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit" });
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const { data: subjects = [] } = useQuery(getSubjectsOptions());
-  const { data: allChapters = [] } = useQuery(getAdminChaptersOptions());
-  const { data: classes = [] } = useQuery(getAdminClassesOptions());
-  const { data: material, isLoading } = useQuery(getAdminMaterialsByIdOptions({ path: { id: Number(id) } }));
+  const { data: material, isLoading } = useQuery(getAdminMaterialsByIdOptions({ path: { id: Number(materialId) } }));
 
-  const { draft, hasDraft, restored, debouncedSave, clear, restore, discard } = useDraft(id);
+  const { draft, hasDraft, restored, debouncedSave, clear, restore, discard } = useDraft(materialId);
 
-  const [classId, setClassId] = useState("");
-  const [subjectId, setSubjectId] = useState("");
-  const [chapterId, setChapterId] = useState("");
   const [title, setTitle] = useState("");
   const [type, setType] = useState("text");
   const [content, setContent] = useState("");
@@ -64,23 +48,19 @@ function EditMaterial() {
   // init from server data — only if no draft restore
   useEffect(() => {
     if (!material || initialLoad || restored) return;
-    const ch = allChapters.find((c) => c.id === material.chapter_id);
-    setClassId(String(ch?.class_id ?? ""));
-    setSubjectId(String(ch?.subject_id ?? ""));
-    setChapterId(String(material.chapter_id ?? ""));
     setTitle(material.title ?? "");
     setType(material.type ?? "text");
     setContent(material.content ?? "");
     setVideoUrl(material.video_url ?? "");
     setLoaded(true);
     setInitialLoad(true);
-  }, [material, allChapters, initialLoad, restored]);
+  }, [material, initialLoad, restored]);
 
   // autosave on change (skip during initial load)
   useEffect(() => {
     if (!title && !content && !videoUrl) return;
-    debouncedSave({ title, content, classId, subjectId, chapterId, type, videoUrl });
-  }, [title, content, classId, subjectId, chapterId, type, videoUrl, debouncedSave]);
+    debouncedSave({ title, content, classId: "", subjectId: "", chapterId, type, videoUrl });
+  }, [title, content, type, videoUrl, chapterId, debouncedSave]);
 
   // warn on tab close
   useEffect(() => {
@@ -93,23 +73,13 @@ function EditMaterial() {
     return () => window.removeEventListener("beforeunload", onBefore);
   }, [title, content, videoUrl]);
 
-  const availableSubjects = classId
-    ? subjects.filter((s) => (s.class_ids ?? []).includes(Number(classId)))
-    : [];
-  const availableChapters = subjectId
-    ? allChapters.filter((c) => String(c.subject_id) === subjectId)
-    : [];
-  const classOptions = classes.map((c) => ({ label: c.name ?? "", value: String(c.id) }));
-  const subjectOptions = availableSubjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }));
-  const chapterOptions = availableChapters.map((c) => ({ label: c.title ?? "", value: String(c.id) }));
-
   const { mutate: update, isPending } = useMutation({
     ...patchAdminMaterialsByIdMutation(),
     onSuccess: () => {
       clear();
       qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
       toast.success("Materi berhasil disimpan");
-      navigate({ to: "/teacher/materials" });
+      navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId } });
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal menyimpan materi");
@@ -119,7 +89,6 @@ function EditMaterial() {
   const save = () => {
     const body: Record<string, unknown> = {};
     if (title) body.title = title;
-    if (chapterId) body.chapter_id = Number(chapterId);
     body.type = type;
     if (type === "text") {
       if (content) body.content = content;
@@ -128,10 +97,7 @@ function EditMaterial() {
       body.content = "";
       if (videoUrl) body.video_url = videoUrl;
     }
-    update({
-      path: { id: Number(id) },
-      body,
-    });
+    update({ path: { id: Number(materialId) }, body });
   };
 
   if (isLoading && !loaded) {
@@ -146,70 +112,9 @@ function EditMaterial() {
     <>
       <main className="p-6">
         <div className="mx-auto max-w-4xl space-y-6">
-          <Link to="/teacher/materials" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Kembali
           </Link>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Kelas</Label>
-              <Select
-                items={classOptions}
-                value={classId}
-                onValueChange={(v) => { setClassId(v ?? ""); setSubjectId(""); setChapterId(""); }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih kelas">
-                    {classes.find((c) => String(c.id) === classId)?.name}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {classOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Subjek</Label>
-              <Select
-                items={subjectOptions}
-                value={subjectId}
-                onValueChange={(v) => { setSubjectId(v ?? ""); setChapterId(""); }}
-                disabled={!classId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={classId ? "Pilih subjek" : "Pilih kelas dulu"}>
-                    {availableSubjects.find((s) => String(s.id) === subjectId)?.name}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {subjectOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Chapter</Label>
-              <Select
-                items={chapterOptions}
-                value={chapterId}
-                onValueChange={(v) => setChapterId(v ?? "")}
-                disabled={!subjectId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={subjectId ? "Pilih chapter" : "Pilih subjek dulu"}>
-                    {availableChapters.find((c) => String(c.id) === chapterId)?.title}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {chapterOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
           <div className="space-y-2">
             <Label>Judul</Label>
@@ -282,8 +187,8 @@ function EditMaterial() {
           )}
 
           <div className="flex justify-end gap-3 pt-4">
-            <Link to="/teacher/materials"><Button variant="outline" type="button">Batal</Button></Link>
-            <Button onClick={save} disabled={!title || !chapterId || isPending || (type === "video" && !videoUrl)}>
+            <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId }}><Button variant="outline" type="button">Batal</Button></Link>
+            <Button onClick={save} disabled={!title || isPending || (type === "video" && !videoUrl)}>
               {isPending && <Spinner />}
               Simpan
             </Button>
@@ -302,7 +207,7 @@ function EditMaterial() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => { discard(); setShowDraftDialog(false) }}>Mulai dari Server</Button>
-            <Button onClick={() => { restore(); if (draft) { setTitle(draft.title); setContent(draft.content); setClassId(draft.classId); setSubjectId(draft.subjectId); setChapterId(draft.chapterId); setType(draft.type || "text"); setVideoUrl(draft.videoUrl || ""); setLoaded(true) } setShowDraftDialog(false) }}>Lanjutkan Draft</Button>
+            <Button onClick={() => { restore(); if (draft) { setTitle(draft.title); setContent(draft.content); setType(draft.type || "text"); setVideoUrl(draft.videoUrl || ""); setLoaded(true) } setShowDraftDialog(false) }}>Lanjutkan Draft</Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -310,6 +215,6 @@ function EditMaterial() {
   );
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/materials/$id/edit")({
+export const Route = createFileRoute("/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit")({
   component: EditMaterial,
 });

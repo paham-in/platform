@@ -62,8 +62,7 @@ const sidebarGroups = [
     roles: ["teacher"],
     links: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/teacher/dashboard" },
-      { label: "Chapter", icon: BookOpen, to: "/teacher/chapters" },
-      { label: "Materi", icon: BookMarked, to: "/teacher/materials" },
+      { label: "Materi", icon: BookOpen, to: "/teacher/chapters" },
       { label: "Bank Soal", icon: ListChecks, to: "/teacher/question-bank" },
       { label: "Paket Soal", icon: Package, to: "/teacher/packs" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/teacher/forum" },
