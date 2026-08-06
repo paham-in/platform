@@ -29,10 +29,15 @@ export function EditRoleDialog({ user, onClose }: EditRoleDialogProps) {
     onError: (err: any) => toast.error(err.error || "Gagal mengubah role"),
   })
 
+  // role "student" & "user" tidak bisa digabung dengan role lain (hanya teacher/admin yang multi-role)
+  const multiRoleOk = (roles: string[]) =>
+    roles.every((r) => r === "teacher" || r === "admin")
+
   const toggleRole = (role: string) => {
-    setSelectedRoles((prev) =>
-      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
-    )
+    setSelectedRoles((prev) => {
+      const next = prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
+      return multiRoleOk(next) ? next : prev // tolak kombinasi student/user + role lain
+    })
   }
 
   const save = () => {

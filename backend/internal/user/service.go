@@ -246,6 +246,14 @@ func (s *Service) UpdateUserRole(id uint, roles []string) error {
 	if len(roles) == 0 {
 		return errors.New("minimal 1 role")
 	}
+	// hanya teacher & admin yang boleh multi-role; student/user harus single-role
+	if len(roles) > 1 {
+		for _, r := range roles {
+			if r == "student" || r == "user" {
+				return errors.New("role " + r + " tidak boleh digabung dengan role lain")
+			}
+		}
+	}
 	return s.userRepo.UpdateRole(id, roles)
 }
 
