@@ -1,15 +1,13 @@
 import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
 import { RichContent } from "@/components/ui/rich-content"
 import { Badge } from "@/components/ui/badge"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getAdminChaptersOptions, getAdminQuestionsBankOptions, getAdminQuestionsBankQueryKey, postAdminQuestionsBankMutation } from "@/lib/api/@tanstack/react-query.gen"
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { getAdminQuestionPackagesByIdQuestionsOptions, getAdminQuestionPackagesQueryKey, postAdminQuestionPackagesByIdQuestionsMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router"
 import { ArrowLeft, UploadCloud, FileText, CheckCircle2, XCircle, Download, HelpCircle } from "lucide-react"
 import { toast } from "sonner"
 import { unzipDocx, parseDocumentXml, buildQuestions, generateTemplateDocx, type ImportQuestion } from "@/lib/docx-parser"
@@ -24,29 +22,26 @@ function normalizeQuestion(html: string): string {
 }
 
 function ImportQuestions() {
+  const { packageId } = useParams({ from: "/_dashboard/teacher/packs/$packageId/import" })
   const qc = useQueryClient()
   const navigate = useNavigate()
-  const { data: chapters = [] } = useQuery(getAdminChaptersOptions())
-  const { data: existingQuestions = [] } = useQuery(getAdminQuestionsBankOptions())
+  const { data: existingQuestions = [] } = useQuery(getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) } }))
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [parsing, setParsing] = useState(false)
   const [fileName, setFileName] = useState("")
   const [questions, setQuestions] = useState<ImportQuestion[]>([])
   const [selected, setSelected] = useState<Set<number>>(new Set())
-  const [chapterId, setChapterId] = useState("")
   const [parseError, setParseError] = useState("")
-
-  const chapterOptions = chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) }))
 
   // Set soal yang sudah ada (normalized) untuk deteksi duplikasi
   const existingSet = new Set(existingQuestions.map((q) => normalizeQuestion(q.question ?? "")))
   const isDuplicate = (i: number) => existingSet.has(normalizeQuestion(questions[i]?.question ?? ""))
 
   const { mutate: createQuestion, isPending } = useMutation({
-    ...postAdminQuestionsBankMutation(),
+    ...postAdminQuestionPackagesByIdQuestionsMutation(),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getAdminQuestionsBankQueryKey() })
+      qc.invalidateQueries({ queryKey: getAdminQuestionPackagesQueryKey() })
     },
   })
 
@@ -92,15 +87,11 @@ function ImportQuestions() {
   }
 
   const importSelected = () => {
-    if (!chapterId) {
-      toast.error("Pilih chapter terlebih dahulu")
-      return
-    }
     const toImport = questions.filter((_, i) => selected.has(i))
     toImport.forEach((q) => {
       createQuestion({
+        path: { id: Number(packageId) },
         body: {
-          chapter_id: Number(chapterId),
           question: q.question,
           answers: q.options.map((opt, idx) => ({ content: opt, is_correct: idx === q.correctIndex })),
           explanation: q.explanation,
@@ -108,7 +99,7 @@ function ImportQuestions() {
       })
     })
     toast.success(`${toImport.length} soal berhasil diimport`)
-    navigate({ to: "/teacher/question-bank" })
+    navigate({ to: "/teacher/packs/$packageId", params: { packageId } })
   }
 
   const downloadTemplate = async () => {
@@ -117,7 +108,7 @@ function ImportQuestions() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = "template-soal-bank.docx"
+      a.download = "template-soal.docx"
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -130,7 +121,7 @@ function ImportQuestions() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-4xl space-y-6">
-        <Link to="/teacher/question-bank" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link to="/teacher/packs/$packageId" params={{ packageId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Link>
 
@@ -227,16 +218,7 @@ function ImportQuestions() {
                 <span className="text-sm">Pilih semua ({selected.size}/{questions.length})</span>
               </div>
               <div className="ml-auto flex items-center gap-2">
-                <Label className="text-sm">Chapter</Label>
-                <Select items={chapterOptions} value={chapterId} onValueChange={(v) => setChapterId(v ?? "")}>
-                  <SelectTrigger className="w-[220px]"><SelectValue placeholder="Pilih chapter" /></SelectTrigger>
-                  <SelectContent>
-                    {chapterOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button onClick={importSelected} disabled={selected.size === 0 || !chapterId || isPending}>
+                <Button onClick={importSelected} disabled={selected.size === 0 || isPending}>
                   {isPending ? <Spinner /> : <CheckCircle2 className="h-4 w-4" />}
                   Import Terpilih
                 </Button>
@@ -300,6 +282,6 @@ function ImportQuestions() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/question-bank/import")({
+export const Route = createFileRoute("/_dashboard/teacher/packs/$packageId/import")({
   component: ImportQuestions,
 })

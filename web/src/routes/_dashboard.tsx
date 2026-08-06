@@ -25,7 +25,6 @@ import {
   Users,
   X,
   Calendar,
-  Package,
 } from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "@/components/theme-provider";
@@ -63,8 +62,7 @@ const sidebarGroups = [
     links: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/teacher/dashboard" },
       { label: "Materi", icon: BookOpen, to: "/teacher/chapters" },
-      { label: "Bank Soal", icon: ListChecks, to: "/teacher/question-bank" },
-      { label: "Paket Soal", icon: Package, to: "/teacher/packs" },
+      { label: "Paket Soal", icon: ListChecks, to: "/teacher/packs" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/teacher/forum" },
       { label: "Les Privat", icon: Calendar, to: "/teacher/tutoring" },
     ],

@@ -23,51 +23,47 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-// ListQuestions mengembalikan daftar soal bank
-// @Summary      List question bank
-// @Description  Mengembalikan daftar soal, bisa difilter dengan chapter_id dan created_by
-// @Tags         QuestionbankQuestion
+// ListQuestions mengembalikan daftar soal dalam paket
+// @Summary      List package questions
+// @Description  Mengembalikan daftar soal dalam sebuah paket soal
+// @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        chapter_id query int false "Filter by chapter ID"
-// @Param        created_by query int false "Filter by creator user ID"
+// @Param        id path int true "Package ID"
 // @Success      200 {array} QuestionResponse
-// @Router       /admin/questions-bank [get]
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/question-packages/{id}/questions [get]
 func (h *Handler) ListQuestions(c *fiber.Ctx) error {
-	// Support filter chapter + created_by (server-side).
-	if chapterIDStr := c.Query("chapter_id"); chapterIDStr != "" {
-		chapterID, err := strconv.ParseUint(chapterIDStr, 10, 64)
-		if err != nil {
-			return c.Status(400).JSON(ErrorResponse{Error: "chapter_id tidak valid"})
-		}
-		questions, err := h.svc.ListByChapter(uint(chapterID))
-		if err != nil {
-			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
-		}
-		return c.JSON(questions)
+	packageID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id paket tidak valid"})
 	}
-
-	createdBy, _ := strconv.ParseUint(c.Query("created_by"), 10, 64)
-	questions, err := h.svc.ListFiltered(uint(createdBy))
+	questions, err := h.svc.ListByPackage(uint(packageID))
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
 	return c.JSON(questions)
 }
 
-// CreateQuestion menambah soal baru
-// @Summary      Create question
-// @Description  Menambah soal baru ke bank soal
-// @Tags         QuestionbankQuestion
+// CreateQuestion menambah soal baru ke dalam paket
+// @Summary      Create package question
+// @Description  Menambah soal baru ke dalam paket soal
+// @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
+// @Param        id   path int       true "Package ID"
 // @Param        body body CreateInput true "Data soal"
 // @Success      201 {object} QuestionResponse
 // @Failure      400 {object} ErrorResponse
-// @Router       /admin/questions-bank [post]
+// @Router       /admin/question-packages/{id}/questions [post]
 func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
+	packageID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id paket tidak valid"})
+	}
+
 	var input CreateInput
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
@@ -78,29 +74,34 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 		input.UserID = userID
 	}
 
-	question, err := h.svc.Create(input)
+	question, err := h.svc.Create(uint(packageID), input)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.Status(201).JSON(question)
 }
 
-// UpdateQuestion mengubah soal
-// @Summary      Update question
-// @Description  Mengubah soal di bank soal
-// @Tags         QuestionbankQuestion
+// UpdateQuestion mengubah soal dalam paket
+// @Summary      Update package question
+// @Description  Mengubah soal dalam paket soal
+// @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id   path int       true "Question ID"
+// @Param        id   path int       true "Package ID"
+// @Param        qid  path int       true "Question ID"
 // @Param        body body UpdateInput true "Data update"
 // @Success      200 {object} QuestionResponse
 // @Failure      400 {object} ErrorResponse
-// @Router       /admin/questions-bank/{id} [patch]
+// @Router       /admin/question-packages/{id}/questions/{qid} [patch]
 func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	_, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+		return c.Status(400).JSON(ErrorResponse{Error: "id paket tidak valid"})
+	}
+	id, err := strconv.ParseUint(c.Params("qid"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id soal tidak valid"})
 	}
 
 	var input UpdateInput
@@ -115,58 +116,32 @@ func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
 	return c.JSON(question)
 }
 
-// DeleteQuestions menghapus banyak soal sekaligus
-// @Summary      Bulk delete questions
-// @Description  Menghapus banyak soal dari bank soal dalam satu request
-// @Tags         QuestionbankQuestion
+// DeleteQuestion menghapus soal dalam paket
+// @Summary      Delete package question
+// @Description  Menghapus soal dari paket soal
+// @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body body object true "Daftar ID soal yang akan dihapus" SchemaExample({"ids":[1,2,3]})
-// @Success      200 {object} BulkDeleteResult
-// @Router       /admin/questions-bank [delete]
-func (h *Handler) BulkDeleteQuestions(c *fiber.Ctx) error {
-	var input struct {
-		Ids []uint `json:"ids"`
-	}
-	if err := c.BodyParser(&input); err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
-	}
-	if len(input.Ids) == 0 {
-		return c.Status(400).JSON(ErrorResponse{Error: "ids wajib diisi"})
-	}
-	result := h.svc.BulkDelete(input.Ids)
-	return c.JSON(result)
-}
-
-// ListQuestionsPaginated mengembalikan daftar soal bank dengan pagination
-// @Summary      List question bank (paginated)
-// @Description  Mengembalikan daftar soal dengan pagination, bisa difilter dengan chapter_id
-// @Tags         QuestionbankQuestion
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        chapter_id query int false "Filter by chapter ID"
-// @Param        page query int false "Page number (default 1)"
-// @Param        per_page query int false "Items per page (default 10)"
-// @Success      200 {object} PaginatedResponse
-// @Router       /admin/questions-bank/paginated [get]
-func (h *Handler) ListQuestionsPaginated(c *fiber.Ctx) error {
-	chapterID, _ := strconv.ParseUint(c.Query("chapter_id"), 10, 64)
-	page, _ := strconv.Atoi(c.Query("page"))
-	if page == 0 {
-		page = 1
-	}
-	perPage, _ := strconv.Atoi(c.Query("per_page"))
-	if perPage == 0 {
-		perPage = 10
-	}
-
-	result, err := h.svc.ListPaginated(uint(chapterID), page, perPage)
+// @Param        id  path int true "Package ID"
+// @Param        qid path int true "Question ID"
+// @Success      200 {object} MessageResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/question-packages/{id}/questions/{qid} [delete]
+func (h *Handler) DeleteQuestion(c *fiber.Ctx) error {
+	_, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+		return c.Status(400).JSON(ErrorResponse{Error: "id paket tidak valid"})
 	}
-	return c.JSON(result)
+	id, err := strconv.ParseUint(c.Params("qid"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id soal tidak valid"})
+	}
+
+	if err := h.svc.Delete(uint(id)); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "gagal menghapus soal"})
+	}
+	return c.JSON(MessageResponse{Message: "soal berhasil dihapus"})
 }
 
 func Routes(admin fiber.Router, db *gorm.DB) {
@@ -174,9 +149,8 @@ func Routes(admin fiber.Router, db *gorm.DB) {
 	svc := NewService(repo)
 	h := NewHandler(svc)
 
-	admin.Get("/questions-bank", h.ListQuestions)
-	admin.Get("/questions-bank/paginated", h.ListQuestionsPaginated)
-	admin.Post("/questions-bank", h.CreateQuestion)
-	admin.Patch("/questions-bank/:id", h.UpdateQuestion)
-	admin.Delete("/questions-bank", h.BulkDeleteQuestions)
+	admin.Get("/question-packages/:id/questions", h.ListQuestions)
+	admin.Post("/question-packages/:id/questions", h.CreateQuestion)
+	admin.Patch("/question-packages/:id/questions/:qid", h.UpdateQuestion)
+	admin.Delete("/question-packages/:id/questions/:qid", h.DeleteQuestion)
 }

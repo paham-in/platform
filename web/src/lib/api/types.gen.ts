@@ -209,19 +209,8 @@ export type QuestionbankAnswerResponse = {
     is_correct?: boolean;
 };
 
-export type QuestionbankBulkDeleteFailedItem = {
-    error?: string;
-    id?: number;
-};
-
-export type QuestionbankBulkDeleteResult = {
-    deleted?: Array<number>;
-    failed?: Array<QuestionbankBulkDeleteFailedItem>;
-};
-
 export type QuestionbankCreateInput = {
     answers?: Array<QuestionbankQuestionbankAnswerInput>;
-    chapter_id?: number;
     explanation?: string;
     question?: string;
     user_id?: number;
@@ -231,25 +220,16 @@ export type QuestionbankErrorResponse = {
     error?: string;
 };
 
-export type QuestionbankPaginatedResponse = {
-    data?: Array<QuestionbankQuestionResponse>;
-    meta?: QuestionbankPaginationMeta;
-};
-
-export type QuestionbankPaginationMeta = {
-    page?: number;
-    per_page?: number;
-    total?: number;
-    total_pages?: number;
+export type QuestionbankMessageResponse = {
+    message?: string;
 };
 
 export type QuestionbankQuestionResponse = {
     answers?: Array<QuestionbankAnswerResponse>;
-    chapter_id?: number;
-    chapter_title?: string;
     created_at?: string;
     explanation?: string;
     id?: number;
+    package_id?: number;
     question?: string;
     user_id?: number;
     user_name?: string;
@@ -262,7 +242,6 @@ export type QuestionbankQuestionbankAnswerInput = {
 
 export type QuestionbankUpdateInput = {
     answers?: Array<QuestionbankQuestionbankAnswerInput>;
-    chapter_id?: number;
     explanation?: string;
     question?: string;
 };
@@ -270,7 +249,6 @@ export type QuestionbankUpdateInput = {
 export type QuestionpackageCreateInput = {
     description?: string;
     name?: string;
-    question_ids?: Array<number>;
 };
 
 export type QuestionpackageErrorResponse = {
@@ -297,7 +275,6 @@ export type QuestionpackagePackageResponse = {
 export type QuestionpackageUpdateInput = {
     description?: string;
     name?: string;
-    question_ids?: Array<number>;
 };
 
 export type SubjectCreateInput = {
@@ -1061,6 +1038,140 @@ export type PatchAdminQuestionPackagesByIdResponses = {
 
 export type PatchAdminQuestionPackagesByIdResponse = PatchAdminQuestionPackagesByIdResponses[keyof PatchAdminQuestionPackagesByIdResponses];
 
+export type GetAdminQuestionPackagesByIdQuestionsData = {
+    body?: never;
+    path: {
+        /**
+         * Package ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/question-packages/{id}/questions';
+};
+
+export type GetAdminQuestionPackagesByIdQuestionsErrors = {
+    /**
+     * Bad Request
+     */
+    400: QuestionbankErrorResponse;
+};
+
+export type GetAdminQuestionPackagesByIdQuestionsError = GetAdminQuestionPackagesByIdQuestionsErrors[keyof GetAdminQuestionPackagesByIdQuestionsErrors];
+
+export type GetAdminQuestionPackagesByIdQuestionsResponses = {
+    /**
+     * OK
+     */
+    200: Array<QuestionbankQuestionResponse>;
+};
+
+export type GetAdminQuestionPackagesByIdQuestionsResponse = GetAdminQuestionPackagesByIdQuestionsResponses[keyof GetAdminQuestionPackagesByIdQuestionsResponses];
+
+export type PostAdminQuestionPackagesByIdQuestionsData = {
+    /**
+     * Data soal
+     */
+    body: QuestionbankCreateInput;
+    path: {
+        /**
+         * Package ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/question-packages/{id}/questions';
+};
+
+export type PostAdminQuestionPackagesByIdQuestionsErrors = {
+    /**
+     * Bad Request
+     */
+    400: QuestionbankErrorResponse;
+};
+
+export type PostAdminQuestionPackagesByIdQuestionsError = PostAdminQuestionPackagesByIdQuestionsErrors[keyof PostAdminQuestionPackagesByIdQuestionsErrors];
+
+export type PostAdminQuestionPackagesByIdQuestionsResponses = {
+    /**
+     * Created
+     */
+    201: QuestionbankQuestionResponse;
+};
+
+export type PostAdminQuestionPackagesByIdQuestionsResponse = PostAdminQuestionPackagesByIdQuestionsResponses[keyof PostAdminQuestionPackagesByIdQuestionsResponses];
+
+export type DeleteAdminQuestionPackagesByIdQuestionsByQidData = {
+    body?: never;
+    path: {
+        /**
+         * Package ID
+         */
+        id: number;
+        /**
+         * Question ID
+         */
+        qid: number;
+    };
+    query?: never;
+    url: '/admin/question-packages/{id}/questions/{qid}';
+};
+
+export type DeleteAdminQuestionPackagesByIdQuestionsByQidErrors = {
+    /**
+     * Bad Request
+     */
+    400: QuestionbankErrorResponse;
+};
+
+export type DeleteAdminQuestionPackagesByIdQuestionsByQidError = DeleteAdminQuestionPackagesByIdQuestionsByQidErrors[keyof DeleteAdminQuestionPackagesByIdQuestionsByQidErrors];
+
+export type DeleteAdminQuestionPackagesByIdQuestionsByQidResponses = {
+    /**
+     * OK
+     */
+    200: QuestionbankMessageResponse;
+};
+
+export type DeleteAdminQuestionPackagesByIdQuestionsByQidResponse = DeleteAdminQuestionPackagesByIdQuestionsByQidResponses[keyof DeleteAdminQuestionPackagesByIdQuestionsByQidResponses];
+
+export type PatchAdminQuestionPackagesByIdQuestionsByQidData = {
+    /**
+     * Data update
+     */
+    body: QuestionbankUpdateInput;
+    path: {
+        /**
+         * Package ID
+         */
+        id: number;
+        /**
+         * Question ID
+         */
+        qid: number;
+    };
+    query?: never;
+    url: '/admin/question-packages/{id}/questions/{qid}';
+};
+
+export type PatchAdminQuestionPackagesByIdQuestionsByQidErrors = {
+    /**
+     * Bad Request
+     */
+    400: QuestionbankErrorResponse;
+};
+
+export type PatchAdminQuestionPackagesByIdQuestionsByQidError = PatchAdminQuestionPackagesByIdQuestionsByQidErrors[keyof PatchAdminQuestionPackagesByIdQuestionsByQidErrors];
+
+export type PatchAdminQuestionPackagesByIdQuestionsByQidResponses = {
+    /**
+     * OK
+     */
+    200: QuestionbankQuestionResponse;
+};
+
+export type PatchAdminQuestionPackagesByIdQuestionsByQidResponse = PatchAdminQuestionPackagesByIdQuestionsByQidResponses[keyof PatchAdminQuestionPackagesByIdQuestionsByQidResponses];
+
 export type GetAdminQuestionsData = {
     body?: never;
     path?: never;
@@ -1085,142 +1196,6 @@ export type GetAdminQuestionsResponses = {
 };
 
 export type GetAdminQuestionsResponse = GetAdminQuestionsResponses[keyof GetAdminQuestionsResponses];
-
-export type DeleteAdminQuestionsBankData = {
-    /**
-     * Daftar ID soal yang akan dihapus
-     */
-    body: {
-        [key: string]: unknown;
-    };
-    path?: never;
-    query?: never;
-    url: '/admin/questions-bank';
-};
-
-export type DeleteAdminQuestionsBankResponses = {
-    /**
-     * OK
-     */
-    200: QuestionbankBulkDeleteResult;
-};
-
-export type DeleteAdminQuestionsBankResponse = DeleteAdminQuestionsBankResponses[keyof DeleteAdminQuestionsBankResponses];
-
-export type GetAdminQuestionsBankData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Filter by chapter ID
-         */
-        chapter_id?: number;
-        /**
-         * Filter by creator user ID
-         */
-        created_by?: number;
-    };
-    url: '/admin/questions-bank';
-};
-
-export type GetAdminQuestionsBankResponses = {
-    /**
-     * OK
-     */
-    200: Array<QuestionbankQuestionResponse>;
-};
-
-export type GetAdminQuestionsBankResponse = GetAdminQuestionsBankResponses[keyof GetAdminQuestionsBankResponses];
-
-export type PostAdminQuestionsBankData = {
-    /**
-     * Data soal
-     */
-    body: QuestionbankCreateInput;
-    path?: never;
-    query?: never;
-    url: '/admin/questions-bank';
-};
-
-export type PostAdminQuestionsBankErrors = {
-    /**
-     * Bad Request
-     */
-    400: QuestionbankErrorResponse;
-};
-
-export type PostAdminQuestionsBankError = PostAdminQuestionsBankErrors[keyof PostAdminQuestionsBankErrors];
-
-export type PostAdminQuestionsBankResponses = {
-    /**
-     * Created
-     */
-    201: QuestionbankQuestionResponse;
-};
-
-export type PostAdminQuestionsBankResponse = PostAdminQuestionsBankResponses[keyof PostAdminQuestionsBankResponses];
-
-export type GetAdminQuestionsBankPaginatedData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Filter by chapter ID
-         */
-        chapter_id?: number;
-        /**
-         * Page number (default 1)
-         */
-        page?: number;
-        /**
-         * Items per page (default 10)
-         */
-        per_page?: number;
-    };
-    url: '/admin/questions-bank/paginated';
-};
-
-export type GetAdminQuestionsBankPaginatedResponses = {
-    /**
-     * OK
-     */
-    200: QuestionbankPaginatedResponse;
-};
-
-export type GetAdminQuestionsBankPaginatedResponse = GetAdminQuestionsBankPaginatedResponses[keyof GetAdminQuestionsBankPaginatedResponses];
-
-export type PatchAdminQuestionsBankByIdData = {
-    /**
-     * Data update
-     */
-    body: QuestionbankUpdateInput;
-    path: {
-        /**
-         * Question ID
-         */
-        id: number;
-    };
-    query?: never;
-    url: '/admin/questions-bank/{id}';
-};
-
-export type PatchAdminQuestionsBankByIdErrors = {
-    /**
-     * Bad Request
-     */
-    400: QuestionbankErrorResponse;
-};
-
-export type PatchAdminQuestionsBankByIdError = PatchAdminQuestionsBankByIdErrors[keyof PatchAdminQuestionsBankByIdErrors];
-
-export type PatchAdminQuestionsBankByIdResponses = {
-    /**
-     * OK
-     */
-    200: QuestionbankQuestionResponse;
-};
-
-export type PatchAdminQuestionsBankByIdResponse = PatchAdminQuestionsBankByIdResponses[keyof PatchAdminQuestionsBankByIdResponses];
 
 export type DeleteAdminQuestionsByIdData = {
     body?: never;

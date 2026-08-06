@@ -15,7 +15,7 @@ export function PreviewQuestionDialog({ question, onClose }: PreviewQuestionDial
         <DialogHeader className="shrink-0">
           <DialogTitle>Preview Soal</DialogTitle>
           <p className="text-xs text-muted-foreground">
-            {question.chapter_title || "-"} · Dibuat oleh {question.user_name || "-"}
+            Dibuat oleh {question.user_name || "-"}
           </p>
         </DialogHeader>
 

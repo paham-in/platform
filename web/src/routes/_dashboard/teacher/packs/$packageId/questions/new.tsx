@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAdminChaptersOptions, getAdminQuestionsBankQueryKey, postAdminQuestionsBankMutation } from "@/lib/api/@tanstack/react-query.gen";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAdminQuestionPackagesQueryKey, postAdminQuestionPackagesByIdQuestionsMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
@@ -19,11 +18,10 @@ function stripHtml(html: string): string {
 }
 
 function NewQuestion() {
+  const { packageId } = useParams({ from: "/_dashboard/teacher/packs/$packageId/questions/new" })
   const qc = useQueryClient()
   const navigate = useNavigate()
-  const { data: chapters = [] } = useQuery(getAdminChaptersOptions())
 
-  const [chapterId, setChapterId] = useState("")
   const [question, setQuestion] = useState("")
   const [answers, setAnswers] = useState<{ content: string; is_correct: boolean }[]>([
     { content: "", is_correct: false },
@@ -33,14 +31,12 @@ function NewQuestion() {
   ])
   const [explanation, setExplanation] = useState("")
 
-  const chapterOptions = chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) }))
-
   const { mutate: createQuestion, isPending } = useMutation({
-    ...postAdminQuestionsBankMutation(),
+    ...postAdminQuestionPackagesByIdQuestionsMutation(),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getAdminQuestionsBankQueryKey() })
+      qc.invalidateQueries({ queryKey: getAdminQuestionPackagesQueryKey() })
       toast.success("Soal berhasil ditambahkan")
-      navigate({ to: "/teacher/question-bank" })
+      navigate({ to: "/teacher/packs/$packageId", params: { packageId } })
     },
     onError: (err: any) => toast.error(err?.error || "Gagal menambah soal"),
   })
@@ -48,8 +44,8 @@ function NewQuestion() {
   const save = () => {
     const validAnswers = answers.filter((a) => stripHtml(a.content) !== "")
     createQuestion({
+      path: { id: Number(packageId) },
       body: {
-        chapter_id: Number(chapterId),
         question,
         answers: validAnswers,
         explanation,
@@ -70,23 +66,11 @@ function NewQuestion() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-3xl space-y-6">
-        <Link to="/teacher/question-bank" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link to="/teacher/packs/$packageId" params={{ packageId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Link>
 
         <h1 className="text-2xl font-bold tracking-tight">Tambah Soal</h1>
-
-        <div className="space-y-2">
-          <Label>Chapter</Label>
-          <Select items={chapterOptions} value={chapterId} onValueChange={(v) => setChapterId(v ?? "")}>
-            <SelectTrigger className="w-full"><SelectValue placeholder="Pilih chapter" /></SelectTrigger>
-            <SelectContent>
-              {chapterOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
         <div className="space-y-2">
           <Label>Pertanyaan</Label>
@@ -136,10 +120,10 @@ function NewQuestion() {
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Link to="/teacher/question-bank"><Button variant="outline">Batal</Button></Link>
+          <Link to="/teacher/packs/$packageId" params={{ packageId }}><Button variant="outline">Batal</Button></Link>
           <Button
             onClick={save}
-            disabled={!chapterId || !question || validCount < 2 || isPending}
+            disabled={!question || validCount < 2 || isPending}
           >
             {isPending && <Spinner />}
             Simpan
@@ -150,6 +134,6 @@ function NewQuestion() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/question-bank/new")({
+export const Route = createFileRoute("/_dashboard/teacher/packs/$packageId/questions/new")({
   component: NewQuestion,
 })

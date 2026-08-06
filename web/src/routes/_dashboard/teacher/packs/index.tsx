@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,8 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminQuestionPackagesOptions } from "@/lib/api/@tanstack/react-query.gen";
-import { Link } from "@tanstack/react-router";
-import { Eye, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { ListChecks, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { DeletePackageDialog } from "@/components/teacher/packs";
 
 function TeacherQuestionPackages() {
@@ -52,7 +51,11 @@ function TeacherQuestionPackages() {
                   <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada paket soal</TableCell></TableRow>
                 ) : packages.map((pkg) => (
                   <TableRow key={pkg.id}>
-                    <TableCell className="pl-6 font-medium">{pkg.name}</TableCell>
+                    <TableCell className="pl-6 font-medium">
+                      <Link to="/teacher/packs/$packageId" params={{ packageId: String(pkg.id!) }} className="hover:underline">
+                        {pkg.name}
+                      </Link>
+                    </TableCell>
                     <TableCell className="max-w-[300px] truncate text-muted-foreground">{pkg.description || "-"}</TableCell>
                     <TableCell className="text-muted-foreground">{pkg.questions?.length ?? 0}</TableCell>
                     <TableCell className="text-muted-foreground">{pkg.created_at}</TableCell>
@@ -62,12 +65,12 @@ function TeacherQuestionPackages() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <Link to="/teacher/packs/$id" params={{ id: String(pkg.id!) }}>
+                          <Link to="/teacher/packs/$packageId" params={{ packageId: String(pkg.id!) }}>
                             <DropdownMenuItem>
-                              <Eye className="h-4 w-4" /> Lihat
+                              <ListChecks className="h-4 w-4" /> Soal
                             </DropdownMenuItem>
                           </Link>
-                          <Link to="/teacher/packs/$id/edit" params={{ id: String(pkg.id!) }}>
+                          <Link to="/teacher/packs/$packageId/edit" params={{ packageId: String(pkg.id!) }}>
                             <DropdownMenuItem>
                               <Pencil className="h-4 w-4" /> Edit
                             </DropdownMenuItem>

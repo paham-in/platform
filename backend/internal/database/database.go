@@ -132,5 +132,19 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE subjects DROP COLUMN description")
 	}
 
+	// migrate questionbank_questions -- pindah dari chapter ke paket soal
+	if !db.Migrator().HasColumn(&models.QuestionbankQuestion{}, "package_id") {
+		db.Exec("ALTER TABLE questionbank_questions ADD COLUMN package_id BIGINT NOT NULL DEFAULT 0")
+		db.Exec("CREATE INDEX idx_questionbank_questions_package_id ON questionbank_questions(package_id)")
+	}
+	if db.Migrator().HasColumn(&models.QuestionbankQuestion{}, "chapter_id") {
+		db.Exec("ALTER TABLE questionbank_questions DROP COLUMN chapter_id")
+	}
+
+	// tabel join many2many tidak dipakai lagi (soal dimiliki paket)
+	if db.Migrator().HasTable("package_questions") {
+		db.Migrator().DropTable("package_questions")
+	}
+
 	log.Println("Migration completed")
 }

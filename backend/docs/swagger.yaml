@@ -316,32 +316,12 @@ definitions:
       is_correct:
         type: boolean
     type: object
-  questionbank.BulkDeleteFailedItem:
-    properties:
-      error:
-        type: string
-      id:
-        type: integer
-    type: object
-  questionbank.BulkDeleteResult:
-    properties:
-      deleted:
-        items:
-          type: integer
-        type: array
-      failed:
-        items:
-          $ref: '#/definitions/questionbank.BulkDeleteFailedItem'
-        type: array
-    type: object
   questionbank.CreateInput:
     properties:
       answers:
         items:
           $ref: '#/definitions/questionbank.QuestionbankAnswerInput'
         type: array
-      chapter_id:
-        type: integer
       explanation:
         type: string
       question:
@@ -354,25 +334,10 @@ definitions:
       error:
         type: string
     type: object
-  questionbank.PaginatedResponse:
+  questionbank.MessageResponse:
     properties:
-      data:
-        items:
-          $ref: '#/definitions/questionbank.QuestionResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/questionbank.PaginationMeta'
-    type: object
-  questionbank.PaginationMeta:
-    properties:
-      page:
-        type: integer
-      per_page:
-        type: integer
-      total:
-        type: integer
-      total_pages:
-        type: integer
+      message:
+        type: string
     type: object
   questionbank.QuestionResponse:
     properties:
@@ -380,15 +345,13 @@ definitions:
         items:
           $ref: '#/definitions/questionbank.AnswerResponse'
         type: array
-      chapter_id:
-        type: integer
-      chapter_title:
-        type: string
       created_at:
         type: string
       explanation:
         type: string
       id:
+        type: integer
+      package_id:
         type: integer
       question:
         type: string
@@ -410,8 +373,6 @@ definitions:
         items:
           $ref: '#/definitions/questionbank.QuestionbankAnswerInput'
         type: array
-      chapter_id:
-        type: integer
       explanation:
         type: string
       question:
@@ -423,10 +384,6 @@ definitions:
         type: string
       name:
         type: string
-      question_ids:
-        items:
-          type: integer
-        type: array
     type: object
   questionpackage.ErrorResponse:
     properties:
@@ -466,10 +423,6 @@ definitions:
         type: string
       name:
         type: string
-      question_ids:
-        items:
-          type: integer
-        type: array
     type: object
   subject.CreateInput:
     properties:
@@ -1319,6 +1272,136 @@ paths:
       summary: Update question package
       tags:
       - QuestionPackage
+  /admin/question-packages/{id}/questions:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar soal dalam sebuah paket soal
+      parameters:
+      - description: Package ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/questionbank.QuestionResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/questionbank.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List package questions
+      tags:
+      - QuestionPackage
+    post:
+      consumes:
+      - application/json
+      description: Menambah soal baru ke dalam paket soal
+      parameters:
+      - description: Package ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data soal
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/questionbank.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/questionbank.QuestionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/questionbank.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create package question
+      tags:
+      - QuestionPackage
+  /admin/question-packages/{id}/questions/{qid}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus soal dari paket soal
+      parameters:
+      - description: Package ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Question ID
+        in: path
+        name: qid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionbank.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/questionbank.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete package question
+      tags:
+      - QuestionPackage
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah soal dalam paket soal
+      parameters:
+      - description: Package ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Question ID
+        in: path
+        name: qid
+        required: true
+        type: integer
+      - description: Data update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/questionbank.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionbank.QuestionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/questionbank.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update package question
+      tags:
+      - QuestionPackage
   /admin/questions:
     get:
       consumes:
@@ -1348,149 +1431,6 @@ paths:
       tags:
       - Admin
       - Admin
-  /admin/questions-bank:
-    delete:
-      consumes:
-      - application/json
-      description: Menghapus banyak soal dari bank soal dalam satu request
-      parameters:
-      - description: Daftar ID soal yang akan dihapus
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/questionbank.BulkDeleteResult'
-      security:
-      - BearerAuth: []
-      summary: Bulk delete questions
-      tags:
-      - QuestionbankQuestion
-    get:
-      consumes:
-      - application/json
-      description: Mengembalikan daftar soal, bisa difilter dengan chapter_id dan
-        created_by
-      parameters:
-      - description: Filter by chapter ID
-        in: query
-        name: chapter_id
-        type: integer
-      - description: Filter by creator user ID
-        in: query
-        name: created_by
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/questionbank.QuestionResponse'
-            type: array
-      security:
-      - BearerAuth: []
-      summary: List question bank
-      tags:
-      - QuestionbankQuestion
-    post:
-      consumes:
-      - application/json
-      description: Menambah soal baru ke bank soal
-      parameters:
-      - description: Data soal
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/questionbank.CreateInput'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/questionbank.QuestionResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/questionbank.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Create question
-      tags:
-      - QuestionbankQuestion
-  /admin/questions-bank/{id}:
-    patch:
-      consumes:
-      - application/json
-      description: Mengubah soal di bank soal
-      parameters:
-      - description: Question ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Data update
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/questionbank.UpdateInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/questionbank.QuestionResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/questionbank.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Update question
-      tags:
-      - QuestionbankQuestion
-  /admin/questions-bank/paginated:
-    get:
-      consumes:
-      - application/json
-      description: Mengembalikan daftar soal dengan pagination, bisa difilter dengan
-        chapter_id
-      parameters:
-      - description: Filter by chapter ID
-        in: query
-        name: chapter_id
-        type: integer
-      - description: Page number (default 1)
-        in: query
-        name: page
-        type: integer
-      - description: Items per page (default 10)
-        in: query
-        name: per_page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/questionbank.PaginatedResponse'
-      security:
-      - BearerAuth: []
-      summary: List question bank (paginated)
-      tags:
-      - QuestionbankQuestion
   /admin/questions/{id}:
     delete:
       consumes:

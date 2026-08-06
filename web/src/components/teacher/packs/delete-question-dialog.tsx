@@ -10,38 +10,38 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Spinner } from "@/components/ui/spinner"
-import { deleteAdminQuestionPackagesByIdMutation, getAdminQuestionPackagesQueryKey } from "@/lib/api/@tanstack/react-query.gen"
+import { deleteAdminQuestionPackagesByIdQuestionsByQidMutation, getAdminQuestionPackagesQueryKey } from "@/lib/api/@tanstack/react-query.gen"
+import type { QuestionbankQuestionResponse } from "@/lib/api/types.gen"
 
-interface DeletePackageDialogProps {
-  pkg: { id: number; name: string }
+interface DeleteQuestionDialogProps {
+  question: QuestionbankQuestionResponse
   onClose: () => void
 }
 
-export function DeletePackageDialog({ pkg, onClose }: DeletePackageDialogProps) {
+export function DeleteQuestionDialog({ question, onClose }: DeleteQuestionDialogProps) {
   const qc = useQueryClient()
+  const packageId = question.package_id
 
-  const { mutate: deletePackage, isPending } = useMutation({
-    ...deleteAdminQuestionPackagesByIdMutation(),
+  const { mutate: deleteQuestion, isPending } = useMutation({
+    ...deleteAdminQuestionPackagesByIdQuestionsByQidMutation(),
     onSuccess: () => {
-      toast.success("Paket soal berhasil dihapus")
       qc.invalidateQueries({ queryKey: getAdminQuestionPackagesQueryKey() })
+      toast.success("Soal berhasil dihapus")
       onClose()
     },
-    onError: (err: any) => toast.error(err?.error || "Gagal menghapus paket"),
+    onError: (err: any) => toast.error(err?.error || "Gagal menghapus soal"),
   })
 
   return (
     <AlertDialog open onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Hapus Paket Soal</AlertDialogTitle>
-          <AlertDialogDescription>
-            Yakin ingin menghapus paket "{pkg.name}"? Semua soal di dalamnya juga akan terhapus.
-          </AlertDialogDescription>
+          <AlertDialogTitle>Hapus Soal</AlertDialogTitle>
+          <AlertDialogDescription>Yakin ingin menghapus soal ini?</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button variant="destructive" onClick={() => deletePackage({ path: { id: pkg.id } })} disabled={isPending}>
+          <Button variant="destructive" onClick={() => deleteQuestion({ path: { id: packageId!, qid: question.id! } })} disabled={isPending}>
             <span className="inline-flex items-center gap-2">
               {isPending && <Spinner />}
               Hapus

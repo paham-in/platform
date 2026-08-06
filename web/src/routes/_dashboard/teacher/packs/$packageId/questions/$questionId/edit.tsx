@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAdminChaptersOptions, getAdminQuestionsBankOptions, getAdminQuestionsBankQueryKey, patchAdminQuestionsBankByIdMutation } from "@/lib/api/@tanstack/react-query.gen";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getAdminQuestionPackagesByIdQuestionsOptions, getAdminQuestionPackagesQueryKey, patchAdminQuestionPackagesByIdQuestionsByQidMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,28 +19,24 @@ function stripHtml(html: string): string {
 }
 
 function EditQuestion() {
+  const { packageId, questionId } = useParams({ from: "/_dashboard/teacher/packs/$packageId/questions/$questionId/edit" })
   const qc = useQueryClient()
   const navigate = useNavigate()
-  const { id } = Route.useParams()
-  const { data: chapters = [] } = useQuery(getAdminChaptersOptions())
-  const { data: questions = [], isLoading } = useQuery(getAdminQuestionsBankOptions())
+  const { data: questions = [], isLoading } = useQuery(getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) } }))
 
-  const question = questions.find((q) => q.id === Number(id))
-  const [chapterId, setChapterId] = useState(String(question?.chapter_id ?? ""))
+  const question = questions.find((q) => q.id === Number(questionId))
   const [questionText, setQuestionText] = useState(question?.question ?? "")
   const [answers, setAnswers] = useState<{ content: string; is_correct: boolean }[]>(
     [...(question?.answers ?? []).map((a) => ({ content: a.content ?? "", is_correct: a.is_correct ?? false })), { content: "", is_correct: false }, { content: "", is_correct: false }, { content: "", is_correct: false }, { content: "", is_correct: false }].slice(0, 4)
   )
   const [explanation, setExplanation] = useState(question?.explanation ?? "")
 
-  const chapterOptions = chapters.map((c) => ({ label: c.title ?? "", value: String(c.id) }))
-
   const { mutate: updateQuestion, isPending } = useMutation({
-    ...patchAdminQuestionsBankByIdMutation(),
+    ...patchAdminQuestionPackagesByIdQuestionsByQidMutation(),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getAdminQuestionsBankQueryKey() })
+      qc.invalidateQueries({ queryKey: getAdminQuestionPackagesQueryKey() })
       toast.success("Soal berhasil diubah")
-      navigate({ to: "/teacher/question-bank" })
+      navigate({ to: "/teacher/packs/$packageId", params: { packageId } })
     },
     onError: (err: any) => toast.error(err?.error || "Gagal mengubah soal"),
   })
@@ -51,7 +46,6 @@ function EditQuestion() {
       <main className="p-6">
         <div className="mx-auto max-w-3xl space-y-4">
           <Skeleton className="h-8 w-40" />
-          <Skeleton className="h-12 w-full" />
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-32 w-full" />
         </div>
@@ -64,7 +58,7 @@ function EditQuestion() {
       <main className="p-6">
         <div className="flex flex-col items-center gap-4 py-12">
           <p className="text-muted-foreground">Soal tidak ditemukan</p>
-          <Link to="/teacher/question-bank">
+          <Link to="/teacher/packs/$packageId" params={{ packageId }}>
             <Button variant="outline">Kembali</Button>
           </Link>
         </div>
@@ -75,9 +69,8 @@ function EditQuestion() {
   const save = () => {
     const validAnswers = answers.filter((a) => stripHtml(a.content) !== "")
     updateQuestion({
-      path: { id: Number(id) },
+      path: { id: Number(packageId), qid: Number(questionId) },
       body: {
-        chapter_id: Number(chapterId),
         question: questionText,
         answers: validAnswers,
         explanation,
@@ -85,26 +78,24 @@ function EditQuestion() {
     })
   }
 
+  const toggleCorrect = (i: number) => {
+    setAnswers((prev) => {
+      const next = [...prev]
+      next[i] = { ...next[i], is_correct: !next[i].is_correct }
+      return next
+    })
+  }
+
+  const validCount = answers.filter((a) => stripHtml(a.content) !== "").length
+
   return (
     <main className="p-6">
       <div className="mx-auto max-w-3xl space-y-6">
-        <Link to="/teacher/question-bank" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link to="/teacher/packs/$packageId" params={{ packageId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Link>
 
         <h1 className="text-2xl font-bold tracking-tight">Edit Soal</h1>
-
-        <div className="space-y-2">
-          <Label>Chapter</Label>
-          <Select items={chapterOptions} value={chapterId} onValueChange={(v) => setChapterId(v ?? "")}>
-            <SelectTrigger className="w-full"><SelectValue placeholder="Pilih chapter" /></SelectTrigger>
-            <SelectContent>
-              {chapterOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
         <div className="space-y-2">
           <Label>Pertanyaan</Label>
@@ -129,11 +120,7 @@ function EditQuestion() {
               <label className="mt-1 flex items-center gap-1.5 text-sm">
                 <Checkbox
                   checked={ans.is_correct}
-                  onCheckedChange={() => {
-                    const next = [...answers]
-                    next[i] = { ...next[i], is_correct: !next[i].is_correct }
-                    setAnswers(next)
-                  }}
+                  onCheckedChange={() => toggleCorrect(i)}
                 />
                 Benar
               </label>
@@ -158,10 +145,10 @@ function EditQuestion() {
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Link to="/teacher/question-bank"><Button variant="outline">Batal</Button></Link>
+          <Link to="/teacher/packs/$packageId" params={{ packageId }}><Button variant="outline">Batal</Button></Link>
           <Button
             onClick={save}
-            disabled={!chapterId || !questionText || answers.filter((a) => stripHtml(a.content) !== "").length < 2 || isPending}
+            disabled={!questionText || validCount < 2 || isPending}
           >
             {isPending && <Spinner />}
             Simpan
@@ -172,6 +159,6 @@ function EditQuestion() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/question-bank/$id/edit")({
+export const Route = createFileRoute("/_dashboard/teacher/packs/$packageId/questions/$questionId/edit")({
   component: EditQuestion,
 })

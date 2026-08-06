@@ -6,13 +6,6 @@ import (
 	"bimbel2/backend/internal/models"
 )
 
-// QuestionbankQuestionMini — simplified view of a question for package response
-type QuestionbankQuestionMini struct {
-	ID        uint   `json:"id"`
-	ChapterID uint   `json:"chapter_id"`
-	Question  string `json:"question"`
-}
-
 // PackageQuestionResponse
 type PackageQuestionResponse struct {
 	ID       uint   `json:"id"`
@@ -39,7 +32,6 @@ func NewService(repo *Repository) *Service {
 type CreateInput struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	QuestionIDs []uint `json:"question_ids"`
 }
 
 func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
@@ -54,11 +46,6 @@ func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
 	if err := s.repo.Create(&pkg); err != nil {
 		return nil, err
 	}
-	if len(input.QuestionIDs) > 0 {
-		if err := s.repo.SetQuestions(pkg.ID, input.QuestionIDs); err != nil {
-			return nil, err
-		}
-	}
 	created, err := s.repo.Get(pkg.ID)
 	if err != nil {
 		return nil, err
@@ -70,7 +57,6 @@ func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
 type UpdateInput struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`
-	QuestionIDs *[]uint `json:"question_ids"`
 }
 
 func (s *Service) Update(id uint, input UpdateInput) (*PackageResponse, error) {
@@ -86,11 +72,6 @@ func (s *Service) Update(id uint, input UpdateInput) (*PackageResponse, error) {
 	}
 	if err := s.repo.Update(pkg); err != nil {
 		return nil, err
-	}
-	if input.QuestionIDs != nil {
-		if err := s.repo.SetQuestions(id, *input.QuestionIDs); err != nil {
-			return nil, err
-		}
 	}
 	updated, err := s.repo.Get(id)
 	if err != nil {

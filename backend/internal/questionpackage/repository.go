@@ -4,7 +4,6 @@ import (
 	"bimbel2/backend/internal/models"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type Repository struct {
@@ -39,27 +38,17 @@ func (r *Repository) Update(pkg *models.QuestionPackage) error {
 	return r.db.Save(pkg).Error
 }
 
-func (r *Repository) SetQuestions(pkgID uint, questionIDs []uint) error {
-	var pkg models.QuestionPackage
-	if err := r.db.First(&pkg, pkgID).Error; err != nil {
-		return err
-	}
-	var questions []models.QuestionbankQuestion
-	if len(questionIDs) > 0 {
-		if err := r.db.Where("id IN ?", questionIDs).Find(&questions).Error; err != nil {
+func (r *Repository) Delete(id uint) error {
+	// Hapus jawaban semua soal dalam paket, lalu soal, lalu paket (hard delete).
+	var qids []uint
+	r.db.Model(&models.QuestionbankQuestion{}).Where("package_id = ?", id).Pluck("id", &qids)
+	if len(qids) > 0 {
+		if err := r.db.Unscoped().Where("question_id IN ?", qids).Delete(&models.QuestionbankAnswer{}).Error; err != nil {
 			return err
 		}
 	}
-	return r.db.Model(&pkg).Association("Questions").Replace(questions)
-}
-
-func (r *Repository) Delete(id uint) error {
-	// Hard delete + bersihkan relasi many2many (package_questions).
-	// Select(clause.Associations) membuat GORM menghapus baris join
-	// yang merujuk ke paket ini, lalu menghapus paket secara permanen.
-	var pkg models.QuestionPackage
-	if err := r.db.Unscoped().First(&pkg, id).Error; err != nil {
+	if err := r.db.Unscoped().Where("package_id = ?", id).Delete(&models.QuestionbankQuestion{}).Error; err != nil {
 		return err
 	}
-	return r.db.Unscoped().Select(clause.Associations).Delete(&pkg).Error
+	return r.db.Unscoped().Delete(&models.QuestionPackage{}, id).Error
 }
