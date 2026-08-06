@@ -26,7 +26,6 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
-  Loader2,
   MoreVertical,
   Pencil,
   Plus,
@@ -41,6 +40,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const perPage = 10;
 
@@ -112,9 +112,39 @@ function ChapterMaterials() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <main className="p-6">
+        <Skeleton className="mb-2 h-4 w-24" />
+        <Skeleton className="mb-1 h-8 w-48" />
+        <Skeleton className="mb-5 h-4 w-64" />
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <Skeleton className="h-9 w-full max-w-sm" />
+          <Skeleton className="h-9 w-32" />
+        </div>
+        <Card className="pt-0 gap-0 pb-0">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="pl-6">Judul</TableHead>
+                  <TableHead>Tipe</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="pr-6 text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    <TableCell className="pl-6"><Skeleton className="h-4 w-40" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                    <TableCell className="pr-6 text-right"><Skeleton className="ml-auto h-8 w-8 rounded" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </main>
     );
   }
 
