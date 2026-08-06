@@ -54,6 +54,7 @@ type CreateInput struct {
 	StartDate string  `json:"start_date"`
 	EndDate   string  `json:"end_date"`
 	Note      string  `json:"note"`
+	ProgramID *uint   `json:"program_id,omitempty"`
 }
 
 func (s *Service) Create(input CreateInput) (*InvoiceResponse, error) {
@@ -74,6 +75,7 @@ func (s *Service) Create(input CreateInput) (*InvoiceResponse, error) {
 		EndDate:   input.EndDate,
 		Status:    "pending",
 		Note:      input.Note,
+		ProgramID: input.ProgramID,
 	}
 	if err := s.repo.Create(&invoice); err != nil {
 		return nil, err
@@ -105,6 +107,21 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 
 	// akses premium dihitung query-realtime dari invoice paid + end_date aktif.
 	// tidak perlu grant role/manual — semua pendaftar otomatis student.
+	//
+	// invoice lunas yang punya program_id → otomatis grant StudentProgram
+	// (akses premium via program). Jika kembali ke pending → revoke StudentProgram.
+	if invoice.ProgramID != nil {
+		// hapus akses lama untuk kombinasi (user, program) supaya expiry selalu ikut end_date invoice
+		s.db.Where("user_id = ? AND program_id = ?", invoice.UserID, *invoice.ProgramID).
+			Delete(&models.StudentProgram{})
+		if newStatus == "paid" {
+			s.db.Create(&models.StudentProgram{
+				UserID:    invoice.UserID,
+				ProgramID: *invoice.ProgramID,
+				Expiry:    invoice.EndDate,
+			})
+		}
+	}
 
 	updated, err := s.repo.Get(id)
 	if err != nil {

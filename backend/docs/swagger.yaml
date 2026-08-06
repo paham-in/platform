@@ -208,6 +208,8 @@ definitions:
         type: string
       note:
         type: string
+      program_id:
+        type: integer
       start_date:
         type: string
       user_id:
@@ -321,6 +323,54 @@ definitions:
       type:
         type: string
       video_url:
+        type: string
+    type: object
+  program.ClassInfo:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  program.CreateInput:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  program.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  program.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  program.ProgramResponse:
+    properties:
+      classes:
+        items:
+          $ref: '#/definitions/program.ClassInfo'
+        type: array
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+  program.UpdateInput:
+    properties:
+      description:
+        type: string
+      name:
         type: string
     type: object
   push.ErrorResponse:
@@ -465,6 +515,57 @@ definitions:
         type: string
       is_free:
         type: boolean
+      name:
+        type: string
+    type: object
+  studentprogram.CreateInput:
+    properties:
+      expiry:
+        description: '"YYYY-MM-DD"'
+        type: string
+      program_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  studentprogram.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  studentprogram.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  studentprogram.ProgramRef:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  studentprogram.StudentProgramResponse:
+    properties:
+      created_at:
+        type: string
+      expiry:
+        type: string
+      id:
+        type: integer
+      program:
+        $ref: '#/definitions/studentprogram.ProgramRef'
+      program_id:
+        type: integer
+      user:
+        $ref: '#/definitions/studentprogram.UserRef'
+      user_id:
+        type: integer
+    type: object
+  studentprogram.UserRef:
+    properties:
+      id:
+        type: integer
       name:
         type: string
     type: object
@@ -1238,6 +1339,196 @@ paths:
       summary: Update material
       tags:
       - Admin
+  /admin/programs:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar program beserta kelasnya
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/program.ProgramResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List programs
+      tags:
+      - Program
+    post:
+      consumes:
+      - application/json
+      description: Membuat program baru
+      parameters:
+      - description: Data program
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/program.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/program.ProgramResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/program.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create program
+      tags:
+      - Program
+  /admin/programs/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus program (kelas akan dilepas)
+      parameters:
+      - description: Program ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/program.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/program.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete program
+      tags:
+      - Program
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan detail program beserta kelasnya
+      parameters:
+      - description: Program ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/program.ProgramResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/program.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get program
+      tags:
+      - Program
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah program
+      parameters:
+      - description: Program ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/program.UpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/program.ProgramResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/program.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update program
+      tags:
+      - Program
+  /admin/programs/{id}/classes:
+    post:
+      consumes:
+      - application/json
+      description: Menautkan kelas ke program
+      parameters:
+      - description: Program ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'Data: class_id'
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/program.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/program.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign class to program
+      tags:
+      - Program
+  /admin/programs/classes/{class_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Class ID
+        in: path
+        name: class_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/program.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/program.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unassign class from program
+      tags:
+      - Program
   /admin/question-packages:
     get:
       consumes:
@@ -1563,6 +1854,85 @@ paths:
       tags:
       - Admin
       - Admin
+  /admin/student-programs:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: integer
+      - description: Filter by program ID
+        in: query
+        name: program_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/studentprogram.StudentProgramResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List student programs
+      tags:
+      - StudentProgram
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/studentprogram.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/studentprogram.StudentProgramResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/studentprogram.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Grant student program
+      tags:
+      - StudentProgram
+  /admin/student-programs/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: StudentProgram ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/studentprogram.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/studentprogram.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Revoke student program
+      tags:
+      - StudentProgram
   /admin/subjects:
     post:
       consumes:

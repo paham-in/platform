@@ -19,7 +19,9 @@ import (
 	"bimbel2/backend/internal/push"
 	"bimbel2/backend/internal/questionbank"
 	"bimbel2/backend/internal/questionpackage"
+	"bimbel2/backend/internal/program"
 	"bimbel2/backend/internal/storage"
+	"bimbel2/backend/internal/studentprogram"
 	"bimbel2/backend/internal/subject"
 	"bimbel2/backend/internal/upload"
 	"bimbel2/backend/internal/user"
@@ -111,6 +113,8 @@ func main() {
 	user.AdminRoutes(admin, db)
 	forum.AdminRoutes(admin, db)
 	invoice.AdminRoutes(admin, db)
+	program.AdminRoutes(admin, db)
+	studentprogram.AdminRoutes(admin, db)
 
 	// background job: hapus sesi yang sudah kedaluwarsa setiap 1 jam
 	startSessionCleanup(db)

@@ -138,6 +138,7 @@ export type InvoiceCreateInput = {
     amount?: number;
     end_date?: string;
     note?: string;
+    program_id?: number;
     start_date?: string;
     user_id?: number;
 };
@@ -207,6 +208,38 @@ export type MaterialUpdateInput = {
     title?: string;
     type?: string;
     video_url?: string;
+};
+
+export type ProgramClassInfo = {
+    id?: number;
+    name?: string;
+};
+
+export type ProgramCreateInput = {
+    description?: string;
+    name?: string;
+};
+
+export type ProgramErrorResponse = {
+    error?: string;
+};
+
+export type ProgramMessageResponse = {
+    message?: string;
+};
+
+export type ProgramProgramResponse = {
+    classes?: Array<ProgramClassInfo>;
+    created_at?: string;
+    description?: string;
+    id?: number;
+    name?: string;
+    slug?: string;
+};
+
+export type ProgramUpdateInput = {
+    description?: string;
+    name?: string;
 };
 
 export type PushErrorResponse = {
@@ -299,6 +332,43 @@ export type QuestionpackagePackageResponse = {
 export type QuestionpackageUpdateInput = {
     description?: string;
     is_free?: boolean;
+    name?: string;
+};
+
+export type StudentprogramCreateInput = {
+    /**
+     * "YYYY-MM-DD"
+     */
+    expiry?: string;
+    program_id?: number;
+    user_id?: number;
+};
+
+export type StudentprogramErrorResponse = {
+    error?: string;
+};
+
+export type StudentprogramMessageResponse = {
+    message?: string;
+};
+
+export type StudentprogramProgramRef = {
+    id?: number;
+    name?: string;
+};
+
+export type StudentprogramStudentProgramResponse = {
+    created_at?: string;
+    expiry?: string;
+    id?: number;
+    program?: StudentprogramProgramRef;
+    program_id?: number;
+    user?: StudentprogramUserRef;
+    user_id?: number;
+};
+
+export type StudentprogramUserRef = {
+    id?: number;
     name?: string;
 };
 
@@ -963,6 +1033,208 @@ export type PatchAdminMaterialsByIdResponses = {
 
 export type PatchAdminMaterialsByIdResponse = PatchAdminMaterialsByIdResponses[keyof PatchAdminMaterialsByIdResponses];
 
+export type GetAdminProgramsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/programs';
+};
+
+export type GetAdminProgramsResponses = {
+    /**
+     * OK
+     */
+    200: Array<ProgramProgramResponse>;
+};
+
+export type GetAdminProgramsResponse = GetAdminProgramsResponses[keyof GetAdminProgramsResponses];
+
+export type PostAdminProgramsData = {
+    /**
+     * Data program
+     */
+    body: ProgramCreateInput;
+    path?: never;
+    query?: never;
+    url: '/admin/programs';
+};
+
+export type PostAdminProgramsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProgramErrorResponse;
+};
+
+export type PostAdminProgramsError = PostAdminProgramsErrors[keyof PostAdminProgramsErrors];
+
+export type PostAdminProgramsResponses = {
+    /**
+     * Created
+     */
+    201: ProgramProgramResponse;
+};
+
+export type PostAdminProgramsResponse = PostAdminProgramsResponses[keyof PostAdminProgramsResponses];
+
+export type DeleteAdminProgramsClassesByClassIdData = {
+    body?: never;
+    path: {
+        /**
+         * Class ID
+         */
+        class_id: number;
+    };
+    query?: never;
+    url: '/admin/programs/classes/{class_id}';
+};
+
+export type DeleteAdminProgramsClassesByClassIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProgramErrorResponse;
+};
+
+export type DeleteAdminProgramsClassesByClassIdError = DeleteAdminProgramsClassesByClassIdErrors[keyof DeleteAdminProgramsClassesByClassIdErrors];
+
+export type DeleteAdminProgramsClassesByClassIdResponses = {
+    /**
+     * OK
+     */
+    200: ProgramMessageResponse;
+};
+
+export type DeleteAdminProgramsClassesByClassIdResponse = DeleteAdminProgramsClassesByClassIdResponses[keyof DeleteAdminProgramsClassesByClassIdResponses];
+
+export type DeleteAdminProgramsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Program ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/programs/{id}';
+};
+
+export type DeleteAdminProgramsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProgramErrorResponse;
+};
+
+export type DeleteAdminProgramsByIdError = DeleteAdminProgramsByIdErrors[keyof DeleteAdminProgramsByIdErrors];
+
+export type DeleteAdminProgramsByIdResponses = {
+    /**
+     * OK
+     */
+    200: ProgramMessageResponse;
+};
+
+export type DeleteAdminProgramsByIdResponse = DeleteAdminProgramsByIdResponses[keyof DeleteAdminProgramsByIdResponses];
+
+export type GetAdminProgramsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Program ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/programs/{id}';
+};
+
+export type GetAdminProgramsByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: ProgramErrorResponse;
+};
+
+export type GetAdminProgramsByIdError = GetAdminProgramsByIdErrors[keyof GetAdminProgramsByIdErrors];
+
+export type GetAdminProgramsByIdResponses = {
+    /**
+     * OK
+     */
+    200: ProgramProgramResponse;
+};
+
+export type GetAdminProgramsByIdResponse = GetAdminProgramsByIdResponses[keyof GetAdminProgramsByIdResponses];
+
+export type PatchAdminProgramsByIdData = {
+    /**
+     * Data update
+     */
+    body: ProgramUpdateInput;
+    path: {
+        /**
+         * Program ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/programs/{id}';
+};
+
+export type PatchAdminProgramsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProgramErrorResponse;
+};
+
+export type PatchAdminProgramsByIdError = PatchAdminProgramsByIdErrors[keyof PatchAdminProgramsByIdErrors];
+
+export type PatchAdminProgramsByIdResponses = {
+    /**
+     * OK
+     */
+    200: ProgramProgramResponse;
+};
+
+export type PatchAdminProgramsByIdResponse = PatchAdminProgramsByIdResponses[keyof PatchAdminProgramsByIdResponses];
+
+export type PostAdminProgramsByIdClassesData = {
+    /**
+     * Data: class_id
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        /**
+         * Program ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/programs/{id}/classes';
+};
+
+export type PostAdminProgramsByIdClassesErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProgramErrorResponse;
+};
+
+export type PostAdminProgramsByIdClassesError = PostAdminProgramsByIdClassesErrors[keyof PostAdminProgramsByIdClassesErrors];
+
+export type PostAdminProgramsByIdClassesResponses = {
+    /**
+     * OK
+     */
+    200: ProgramMessageResponse;
+};
+
+export type PostAdminProgramsByIdClassesResponse = PostAdminProgramsByIdClassesResponses[keyof PostAdminProgramsByIdClassesResponses];
+
 export type GetAdminQuestionPackagesData = {
     body?: never;
     path?: never;
@@ -1288,6 +1560,89 @@ export type DeleteAdminQuestionsByIdResponses = {
 };
 
 export type DeleteAdminQuestionsByIdResponse = DeleteAdminQuestionsByIdResponses[keyof DeleteAdminQuestionsByIdResponses];
+
+export type GetAdminStudentProgramsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter by user ID
+         */
+        user_id?: number;
+        /**
+         * Filter by program ID
+         */
+        program_id?: number;
+    };
+    url: '/admin/student-programs';
+};
+
+export type GetAdminStudentProgramsResponses = {
+    /**
+     * OK
+     */
+    200: Array<StudentprogramStudentProgramResponse>;
+};
+
+export type GetAdminStudentProgramsResponse = GetAdminStudentProgramsResponses[keyof GetAdminStudentProgramsResponses];
+
+export type PostAdminStudentProgramsData = {
+    /**
+     * Data
+     */
+    body: StudentprogramCreateInput;
+    path?: never;
+    query?: never;
+    url: '/admin/student-programs';
+};
+
+export type PostAdminStudentProgramsErrors = {
+    /**
+     * Bad Request
+     */
+    400: StudentprogramErrorResponse;
+};
+
+export type PostAdminStudentProgramsError = PostAdminStudentProgramsErrors[keyof PostAdminStudentProgramsErrors];
+
+export type PostAdminStudentProgramsResponses = {
+    /**
+     * Created
+     */
+    201: StudentprogramStudentProgramResponse;
+};
+
+export type PostAdminStudentProgramsResponse = PostAdminStudentProgramsResponses[keyof PostAdminStudentProgramsResponses];
+
+export type DeleteAdminStudentProgramsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * StudentProgram ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/student-programs/{id}';
+};
+
+export type DeleteAdminStudentProgramsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: StudentprogramErrorResponse;
+};
+
+export type DeleteAdminStudentProgramsByIdError = DeleteAdminStudentProgramsByIdErrors[keyof DeleteAdminStudentProgramsByIdErrors];
+
+export type DeleteAdminStudentProgramsByIdResponses = {
+    /**
+     * OK
+     */
+    200: StudentprogramMessageResponse;
+};
+
+export type DeleteAdminStudentProgramsByIdResponse = DeleteAdminStudentProgramsByIdResponses[keyof DeleteAdminStudentProgramsByIdResponses];
 
 export type PostAdminSubjectsData = {
     /**

@@ -24,6 +24,8 @@ import { Route as DashboardStudentPaymentsRouteImport } from './routes/_dashboar
 import { Route as DashboardStudentDashboardRouteImport } from './routes/_dashboard/student/dashboard'
 import { Route as DashboardAdminUsersRouteImport } from './routes/_dashboard/admin/users'
 import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard/admin/subjects'
+import { Route as DashboardAdminStudentProgramsRouteImport } from './routes/_dashboard/admin/student-programs'
+import { Route as DashboardAdminProgramsRouteImport } from './routes/_dashboard/admin/programs'
 import { Route as DashboardAdminDashboardRouteImport } from './routes/_dashboard/admin/dashboard'
 import { Route as DashboardAdminClassesRouteImport } from './routes/_dashboard/admin/classes'
 import { Route as DashboardTeacherTutoringIndexRouteImport } from './routes/_dashboard/teacher/tutoring/index'
@@ -132,6 +134,17 @@ const DashboardAdminUsersRoute = DashboardAdminUsersRouteImport.update({
 const DashboardAdminSubjectsRoute = DashboardAdminSubjectsRouteImport.update({
   id: '/admin/subjects',
   path: '/admin/subjects',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAdminStudentProgramsRoute =
+  DashboardAdminStudentProgramsRouteImport.update({
+    id: '/admin/student-programs',
+    path: '/admin/student-programs',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAdminProgramsRoute = DashboardAdminProgramsRouteImport.update({
+  id: '/admin/programs',
+  path: '/admin/programs',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAdminDashboardRoute = DashboardAdminDashboardRouteImport.update({
@@ -317,6 +330,8 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/classes': typeof DashboardAdminClassesRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
+  '/admin/programs': typeof DashboardAdminProgramsRoute
+  '/admin/student-programs': typeof DashboardAdminStudentProgramsRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/users': typeof DashboardAdminUsersRoute
   '/student/dashboard': typeof DashboardStudentDashboardRoute
@@ -363,6 +378,8 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/classes': typeof DashboardAdminClassesRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
+  '/admin/programs': typeof DashboardAdminProgramsRoute
+  '/admin/student-programs': typeof DashboardAdminStudentProgramsRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/users': typeof DashboardAdminUsersRoute
   '/student/dashboard': typeof DashboardStudentDashboardRoute
@@ -409,6 +426,8 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/_dashboard/admin/classes': typeof DashboardAdminClassesRoute
   '/_dashboard/admin/dashboard': typeof DashboardAdminDashboardRoute
+  '/_dashboard/admin/programs': typeof DashboardAdminProgramsRoute
+  '/_dashboard/admin/student-programs': typeof DashboardAdminStudentProgramsRoute
   '/_dashboard/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/_dashboard/admin/users': typeof DashboardAdminUsersRoute
   '/_dashboard/student/dashboard': typeof DashboardStudentDashboardRoute
@@ -457,6 +476,8 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/admin/classes'
     | '/admin/dashboard'
+    | '/admin/programs'
+    | '/admin/student-programs'
     | '/admin/subjects'
     | '/admin/users'
     | '/student/dashboard'
@@ -503,6 +524,8 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/admin/classes'
     | '/admin/dashboard'
+    | '/admin/programs'
+    | '/admin/student-programs'
     | '/admin/subjects'
     | '/admin/users'
     | '/student/dashboard'
@@ -548,6 +571,8 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/_dashboard/admin/classes'
     | '/_dashboard/admin/dashboard'
+    | '/_dashboard/admin/programs'
+    | '/_dashboard/admin/student-programs'
     | '/_dashboard/admin/subjects'
     | '/_dashboard/admin/users'
     | '/_dashboard/student/dashboard'
@@ -700,6 +725,20 @@ declare module '@tanstack/react-router' {
       path: '/admin/subjects'
       fullPath: '/admin/subjects'
       preLoaderRoute: typeof DashboardAdminSubjectsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/student-programs': {
+      id: '/_dashboard/admin/student-programs'
+      path: '/admin/student-programs'
+      fullPath: '/admin/student-programs'
+      preLoaderRoute: typeof DashboardAdminStudentProgramsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/programs': {
+      id: '/_dashboard/admin/programs'
+      path: '/admin/programs'
+      fullPath: '/admin/programs'
+      preLoaderRoute: typeof DashboardAdminProgramsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/admin/dashboard': {
@@ -970,6 +1009,8 @@ interface DashboardRouteChildren {
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardAdminClassesRoute: typeof DashboardAdminClassesRoute
   DashboardAdminDashboardRoute: typeof DashboardAdminDashboardRoute
+  DashboardAdminProgramsRoute: typeof DashboardAdminProgramsRoute
+  DashboardAdminStudentProgramsRoute: typeof DashboardAdminStudentProgramsRoute
   DashboardAdminSubjectsRoute: typeof DashboardAdminSubjectsRoute
   DashboardAdminUsersRoute: typeof DashboardAdminUsersRoute
   DashboardStudentDashboardRoute: typeof DashboardStudentDashboardRoute
@@ -1008,6 +1049,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardAdminClassesRoute: DashboardAdminClassesRoute,
   DashboardAdminDashboardRoute: DashboardAdminDashboardRoute,
+  DashboardAdminProgramsRoute: DashboardAdminProgramsRoute,
+  DashboardAdminStudentProgramsRoute: DashboardAdminStudentProgramsRoute,
   DashboardAdminSubjectsRoute: DashboardAdminSubjectsRoute,
   DashboardAdminUsersRoute: DashboardAdminUsersRoute,
   DashboardStudentDashboardRoute: DashboardStudentDashboardRoute,

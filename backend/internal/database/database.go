@@ -33,7 +33,7 @@ func Migrate(db *gorm.DB) {
 	// clean up orphaned subject_images before AutoMigrate (FK constraint)
 	db.Exec("DELETE FROM subject_images WHERE user_id NOT IN (SELECT id FROM users)")
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{})
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentProgram{})
 
 	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
 	for _, name := range []string{"student", "teacher", "admin"} {
@@ -163,6 +163,22 @@ func Migrate(db *gorm.DB) {
 	// tabel join many2many tidak dipakai lagi (soal dimiliki paket)
 	if db.Migrator().HasTable("package_questions") {
 		db.Migrator().DropTable("package_questions")
+	}
+
+	// migrasi: classes + invoices tambah program_id (fitur program)
+	if !db.Migrator().HasColumn(&models.Class{}, "program_id") {
+		db.Exec("ALTER TABLE classes ADD COLUMN program_id BIGINT DEFAULT NULL")
+		db.Exec("CREATE INDEX idx_classes_program_id ON classes(program_id)")
+	}
+	if !db.Migrator().HasColumn(&models.Invoice{}, "program_id") {
+		db.Exec("ALTER TABLE invoices ADD COLUMN program_id BIGINT DEFAULT NULL")
+		db.Exec("CREATE INDEX idx_invoices_program_id ON invoices(program_id)")
+	}
+
+	// seed program default "Sekolah" bila belum ada
+	var program models.Program
+	if err := db.Where("slug = ?", "sekolah").First(&program).Error; err != nil {
+		db.Create(&models.Program{Name: "Sekolah", Slug: "sekolah", Desc: "Program belajar sekolah"})
 	}
 
 	log.Println("Migration completed")

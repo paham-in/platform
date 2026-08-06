@@ -75,6 +75,8 @@ const sidebarGroups = [
       { label: "Dashboard", icon: LayoutDashboard, to: "/admin/dashboard" },
       { label: "Kelola User", icon: Users, to: "/admin/users" },
       { label: "Pembayaran", icon: CreditCard, to: "/admin/payments" },
+      { label: "Program", icon: BookMarked, to: "/admin/programs" },
+      { label: "Hak Akses Murid", icon: Shield, to: "/admin/student-programs" },
       { label: "Kelas", icon: GraduationCap, to: "/admin/classes" },
       { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
