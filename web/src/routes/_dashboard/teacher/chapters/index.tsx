@@ -11,10 +11,12 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -55,8 +57,10 @@ import {
   Plus,
   Search,
   Trash2,
+  X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -64,9 +68,13 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
+const COVER_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+const COVER_MAX = 5 * 1024 * 1024;
+const perPage = 10;
+
 function AdminChapters() {
   const qc = useQueryClient();
-  const { data: chapters = [], isLoading } = useQuery(getAdminChaptersOptions());
+  const { data: chapters = [], isLoading, isError } = useQuery(getAdminChaptersOptions());
   const { data: subjects = [] } = useQuery(getSubjectsOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
   const [search, setSearch] = useState("");
@@ -75,6 +83,7 @@ function AdminChapters() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<ChapterChapterResponse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<ChapterChapterResponse | null>(null);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -83,10 +92,10 @@ function AdminChapters() {
     subject_id: "",
   });
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string>("");
+  const [coverPreview, setCoverPreview] = useState("");
+  const [coverError, setCoverError] = useState("");
   const [uploadingCover, setUploadingCover] = useState(false);
   const [coverView, setCoverView] = useState<ChapterChapterResponse | null>(null);
-  const perPage = 5;
 
   const classOptions = [
     { label: "Semua Kelas", value: "all" },
@@ -96,19 +105,21 @@ function AdminChapters() {
 
   const { mutateAsync: createChapter } = useMutation({
     ...postAdminChaptersMutation(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() });
-    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() }),
+    onError: () => toast.error("Gagal menyimpan chapter."),
   });
   const { mutateAsync: updateChapter } = useMutation({
     ...patchAdminChaptersByIdMutation(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() });
-    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() }),
+    onError: () => toast.error("Gagal memperbarui chapter."),
   });
   const { mutate: deleteChapter } = useMutation({
     ...deleteAdminChaptersByIdMutation(),
-    onSuccess: () => qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() });
+      toast.success("Chapter berhasil dihapus.");
+    },
+    onError: () => toast.error("Gagal menghapus chapter."),
   });
 
   // subjects filtered by form.class_id
@@ -122,14 +133,20 @@ function AdminChapters() {
     const matchClass = classFilter === "all" || String(c.class_id) === classFilter;
     return matchSearch && matchClass;
   });
-  const totalPages = Math.ceil(filtered.length / perPage);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
+
+  // clamp page kalau data mengecil (mis. setelah hapus item terakhir di halaman)
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   const openAdd = () => {
     setEditing(null);
     setForm({ title: "", description: "", order: 0, class_id: "", subject_id: "" });
     setCoverFile(null);
     setCoverPreview("");
+    setCoverError("");
     setDialogOpen(true);
   };
   const openEdit = (c: ChapterChapterResponse) => {
@@ -143,44 +160,85 @@ function AdminChapters() {
     });
     setCoverFile(null);
     setCoverPreview("");
+    setCoverError("");
     setDialogOpen(true);
   };
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    setCoverFile(null);
+    setCoverPreview("");
+    setCoverError("");
+    if (!f) return;
+    if (!COVER_TYPES.includes(f.type)) {
+      setCoverError("Format tidak didukung. Gunakan JPG, PNG, GIF, atau WebP.");
+      return;
+    }
+    if (f.size > COVER_MAX) {
+      setCoverError("Ukuran gambar maksimal 5MB.");
+      return;
+    }
+    setCoverFile(f);
+    setCoverPreview(URL.createObjectURL(f));
+  };
   const uploadCover = async (chapterId: number): Promise<boolean> => {
-    if (!coverFile) return true
-    setUploadingCover(true)
+    if (!coverFile) return true;
+    setUploadingCover(true);
     try {
-      await postAdminChaptersByIdCover({ path: { id: chapterId }, body: { image: coverFile } })
-      return true
+      await postAdminChaptersByIdCover({ path: { id: chapterId }, body: { image: coverFile } });
+      return true;
     } catch {
-      return false
+      return false;
     } finally {
-      setUploadingCover(false)
+      setUploadingCover(false);
     }
-  }
+  };
   const save = async () => {
-    if (editing) {
-      await updateChapter({
-        path: { id: editing.id! },
-        body: {
-          title: form.title || undefined,
-          description: form.description || undefined,
-          order: form.order,
-        },
-      });
-      if (coverFile) await uploadCover(editing.id!)
-    } else {
-      const data = await createChapter({
-        body: {
-          title: form.title,
-          description: form.description,
-          order: form.order,
-          class_id: Number(form.class_id),
-          subject_id: Number(form.subject_id),
-        },
-      });
-      if (coverFile && data?.id) await uploadCover(data.id)
+    if (coverError || !form.title || !form.class_id || !form.subject_id) return;
+    setSaving(true);
+    try {
+      if (editing) {
+        await updateChapter({
+          path: { id: editing.id! },
+          body: {
+            title: form.title,
+            description: form.description,
+            order: form.order,
+            class_id: Number(form.class_id),
+            subject_id: Number(form.subject_id),
+          },
+        });
+        if (coverFile && !(await uploadCover(editing.id!))) {
+          toast.error("Chapter tersimpan, tapi sampul gagal diunggah.");
+          setDialogOpen(false);
+          return;
+        }
+        toast.success("Chapter berhasil diperbarui.");
+      } else {
+        const data = await createChapter({
+          body: {
+            title: form.title,
+            description: form.description,
+            order: form.order,
+            class_id: Number(form.class_id),
+            subject_id: Number(form.subject_id),
+          },
+        });
+        if (coverFile && data?.id && !(await uploadCover(data.id))) {
+          toast.error("Chapter ditambahkan, tapi sampul gagal diunggah.");
+          setDialogOpen(false);
+          return;
+        }
+        toast.success("Chapter berhasil ditambahkan.");
+        setSearch("");
+        setClassFilter("all");
+        setPage(1);
+      }
+      setDialogOpen(false);
+    } catch {
+      toast.error("Gagal menyimpan chapter. Coba lagi.");
+    } finally {
+      setSaving(false);
     }
-    setDialogOpen(false);
   };
 
   if (isLoading) {
@@ -191,23 +249,54 @@ function AdminChapters() {
     );
   }
 
+  if (isError) {
+    return (
+      <main className="p-6">
+        <Card>
+          <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
+            <p className="text-muted-foreground">Gagal memuat daftar chapter.</p>
+            <Button
+              variant="outline"
+              onClick={() => qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() })}
+            >
+              Muat Ulang
+            </Button>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
   return (
     <>
       <main className="p-6">
-        <h1 className="mb-4 text-2xl font-bold tracking-tight">Chapter</h1>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold tracking-tight">Chapter</h1>
+        <div className="mb-4 mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-1 flex-wrap items-center gap-4">
             <div className="relative max-w-sm flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Cari chapter..."
-                className="pl-9"
+                className="pl-9 pr-9"
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
                   setPage(1);
                 }}
               />
+              {search && (
+                <button
+                  type="button"
+                  aria-label="Bersihkan pencarian"
+                  onClick={() => {
+                    setSearch("");
+                    setPage(1);
+                  }}
+                  className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
             <Select
               items={classOptions}
@@ -235,9 +324,10 @@ function AdminChapters() {
             </Button>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>
-                  {editing ? "Edit Chapter" : "Tambah Chapter"}
-                </DialogTitle>
+                <DialogTitle>{editing ? "Ubah Chapter" : "Tambah Chapter"}</DialogTitle>
+                <DialogDescription className="sr-only">
+                  {editing ? "Ubah detail chapter." : "Buat chapter baru dalam hierarki kelas dan mata pelajaran."}
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
@@ -245,44 +335,43 @@ function AdminChapters() {
                   <Input
                     id="title"
                     value={form.title}
-                    onChange={(e) =>
-                      setForm({ ...form, title: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
                     placeholder="Judul chapter"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Cover (opsional)</Label>
+                  <Label htmlFor="cover">Sampul (opsional)</Label>
                   <div className="flex items-center gap-3">
                     {(coverPreview || editing?.cover_url) && (
                       <img
                         src={coverPreview || editing?.cover_url}
                         alt=""
-                        className="h-16 w-24 rounded-lg border object-cover"
+                        className="h-16 w-24 shrink-0 rounded-lg border object-cover"
                       />
                     )}
                     <Input
+                      id="cover"
                       type="file"
                       accept="image/jpeg,image/png,image/gif,image/webp"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0]
-                        if (f) {
-                          setCoverFile(f)
-                          setCoverPreview(URL.createObjectURL(f))
-                        }
-                      }}
+                      aria-invalid={!!coverError}
+                      onChange={handleCoverChange}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">JPG, PNG, GIF, WebP. Maks 5MB.</p>
+                  {coverError ? (
+                    <p className="text-xs text-destructive" role="alert">
+                      {coverError}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">JPG, PNG, GIF, WebP. Maks 5MB.</p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label>Kelas</Label>
+                  <Label htmlFor="class">Kelas</Label>
                   <Select
+                    id="class"
                     items={formClassOptions}
                     value={form.class_id}
-                    onValueChange={(v) =>
-                      setForm({ ...form, class_id: v ?? "", subject_id: "" })
-                    }
+                    onValueChange={(v) => setForm({ ...form, class_id: v ?? "", subject_id: "" })}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Pilih kelas">
@@ -299,18 +388,17 @@ function AdminChapters() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Subjek</Label>
+                  <Label htmlFor="subject">Mata Pelajaran</Label>
                   <Select
                     key={`subject-${form.class_id}`}
+                    id="subject"
                     items={subjectOptions}
                     value={form.subject_id}
-                    onValueChange={(v) =>
-                      setForm({ ...form, subject_id: v ?? "" })
-                    }
+                    onValueChange={(v) => setForm({ ...form, subject_id: v ?? "" })}
                     disabled={!form.class_id}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder={form.class_id ? "Pilih subjek" : "Pilih kelas dulu"}>
+                      <SelectValue placeholder={form.class_id ? "Pilih mata pelajaran" : "Pilih kelas dulu"}>
                         {availableSubjects.find((s) => String(s.id) === form.subject_id)?.name}
                       </SelectValue>
                     </SelectTrigger>
@@ -325,13 +413,12 @@ function AdminChapters() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="desc">Deskripsi</Label>
-                  <Input
+                  <Textarea
                     id="desc"
                     value={form.description}
-                    onChange={(e) =>
-                      setForm({ ...form, description: e.target.value })
-                    }
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
                     placeholder="Deskripsi singkat"
+                    rows={2}
                   />
                 </div>
                 <div className="space-y-2">
@@ -339,35 +426,40 @@ function AdminChapters() {
                   <Input
                     id="order"
                     type="number"
+                    min={0}
                     value={form.order}
-                    onChange={(e) =>
-                      setForm({ ...form, order: Number(e.target.value) })
-                    }
+                    onChange={(e) => setForm({ ...form, order: Number(e.target.value) })}
                   />
                 </div>
                 <div className="flex justify-end gap-3 pt-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setDialogOpen(false)}
-                  >
+                  <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
                     Batal
                   </Button>
-                  <Button onClick={save} disabled={!form.title || !form.class_id || !form.subject_id || uploadingCover}>
-                    {uploadingCover ? "Mengupload..." : editing ? "Simpan" : "Tambah"}
+                  <Button
+                    onClick={save}
+                    disabled={!form.title || !form.class_id || !form.subject_id || saving || !!coverError}
+                  >
+                    {saving
+                      ? uploadingCover
+                        ? "Mengunggah..."
+                        : "Menyimpan..."
+                      : editing
+                        ? "Simpan"
+                        : "Tambah"}
                   </Button>
                 </div>
               </div>
             </DialogContent>
           </Dialog>
         </div>
-        <Card className="pt-0 gap-0 pb-0">
+        <Card className="pt-0 gap-0">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Judul</TableHead>
                   <TableHead>Kelas</TableHead>
-                  <TableHead>Subjek</TableHead>
+                  <TableHead>Mata Pelajaran</TableHead>
                   <TableHead>Deskripsi</TableHead>
                   <TableHead>Urutan</TableHead>
                   <TableHead>Jumlah Materi</TableHead>
@@ -377,71 +469,88 @@ function AdminChapters() {
               <TableBody>
                 {paged.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell className="pl-6 font-medium">
-                      <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId: String(c.id!) }} className="hover:underline">
-                        {c.title}
-                      </Link>
+                    <TableCell className="pl-6">
+                      <div className="flex items-center gap-3">
+                        {c.cover_url ? (
+                          <img
+                            src={c.cover_url}
+                            alt=""
+                            className="h-10 w-14 shrink-0 rounded-md border object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                            <BookOpen className="h-4 w-4" />
+                          </div>
+                        )}
+                        <Link
+                          to="/teacher/chapters/$chapterId/materials"
+                          params={{ chapterId: String(c.id!) }}
+                          className="font-medium hover:underline"
+                        >
+                          {c.title}
+                        </Link>
+                      </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {c.class_name}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {c.subject_name}
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate text-muted-foreground">
-                      {c.description}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {c.order}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground">{c.class_name}</TableCell>
+                    <TableCell className="text-muted-foreground">{c.subject_name}</TableCell>
+                    <TableCell className="max-w-xs truncate text-muted-foreground">{c.description}</TableCell>
+                    <TableCell className="text-muted-foreground">{c.order}</TableCell>
                     <TableCell>{c.material_count}</TableCell>
-                    <TableCell className="pr-6 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
+                    <TableCell className="pr-6">
+                      <div className="flex items-center justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button variant="outline" size="icon" aria-label={`Menu aksi untuk ${c.title}`} />
+                            }
+                          >
                             <MoreVertical className="h-4 w-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId: String(c.id!) }}>
-                            <DropdownMenuItem>
-                              <BookOpen className="h-4 w-4" /> Materi
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId: String(c.id!) }}>
+                              <DropdownMenuItem>
+                                <BookOpen className="h-4 w-4" /> Materi
+                              </DropdownMenuItem>
+                            </Link>
+                            <DropdownMenuItem disabled={!c.cover_url} onClick={() => setCoverView(c)}>
+                              <ImageIcon className="h-4 w-4" /> Lihat Sampul
                             </DropdownMenuItem>
-                          </Link>
-                          <DropdownMenuItem disabled={!c.cover_url} onClick={() => setCoverView(c)}>
-                            <ImageIcon className="h-4 w-4" /> Lihat Cover
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEdit(c)}>
-                            <Pencil className="h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDeleteConfirm(c)}>
-                            <Trash2 className="h-4 w-4" /> Hapus
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            <DropdownMenuItem onClick={() => openEdit(c)}>
+                              <Pencil className="h-4 w-4" /> Ubah
+                            </DropdownMenuItem>
+                            <DropdownMenuItem variant="destructive" onClick={() => setDeleteConfirm(c)}>
+                              <Trash2 className="h-4 w-4" /> Hapus
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
                 {paged.length === 0 && (
                   <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="p-8 text-center text-muted-foreground"
-                    >
-                      Tidak ada chapter ditemukan
+                    <TableCell colSpan={7} className="p-8 text-center text-muted-foreground">
+                      {filtered.length === 0 && (search || classFilter !== "all")
+                        ? "Tidak ada chapter yang cocok dengan filter."
+                        : "Belum ada chapter. Klik Tambah untuk membuat chapter pertama."}
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
           </CardContent>
-          {totalPages > 1 && (
-            <CardFooter className="flex items-center justify-between border-t">
-              <p className="text-sm text-muted-foreground">
-                Halaman {page} dari {totalPages}
-              </p>
+          <CardFooter className="flex items-center justify-between border-t">
+            <p className="text-sm text-muted-foreground">
+              {filtered.length === 0
+                ? "Belum ada data"
+                : `Menampilkan ${(page - 1) * perPage + 1}–${Math.min(page * perPage, filtered.length)} dari ${filtered.length} chapter`}
+            </p>
+            {totalPages > 1 && (
               <div className="flex gap-1">
                 <Button
                   variant="outline"
                   size="sm"
+                  aria-label="Halaman sebelumnya"
                   disabled={page === 1}
                   onClick={() => setPage(page - 1)}
                 >
@@ -450,14 +559,15 @@ function AdminChapters() {
                 <Button
                   variant="outline"
                   size="sm"
+                  aria-label="Halaman berikutnya"
                   disabled={page === totalPages}
                   onClick={() => setPage(page + 1)}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-            </CardFooter>
-          )}
+            )}
+          </CardFooter>
         </Card>
       </main>
 
@@ -465,32 +575,45 @@ function AdminChapters() {
         <Dialog open onOpenChange={(o) => !o && setCoverView(null)}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Cover — {coverView.title}</DialogTitle>
+              <DialogTitle>Sampul — {coverView.title}</DialogTitle>
+              <DialogDescription className="sr-only">
+                Pratinjau sampul chapter {coverView.title}.
+              </DialogDescription>
             </DialogHeader>
             <div className="overflow-hidden rounded-lg border">
-              <img src={coverView.cover_url} alt={coverView.title} className="w-full" />
+              <img src={coverView.cover_url} alt={`Sampul ${coverView.title}`} className="w-full" />
             </div>
           </DialogContent>
         </Dialog>
       )}
 
-      {deleteConfirm && <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Chapter</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah kamu yakin ingin menghapus <strong>{deleteConfirm.title}</strong>? Aksi ini tidak dapat dibatalkan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
-            <Button variant="destructive" onClick={() => {
-              deleteChapter({ path: { id: deleteConfirm.id! } })
-              setDeleteConfirm(null)
-            }}>Hapus</Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>}
+      {deleteConfirm && (
+        <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus Chapter</AlertDialogTitle>
+              <AlertDialogDescription>
+                Apakah kamu yakin ingin menghapus <strong>{deleteConfirm.title}</strong>? Aksi ini tidak dapat
+                dibatalkan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+                Batal
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  deleteChapter({ path: { id: deleteConfirm.id! } });
+                  setDeleteConfirm(null);
+                }}
+              >
+                Hapus
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 }

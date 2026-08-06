@@ -3081,6 +3081,9 @@ const docTemplate = `{
         "chapter.UpdateInput": {
             "type": "object",
             "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
                 "cover_url": {
                     "type": "string"
                 },
@@ -3088,6 +3091,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "order": {
+                    "type": "integer"
+                },
+                "subject_id": {
                     "type": "integer"
                 },
                 "title": {

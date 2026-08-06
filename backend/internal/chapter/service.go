@@ -93,6 +93,8 @@ type UpdateInput struct {
 	Description *string `json:"description"`
 	CoverURL    *string `json:"cover_url"`
 	Order       *int    `json:"order"`
+	ClassID     *uint   `json:"class_id"`
+	SubjectID   *uint   `json:"subject_id"`
 }
 
 func (s *Service) Update(id uint, input UpdateInput) (*ChapterResponse, error) {
@@ -109,6 +111,12 @@ func (s *Service) Update(id uint, input UpdateInput) (*ChapterResponse, error) {
 	}
 	if input.Order != nil {
 		updates["order"] = *input.Order
+	}
+	if input.ClassID != nil {
+		updates["class_id"] = *input.ClassID
+	}
+	if input.SubjectID != nil {
+		updates["subject_id"] = *input.SubjectID
 	}
 	if len(updates) > 0 {
 		if err := s.repo.Update(id, updates); err != nil {

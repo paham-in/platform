@@ -60,9 +60,11 @@ export type ChapterMessageResponse = {
 };
 
 export type ChapterUpdateInput = {
+    class_id?: number;
     cover_url?: string;
     description?: string;
     order?: number;
+    subject_id?: number;
     title?: string;
 };
 
