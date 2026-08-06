@@ -3,18 +3,20 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
-import { Search, MoreVertical, Shield, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search, SearchX, MoreVertical, Shield, Trash2, ChevronLeft, ChevronRight, Funnel, X } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RoleBadge, EditRoleDialog, DeleteUserDialog } from "@/components/admin/users"
@@ -51,10 +53,17 @@ function AdminUsers() {
     { label: "Guru", value: "teacher" },
     { label: "Admin", value: "admin" },
   ]
+  const activeFilterCount = roleFilter ? 1 : 0
+  const hasActiveFilter = !!search || !!roleFilter
   const [editing, setEditing] = useState<UserAdminUserResponse | null>(null)
   const [page, setPage] = useState(1)
   const perPage = 5
   const [deleteConfirm, setDeleteConfirm] = useState<UserAdminUserResponse | null>(null)
+
+  const setRole = (v: string) => {
+    navigate({ search: (prev) => ({ ...prev, role: v === "all" ? undefined : (v as "student" | "teacher" | "admin" | "user") }), replace: true })
+    setPage(1)
+  }
 
   const totalPages = Math.ceil(users.length / perPage)
   const paged = users.slice((page - 1) * perPage, page * perPage)
@@ -64,19 +73,49 @@ function AdminUsers() {
       <main className="p-6">
         <h1 className="mb-4 text-2xl font-bold tracking-tight">Kelola User</h1>
 
-        <div className="mb-4 flex flex-wrap items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="relative w-full max-w-sm flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Cari nama atau email..." className="pl-9" value={searchInput} onChange={(e) => { setSearchInput(e.target.value); setPage(1) }} />
+            <Input
+              aria-label="Cari nama atau email"
+              placeholder="Cari nama atau email..."
+              className="pl-9 pr-9"
+              value={searchInput}
+              onChange={(e) => { setSearchInput(e.target.value); setPage(1) }}
+            />
+            {searchInput && (
+              <button
+                type="button"
+                aria-label="Bersihkan pencarian"
+                onClick={() => { setSearchInput(""); setPage(1) }}
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
-          <Select items={roleOptions} value={roleFilter ?? "all"} onValueChange={(v) => { if (v) { navigate({ search: (prev) => ({ ...prev, role: v === "all" ? undefined : v as "student" | "teacher" | "admin" }), replace: true }); setPage(1) } }}>
-            <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Role" /></SelectTrigger>
-            <SelectContent>
-              {roleOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={<Button variant="outline" />}
+              aria-label="Filter role"
+            >
+              <Funnel className="h-4 w-4" />
+              Filter
+              {activeFilterCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                  {activeFilterCount}
+                </span>
+              )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-52">
+              <DropdownMenuRadioGroup value={roleFilter ?? "all"} onValueChange={(v) => { if (v) setRole(v); }}>
+                <DropdownMenuLabel>Role</DropdownMenuLabel>
+                {roleOptions.map((opt) => (
+                  <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <Card className="pt-0 gap-0 pb-0">
@@ -140,7 +179,27 @@ function AdminUsers() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {!isLoading && paged.length === 0 && (<TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Tidak ada user ditemukan</TableCell></TableRow>)}
+                {!isLoading && paged.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="p-8 text-center">
+                      {hasActiveFilter ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <SearchX className="h-6 w-6 text-muted-foreground" />
+                          <p className="text-muted-foreground">Tidak ada user yang cocok dengan filter.</p>
+                          <Button variant="outline" size="sm" onClick={() => {
+                            setSearchInput("")
+                            navigate({ search: {}, replace: true })
+                            setPage(1)
+                          }}>
+                            <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">Tidak ada user ditemukan</p>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>

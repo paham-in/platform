@@ -13,21 +13,39 @@ import {
   getAdminQuestionsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
-import { Search, MoreVertical, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { z } from "zod"
+import { useState, useEffect } from "react"
+import { Search, SearchX, MoreVertical, Trash2, ChevronLeft, ChevronRight, Eye, X } from "lucide-react"
 import { DeleteQuestionDialog } from "@/components/admin/forum"
 
+const adminForumSearchSchema = z.object({
+  search: z.string().optional(),
+})
+
 function AdminForum() {
+  const navigate = useNavigate({ from: Route.fullPath })
+  const { search: searchParam } = Route.useSearch()
   const { data: questions = [], isLoading } = useQuery(getAdminQuestionsOptions())
-  const [search, setSearch] = useState("")
+  const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const [page, setPage] = useState(1)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; content: string } | null>(null)
   const perPage = 10
 
+  // sync URL → local search input
+  useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
+
+  // debounce search input → URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({ search: (prev) => ({ ...prev, search: searchInput || undefined }), replace: true })
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput, navigate])
+
   const filtered = questions.filter((q) =>
-    (q.plain_content ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    (q.user_name ?? "").toLowerCase().includes(search.toLowerCase())
+    !searchParam || (q.plain_content ?? "").toLowerCase().includes(searchParam.toLowerCase()) ||
+    (q.user_name ?? "").toLowerCase().includes(searchParam.toLowerCase())
   )
   const totalPages = Math.ceil(filtered.length / perPage)
   const paged = filtered.slice((page - 1) * perPage, page * perPage)
@@ -38,14 +56,25 @@ function AdminForum() {
         <h1 className="mb-4 text-2xl font-bold tracking-tight">Forum</h1>
 
         <div className="mb-4 flex flex-wrap gap-4">
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative w-full max-w-sm flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              aria-label="Cari pertanyaan"
               placeholder="Cari pertanyaan atau user..."
-              className="pl-9"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+              className="pl-9 pr-9"
+              value={searchInput}
+              onChange={(e) => { setSearchInput(e.target.value); setPage(1) }}
             />
+            {searchInput && (
+              <button
+                type="button"
+                aria-label="Bersihkan pencarian"
+                onClick={() => { setSearchInput(""); setPage(1) }}
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -105,8 +134,18 @@ function AdminForum() {
                 ))}
                 {!isLoading && paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="p-8 text-center text-muted-foreground">
-                      Tidak ada pertanyaan
+                    <TableCell colSpan={5} className="p-8 text-center">
+                      {searchParam ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <SearchX className="h-6 w-6 text-muted-foreground" />
+                          <p className="text-muted-foreground">Tidak ada pertanyaan yang cocok.</p>
+                          <Button variant="outline" size="sm" onClick={() => { setSearchInput(""); setPage(1) }}>
+                            <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">Tidak ada pertanyaan</p>
+                      )}
                     </TableCell>
                   </TableRow>
                 )}
@@ -138,4 +177,5 @@ function AdminForum() {
 
 export const Route = createFileRoute("/_dashboard/admin/forum/")({
   component: AdminForum,
+  validateSearch: adminForumSearchSchema,
 })

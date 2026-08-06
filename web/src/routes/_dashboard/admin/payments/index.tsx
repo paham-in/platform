@@ -1,24 +1,43 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { Search, Loader2 } from "lucide-react"
+import { Search, SearchX, Loader2, X } from "lucide-react"
+
+const paymentsSearchSchema = z.object({
+  search: z.string().optional(),
+})
 
 function PaymentsIndex() {
+  const navigate = useNavigate({ from: Route.fullPath })
+  const { search: searchParam } = Route.useSearch()
   const { data: users = [], isLoading } = useQuery(getAdminUsersOptions())
-  const [search, setSearch] = useState("")
+  const [searchInput, setSearchInput] = useState(searchParam ?? "")
+
+  // sync URL → local search input
+  useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
+
+  // debounce search input → URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({ search: (prev) => ({ ...prev, search: searchInput || undefined }), replace: true })
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput, navigate])
 
   const students = users.filter((u) => {
     const roles = u.roles ?? []
     return roles.includes("student") || roles.includes("user")
   })
   const filtered = students.filter((u) =>
-    (u.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    (u.email ?? "").toLowerCase().includes(search.toLowerCase())
+    !searchParam ||
+    (u.name ?? "").toLowerCase().includes(searchParam.toLowerCase()) ||
+    (u.email ?? "").toLowerCase().includes(searchParam.toLowerCase())
   )
 
   if (isLoading) {
@@ -34,9 +53,25 @@ function PaymentsIndex() {
       <h1 className="mb-4 text-2xl font-bold tracking-tight">Pembayaran</h1>
 
       <div className="mb-4 flex flex-wrap items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative w-full max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Cari nama atau email..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input
+            aria-label="Cari nama atau email"
+            placeholder="Cari nama atau email..."
+            className="pl-9 pr-9"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+          {searchInput && (
+            <button
+              type="button"
+              aria-label="Bersihkan pencarian"
+              onClick={() => setSearchInput("")}
+              className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -73,8 +108,18 @@ function PaymentsIndex() {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="p-8 text-center text-muted-foreground">
-                    Tidak ada murid ditemukan
+                  <TableCell colSpan={3} className="p-8 text-center">
+                    {searchParam ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <SearchX className="h-6 w-6 text-muted-foreground" />
+                        <p className="text-muted-foreground">Tidak ada murid yang cocok.</p>
+                        <Button variant="outline" size="sm" onClick={() => setSearchInput("")}>
+                          <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">Tidak ada murid ditemukan</p>
+                    )}
                   </TableCell>
                 </TableRow>
               )}
@@ -88,4 +133,5 @@ function PaymentsIndex() {
 
 export const Route = createFileRoute("/_dashboard/admin/payments/")({
   component: PaymentsIndex,
+  validateSearch: paymentsSearchSchema,
 })

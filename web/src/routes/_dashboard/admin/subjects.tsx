@@ -2,13 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -27,11 +20,13 @@ import { z } from "zod";
 import {
   ChevronLeft,
   ChevronRight,
+  Funnel,
   MoreVertical,
   Pencil,
   Plus,
   Search,
   Trash2,
+  X,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +35,9 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { SubjectFormDialog, DeleteSubjectDialog } from "@/components/admin/subjects";
 import type { ClassClassResponse } from "@/lib/api/types.gen";
@@ -59,6 +57,8 @@ function AdminSubjects() {
   const [searchInput, setSearchInput] = useState(searchParam ?? "");
   const classFilter = classParam; // number | undefined
   const [page, setPage] = useState(1);
+  const activeFilterCount = classFilter === undefined ? 0 : 1;
+  const hasActiveFilter = !!searchParam || classFilter !== undefined;
   const [formTarget, setFormTarget] = useState<{ open: boolean; editing: SubjectSubjectResponse | null }>({ open: false, editing: null });
   const [deleteConfirm, setDeleteConfirm] = useState<SubjectSubjectResponse | null>(null);
   const perPage = 5;
@@ -67,6 +67,14 @@ function AdminSubjects() {
     { label: "Semua Kelas", value: "all" },
     ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id) })),
   ];
+
+  const setClassFilter = (v: string) => {
+    navigate({
+      search: (prev) => ({ ...prev, class: v === "all" ? undefined : Number(v) }),
+      replace: true,
+    });
+    setPage(1);
+  };
 
   const filtered = subjects.filter((s) => {
     const matchSearch = !searchParam || (s.name ?? "").toLowerCase().includes(searchParam.toLowerCase());
@@ -104,43 +112,52 @@ function AdminSubjects() {
       <main className="p-6">
         <h1 className="mb-4 text-2xl font-bold tracking-tight">Mata Pelajaran</h1>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-1 flex-wrap items-center gap-4">
+          <div className="flex flex-1 flex-wrap items-center gap-2">
             <div className="relative max-w-sm flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
+                aria-label="Cari mata pelajaran"
                 placeholder="Cari mata pelajaran..."
-                className="pl-9"
+                className="pl-9 pr-9"
                 value={searchInput}
                 onChange={(e) => {
                   setSearchInput(e.target.value);
                   setPage(1);
                 }}
               />
+              {searchInput && (
+                <button
+                  type="button"
+                  aria-label="Bersihkan pencarian"
+                  onClick={() => { setSearchInput(""); setPage(1); }}
+                  className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
-            <Select
-              items={classOptions}
-              value={classFilter === undefined ? "all" : String(classFilter)}
-              onValueChange={(v) => {
-                if (v) {
-                  navigate({
-                    search: (prev) => ({ ...prev, class: v === "all" ? undefined : Number(v) }),
-                    replace: true,
-                  });
-                  setPage(1);
-                }
-              }}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter Kelas" />
-              </SelectTrigger>
-              <SelectContent>
-                {classOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<Button variant="outline" />}
+                aria-label="Filter kelas"
+              >
+                <Funnel className="h-4 w-4" />
+                Filter
+                {activeFilterCount > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-52">
+                <DropdownMenuRadioGroup value={classFilter === undefined ? "all" : String(classFilter)} onValueChange={(v) => { if (v) setClassFilter(v); }}>
+                  <DropdownMenuLabel>Kelas</DropdownMenuLabel>
+                  {classOptions.map((opt) => (
+                    <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <Button onClick={openAdd}>
             <Plus className="mr-1 h-4 w-4" /> Tambah
@@ -198,11 +215,21 @@ function AdminSubjects() {
                 ))}
                 {!isLoading && paged.length === 0 && (
                   <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="p-8 text-center text-muted-foreground"
-                    >
-                      Tidak ada mata pelajaran ditemukan
+                    <TableCell colSpan={5} className="p-8 text-center">
+                      {hasActiveFilter ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <p className="text-muted-foreground">Tidak ada mata pelajaran yang cocok dengan filter.</p>
+                          <Button variant="outline" size="sm" onClick={() => {
+                            setSearchInput("");
+                            navigate({ search: {}, replace: true });
+                            setPage(1);
+                          }}>
+                            <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">Tidak ada mata pelajaran ditemukan</p>
+                      )}
                     </TableCell>
                   </TableRow>
                 )}
