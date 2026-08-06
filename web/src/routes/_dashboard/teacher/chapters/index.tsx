@@ -50,7 +50,6 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
-  ImageIcon,
   Loader2,
   MoreVertical,
   Pencil,
@@ -457,7 +456,8 @@ function AdminChapters() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
-                  <TableHead className="pl-6">Judul</TableHead>
+                  <TableHead className="pl-6">Sampul</TableHead>
+                  <TableHead>Judul</TableHead>
                   <TableHead>Kelas</TableHead>
                   <TableHead>Mata Pelajaran</TableHead>
                   <TableHead>Deskripsi</TableHead>
@@ -470,26 +470,33 @@ function AdminChapters() {
                 {paged.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="pl-6">
-                      <div className="flex items-center gap-3">
-                        {c.cover_url ? (
+                      {c.cover_url ? (
+                        <button
+                          type="button"
+                          aria-label={`Lihat sampul ${c.title}`}
+                          onClick={() => setCoverView(c)}
+                          className="block cursor-pointer"
+                        >
                           <img
                             src={c.cover_url}
-                            alt=""
-                            className="h-10 w-14 shrink-0 rounded-md border object-cover"
+                            alt={`Sampul ${c.title}`}
+                            className="h-10 w-14 shrink-0 rounded-md border object-cover transition-transform hover:scale-105"
                           />
-                        ) : (
-                          <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                            <BookOpen className="h-4 w-4" />
-                          </div>
-                        )}
-                        <Link
-                          to="/teacher/chapters/$chapterId/materials"
-                          params={{ chapterId: String(c.id!) }}
-                          className="font-medium hover:underline"
-                        >
-                          {c.title}
-                        </Link>
-                      </div>
+                        </button>
+                      ) : (
+                        <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                          <BookOpen className="h-4 w-4" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        to="/teacher/chapters/$chapterId/materials"
+                        params={{ chapterId: String(c.id!) }}
+                        className="font-medium hover:underline"
+                      >
+                        {c.title}
+                      </Link>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{c.class_name}</TableCell>
                     <TableCell className="text-muted-foreground">{c.subject_name}</TableCell>
@@ -512,9 +519,6 @@ function AdminChapters() {
                                 <BookOpen className="h-4 w-4" /> Materi
                               </DropdownMenuItem>
                             </Link>
-                            <DropdownMenuItem disabled={!c.cover_url} onClick={() => setCoverView(c)}>
-                              <ImageIcon className="h-4 w-4" /> Lihat Sampul
-                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openEdit(c)}>
                               <Pencil className="h-4 w-4" /> Ubah
                             </DropdownMenuItem>
@@ -529,7 +533,7 @@ function AdminChapters() {
                 ))}
                 {paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="p-8 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="p-8 text-center text-muted-foreground">
                       {filtered.length === 0 && (search || classFilter !== "all")
                         ? "Tidak ada chapter yang cocok dengan filter."
                         : "Belum ada chapter. Klik Tambah untuk membuat chapter pertama."}
