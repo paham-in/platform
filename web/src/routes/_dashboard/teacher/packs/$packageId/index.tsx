@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { PreviewQuestionDialog, DeleteQuestionDialog } from "@/components/teacher/packs"
+import { PreviewQuestionDialog, DeleteQuestionDialog, EditPackageDialog } from "@/components/teacher/packs"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesByIdQuestionsOptions } from "@/lib/api/@tanstack/react-query.gen"
-import type { QuestionbankQuestionResponse } from "@/lib/api/types.gen"
+import type { QuestionbankQuestionResponse, QuestionpackagePackageResponse } from "@/lib/api/types.gen"
 import { ArrowLeft, ChevronLeft, ChevronRight, Eye, MoreVertical, Pencil, Plus, Search, Trash2, UploadCloud } from "lucide-react"
 
 function stripHtml(html: string): string {
@@ -26,6 +26,7 @@ function PackageQuestions() {
   const perPage = 10
   const [previewTarget, setPreviewTarget] = useState<QuestionbankQuestionResponse | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<QuestionbankQuestionResponse | null>(null)
+  const [editTarget, setEditTarget] = useState<QuestionpackagePackageResponse | null>(null)
 
   const filtered = questions.filter((q) =>
     stripHtml(q.question ?? "").toLowerCase().includes(search.toLowerCase())
@@ -55,9 +56,7 @@ function PackageQuestions() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/teacher/packs/$packageId/edit" params={{ packageId }}>
-              <Button variant="outline"><Pencil className="mr-1 h-4 w-4" /> Edit Paket</Button>
-            </Link>
+            <Button variant="outline" onClick={() => setEditTarget(pkg ?? null)}><Pencil className="mr-1 h-4 w-4" /> Edit Paket</Button>
             <Link to="/teacher/packs/$packageId/import" params={{ packageId }}>
               <Button variant="outline"><UploadCloud className="mr-1 h-4 w-4" /> Import dari Word</Button>
             </Link>
@@ -157,6 +156,10 @@ function PackageQuestions() {
 
       {deleteConfirm && (
         <DeleteQuestionDialog question={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+      )}
+
+      {editTarget && (
+        <EditPackageDialog pkg={editTarget} onClose={() => setEditTarget(null)} />
       )}
     </>
   )

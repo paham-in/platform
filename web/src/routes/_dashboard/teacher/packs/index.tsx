@@ -8,10 +8,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useQuery } from "@tanstack/react-query";
 import { getAdminQuestionPackagesOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { ListChecks, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
-import { DeletePackageDialog } from "@/components/teacher/packs";
+import { CreatePackageDialog, DeletePackageDialog, EditPackageDialog } from "@/components/teacher/packs";
+import type { QuestionpackagePackageResponse } from "@/lib/api/types.gen";
 
 function TeacherQuestionPackages() {
   const { data: packages = [], isLoading } = useQuery(getAdminQuestionPackagesOptions());
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<QuestionpackagePackageResponse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
 
   return (
@@ -19,9 +22,7 @@ function TeacherQuestionPackages() {
       <main className="p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl font-bold tracking-tight">Paket Soal</h1>
-          <Link to="/teacher/packs/new">
-            <Button><Plus className="mr-1 h-4 w-4" /> Tambah Paket</Button>
-          </Link>
+          <Button onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" /> Tambah Paket</Button>
         </div>
 
         <Card className="pt-0 gap-0 pb-0">
@@ -70,11 +71,9 @@ function TeacherQuestionPackages() {
                               <ListChecks className="h-4 w-4" /> Soal
                             </DropdownMenuItem>
                           </Link>
-                          <Link to="/teacher/packs/$packageId/edit" params={{ packageId: String(pkg.id!) }}>
-                            <DropdownMenuItem>
-                              <Pencil className="h-4 w-4" /> Edit
-                            </DropdownMenuItem>
-                          </Link>
+                          <DropdownMenuItem onClick={() => setEditTarget(pkg)}>
+                            <Pencil className="h-4 w-4" /> Edit
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive"
                             onClick={() => setDeleteConfirm({ id: pkg.id!, name: pkg.name ?? "" })}
@@ -91,6 +90,14 @@ function TeacherQuestionPackages() {
           </CardContent>
         </Card>
       </main>
+
+      {createOpen && (
+        <CreatePackageDialog onClose={() => setCreateOpen(false)} />
+      )}
+
+      {editTarget && (
+        <EditPackageDialog pkg={editTarget} onClose={() => setEditTarget(null)} />
+      )}
 
       {deleteConfirm && (
         <DeletePackageDialog pkg={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
