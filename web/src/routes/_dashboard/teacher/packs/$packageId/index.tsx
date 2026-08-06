@@ -1,5 +1,6 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router"
-import { useState } from "react"
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router"
+import { z } from "zod"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,26 +11,43 @@ import { PreviewQuestionDialog, DeleteQuestionDialog, EditPackageDialog } from "
 import { useQuery } from "@tanstack/react-query"
 import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesByIdQuestionsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { QuestionbankQuestionResponse, QuestionpackagePackageResponse } from "@/lib/api/types.gen"
-import { ArrowLeft, ChevronLeft, ChevronRight, Eye, MoreVertical, Pencil, Plus, Search, Trash2, UploadCloud } from "lucide-react"
+import { ArrowLeft, ChevronLeft, ChevronRight, Eye, MoreVertical, Pencil, Plus, Search, SearchX, Trash2, UploadCloud, X } from "lucide-react"
 
 function stripHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html")
   return (doc.body.textContent || "").trim()
 }
 
+const packageQuestionsSearchSchema = z.object({
+  search: z.string().optional(),
+})
+
 function PackageQuestions() {
   const { packageId } = useParams({ from: "/_dashboard/teacher/packs/$packageId/" })
+  const navigate = useNavigate({ from: Route.fullPath })
+  const { search } = Route.useSearch()
   const { data: pkg } = useQuery(getAdminQuestionPackagesByIdOptions({ path: { id: Number(packageId) } }))
   const { data: questions = [], isLoading } = useQuery(getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) } }))
-  const [search, setSearch] = useState("")
+  const [searchInput, setSearchInput] = useState(search ?? "")
   const [page, setPage] = useState(1)
   const perPage = 10
   const [previewTarget, setPreviewTarget] = useState<QuestionbankQuestionResponse | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<QuestionbankQuestionResponse | null>(null)
   const [editTarget, setEditTarget] = useState<QuestionpackagePackageResponse | null>(null)
 
+  // sync URL → local search input
+  useEffect(() => { setSearchInput(search ?? "") }, [search])
+
+  // debounce search input → URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({ search: (prev) => ({ ...prev, search: searchInput || undefined }), replace: true })
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput, navigate])
+
   const filtered = questions.filter((q) =>
-    stripHtml(q.question ?? "").toLowerCase().includes(search.toLowerCase())
+    !search || stripHtml(q.question ?? "").toLowerCase().includes(search.toLowerCase())
   )
   const totalPages = Math.ceil(filtered.length / perPage)
   const paged = filtered.slice((page - 1) * perPage, page * perPage)
@@ -70,11 +88,22 @@ function PackageQuestions() {
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              aria-label="Cari soal"
               placeholder="Cari soal..."
-              className="pl-9"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+              className="pl-9 pr-9"
+              value={searchInput}
+              onChange={(e) => { setSearchInput(e.target.value); setPage(1) }}
             />
+            {searchInput && (
+              <button
+                type="button"
+                aria-label="Bersihkan pencarian"
+                onClick={() => { setSearchInput(""); setPage(1) }}
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -102,7 +131,21 @@ function PackageQuestions() {
                     </TableRow>
                   ))
                 ) : paged.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada soal di paket ini</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={5} className="p-8 text-center">
+                      {search ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <SearchX className="h-6 w-6 text-muted-foreground" />
+                          <p className="text-muted-foreground">Tidak ada soal yang cocok dengan &ldquo;{search}&rdquo;.</p>
+                          <Button variant="outline" size="sm" onClick={() => { setSearchInput(""); setPage(1) }}>
+                            <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">Belum ada soal di paket ini</p>
+                      )}
+                    </TableCell>
+                  </TableRow>
                 ) : paged.map((q) => (
                   <TableRow key={q.id}>
                     <TableCell className="pl-6 font-medium max-w-[400px] truncate">{stripHtml(q.question ?? "")}</TableCell>
@@ -167,4 +210,5 @@ function PackageQuestions() {
 
 export const Route = createFileRoute("/_dashboard/teacher/packs/$packageId/")({
   component: PackageQuestions,
+  validateSearch: packageQuestionsSearchSchema,
 })

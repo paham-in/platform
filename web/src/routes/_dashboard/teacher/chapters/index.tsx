@@ -45,11 +45,13 @@ import {
 import { postAdminChaptersByIdCover } from "@/lib/api/sdk.gen";
 import type { ChapterChapterResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  Funnel,
   Loader2,
   MoreVertical,
   Pencil,
@@ -65,20 +67,31 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 
 const COVER_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const COVER_MAX = 5 * 1024 * 1024;
 const perPage = 10;
 
+const chaptersSearchSchema = z.object({
+  search: z.string().optional(),
+  classId: z.string().optional(),
+});
+
 function AdminChapters() {
   const qc = useQueryClient();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { search, classId } = Route.useSearch();
   const { data: chapters = [], isLoading, isError } = useQuery(getAdminChaptersOptions());
   const { data: subjects = [] } = useQuery(getSubjectsOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
-  const [search, setSearch] = useState("");
-  const [classFilter, setClassFilter] = useState("all");
+  const [searchInput, setSearchInput] = useState(search ?? "");
   const [page, setPage] = useState(1);
+  const activeFilterCount = classId ? 1 : 0;
+  const hasActiveFilter = !!search || !!classId;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<ChapterChapterResponse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<ChapterChapterResponse | null>(null);
@@ -101,6 +114,22 @@ function AdminChapters() {
     ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id) })),
   ];
   const formClassOptions = classes.map((c) => ({ label: c.name ?? "", value: String(c.id) }));
+
+  // sync URL → local search input
+  useEffect(() => { setSearchInput(search ?? "") }, [search]);
+
+  // debounce search input → URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({ search: (prev) => ({ ...prev, search: searchInput || undefined }), replace: true });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput, navigate]);
+
+  const setClassFilter = (v: string) => {
+    navigate({ search: (prev) => ({ ...prev, classId: v === "all" ? undefined : v }), replace: true });
+    setPage(1);
+  };
 
   const { mutateAsync: createChapter } = useMutation({
     ...postAdminChaptersMutation(),
@@ -128,8 +157,8 @@ function AdminChapters() {
   const subjectOptions = availableSubjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }));
 
   const filtered = chapters.filter((c) => {
-    const matchSearch = (c.title ?? "").toLowerCase().includes(search.toLowerCase());
-    const matchClass = classFilter === "all" || String(c.class_id) === classFilter;
+    const matchSearch = !search || (c.title ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchClass = !classId || String(c.class_id) === classId;
     return matchSearch && matchClass;
   });
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
@@ -228,8 +257,8 @@ function AdminChapters() {
           return;
         }
         toast.success("Chapter berhasil ditambahkan.");
-        setSearch("");
-        setClassFilter("all");
+        setSearchInput("");
+        navigate({ search: {}, replace: true });
         setPage(1);
       }
       setDialogOpen(false);
@@ -275,20 +304,21 @@ function AdminChapters() {
             <div className="relative max-w-sm flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
+                aria-label="Cari chapter"
                 placeholder="Cari chapter..."
                 className="pl-9 pr-9"
-                value={search}
+                value={searchInput}
                 onChange={(e) => {
-                  setSearch(e.target.value);
+                  setSearchInput(e.target.value);
                   setPage(1);
                 }}
               />
-              {search && (
+              {searchInput && (
                 <button
                   type="button"
                   aria-label="Bersihkan pencarian"
                   onClick={() => {
-                    setSearch("");
+                    setSearchInput("");
                     setPage(1);
                   }}
                   className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -297,25 +327,28 @@ function AdminChapters() {
                 </button>
               )}
             </div>
-            <Select
-              items={classOptions}
-              value={classFilter}
-              onValueChange={(v) => {
-                setClassFilter(v ?? "all");
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter Kelas" />
-              </SelectTrigger>
-              <SelectContent>
-                {classOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<Button variant="outline" />}
+                aria-label="Filter kelas"
+              >
+                <Funnel className="h-4 w-4" />
+                Filter
+                {activeFilterCount > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-52">
+                <DropdownMenuRadioGroup value={classId ?? "all"} onValueChange={(v) => { if (v) setClassFilter(v); }}>
+                  <DropdownMenuLabel>Kelas</DropdownMenuLabel>
+                  {classOptions.map((opt) => (
+                    <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <Button onClick={openAdd}>
@@ -533,10 +566,21 @@ function AdminChapters() {
                 ))}
                 {paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="p-8 text-center text-muted-foreground">
-                      {filtered.length === 0 && (search || classFilter !== "all")
-                        ? "Tidak ada chapter yang cocok dengan filter."
-                        : "Belum ada chapter. Klik Tambah untuk membuat chapter pertama."}
+                    <TableCell colSpan={8} className="p-8 text-center">
+                      {hasActiveFilter ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <p className="text-muted-foreground">Tidak ada chapter yang cocok dengan filter.</p>
+                          <Button variant="outline" size="sm" onClick={() => {
+                            setSearchInput("");
+                            navigate({ search: {}, replace: true });
+                            setPage(1);
+                          }}>
+                            <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">Belum ada chapter. Klik Tambah untuk membuat chapter pertama.</p>
+                      )}
                     </TableCell>
                   </TableRow>
                 )}
@@ -624,4 +668,5 @@ function AdminChapters() {
 
 export const Route = createFileRoute("/_dashboard/teacher/chapters/")({
   component: AdminChapters,
+  validateSearch: chaptersSearchSchema,
 });

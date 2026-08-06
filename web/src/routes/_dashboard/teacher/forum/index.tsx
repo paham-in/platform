@@ -10,18 +10,33 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { useState, useEffect } from "react"
-import { Search, ChevronLeft, ChevronRight, Eye, MessageSquare } from "lucide-react"
+import { Search, SearchX, ChevronLeft, ChevronRight, Eye, Funnel, X } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu"
 
 const forumSearchSchema = z.object({
   search: z.string().optional(),
   unanswered: z.coerce.boolean().optional(),
 })
 
+const statusOptions = [
+  { label: "Semua", value: "all" },
+  { label: "Belum Terjawab", value: "unanswered" },
+]
+
 function TeacherForum() {
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam, unanswered: unansweredParam } = Route.useSearch()
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const unansweredOnly = unansweredParam ?? false
+  const activeFilterCount = unansweredOnly ? 1 : 0
+  const hasActiveFilter = !!searchParam || unansweredOnly
   const [page, setPage] = useState(1)
   const perPage = 10
 
@@ -54,28 +69,60 @@ function TeacherForum() {
     <main className="p-6">
       <h1 className="mb-4 text-2xl font-bold tracking-tight">Tanya Jawab</h1>
 
-      <div className="mb-4 flex flex-wrap gap-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="relative w-full max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            aria-label="Cari pertanyaan"
             placeholder="Cari pertanyaan atau user..."
-            className="pl-9"
+            className="pl-9 pr-9"
             value={searchInput}
             onChange={(e) => { setSearchInput(e.target.value); setPage(1) }}
           />
+          {searchInput && (
+            <button
+              type="button"
+              aria-label="Bersihkan pencarian"
+              onClick={() => { setSearchInput(""); setPage(1) }}
+              className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
-        <Button
-          variant={unansweredOnly ? "default" : "outline"}
-          onClick={() => {
-            navigate({
-              search: (prev) => ({ ...prev, unanswered: unansweredOnly ? undefined : "true" }),
-              replace: true,
-            })
-            setPage(1)
-          }}
-        >
-          <MessageSquare className="h-4 w-4" /> Belum Terjawab
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="outline" />}
+            aria-label="Filter status"
+          >
+            <Funnel className="h-4 w-4" />
+            Filter
+            {activeFilterCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeFilterCount}
+              </span>
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-52">
+            <DropdownMenuRadioGroup
+              value={unansweredOnly ? "unanswered" : "all"}
+              onValueChange={(v) => {
+                if (v) {
+                  navigate({
+                    search: (prev) => ({ ...prev, unanswered: v === "all" ? undefined : "true" }),
+                    replace: true,
+                  })
+                  setPage(1)
+                }
+              }}
+            >
+              <DropdownMenuLabel>Status</DropdownMenuLabel>
+              {statusOptions.map((opt) => (
+                <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <Card className="pt-0 gap-0 pb-0">
@@ -127,8 +174,22 @@ function TeacherForum() {
               ))}
               {!isLoading && paged.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="p-8 text-center text-muted-foreground">
-                    Tidak ada pertanyaan
+                  <TableCell colSpan={6} className="p-8 text-center">
+                    {hasActiveFilter ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <SearchX className="h-6 w-6 text-muted-foreground" />
+                        <p className="text-muted-foreground">Tidak ada pertanyaan yang cocok.</p>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          setSearchInput("")
+                          navigate({ search: {}, replace: true })
+                          setPage(1)
+                        }}>
+                          <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">Tidak ada pertanyaan</p>
+                    )}
                   </TableCell>
                 </TableRow>
               )}
