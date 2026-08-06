@@ -22,6 +22,7 @@ import {
   MessageSquare,
   Moon,
   Settings,
+  Shield,
   Sun,
   Users,
   X,
