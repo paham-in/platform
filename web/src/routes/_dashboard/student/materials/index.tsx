@@ -227,7 +227,7 @@ function MaterialsPage() {
                     <BookOpen className="h-8 w-8 text-muted-foreground/40" />
                   </div>
                 )}
-                <CardContent className="p-5">
+                <CardContent>
                   <h3 className="font-semibold">{c.title}</h3>
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
