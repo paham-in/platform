@@ -2,24 +2,36 @@ package questionpackage
 
 import (
 	"strconv"
+	"time"
+
+	"bimbel2/backend/internal/models"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
-// canAccessPremium true kalau user punya role yang boleh akses paket premium.
-func canAccessPremium(c *fiber.Ctx) bool {
+// canAccessPremium true kalau user boleh akses konten premium:
+// admin/teacher otomatis, student hanya bila punya invoice "paid" dengan end_date aktif.
+func canAccessPremium(c *fiber.Ctx, db *gorm.DB) bool {
 	roles, ok := c.Locals("roles").([]string)
 	if !ok {
 		return false
 	}
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok {
+		return false
+	}
 	for _, r := range roles {
-		switch r {
-		case "student", "teacher", "admin":
+		if r == "admin" || r == "teacher" {
 			return true
 		}
 	}
-	return false
+	today := time.Now().Format("2006-01-02")
+	var n int64
+	db.Model(&models.Invoice{}).
+		Where("user_id = ? AND status = ? AND end_date >= ?", userID, "paid", today).
+		Count(&n)
+	return n > 0
 }
 
 type ErrorResponse struct {
@@ -32,10 +44,11 @@ type MessageResponse struct {
 
 type Handler struct {
 	svc *Service
+	db  *gorm.DB
 }
 
-func NewHandler(svc *Service) *Handler {
-	return &Handler{svc: svc}
+func NewHandler(svc *Service, db *gorm.DB) *Handler {
+	return &Handler{svc: svc, db: db}
 }
 
 // ListPackages mengembalikan daftar paket soal
@@ -161,7 +174,7 @@ func (h *Handler) DeletePackage(c *fiber.Ctx) error {
 // @Success      200 {array} PackageResponse
 // @Router       /question-packages [get]
 func (h *Handler) MyPackages(c *fiber.Ctx) error {
-	packages, err := h.svc.ListVisible(canAccessPremium(c))
+	packages, err := h.svc.ListVisible(canAccessPremium(c, h.db))
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
@@ -189,7 +202,7 @@ func (h *Handler) MyPackage(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(404).JSON(ErrorResponse{Error: "paket tidak ditemukan"})
 	}
-	if !pkg.IsFree && !canAccessPremium(c) {
+	if !pkg.IsFree && !canAccessPremium(c, h.db) {
 		return c.Status(403).JSON(ErrorResponse{Error: "paket ini berbayar — berlangganan dulu"})
 	}
 	return c.JSON(pkg)
@@ -198,7 +211,7 @@ func (h *Handler) MyPackage(c *fiber.Ctx) error {
 func Routes(admin fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	svc := NewService(repo)
-	h := NewHandler(svc)
+	h := NewHandler(svc, db)
 
 	admin.Get("/question-packages", h.ListPackages)
 	admin.Get("/question-packages/:id", h.GetPackage)
@@ -210,7 +223,7 @@ func Routes(admin fiber.Router, db *gorm.DB) {
 func AuthRoutes(auth fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	svc := NewService(repo)
-	h := NewHandler(svc)
+	h := NewHandler(svc, db)
 
 	auth.Get("/question-packages", h.MyPackages)
 	auth.Get("/question-packages/:id", h.MyPackage)

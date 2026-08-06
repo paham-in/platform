@@ -6,11 +6,11 @@ import { useQuery } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
 
 const dashLink = (roles?: string[]) => {
-  if (!roles || roles.length === 0) return "/user/dashboard"
+  if (!roles || roles.length === 0) return "/login"
   if (roles.includes("admin")) return "/admin/dashboard"
   if (roles.includes("teacher")) return "/teacher/dashboard"
   if (roles.includes("student")) return "/student/dashboard"
-  return "/user/dashboard"
+  return "/login"
 }
 
 function AuthCallback() {

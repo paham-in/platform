@@ -2,24 +2,36 @@ package material
 
 import (
 	"strconv"
+	"time"
+
+	"bimbel2/backend/internal/models"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
-// canAccessPremium true kalau user punya role yang boleh akses konten premium.
-func canAccessPremium(c *fiber.Ctx) bool {
+// canAccessPremium true kalau user boleh akses konten premium:
+// admin/teacher otomatis, student hanya bila punya invoice "paid" dengan end_date masih aktif.
+func canAccessPremium(c *fiber.Ctx, db *gorm.DB) bool {
 	roles, ok := c.Locals("roles").([]string)
 	if !ok {
 		return false
 	}
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok {
+		return false
+	}
 	for _, r := range roles {
-		switch r {
-		case "student", "teacher", "admin":
+		if r == "admin" || r == "teacher" {
 			return true
 		}
 	}
-	return false
+	today := time.Now().Format("2006-01-02")
+	var n int64
+	db.Model(&models.Invoice{}).
+		Where("user_id = ? AND status = ? AND end_date >= ?", userID, "paid", today).
+		Count(&n)
+	return n > 0
 }
 
 // isStaff true kalau user punya role admin atau teacher (boleh lihat draft).
@@ -46,10 +58,11 @@ type MessageResponse struct {
 
 type Handler struct {
 	svc *Service
+	db  *gorm.DB
 }
 
-func NewHandler(svc *Service) *Handler {
-	return &Handler{svc: svc}
+func NewHandler(svc *Service, db *gorm.DB) *Handler {
+	return &Handler{svc: svc, db: db}
 }
 
 // AdminListMaterials mengembalikan daftar semua materi (admin only)
@@ -191,7 +204,7 @@ func (h *Handler) AdminDeleteMaterial(c *fiber.Ctx) error {
 func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	svc := NewService(repo)
-	h := NewHandler(svc)
+	h := NewHandler(svc, db)
 
 	admin.Get("/materials", h.AdminListMaterials)
 	admin.Get("/materials/:id", h.AdminGetMaterial)
@@ -211,7 +224,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 // @Success      200 {array} MaterialResponse
 // @Router       /materials [get]
 func (h *Handler) ListMaterials(c *fiber.Ctx) error {
-	includePremium := canAccessPremium(c)
+	includePremium := canAccessPremium(c, h.db)
 
 	if chapterIDStr := c.Query("chapter_id"); chapterIDStr != "" {
 		chapterID, err := strconv.ParseUint(chapterIDStr, 10, 64)
@@ -260,7 +273,7 @@ func (h *Handler) GetMaterial(c *fiber.Ctx) error {
 		return c.Status(403).JSON(ErrorResponse{Error: "materi tidak tersedia"})
 	}
 	// premium butuh role berbayar
-	if !material.IsFree && !canAccessPremium(c) {
+	if !material.IsFree && !canAccessPremium(c, h.db) {
 		return c.Status(403).JSON(ErrorResponse{Error: "materi ini berbayar — berlangganan dulu"})
 	}
 
@@ -270,7 +283,7 @@ func (h *Handler) GetMaterial(c *fiber.Ctx) error {
 func PublicRoutes(app fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	svc := NewService(repo)
-	h := NewHandler(svc)
+	h := NewHandler(svc, db)
 
 	app.Get("/materials", h.ListMaterials)
 	app.Get("/materials/:id", h.GetMaterial)

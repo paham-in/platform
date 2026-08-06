@@ -8,7 +8,7 @@ import { patchAdminUsersByIdRoleMutation, getAdminUsersQueryKey } from "@/lib/ap
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
 import { RoleBadge, ROLE_LABELS } from "./role-badge"
 
-const ROLE_OPTIONS = ["student", "teacher", "admin", "user"]
+const ROLE_OPTIONS = ["student", "teacher", "admin"]
 
 interface EditRoleDialogProps {
   user: UserAdminUserResponse
@@ -29,16 +29,15 @@ export function EditRoleDialog({ user, onClose }: EditRoleDialogProps) {
     onError: (err: any) => toast.error(err.error || "Gagal mengubah role"),
   })
 
-  // role "student" & "user" tidak bisa digabung dengan role lain (hanya teacher/admin yang multi-role)
-  const singleRoles = ["student", "user"]
+  // role "student" tidak bisa digabung dengan role lain (hanya teacher/admin yang multi-role)
+  const singleRoles = ["student"]
 
   const toggleRole = (role: string) => {
     setSelectedRoles((prev) => {
       // uncheck
       if (prev.includes(role)) return prev.filter((r) => r !== role)
 
-      // klik role single-role (student/user): replace semua role → cuma role ini.
-      // ini biar user bisa pindah user→student tanpa diblokir kombinasi.
+      // klik role single-role (student): replace semua role → cuma role ini.
       if (singleRoles.includes(role)) return [role]
 
       // klik teacher/admin: gabung boleh, asal tidak ada student/user tercentang

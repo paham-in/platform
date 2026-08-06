@@ -32,7 +32,7 @@ function PaymentsIndex() {
 
   const students = users.filter((u) => {
     const roles = u.roles ?? []
-    return roles.includes("student") || roles.includes("user")
+    return roles.includes("student")
   })
   const filtered = students.filter((u) =>
     !searchParam ||

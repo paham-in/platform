@@ -179,7 +179,7 @@ func (h *Handler) ListBookings(c *fiber.Ctx) error {
 // @Failure      400 {object} ErrorResponse
 // @Router       /tutoring/bookings [post]
 func (h *Handler) CreateBooking(c *fiber.Ctx) error {
-	if !hasRole(c, "student") && !hasRole(c, "user") {
+	if !hasRole(c, "student") {
 		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk murid"})
 	}
 

@@ -101,9 +101,9 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 		return nil, errInternal
 	}
 
-	// assign default role via association — user OAuth baru belum berlangganan → role "user"
+	// assign default role: semua pendaftar otomatis student (role "user" sudah dihapus)
 	var userRole models.Role
-	if err := s.userRepo.db.Where("name = ?", "user").First(&userRole).Error; err != nil {
+	if err := s.userRepo.db.Where("name = ?", "student").First(&userRole).Error; err != nil {
 		return nil, errInternal
 	}
 	if err := s.userRepo.db.Model(user).Association("Roles").Append(&userRole); err != nil {
@@ -237,7 +237,7 @@ func (s *Service) SetTeacherSubjects(id uint, input SetTeacherSubjectsInput) (*A
 }
 
 func (s *Service) UpdateUserRole(id uint, roles []string) error {
-	validRoles := map[string]bool{"student": true, "teacher": true, "admin": true, "user": true}
+	validRoles := map[string]bool{"student": true, "teacher": true, "admin": true}
 	for _, r := range roles {
 		if !validRoles[r] {
 			return errors.New("role tidak valid: " + r)
@@ -246,11 +246,11 @@ func (s *Service) UpdateUserRole(id uint, roles []string) error {
 	if len(roles) == 0 {
 		return errors.New("minimal 1 role")
 	}
-	// hanya teacher & admin yang boleh multi-role; student/user harus single-role
+	// hanya teacher & admin yang boleh multi-role; student harus single-role
 	if len(roles) > 1 {
 		for _, r := range roles {
-			if r == "student" || r == "user" {
-				return errors.New("role " + r + " tidak boleh digabung dengan role lain")
+			if r == "student" {
+				return errors.New("role student tidak boleh digabung dengan role lain")
 			}
 		}
 	}

@@ -47,17 +47,6 @@ const sidebarGroups = [
     ],
   },
   {
-    label: "User",
-    roles: ["user"],
-    links: [
-      { label: "Dashboard", icon: LayoutDashboard, to: "/user/dashboard" },
-      { label: "Materi Gratis", icon: BookMarked, to: "/user/materials" },
-      { label: "Berlangganan", icon: CreditCard, to: "/user/subscribe" },
-      { label: "Les Privat", icon: Calendar, to: "/student/tutoring" },
-      { label: "Pembayaran", icon: CreditCard, to: "/student/payments" },
-    ],
-  },
-  {
     label: "Murid",
     roles: ["student"],
     links: [
@@ -117,27 +106,22 @@ function DashboardLayout() {
   };
 
   const userRoles = (user?.roles as string[]) ?? [];
-  const hasPaidRole = ["student", "teacher", "admin"].some((r) => userRoles.includes(r));
+  const hasAccessRole = ["student", "teacher", "admin"].some((r) => userRoles.includes(r));
 
-  // guard: user gratis (hanya role "user") boleh buka /user/*, plus alur les privat
-  // (browse/join booking, lihat invoice) agar teman yang diundang bisa ikut grup &
-  // melunasi. Upgrade ke student terjadi otomatis saat invoice lunas.
+  // semua pendaftar otomatis student → semua yang login punya akses ke dashboard.
+  // (role "user" sudah dihapus; tidak ada pembedaan gratis vs berbayar di routing.)
   // CATATAN: useEffect harus SEBELUM early-return supaya jumlah hook konsisten
   // di tiap render (kalau loading/user null, guard tetap di-register).
-  const allowedUserPaths = ["/user", "/student/tutoring", "/student/payments"]
   useEffect(() => {
     if (isLoading) return;
     if (!user) {
       navigate({ to: "/login" });
       return;
     }
-    if (hasPaidRole) return;
-    const path = routerState.location.pathname;
-    const allowed = allowedUserPaths.some((p) => path.startsWith(p));
-    if (!allowed) {
-      navigate({ to: "/user/dashboard" });
-    }
-  }, [isLoading, hasPaidRole, user, routerState.location.pathname, navigate]);
+    if (hasAccessRole) return;
+    // user tidak punya role akses → tendang ke login
+    navigate({ to: "/login" });
+  }, [isLoading, hasAccessRole, user, routerState.location.pathname, navigate]);
 
   if (isLoading) {
     return (

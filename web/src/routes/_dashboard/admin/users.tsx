@@ -22,7 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { RoleBadge, EditRoleDialog, DeleteUserDialog } from "@/components/admin/users"
 
 const usersSearchSchema = z.object({
-  role: z.enum(["student", "teacher", "admin", "user"]).optional(),
+  role: z.enum(["student", "teacher", "admin"]).optional(),
   search: z.string().optional(),
 })
 
@@ -48,7 +48,6 @@ function AdminUsers() {
 
   const roleOptions = [
     { label: "Semua Role", value: "all" },
-    { label: "User", value: "user" },
     { label: "Murid", value: "student" },
     { label: "Guru", value: "teacher" },
     { label: "Admin", value: "admin" },
@@ -61,7 +60,7 @@ function AdminUsers() {
   const [deleteConfirm, setDeleteConfirm] = useState<UserAdminUserResponse | null>(null)
 
   const setRole = (v: string) => {
-    navigate({ search: (prev) => ({ ...prev, role: v === "all" ? undefined : (v as "student" | "teacher" | "admin" | "user") }), replace: true })
+    navigate({ search: (prev) => ({ ...prev, role: v === "all" ? undefined : (v as "student" | "teacher" | "admin") }), replace: true })
     setPage(1)
   }
 

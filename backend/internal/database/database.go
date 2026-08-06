@@ -35,15 +35,26 @@ func Migrate(db *gorm.DB) {
 
 	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{})
 
-	// seed default roles
-	for _, name := range []string{"student", "teacher", "admin", "user"} {
+	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
+	for _, name := range []string{"student", "teacher", "admin"} {
 		var role models.Role
 		if err := db.Where("name = ?", name).First(&role).Error; err != nil {
 			db.Create(&models.Role{Name: name})
 		}
 	}
 
-	// migrate existing users without roles — assign student as default
+	// hapus role "user" dari semua yang punya (jika masih ada di DB lama)
+	var userRole models.Role
+	if err := db.Where("name = ?", "user").First(&userRole).Error; err == nil {
+		// lepaskan semua user dari role "user"
+		db.Exec("DELETE FROM user_roles WHERE role_id = ?", userRole.ID)
+		db.Delete(&userRole)
+		log.Println("Removed role 'user' from database")
+	}
+
+	// migrasi: user yang role-nya *hanya* "student" sudah OK.
+	// user roleless → assign student. (user yang sebelumnya punya role "user"
+	// sudah di-hapus sehingga jadi roleless di sini → dapat student.)
 	var roleless []models.User
 	db.Preload("Roles").Where("id NOT IN (SELECT user_id FROM user_roles)").Find(&roleless)
 	if len(roleless) > 0 {

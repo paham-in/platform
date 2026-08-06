@@ -103,13 +103,8 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 		return nil, err
 	}
 
-	// invoice jadi lunas → otomatis naikkan role jadi student (berlangganan aktif).
-	// Saat dibalik pending, role tidak dicabut (konsisten dgn kebijakan grandfather).
-	if newStatus == "paid" {
-		if err := s.grantStudentRole(invoice.UserID); err != nil {
-			return nil, err
-		}
-	}
+	// akses premium dihitung query-realtime dari invoice paid + end_date aktif.
+	// tidak perlu grant role/manual — semua pendaftar otomatis student.
 
 	updated, err := s.repo.Get(id)
 	if err != nil {
@@ -121,24 +116,6 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 
 func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
-}
-
-// grantStudentRole menambahkan role student ke user kalau belum punya.
-func (s *Service) grantStudentRole(userID uint) error {
-	var user models.User
-	if err := s.db.Preload("Roles").First(&user, userID).Error; err != nil {
-		return err
-	}
-	for _, r := range user.Roles {
-		if r.Name == "student" {
-			return nil
-		}
-	}
-	var studentRole models.Role
-	if err := s.db.Where("name = ?", "student").First(&studentRole).Error; err != nil {
-		return err
-	}
-	return s.db.Model(&user).Association("Roles").Append(&studentRole)
 }
 
 func toResponse(i models.Invoice) InvoiceResponse {
