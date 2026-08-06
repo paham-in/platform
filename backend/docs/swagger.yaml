@@ -120,6 +120,17 @@ definitions:
       message:
         type: string
     type: object
+  forum.AnswerPreview:
+    properties:
+      created_at:
+        type: string
+      plain_content:
+        type: string
+      user_avatar:
+        type: string
+      user_name:
+        type: string
+    type: object
   forum.CreateQuestionInput:
     properties:
       content:
@@ -139,6 +150,8 @@ definitions:
     type: object
   forum.QuestionResponse:
     properties:
+      answer_count:
+        type: integer
       content:
         type: string
       created_at:
@@ -155,6 +168,8 @@ definitions:
         type: integer
       subject_name:
         type: string
+      top_answer:
+        $ref: '#/definitions/forum.AnswerPreview'
       user_avatar:
         type: string
       user_name:

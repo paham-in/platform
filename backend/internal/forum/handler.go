@@ -86,6 +86,16 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 			SubjectID:    q.SubjectID,
 			IsOwner:      q.UserID == currentUser,
 			CreatedAt:    q.CreatedAt.Format("2006-01-02 15:04"),
+			AnswerCount:  len(q.Answers),
+		}
+		if len(q.Answers) > 0 {
+			top := q.Answers[0]
+			r.TopAnswer = &AnswerPreview{
+				PlainContent: top.PlainContent,
+				UserName:     top.User.Name,
+				UserAvatar:   top.User.AvatarURL,
+				CreatedAt:    top.CreatedAt.Format("2006-01-02 15:04"),
+			}
 		}
 		if q.Subject.Name != "" {
 			r.SubjectName = q.Subject.Name
@@ -128,6 +138,16 @@ func (h *Handler) GetQuestion(c *fiber.Ctx) error {
 		SubjectID:    question.SubjectID,
 		IsOwner:      question.UserID == userID,
 		CreatedAt:    question.CreatedAt.Format("2006-01-02 15:04"),
+		AnswerCount:  len(question.Answers),
+	}
+	if len(question.Answers) > 0 {
+		top := question.Answers[0]
+		r.TopAnswer = &AnswerPreview{
+			PlainContent: top.PlainContent,
+			UserName:     top.User.Name,
+			UserAvatar:   top.User.AvatarURL,
+			CreatedAt:    top.CreatedAt.Format("2006-01-02 15:04"),
+		}
 	}
 	if question.Subject.Name != "" {
 		r.SubjectName = question.Subject.Name
@@ -203,15 +223,24 @@ func (h *Handler) DeleteQuestion(c *fiber.Ctx) error {
 }
 
 type QuestionResponse struct {
-	ID           uint   `json:"id"`
-	Content      string `json:"content"`
+	ID           uint          `json:"id"`
+	Content      string        `json:"content"`
+	PlainContent string        `json:"plain_content"`
+	Status       string        `json:"status"`
+	SubjectName  string        `json:"subject_name,omitempty"`
+	UserName     string        `json:"user_name"`
+	UserAvatar   string        `json:"user_avatar,omitempty"`
+	SubjectID    *uint         `json:"subject_id,omitempty"`
+	IsOwner      bool          `json:"is_owner"`
+	CreatedAt    string        `json:"created_at"`
+	AnswerCount  int           `json:"answer_count"`
+	TopAnswer    *AnswerPreview `json:"top_answer,omitempty"`
+}
+
+type AnswerPreview struct {
 	PlainContent string `json:"plain_content"`
-	Status       string `json:"status"`
-	SubjectName  string `json:"subject_name,omitempty"`
 	UserName     string `json:"user_name"`
 	UserAvatar   string `json:"user_avatar,omitempty"`
-	SubjectID    *uint  `json:"subject_id,omitempty"`
-	IsOwner      bool   `json:"is_owner"`
 	CreatedAt    string `json:"created_at"`
 }
 

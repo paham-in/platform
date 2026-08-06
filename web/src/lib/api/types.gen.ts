@@ -82,6 +82,13 @@ export type ClassMessageResponse = {
     message?: string;
 };
 
+export type ForumAnswerPreview = {
+    created_at?: string;
+    plain_content?: string;
+    user_avatar?: string;
+    user_name?: string;
+};
+
 export type ForumCreateQuestionInput = {
     content?: string;
     subject_id?: number;
@@ -96,6 +103,7 @@ export type ForumMessageResponse = {
 };
 
 export type ForumQuestionResponse = {
+    answer_count?: number;
     content?: string;
     created_at?: string;
     id?: number;
@@ -104,6 +112,7 @@ export type ForumQuestionResponse = {
     status?: string;
     subject_id?: number;
     subject_name?: string;
+    top_answer?: ForumAnswerPreview;
     user_avatar?: string;
     user_name?: string;
 };

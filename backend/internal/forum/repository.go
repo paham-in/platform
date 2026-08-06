@@ -16,7 +16,12 @@ func NewRepository(db *gorm.DB) *Repository {
 
 func (r *Repository) List(subjectID, userID *uint, unanswered bool) ([]models.Question, error) {
 	var questions []models.Question
-	q := r.db.Preload("User").Preload("Subject")
+	q := r.db.
+		Preload("User").
+		Preload("Subject").
+		Preload("Answers", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at desc").Preload("User")
+		})
 	if subjectID != nil {
 		q = q.Where("subject_id = ?", *subjectID)
 	}
@@ -34,7 +39,13 @@ func (r *Repository) List(subjectID, userID *uint, unanswered bool) ([]models.Qu
 
 func (r *Repository) GetByID(id uint) (*models.Question, error) {
 	var q models.Question
-	if err := r.db.Preload("User").Preload("Subject").First(&q, id).Error; err != nil {
+	if err := r.db.
+		Preload("User").
+		Preload("Subject").
+		Preload("Answers", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at desc").Preload("User")
+		}).
+		First(&q, id).Error; err != nil {
 		return nil, err
 	}
 	return &q, nil

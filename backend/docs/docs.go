@@ -3268,6 +3268,23 @@ const docTemplate = `{
                 }
             }
         },
+        "forum.AnswerPreview": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "plain_content": {
+                    "type": "string"
+                },
+                "user_avatar": {
+                    "type": "string"
+                },
+                "user_name": {
+                    "type": "string"
+                }
+            }
+        },
         "forum.CreateQuestionInput": {
             "type": "object",
             "properties": {
@@ -3298,6 +3315,9 @@ const docTemplate = `{
         "forum.QuestionResponse": {
             "type": "object",
             "properties": {
+                "answer_count": {
+                    "type": "integer"
+                },
                 "content": {
                     "type": "string"
                 },
@@ -3321,6 +3341,9 @@ const docTemplate = `{
                 },
                 "subject_name": {
                     "type": "string"
+                },
+                "top_answer": {
+                    "$ref": "#/definitions/forum.AnswerPreview"
                 },
                 "user_avatar": {
                     "type": "string"

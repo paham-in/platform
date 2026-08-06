@@ -1,61 +1,123 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu"
 import {
   getQuestionsOptions,
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
-import {
-  Loader2,
-  Plus,
-  Search,
-} from "lucide-react"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { z } from "zod"
+import { Plus, Search, SearchX, Funnel, X, MessageSquare } from "lucide-react"
+
+const forumSearchSchema = z.object({
+  search: z.string().optional(),
+  subject: z.string().optional(),
+})
+
+function Avatar({ url, name, size = "md" }: { url?: string; name?: string; size?: "sm" | "md" }) {
+  const cls = size === "sm" ? "h-6 w-6 text-[10px]" : "h-9 w-9 text-xs"
+  if (url) return <img src={url} alt="" className={`${cls} shrink-0 rounded-full`} />
+  return (
+    <span className={`flex ${cls} shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary`}>
+      {name?.[0]?.toUpperCase()}
+    </span>
+  )
+}
+
+function formatDate(iso?: string): string {
+  if (!iso) return ""
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ""
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+}
 
 function ForumPage() {
+  const navigate = useNavigate({ from: Route.fullPath })
+  const { search: searchParam, subject: subjectParam } = Route.useSearch()
   const { data: questions = [], isLoading } = useQuery(getQuestionsOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
-  const [search, setSearch] = useState("")
-  const [subjectFilter, setSubjectFilter] = useState("all")
+  const [searchInput, setSearchInput] = useState(searchParam ?? "")
+  const subjectFilter = subjectParam ?? "all"
 
   const subjectOptions = [
     { label: "Semua Subjek", value: "all" },
     ...subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) })),
   ]
+  const activeFilterCount = subjectFilter !== "all" ? 1 : 0
+  const hasActiveFilter = !!searchInput || subjectFilter !== "all"
+
+  // sync URL → local search input
+  useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
+
+  // debounce search input → URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({ search: (prev) => ({ ...prev, search: searchInput || undefined }), replace: true })
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput, navigate])
+
+  const setSubjectFilter = (v: string) => {
+    navigate({ search: (prev) => ({ ...prev, subject: v === "all" ? undefined : v }), replace: true })
+  }
 
   const filtered = questions.filter((q) => {
-    const matchSearch = (q.plain_content ?? "").toLowerCase().includes(search.toLowerCase())
+    const term = searchInput.trim().toLowerCase()
+    const matchSearch = !term || (q.plain_content ?? "").toLowerCase().includes(term)
     const matchSubject = subjectFilter === "all" || String(q.subject_id) === subjectFilter
     return matchSearch && matchSubject
   })
 
-  const StatusBadge = ({ status }: { status: string }) => {
-    const styles: Record<string, string> = {
-      open: "bg-green-100 text-green-700",
-      answered: "bg-blue-100 text-blue-700",
-      closed: "bg-gray-100 text-gray-700",
-    }
-    return (
-      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status] || styles.open}`}>
-        {status === "open" ? "Terbuka" : status === "answered" ? "Terjawab" : "Tertutup"}
-      </span>
-    )
+  const resetFilters = () => {
+    setSearchInput("")
+    navigate({ search: {}, replace: true })
   }
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <main className="p-6">
+        <div className="mb-6 flex items-center justify-between">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-9 w-40" />
+        </div>
+        <Skeleton className="mb-6 h-9 w-full max-w-sm" />
+        <div className="space-y-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent>
+                <div className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <Skeleton className="h-9 w-9 rounded-full" />
+                    <Skeleton className="mt-1 h-16 w-0.5" />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                    <div className="flex items-center gap-3 pt-2">
+                      <Skeleton className="h-6 w-6 rounded-full" />
+                      <div className="flex-1 space-y-1.5">
+                        <Skeleton className="h-3 w-1/3" />
+                        <Skeleton className="h-3 w-full" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </main>
     )
   }
 
@@ -70,77 +132,157 @@ function ForumPage() {
         </Link>
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <div className="relative w-full max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            aria-label="Cari pertanyaan"
             placeholder="Cari pertanyaan..."
-            className="pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 pr-9"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
+          {searchInput && (
+            <button
+              type="button"
+              aria-label="Bersihkan pencarian"
+              onClick={() => setSearchInput("")}
+              className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
-        <Select items={subjectOptions} value={subjectFilter} onValueChange={(v) => setSubjectFilter(v ?? "all")}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter Subjek" />
-          </SelectTrigger>
-          <SelectContent>
-            {subjectOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="outline" />}
+            aria-label="Filter subjek"
+          >
+            <Funnel className="h-4 w-4" />
+            Filter
+            {activeFilterCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeFilterCount}
+              </span>
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-52">
+            <DropdownMenuRadioGroup aria-label="Subjek" value={subjectFilter} onValueChange={(v) => { if (v) setSubjectFilter(v) }}>
+              <DropdownMenuLabel>Subjek</DropdownMenuLabel>
+              {subjectOptions.map((opt) => (
+                <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Link to="/student/forum/mine">
           <Button variant="outline" size="sm">Pertanyaan Saya</Button>
         </Link>
       </div>
 
-      <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
-        {filtered.length === 0 && (
-          <Card>
-            <CardContent className="p-8 text-center text-muted-foreground">
-              Belum ada pertanyaan
-            </CardContent>
-          </Card>
-        )}
-        {filtered.map((q) => (
-          <Link key={q.id} to="/student/forum/$id" params={{ id: String(q.id!) }}>
-            <Card className="overflow-hidden transition-colors hover:bg-muted/50">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex flex-wrap gap-1.5">
-                    <StatusBadge status={q.status ?? "open"} />
-                    {q.subject_name && (
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                        {q.subject_name}
-                      </span>
-                    )}
+      {filtered.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
+            <span className="mb-1 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+              {hasActiveFilter ? (
+                <SearchX className="h-6 w-6 text-muted-foreground" />
+              ) : (
+                <MessageSquare className="h-6 w-6 text-muted-foreground" />
+              )}
+            </span>
+            {hasActiveFilter ? (
+              <>
+                <p className="font-medium">Tidak ada pertanyaan</p>
+                <p className="mb-2 max-w-xs text-sm text-muted-foreground">
+                  Tidak ada pertanyaan yang cocok dengan pencarian atau filter saat ini.
+                </p>
+                <Button variant="outline" size="sm" onClick={resetFilters}>
+                  <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="font-medium">Belum ada pertanyaan</p>
+                <p className="mb-2 max-w-xs text-sm text-muted-foreground">
+                  Mulai diskusi pertamamu dengan mengajukan pertanyaan.
+                </p>
+                <Link to="/student/forum/new">
+                  <Button size="sm">
+                    <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
+                  </Button>
+                </Link>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="columns-2 gap-4">
+          {filtered.map((q) => (
+            <Card key={q.id} className="mb-4 break-inside-avoid transition-colors hover:bg-muted/40">
+              <Link
+                to="/student/forum/$id"
+                params={{ id: String(q.id!) }}
+                className="block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <CardContent>
+                  <div className="flex gap-3">
+                    <Avatar url={q.user_avatar} name={q.user_name} />
+
+                    <div className="min-w-0 flex-1">
+                      {/* Pertanyaan */}
+                      <div>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {q.subject_name && (
+                            <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                              {q.subject_name}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1.5 font-heading text-[15px] font-semibold leading-snug">{q.plain_content}</p>
+                        <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">{q.user_name}</span>
+                          {formatDate(q.created_at) && <span>• {formatDate(q.created_at)}</span>}
+                          {q.answer_count !== undefined && (
+                            <>
+                              <span>•</span>
+                              <span className="inline-flex items-center gap-1">
+                                <MessageSquare className="h-3 w-3" />
+                                {q.answer_count === 0 ? "Belum ada jawaban" : `${q.answer_count} jawaban`}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                    </div>
                   </div>
-                </div>
 
-                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{q.plain_content}</p>
-
-                <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                  {q.user_avatar ? (
-                    <img src={q.user_avatar} alt="" className="h-4 w-4 rounded-full" />
-                  ) : (
-                    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
-                      {q.user_name?.[0]}
+                  {/* Jawaban teratas — indent sejajar kolom konten pertanyaan */}
+                  {q.top_answer && (
+                    <div className="mt-3 flex items-start gap-3 pl-12">
+                      <Avatar url={q.top_answer.user_avatar} name={q.top_answer.user_name} size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">{q.top_answer.user_name}</span>
+                          {formatDate(q.top_answer.created_at) && (
+                            <span>• {formatDate(q.top_answer.created_at)}</span>
+                          )}
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{q.top_answer.plain_content}</p>
+                      </div>
                     </div>
                   )}
-                  <span className="truncate">{q.user_name}</span>
-                </div>
-              </CardContent>
+                </CardContent>
+              </Link>
             </Card>
-          </Link>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </main>
   )
 }
 
 export const Route = createFileRoute("/_dashboard/student/forum/")({
   component: ForumPage,
+  validateSearch: forumSearchSchema,
 })
