@@ -8,6 +8,7 @@ interface DraftData {
   chapterId: string
   type: string
   videoUrl: string
+  isFree: boolean
 }
 
 const STORAGE_PREFIX = "draft:material"
