@@ -18,18 +18,24 @@ import {
   patchAdminMaterialsByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
+import { z } from "zod";
 import { toast } from "sonner";
 import {
   ArrowLeft,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   Eye,
   EyeOff,
+  Gift,
+  Lock,
   MoreVertical,
   Pencil,
   Plus,
   Search,
+  SearchX,
+  Funnel,
   Trash2,
   X,
 } from "lucide-react";
@@ -39,6 +45,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -59,16 +69,74 @@ const statusLabels: Record<string, string> = {
   draft: "Draf",
 };
 
+const accessStyles: Record<string, string> = {
+  free: "bg-teal-500/15 text-teal-700 dark:text-teal-400",
+  paid: "bg-orange-500/15 text-orange-700 dark:text-orange-400",
+};
+
+const freeOptions = [
+  { label: "Semua Akses", value: "all" },
+  { label: "Gratis", value: "free" },
+  { label: "Berbayar", value: "paid" },
+];
+
+const typeOptions = [
+  { label: "Semua Tipe", value: "all" },
+  { label: "Teks", value: "text" },
+  { label: "Video", value: "video" },
+];
+
+const statusOptions = [
+  { label: "Semua Status", value: "all" },
+  { label: "Tayang", value: "published" },
+  { label: "Draf", value: "draft" },
+];
+
+const materialsSearchSchema = z.object({
+  search: z.string().optional(),
+  access: z.enum(["free", "paid"]).optional(),
+  type: z.enum(["text", "video"]).optional(),
+  status: z.enum(["published", "draft"]).optional(),
+});
+
 function ChapterMaterials() {
   const { chapterId } = useParams({ from: "/_dashboard/teacher/chapters/$chapterId/materials/" });
   const qc = useQueryClient();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { search, access, type, status } = Route.useSearch();
+  const [searchInput, setSearchInput] = useState(search ?? "");
   const { data: materials = [], isLoading, isError } = useQuery(
     getAdminMaterialsOptions({ query: { chapter_id: Number(chapterId) } })
   );
   const { data: chapters = [] } = useQuery(getAdminChaptersOptions());
   const chapter = chapters.find((c) => c.id === Number(chapterId));
-  const [search, setSearch] = useState("");
+
+  // sync URL → local search input (e.g. back/forward, manual URL edit)
+  useEffect(() => { setSearchInput(search ?? "") }, [search]);
+
+  // debounce search input → URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({ search: (prev) => ({ ...prev, search: searchInput || undefined }), replace: true });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput, navigate]);
+
   const [page, setPage] = useState(1);
+  const activeFilterCount = [access, type, status].filter((f) => !!f).length;
+  const hasActiveFilter = !!search || !!access || !!type || !!status;
+  const setAccess = (v: string) => {
+    navigate({ search: (prev) => ({ ...prev, access: v === "all" ? undefined : (v as "free" | "paid") }), replace: true });
+    setPage(1);
+  };
+  const setTypeFilter = (v: string) => {
+    navigate({ search: (prev) => ({ ...prev, type: v === "all" ? undefined : (v as "text" | "video") }), replace: true });
+    setPage(1);
+  };
+  const setStatusFilter = (v: string) => {
+    navigate({ search: (prev) => ({ ...prev, status: v === "all" ? undefined : (v as "published" | "draft") }), replace: true });
+    setPage(1);
+  };
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<{ id: number; status: string; name: string } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
@@ -99,9 +167,13 @@ function ChapterMaterials() {
     },
   });
 
-  const filtered = materials.filter((m) =>
-    (m.title ?? "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = materials.filter((m) => {
+    const matchSearch = !search || (m.title ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchFree = !access || (access === "free" ? m.is_free : !m.is_free);
+    const matchType = !type || m.type === type;
+    const matchStatus = !status || (m.status ?? "draft") === status;
+    return matchSearch && matchFree && matchType && matchStatus;
+  });
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
@@ -127,6 +199,7 @@ function ChapterMaterials() {
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Judul</TableHead>
                   <TableHead>Tipe</TableHead>
+                  <TableHead>Akses</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
@@ -135,6 +208,7 @@ function ChapterMaterials() {
                 {Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
                     <TableCell className="pl-6"><Skeleton className="h-4 w-40" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
                     <TableCell className="pr-6 text-right"><Skeleton className="ml-auto h-8 w-8 rounded" /></TableCell>
@@ -187,24 +261,63 @@ function ChapterMaterials() {
           </p>
         )}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="relative max-w-sm flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Cari materi..."
-              className="pl-9 pr-9"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            />
-            {search && (
-              <button
-                type="button"
-                aria-label="Bersihkan pencarian"
-                onClick={() => { setSearch(""); setPage(1); }}
-                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+            <div className="relative w-full max-w-sm flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                aria-label="Cari materi"
+                placeholder="Cari materi..."
+                className="pl-9 pr-9"
+                value={searchInput}
+                onChange={(e) => { setSearchInput(e.target.value); setPage(1); }}
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  aria-label="Bersihkan pencarian"
+                  onClick={() => { setSearchInput(""); setPage(1); }}
+                  className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<Button variant="outline" />}
+                aria-label="Filter materi"
               >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+                <Funnel className="h-4 w-4" />
+                Filter
+                {activeFilterCount > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-52">
+                <DropdownMenuRadioGroup value={access ?? "all"} onValueChange={(v) => { if (v) setAccess(v); }}>
+                  <DropdownMenuLabel>Akses</DropdownMenuLabel>
+                  {freeOptions.map((opt) => (
+                    <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={type ?? "all"} onValueChange={(v) => { if (v) setTypeFilter(v); }}>
+                  <DropdownMenuLabel>Tipe</DropdownMenuLabel>
+                  {typeOptions.map((opt) => (
+                    <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={status ?? "all"} onValueChange={(v) => { if (v) setStatusFilter(v); }}>
+                  <DropdownMenuLabel>Status</DropdownMenuLabel>
+                  {statusOptions.map((opt) => (
+                    <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <Link to="/teacher/chapters/$chapterId/materials/new" params={{ chapterId }}>
             <Button>
@@ -219,6 +332,7 @@ function ChapterMaterials() {
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Judul</TableHead>
                   <TableHead>Tipe</TableHead>
+                  <TableHead>Akses</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
@@ -226,10 +340,16 @@ function ChapterMaterials() {
               <TableBody>
                 {paged.map((m) => (
                   <TableRow key={m.id}>
-                    <TableCell className="max-w-xs truncate pl-6 font-medium">{m.title}</TableCell>
+                    <TableCell className="max-w-xs truncate pl-6 font-medium" title={m.title}>{m.title}</TableCell>
                     <TableCell>
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${typeStyles[m.type ?? "text"]}`}>
                         {m.type === "video" ? "Video" : "Teks"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${accessStyles[m.is_free ? "free" : "paid"]}`}>
+                        {m.is_free ? <Gift className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                        {m.is_free ? "Gratis" : "Berbayar"}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -268,56 +388,78 @@ function ChapterMaterials() {
                 ))}
                 {paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="p-8 text-center">
-                      {search ? (
-                        <p className="text-muted-foreground">
-                          Tidak ada materi yang cocok dengan &ldquo;{search}&rdquo;.
-                        </p>
-                      ) : (
-                        <div className="flex flex-col items-center gap-3">
-                          <p className="text-muted-foreground">Belum ada materi di chapter ini.</p>
-                          <Link to="/teacher/chapters/$chapterId/materials/new" params={{ chapterId }}>
-                            <Button size="sm" variant="outline">
-                              <Plus className="mr-1 h-4 w-4" /> Tambah materi pertama
+                    <TableCell colSpan={5} className="px-6 py-14 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="mb-1 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+                          {hasActiveFilter ? (
+                            <SearchX className="h-6 w-6 text-muted-foreground" />
+                          ) : (
+                            <BookOpen className="h-6 w-6 text-muted-foreground" />
+                          )}
+                        </span>
+                        {hasActiveFilter ? (
+                          <>
+                            <p className="font-medium">Tidak ada hasil</p>
+                            <p className="mb-2 max-w-xs text-sm text-muted-foreground">
+                              Tidak ada materi yang cocok dengan pencarian atau filter saat ini.
+                            </p>
+                            <Button variant="outline" size="sm" onClick={() => {
+                              setSearchInput("");
+                              navigate({ search: {}, replace: true });
+                              setPage(1);
+                            }}>
+                              <X className="mr-1 h-4 w-4" /> Bersihkan filter
                             </Button>
-                          </Link>
-                        </div>
-                      )}
+                          </>
+                        ) : (
+                          <>
+                            <p className="font-medium">Belum ada materi</p>
+                            <p className="mb-2 max-w-xs text-sm text-muted-foreground">
+                              Buat materi pertama untuk chapter ini agar murid bisa mulai belajar.
+                            </p>
+                            <Link to="/teacher/chapters/$chapterId/materials/new" params={{ chapterId }}>
+                              <Button size="sm">
+                                <Plus className="mr-1 h-4 w-4" /> Tambah materi pertama
+                              </Button>
+                            </Link>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
           </CardContent>
-          <CardFooter className="flex items-center justify-between border-t">
-            <p className="text-sm text-muted-foreground">
-              {filtered.length === 0
-                ? "Belum ada data"
-                : `Menampilkan ${(page - 1) * perPage + 1}–${Math.min(page * perPage, filtered.length)} dari ${filtered.length} materi`}
-            </p>
-            {totalPages > 1 && (
-              <div className="flex gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  aria-label="Halaman sebelumnya"
-                  disabled={page === 1}
-                  onClick={() => setPage(page - 1)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  aria-label="Halaman berikutnya"
-                  disabled={page === totalPages}
-                  onClick={() => setPage(page + 1)}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </CardFooter>
+          {filtered.length > 0 && (
+            <CardFooter className="flex flex-wrap items-center justify-between gap-2 border-t">
+              <p className="text-sm text-muted-foreground">
+                Menampilkan {(page - 1) * perPage + 1}-{Math.min(page * perPage, filtered.length)} dari {filtered.length} materi
+              </p>
+              {totalPages > 1 && (
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label="Halaman sebelumnya"
+                    disabled={page === 1}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label="Halaman berikutnya"
+                    disabled={page === totalPages}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </CardFooter>
+          )}
         </Card>
       </main>
 
@@ -368,4 +510,5 @@ function ChapterMaterials() {
 
 export const Route = createFileRoute("/_dashboard/teacher/chapters/$chapterId/materials/")({
   component: ChapterMaterials,
+  validateSearch: materialsSearchSchema,
 });
