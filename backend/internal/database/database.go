@@ -165,6 +165,15 @@ func Migrate(db *gorm.DB) {
 		db.Migrator().DropTable("package_questions")
 	}
 
+	// migrasi: program + student_programs (buat eksplisit lewat Migrator
+	// agar tak bergantung AutoMigrate global yang bisa gagal di mid-cycle).
+	if !db.Migrator().HasTable(&models.Program{}) {
+		db.Migrator().CreateTable(&models.Program{})
+	}
+	if !db.Migrator().HasTable(&models.StudentProgram{}) {
+		db.Migrator().CreateTable(&models.StudentProgram{})
+	}
+
 	// migrasi: classes + invoices tambah program_id (fitur program)
 	if !db.Migrator().HasColumn(&models.Class{}, "program_id") {
 		db.Exec("ALTER TABLE classes ADD COLUMN program_id BIGINT DEFAULT NULL")
