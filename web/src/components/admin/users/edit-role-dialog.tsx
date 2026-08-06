@@ -30,13 +30,20 @@ export function EditRoleDialog({ user, onClose }: EditRoleDialogProps) {
   })
 
   // role "student" & "user" tidak bisa digabung dengan role lain (hanya teacher/admin yang multi-role)
-  const multiRoleOk = (roles: string[]) =>
-    roles.every((r) => r === "teacher" || r === "admin")
+  const singleRoles = ["student", "user"]
 
   const toggleRole = (role: string) => {
     setSelectedRoles((prev) => {
-      const next = prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
-      return multiRoleOk(next) ? next : prev // tolak kombinasi student/user + role lain
+      // uncheck
+      if (prev.includes(role)) return prev.filter((r) => r !== role)
+
+      // klik role single-role (student/user): replace semua role → cuma role ini.
+      // ini biar user bisa pindah user→student tanpa diblokir kombinasi.
+      if (singleRoles.includes(role)) return [role]
+
+      // klik teacher/admin: gabung boleh, asal tidak ada student/user tercentang
+      if (prev.some((r) => singleRoles.includes(r))) return prev
+      return [...prev, role]
     })
   }
 
