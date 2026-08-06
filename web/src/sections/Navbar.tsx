@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Link } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 
 const navLinks = [
-  { label: "Mata Pelajaran", href: "#subjects" },
   { label: "Fitur", href: "#features" },
   { label: "Cara Kerja", href: "#how-it-works" },
 ]
@@ -43,7 +43,8 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <ThemeToggle compact />
           {localStorage.getItem("token") ? (
             <Button size="sm" render={<Link to={dashTo} />}>Dashboard</Button>
           ) : (
