@@ -36,7 +36,7 @@ func Migrate(db *gorm.DB) {
 	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{})
 
 	// seed default roles
-	for _, name := range []string{"student", "teacher", "admin"} {
+	for _, name := range []string{"student", "teacher", "admin", "user"} {
 		var role models.Role
 		if err := db.Where("name = ?", name).First(&role).Error; err != nil {
 			db.Create(&models.Role{Name: name})
@@ -86,6 +86,14 @@ func Migrate(db *gorm.DB) {
 	// migrate existing users -- add payment_status
 	if !db.Migrator().HasColumn(&models.User{}, "payment_status") {
 		db.Exec("ALTER TABLE users ADD COLUMN payment_status VARCHAR(20) DEFAULT 'pending'")
+	}
+
+	// migrate content -- add is_free flag (default true = konten existing jadi gratis)
+	if !db.Migrator().HasColumn(&models.Material{}, "is_free") {
+		db.Exec("ALTER TABLE materials ADD COLUMN is_free BOOLEAN NOT NULL DEFAULT TRUE")
+	}
+	if !db.Migrator().HasColumn(&models.QuestionPackage{}, "is_free") {
+		db.Exec("ALTER TABLE question_packages ADD COLUMN is_free BOOLEAN NOT NULL DEFAULT TRUE")
 	}
 
 	// migrate questions -- drop title, add plain_content

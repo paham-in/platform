@@ -101,12 +101,12 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 		return nil, errInternal
 	}
 
-	// assign default student role via association
-	var studentRole models.Role
-	if err := s.userRepo.db.Where("name = ?", "student").First(&studentRole).Error; err != nil {
+	// assign default role via association — user OAuth baru belum berlangganan → role "user"
+	var userRole models.Role
+	if err := s.userRepo.db.Where("name = ?", "user").First(&userRole).Error; err != nil {
 		return nil, errInternal
 	}
-	if err := s.userRepo.db.Model(user).Association("Roles").Append(&studentRole); err != nil {
+	if err := s.userRepo.db.Model(user).Association("Roles").Append(&userRole); err != nil {
 		return nil, errInternal
 	}
 
@@ -237,7 +237,7 @@ func (s *Service) SetTeacherSubjects(id uint, input SetTeacherSubjectsInput) (*A
 }
 
 func (s *Service) UpdateUserRole(id uint, roles []string) error {
-	validRoles := map[string]bool{"student": true, "teacher": true, "admin": true}
+	validRoles := map[string]bool{"student": true, "teacher": true, "admin": true, "user": true}
 	for _, r := range roles {
 		if !validRoles[r] {
 			return errors.New("role tidak valid: " + r)

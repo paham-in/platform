@@ -25,6 +25,7 @@ type MaterialResponse struct {
 	Content     string `json:"content"`
 	VideoURL    string `json:"video_url"`
 	Status      string `json:"status"`
+	IsFree      bool   `json:"is_free"`
 	Order       int    `json:"order"`
 }
 
@@ -38,6 +39,24 @@ func (s *Service) List() ([]MaterialResponse, error) {
 
 func (s *Service) ListByChapter(chapterID uint) ([]MaterialResponse, error) {
 	materials, err := s.repo.ListByChapter(chapterID)
+	if err != nil {
+		return nil, err
+	}
+	return toResponses(materials), nil
+}
+
+// ListPublished untuk akses murid/user — hanya materi published.
+// includePremium=false membatasi ke materi free saja.
+func (s *Service) ListPublished(includePremium bool) ([]MaterialResponse, error) {
+	materials, err := s.repo.ListPublished(includePremium)
+	if err != nil {
+		return nil, err
+	}
+	return toResponses(materials), nil
+}
+
+func (s *Service) ListPublishedByChapter(chapterID uint, includePremium bool) ([]MaterialResponse, error) {
+	materials, err := s.repo.ListPublishedByChapter(chapterID, includePremium)
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +80,7 @@ type CreateInput struct {
 	Content     string `json:"content"`
 	VideoURL    string `json:"video_url"`
 	Status      string `json:"status"`
+	IsFree      bool   `json:"is_free"`
 	Order       int    `json:"order"`
 }
 
@@ -75,6 +95,7 @@ func (s *Service) Create(input CreateInput) (*MaterialResponse, error) {
 		Content:     input.Content,
 		VideoURL:    input.VideoURL,
 		Status:      input.Status,
+		IsFree:      input.IsFree,
 		Order:       input.Order,
 	}
 	if material.Type == "" {
@@ -102,6 +123,7 @@ type UpdateInput struct {
 	Content     *string `json:"content"`
 	VideoURL    *string `json:"video_url"`
 	Status      *string `json:"status"`
+	IsFree      *bool   `json:"is_free"`
 	Order       *int    `json:"order"`
 }
 
@@ -125,6 +147,9 @@ func (s *Service) Update(id uint, input UpdateInput) (*MaterialResponse, error) 
 	}
 	if input.Status != nil {
 		updates["status"] = *input.Status
+	}
+	if input.IsFree != nil {
+		updates["is_free"] = *input.IsFree
 	}
 	if input.Order != nil {
 		updates["order"] = *input.Order
@@ -158,6 +183,7 @@ func toResponse(m models.Material) MaterialResponse {
 		Content:     m.Content,
 		VideoURL:    m.VideoURL,
 		Status:      m.Status,
+		IsFree:      m.IsFree,
 		Order:       m.Order,
 	}
 }

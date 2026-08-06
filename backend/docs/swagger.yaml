@@ -185,6 +185,19 @@ definitions:
       url:
         type: string
     type: object
+  invoice.CreateInput:
+    properties:
+      amount:
+        type: number
+      end_date:
+        type: string
+      note:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: integer
+    type: object
   invoice.ErrorResponse:
     properties:
       error:
@@ -224,6 +237,8 @@ definitions:
         type: string
       description:
         type: string
+      is_free:
+        type: boolean
       order:
         type: integer
       status:
@@ -252,6 +267,8 @@ definitions:
         type: string
       id:
         type: integer
+      is_free:
+        type: boolean
       order:
         type: integer
       slug:
@@ -278,6 +295,8 @@ definitions:
         type: string
       description:
         type: string
+      is_free:
+        type: boolean
       order:
         type: integer
       status:
@@ -386,6 +405,8 @@ definitions:
     properties:
       description:
         type: string
+      is_free:
+        type: boolean
       name:
         type: string
     type: object
@@ -414,6 +435,8 @@ definitions:
         type: string
       id:
         type: integer
+      is_free:
+        type: boolean
       name:
         type: string
       questions:
@@ -425,6 +448,8 @@ definitions:
     properties:
       description:
         type: string
+      is_free:
+        type: boolean
       name:
         type: string
     type: object
@@ -1928,7 +1953,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar semua materi untuk user yang sudah login
+      description: Mengembalikan daftar materi published. User non-premium hanya melihat
+        materi free.
       parameters:
       - description: Filter by chapter ID
         in: query
@@ -1966,6 +1992,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/material.MaterialResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/material.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -2066,6 +2096,57 @@ paths:
       summary: Subscribe push
       tags:
       - Push
+  /question-packages:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar paket soal. User non-premium hanya melihat
+        paket free.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/questionpackage.PackageResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List visible question packages
+      tags:
+      - QuestionPackage
+  /question-packages/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil detail paket soal. Paket premium hanya untuk role berbayar.
+      parameters:
+      - description: Package ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionpackage.PackageResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/questionpackage.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/questionpackage.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get visible question package
+      tags:
+      - QuestionPackage
   /questions:
     get:
       consumes:
@@ -2335,6 +2416,38 @@ paths:
       summary: List subjects
       tags:
       - Subjects
+  /subscribe:
+    post:
+      consumes:
+      - application/json
+      description: Membuat invoice pending utk user yang login (awal alur berlangganan).
+      parameters:
+      - description: Data berlangganan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/invoice.CreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/invoice.InvoiceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/invoice.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/invoice.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Subscribe
+      tags:
+      - Student
   /tutoring/availability:
     get:
       consumes:

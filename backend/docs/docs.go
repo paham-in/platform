@@ -2023,7 +2023,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan daftar semua materi untuk user yang sudah login",
+                "description": "Mengembalikan daftar materi published. User non-premium hanya melihat materi free.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2087,6 +2087,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/material.MaterialResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/material.ErrorResponse"
                         }
                     },
                     "404": {
@@ -2238,6 +2244,86 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/push.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/question-packages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar paket soal. User non-premium hanya melihat paket free.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionPackage"
+                ],
+                "summary": "List visible question packages",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/questionpackage.PackageResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/question-packages/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil detail paket soal. Paket premium hanya untuk role berbayar.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionPackage"
+                ],
+                "summary": "Get visible question package",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Package ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.PackageResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.ErrorResponse"
                         }
                     }
                 }
@@ -2662,6 +2748,57 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/subject.SubjectResponse"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/subscribe": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Membuat invoice pending utk user yang login (awal alur berlangganan).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Student"
+                ],
+                "summary": "Subscribe",
+                "parameters": [
+                    {
+                        "description": "Data berlangganan",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/invoice.CreateInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/invoice.InvoiceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/invoice.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/invoice.ErrorResponse"
                         }
                     }
                 }
@@ -3232,6 +3369,26 @@ const docTemplate = `{
                 }
             }
         },
+        "invoice.CreateInput": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "invoice.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -3292,6 +3449,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "is_free": {
+                    "type": "boolean"
+                },
                 "order": {
                     "type": "integer"
                 },
@@ -3335,6 +3495,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "is_free": {
+                    "type": "boolean"
+                },
                 "order": {
                     "type": "integer"
                 },
@@ -3374,6 +3537,9 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "is_free": {
+                    "type": "boolean"
                 },
                 "order": {
                     "type": "integer"
@@ -3543,6 +3709,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "is_free": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 }
@@ -3587,6 +3756,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "is_free": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -3603,6 +3775,9 @@ const docTemplate = `{
             "properties": {
                 "description": {
                     "type": "string"
+                },
+                "is_free": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"

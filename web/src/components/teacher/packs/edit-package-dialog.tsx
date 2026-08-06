@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getAdminQuestionPackagesQueryKey, patchAdminQuestionPackagesByIdMutation } from "@/lib/api/@tanstack/react-query.gen"
@@ -19,6 +20,7 @@ export function EditPackageDialog({ pkg, onClose }: EditPackageDialogProps) {
   const qc = useQueryClient()
   const [name, setName] = useState(pkg.name ?? "")
   const [description, setDescription] = useState(pkg.description ?? "")
+  const [isFree, setIsFree] = useState(pkg.is_free ?? true)
 
   const { mutate: updatePackage, isPending } = useMutation({
     ...patchAdminQuestionPackagesByIdMutation(),
@@ -34,7 +36,7 @@ export function EditPackageDialog({ pkg, onClose }: EditPackageDialogProps) {
     if (!name.trim()) return
     updatePackage({
       path: { id: pkg.id! },
-      body: { name, description },
+      body: { name, description, is_free: isFree },
     })
   }
 
@@ -67,6 +69,16 @@ export function EditPackageDialog({ pkg, onClose }: EditPackageDialogProps) {
               className="min-h-[80px]"
             />
           </div>
+
+          <label className="flex items-center gap-3 rounded-lg border p-4">
+            <Checkbox checked={isFree} onCheckedChange={(v) => setIsFree(v === true)} />
+            <div>
+              <p className="font-medium">Paket gratis</p>
+              <p className="text-xs text-muted-foreground">
+                {isFree ? "Bisa diakses semua user tanpa berlangganan" : "Hanya untuk murid yang berlangganan"}
+              </p>
+            </div>
+          </label>
         </div>
 
         <DialogFooter>

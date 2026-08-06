@@ -125,6 +125,14 @@ export type GalleryGalleryImageResponse = {
     url?: string;
 };
 
+export type InvoiceCreateInput = {
+    amount?: number;
+    end_date?: string;
+    note?: string;
+    start_date?: string;
+    user_id?: number;
+};
+
 export type InvoiceErrorResponse = {
     error?: string;
 };
@@ -149,6 +157,7 @@ export type MaterialCreateInput = {
     chapter_id?: number;
     content?: string;
     description?: string;
+    is_free?: boolean;
     order?: number;
     status?: string;
     title?: string;
@@ -166,6 +175,7 @@ export type MaterialMaterialResponse = {
     content?: string;
     description?: string;
     id?: number;
+    is_free?: boolean;
     order?: number;
     slug?: string;
     status?: string;
@@ -182,6 +192,7 @@ export type MaterialUpdateInput = {
     chapter_id?: number;
     content?: string;
     description?: string;
+    is_free?: boolean;
     order?: number;
     status?: string;
     title?: string;
@@ -250,6 +261,7 @@ export type QuestionbankUpdateInput = {
 
 export type QuestionpackageCreateInput = {
     description?: string;
+    is_free?: boolean;
     name?: string;
 };
 
@@ -270,12 +282,14 @@ export type QuestionpackagePackageResponse = {
     created_at?: string;
     description?: string;
     id?: number;
+    is_free?: boolean;
     name?: string;
     questions?: Array<QuestionpackagePackageQuestionResponse>;
 };
 
 export type QuestionpackageUpdateInput = {
     description?: string;
+    is_free?: boolean;
     name?: string;
 };
 
@@ -1724,6 +1738,10 @@ export type GetMaterialsByIdData = {
 
 export type GetMaterialsByIdErrors = {
     /**
+     * Forbidden
+     */
+    403: MaterialErrorResponse;
+    /**
      * Not Found
      */
     404: MaterialErrorResponse;
@@ -1840,6 +1858,56 @@ export type PostPushSubscribeResponses = {
 };
 
 export type PostPushSubscribeResponse = PostPushSubscribeResponses[keyof PostPushSubscribeResponses];
+
+export type GetQuestionPackagesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/question-packages';
+};
+
+export type GetQuestionPackagesResponses = {
+    /**
+     * OK
+     */
+    200: Array<QuestionpackagePackageResponse>;
+};
+
+export type GetQuestionPackagesResponse = GetQuestionPackagesResponses[keyof GetQuestionPackagesResponses];
+
+export type GetQuestionPackagesByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Package ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/question-packages/{id}';
+};
+
+export type GetQuestionPackagesByIdErrors = {
+    /**
+     * Forbidden
+     */
+    403: QuestionpackageErrorResponse;
+    /**
+     * Not Found
+     */
+    404: QuestionpackageErrorResponse;
+};
+
+export type GetQuestionPackagesByIdError = GetQuestionPackagesByIdErrors[keyof GetQuestionPackagesByIdErrors];
+
+export type GetQuestionPackagesByIdResponses = {
+    /**
+     * OK
+     */
+    200: QuestionpackagePackageResponse;
+};
+
+export type GetQuestionPackagesByIdResponse = GetQuestionPackagesByIdResponses[keyof GetQuestionPackagesByIdResponses];
 
 export type GetQuestionsData = {
     body?: never;
@@ -2110,6 +2178,38 @@ export type GetSubjectsResponses = {
 };
 
 export type GetSubjectsResponse = GetSubjectsResponses[keyof GetSubjectsResponses];
+
+export type PostSubscribeData = {
+    /**
+     * Data berlangganan
+     */
+    body: InvoiceCreateInput;
+    path?: never;
+    query?: never;
+    url: '/subscribe';
+};
+
+export type PostSubscribeErrors = {
+    /**
+     * Bad Request
+     */
+    400: InvoiceErrorResponse;
+    /**
+     * Unauthorized
+     */
+    401: InvoiceErrorResponse;
+};
+
+export type PostSubscribeError = PostSubscribeErrors[keyof PostSubscribeErrors];
+
+export type PostSubscribeResponses = {
+    /**
+     * Created
+     */
+    201: InvoiceInvoiceResponse;
+};
+
+export type PostSubscribeResponse = PostSubscribeResponses[keyof PostSubscribeResponses];
 
 export type GetTutoringAvailabilityData = {
     body?: never;

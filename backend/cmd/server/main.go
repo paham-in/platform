@@ -84,6 +84,7 @@ func main() {
 	class.PublicRoutes(auth, db)
 	chapter.PublicRoutes(auth, db, minioClient)
 	material.PublicRoutes(auth, db)
+	questionpackage.AuthRoutes(auth, db)
 		tutoring.Routes(auth, db)
 	pushSvc := push.NewService(db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
 	push.Routes(auth, db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)

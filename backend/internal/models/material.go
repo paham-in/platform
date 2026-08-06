@@ -13,6 +13,7 @@ type Material struct {
 	Content     string  `gorm:"type:text" json:"content"`
 	VideoURL    string  `gorm:"size:500" json:"video_url"`
 	Status      string  `gorm:"size:20;default:draft" json:"status"`
+	IsFree      bool    `gorm:"default:true;not null" json:"is_free"`
 	Order       int     `gorm:"default:0" json:"order"`
 	Chapter     Chapter `gorm:"foreignKey:ChapterID" json:"-"`
 }

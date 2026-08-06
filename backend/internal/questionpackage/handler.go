@@ -7,6 +7,21 @@ import (
 	"gorm.io/gorm"
 )
 
+// canAccessPremium true kalau user punya role yang boleh akses paket premium.
+func canAccessPremium(c *fiber.Ctx) bool {
+	roles, ok := c.Locals("roles").([]string)
+	if !ok {
+		return false
+	}
+	for _, r := range roles {
+		switch r {
+		case "student", "teacher", "admin":
+			return true
+		}
+	}
+	return false
+}
+
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
@@ -136,6 +151,50 @@ func (h *Handler) DeletePackage(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "paket berhasil dihapus"})
 }
 
+// MyPackages mengembalikan daftar paket soal untuk murid/user.
+// @Summary      List visible question packages
+// @Description  Mengembalikan daftar paket soal. User non-premium hanya melihat paket free.
+// @Tags         QuestionPackage
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} PackageResponse
+// @Router       /question-packages [get]
+func (h *Handler) MyPackages(c *fiber.Ctx) error {
+	packages, err := h.svc.ListVisible(canAccessPremium(c))
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(packages)
+}
+
+// MyPackage mengembalikan detail paket soal untuk murid/user.
+// @Summary      Get visible question package
+// @Description  Mengambil detail paket soal. Paket premium hanya untuk role berbayar.
+// @Tags         QuestionPackage
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Package ID"
+// @Success      200 {object} PackageResponse
+// @Failure      404 {object} ErrorResponse
+// @Failure      403 {object} ErrorResponse
+// @Router       /question-packages/{id} [get]
+func (h *Handler) MyPackage(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	pkg, err := h.svc.Get(uint(id))
+	if err != nil {
+		return c.Status(404).JSON(ErrorResponse{Error: "paket tidak ditemukan"})
+	}
+	if !pkg.IsFree && !canAccessPremium(c) {
+		return c.Status(403).JSON(ErrorResponse{Error: "paket ini berbayar — berlangganan dulu"})
+	}
+	return c.JSON(pkg)
+}
+
 func Routes(admin fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	svc := NewService(repo)
@@ -146,4 +205,13 @@ func Routes(admin fiber.Router, db *gorm.DB) {
 	admin.Post("/question-packages", h.CreatePackage)
 	admin.Patch("/question-packages/:id", h.UpdatePackage)
 	admin.Delete("/question-packages/:id", h.DeletePackage)
+}
+
+func AuthRoutes(auth fiber.Router, db *gorm.DB) {
+	repo := NewRepository(db)
+	svc := NewService(repo)
+	h := NewHandler(svc)
+
+	auth.Get("/question-packages", h.MyPackages)
+	auth.Get("/question-packages/:id", h.MyPackage)
 }

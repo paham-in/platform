@@ -100,6 +100,37 @@ func (h *Handler) AdminCreateInvoice(c *fiber.Ctx) error {
 	return c.Status(201).JSON(invoice)
 }
 
+// Subscribe membuat invoice berlangganan utk user yang login.
+// @Summary      Subscribe
+// @Description  Membuat invoice pending utk user yang login (awal alur berlangganan).
+// @Tags         Student
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body body CreateInput true "Data berlangganan"
+// @Success      201 {object} InvoiceResponse
+// @Failure      400 {object} ErrorResponse
+// @Failure      401 {object} ErrorResponse
+// @Router       /subscribe [post]
+func (h *Handler) Subscribe(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok || userID == 0 {
+		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
+	}
+
+	var input CreateInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	input.UserID = userID
+
+	invoice, err := h.svc.Create(input)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.Status(201).JSON(invoice)
+}
+
 // AdminToggleInvoice mengubah status invoice (pending ↔ paid)
 // @Summary      Toggle invoice status
 // @Description  Mengubah status invoice dari pending ke paid atau sebaliknya
@@ -149,15 +180,16 @@ func (h *Handler) AdminDeleteInvoice(c *fiber.Ctx) error {
 
 func AuthRoutes(auth fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
-	svc := NewService(repo)
+	svc := NewService(repo, db)
 	h := NewHandler(svc)
 
 	auth.Get("/invoices", h.MyInvoices)
+	auth.Post("/subscribe", h.Subscribe)
 }
 
 func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
-	svc := NewService(repo)
+	svc := NewService(repo, db)
 	h := NewHandler(svc)
 
 	admin.Get("/invoices", h.AdminListInvoices)

@@ -30,6 +30,19 @@ func (r *Repository) Get(id uint) (*models.QuestionPackage, error) {
 	return &pkg, nil
 }
 
+// ListVisible untuk akses murid/user. includePremium=false membatasi ke paket free.
+func (r *Repository) ListVisible(includePremium bool) ([]models.QuestionPackage, error) {
+	var packages []models.QuestionPackage
+	q := r.db.Preload("Questions")
+	if !includePremium {
+		q = q.Where("is_free = ?", true)
+	}
+	if err := q.Order("created_at desc").Find(&packages).Error; err != nil {
+		return nil, err
+	}
+	return packages, nil
+}
+
 func (r *Repository) Create(pkg *models.QuestionPackage) error {
 	return r.db.Create(pkg).Error
 }

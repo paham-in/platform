@@ -5,6 +5,8 @@ import (
 	"regexp"
 
 	"bimbel2/backend/internal/models"
+
+	"gorm.io/gorm"
 )
 
 type InvoiceResponse struct {
@@ -21,10 +23,11 @@ type InvoiceResponse struct {
 
 type Service struct {
 	repo *Repository
+	db   *gorm.DB
 }
 
-func NewService(repo *Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo *Repository, db *gorm.DB) *Service {
+	return &Service{repo: repo, db: db}
 }
 
 var dateRegex = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
@@ -100,6 +103,14 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 		return nil, err
 	}
 
+	// invoice jadi lunas → otomatis naikkan role jadi student (berlangganan aktif).
+	// Saat dibalik pending, role tidak dicabut (konsisten dgn kebijakan grandfather).
+	if newStatus == "paid" {
+		if err := s.grantStudentRole(invoice.UserID); err != nil {
+			return nil, err
+		}
+	}
+
 	updated, err := s.repo.Get(id)
 	if err != nil {
 		return nil, err
@@ -110,6 +121,24 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 
 func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
+}
+
+// grantStudentRole menambahkan role student ke user kalau belum punya.
+func (s *Service) grantStudentRole(userID uint) error {
+	var user models.User
+	if err := s.db.Preload("Roles").First(&user, userID).Error; err != nil {
+		return err
+	}
+	for _, r := range user.Roles {
+		if r.Name == "student" {
+			return nil
+		}
+	}
+	var studentRole models.Role
+	if err := s.db.Where("name = ?", "student").First(&studentRole).Error; err != nil {
+		return err
+	}
+	return s.db.Model(&user).Association("Roles").Append(&studentRole)
 }
 
 func toResponse(i models.Invoice) InvoiceResponse {

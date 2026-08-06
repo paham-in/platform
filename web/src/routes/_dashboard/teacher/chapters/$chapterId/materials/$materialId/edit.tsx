@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Spinner } from "@/components/ui/spinner";
 import {
   AlertDialog,
@@ -41,6 +42,7 @@ function EditMaterial() {
   const [type, setType] = useState("text");
   const [content, setContent] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [isFree, setIsFree] = useState(true);
   const [loaded, setLoaded] = useState(false);
   const [initialLoad, setInitialLoad] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
@@ -52,6 +54,7 @@ function EditMaterial() {
     setType(material.type ?? "text");
     setContent(material.content ?? "");
     setVideoUrl(material.video_url ?? "");
+    setIsFree(material.is_free ?? true);
     setLoaded(true);
     setInitialLoad(true);
   }, [material, initialLoad, restored]);
@@ -97,6 +100,7 @@ function EditMaterial() {
       body.content = "";
       if (videoUrl) body.video_url = videoUrl;
     }
+    body.is_free = isFree;
     update({ path: { id: Number(materialId) }, body });
   };
 
@@ -185,6 +189,16 @@ function EditMaterial() {
               )}
             </div>
           )}
+
+          <label className="flex items-center gap-3 rounded-lg border p-4">
+            <Checkbox checked={isFree} onCheckedChange={(v) => setIsFree(v === true)} />
+            <div>
+              <p className="font-medium">Materi gratis</p>
+              <p className="text-xs text-muted-foreground">
+                {isFree ? "Bisa diakses semua user tanpa berlangganan" : "Hanya untuk murid yang berlangganan"}
+              </p>
+            </div>
+          </label>
 
           <div className="flex justify-end gap-3 pt-4">
             <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId }}><Button variant="outline" type="button">Batal</Button></Link>

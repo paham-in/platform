@@ -7,6 +7,7 @@ import {
   Link,
   Outlet,
   useNavigate,
+  useRouterState,
 } from "@tanstack/react-router";
 import {
   BookMarked,
@@ -26,7 +27,7 @@ import {
   X,
   Calendar,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "@/components/theme-provider";
 import {
   AlertDialog,
@@ -43,6 +44,15 @@ const sidebarGroups = [
     roles: ["student", "teacher", "admin"],
     links: [
       { label: "Pengaturan", icon: Settings, to: "/settings" },
+    ],
+  },
+  {
+    label: "User",
+    roles: ["user"],
+    links: [
+      { label: "Dashboard", icon: LayoutDashboard, to: "/user/dashboard" },
+      { label: "Materi Gratis", icon: BookMarked, to: "/user/materials" },
+      { label: "Berlangganan", icon: CreditCard, to: "/user/subscribe" },
     ],
   },
   {
@@ -85,6 +95,7 @@ function DashboardLayout() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: user, isLoading } = useQuery(getMeOptions());
+  const routerState = useRouterState();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
@@ -102,6 +113,20 @@ function DashboardLayout() {
     logout.mutate({});
   };
 
+  const userRoles = (user?.roles as string[]) ?? [];
+  const hasPaidRole = ["student", "teacher", "admin"].some((r) => userRoles.includes(r));
+
+  // guard: user gratis (hanya role "user") cuma boleh buka halaman /user/*
+  // CATATAN: useEffect harus SEBELUM early-return supaya jumlah hook konsisten
+  // di tiap render (kalau loading/user null, guard tetap di-register).
+  useEffect(() => {
+    if (isLoading || hasPaidRole) return;
+    const path = routerState.location.pathname;
+    if (!path.startsWith("/user")) {
+      navigate({ to: "/user/dashboard" });
+    }
+  }, [isLoading, hasPaidRole, routerState.location.pathname, navigate]);
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/20">
@@ -115,7 +140,6 @@ function DashboardLayout() {
     return null;
   }
 
-  const userRoles = (user?.roles as string[]) ?? [];
   const filteredGroups = sidebarGroups
     .map((g) => ({
       ...g,

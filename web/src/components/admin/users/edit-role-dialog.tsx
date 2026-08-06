@@ -8,7 +8,7 @@ import { patchAdminUsersByIdRoleMutation, getAdminUsersQueryKey } from "@/lib/ap
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
 import { RoleBadge, ROLE_LABELS } from "./role-badge"
 
-const ROLE_OPTIONS = ["student", "teacher", "admin"]
+const ROLE_OPTIONS = ["student", "teacher", "admin", "user"]
 
 interface EditRoleDialogProps {
   user: UserAdminUserResponse

@@ -7,6 +7,35 @@ import (
 	"gorm.io/gorm"
 )
 
+// canAccessPremium true kalau user punya role yang boleh akses konten premium.
+func canAccessPremium(c *fiber.Ctx) bool {
+	roles, ok := c.Locals("roles").([]string)
+	if !ok {
+		return false
+	}
+	for _, r := range roles {
+		switch r {
+		case "student", "teacher", "admin":
+			return true
+		}
+	}
+	return false
+}
+
+// isStaff true kalau user punya role admin atau teacher (boleh lihat draft).
+func isStaff(c *fiber.Ctx) bool {
+	roles, ok := c.Locals("roles").([]string)
+	if !ok {
+		return false
+	}
+	for _, r := range roles {
+		if r == "teacher" || r == "admin" {
+			return true
+		}
+	}
+	return false
+}
+
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
@@ -173,7 +202,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 
 // ListMaterials mengembalikan daftar materi (memerlukan login)
 // @Summary      List materials
-// @Description  Mengembalikan daftar semua materi untuk user yang sudah login
+// @Description  Mengembalikan daftar materi published. User non-premium hanya melihat materi free.
 // @Tags         Materials
 // @Accept       json
 // @Produce      json
@@ -182,7 +211,25 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 // @Success      200 {array} MaterialResponse
 // @Router       /materials [get]
 func (h *Handler) ListMaterials(c *fiber.Ctx) error {
-	return h.AdminListMaterials(c)
+	includePremium := canAccessPremium(c)
+
+	if chapterIDStr := c.Query("chapter_id"); chapterIDStr != "" {
+		chapterID, err := strconv.ParseUint(chapterIDStr, 10, 64)
+		if err != nil {
+			return c.Status(400).JSON(ErrorResponse{Error: "chapter_id tidak valid"})
+		}
+		materials, err := h.svc.ListPublishedByChapter(uint(chapterID), includePremium)
+		if err != nil {
+			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+		}
+		return c.JSON(materials)
+	}
+
+	materials, err := h.svc.ListPublished(includePremium)
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(materials)
 }
 
 // GetMaterial mengambil detail materi (memerlukan login)
@@ -195,9 +242,29 @@ func (h *Handler) ListMaterials(c *fiber.Ctx) error {
 // @Param        id path int true "Material ID"
 // @Success      200 {object} MaterialResponse
 // @Failure      404 {object} ErrorResponse
+// @Failure      403 {object} ErrorResponse
 // @Router       /materials/{id} [get]
 func (h *Handler) GetMaterial(c *fiber.Ctx) error {
-	return h.AdminGetMaterial(c)
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+
+	material, err := h.svc.Get(uint(id))
+	if err != nil {
+		return c.Status(404).JSON(ErrorResponse{Error: "materi tidak ditemukan"})
+	}
+
+	// draft hanya boleh dilihat oleh staff (admin/teacher)
+	if material.Status != "published" && !isStaff(c) {
+		return c.Status(403).JSON(ErrorResponse{Error: "materi tidak tersedia"})
+	}
+	// premium butuh role berbayar
+	if !material.IsFree && !canAccessPremium(c) {
+		return c.Status(403).JSON(ErrorResponse{Error: "materi ini berbayar — berlangganan dulu"})
+	}
+
+	return c.JSON(material)
 }
 
 func PublicRoutes(app fiber.Router, db *gorm.DB) {

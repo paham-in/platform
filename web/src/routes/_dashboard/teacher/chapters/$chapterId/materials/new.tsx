@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Spinner } from "@/components/ui/spinner";
 import {
   AlertDialog,
@@ -34,6 +35,7 @@ function NewMaterial() {
   const [type, setType] = useState("text");
   const [content, setContent] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [isFree, setIsFree] = useState(true);
   const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
 
   // autosave on change
@@ -75,6 +77,7 @@ function NewMaterial() {
         type,
         chapter_id: Number(chapterId),
         status: "draft",
+        is_free: isFree,
       },
     });
   };
@@ -152,6 +155,16 @@ function NewMaterial() {
               )}
             </div>
           )}
+
+          <label className="flex items-center gap-3 rounded-lg border p-4">
+            <Checkbox checked={isFree} onCheckedChange={(v) => setIsFree(v === true)} />
+            <div>
+              <p className="font-medium">Materi gratis</p>
+              <p className="text-xs text-muted-foreground">
+                {isFree ? "Bisa diakses semua user tanpa berlangganan" : "Hanya untuk murid yang berlangganan"}
+              </p>
+            </div>
+          </label>
 
           <div className="flex justify-end gap-3 pt-4">
             <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId }}><Button variant="outline" type="button">Batal</Button></Link>

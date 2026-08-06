@@ -38,6 +38,32 @@ func (r *Repository) Get(id uint) (*models.Material, error) {
 	return &material, nil
 }
 
+// ListPublished mengembalikan materi berstatus published. includePremium=false
+// hanya menyertakan materi free (is_free=true).
+func (r *Repository) ListPublished(includePremium bool) ([]models.Material, error) {
+	var materials []models.Material
+	q := r.db.Preload("Chapter").Where("status = ?", "published")
+	if !includePremium {
+		q = q.Where("is_free = ?", true)
+	}
+	if err := q.Order("\"order\" asc, title asc").Find(&materials).Error; err != nil {
+		return nil, err
+	}
+	return materials, nil
+}
+
+func (r *Repository) ListPublishedByChapter(chapterID uint, includePremium bool) ([]models.Material, error) {
+	var materials []models.Material
+	q := r.db.Preload("Chapter").Where("chapter_id = ? AND status = ?", chapterID, "published")
+	if !includePremium {
+		q = q.Where("is_free = ?", true)
+	}
+	if err := q.Order("\"order\" asc, title asc").Find(&materials).Error; err != nil {
+		return nil, err
+	}
+	return materials, nil
+}
+
 func (r *Repository) Create(material *models.Material) error {
 	return r.db.Create(material).Error
 }
