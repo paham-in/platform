@@ -53,6 +53,8 @@ const sidebarGroups = [
       { label: "Dashboard", icon: LayoutDashboard, to: "/user/dashboard" },
       { label: "Materi Gratis", icon: BookMarked, to: "/user/materials" },
       { label: "Berlangganan", icon: CreditCard, to: "/user/subscribe" },
+      { label: "Les Privat", icon: Calendar, to: "/student/tutoring" },
+      { label: "Pembayaran", icon: CreditCard, to: "/student/payments" },
     ],
   },
   {
@@ -116,13 +118,17 @@ function DashboardLayout() {
   const userRoles = (user?.roles as string[]) ?? [];
   const hasPaidRole = ["student", "teacher", "admin"].some((r) => userRoles.includes(r));
 
-  // guard: user gratis (hanya role "user") cuma boleh buka halaman /user/*
+  // guard: user gratis (hanya role "user") boleh buka /user/*, plus alur les privat
+  // (browse/join booking, lihat invoice) agar teman yang diundang bisa ikut grup &
+  // melunasi. Upgrade ke student terjadi otomatis saat invoice lunas.
   // CATATAN: useEffect harus SEBELUM early-return supaya jumlah hook konsisten
   // di tiap render (kalau loading/user null, guard tetap di-register).
+  const allowedUserPaths = ["/user", "/student/tutoring", "/student/payments"]
   useEffect(() => {
     if (isLoading || hasPaidRole) return;
     const path = routerState.location.pathname;
-    if (!path.startsWith("/user")) {
+    const allowed = allowedUserPaths.some((p) => path.startsWith(p));
+    if (!allowed) {
       navigate({ to: "/user/dashboard" });
     }
   }, [isLoading, hasPaidRole, routerState.location.pathname, navigate]);

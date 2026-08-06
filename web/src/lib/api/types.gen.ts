@@ -340,8 +340,11 @@ export type TutoringBookingResponse = {
     created_at?: string;
     date?: string;
     end_time?: string;
+    group_token?: string;
     id?: number;
+    mode?: string;
     note?: string;
+    session_count?: number;
     start_time?: string;
     status?: string;
     student_id?: number;
@@ -359,13 +362,37 @@ export type TutoringCreateAvailabilityInput = {
 export type TutoringCreateBookingInput = {
     date?: string;
     end_time?: string;
+    /**
+     * isi utk join grup yang sudah ada
+     */
+    group_token?: string;
+    /**
+     * private/semi_private
+     */
+    mode?: string;
     note?: string;
+    /**
+     * jumlah pertemuan (default 1)
+     */
+    session_count?: number;
     start_time?: string;
     teacher_id?: number;
 };
 
 export type TutoringErrorResponse = {
     error?: string;
+};
+
+export type TutoringGroupInfoResponse = {
+    date?: string;
+    end_time?: string;
+    max_slots?: number;
+    mode?: string;
+    participants?: number;
+    session_count?: number;
+    start_time?: string;
+    teacher_id?: number;
+    teacher_name?: string;
 };
 
 export type TutoringMessageResponse = {
@@ -383,6 +410,16 @@ export type TutoringTeacherResponse = {
     id?: number;
     name?: string;
     subjects?: Array<TutoringSubjectInfo>;
+};
+
+export type TutoringTutoringSessionResponse = {
+    booking_id?: number;
+    date?: string;
+    end_time?: string;
+    id?: number;
+    start_time?: string;
+    status?: string;
+    teacher_name?: string;
 };
 
 export type UploadUploadResponse = {
@@ -2368,6 +2405,52 @@ export type PatchTutoringBookingsByIdResponses = {
 };
 
 export type PatchTutoringBookingsByIdResponse = PatchTutoringBookingsByIdResponses[keyof PatchTutoringBookingsByIdResponses];
+
+export type GetTutoringGroupsByTokenData = {
+    body?: never;
+    path: {
+        /**
+         * Group token
+         */
+        token: string;
+    };
+    query?: never;
+    url: '/tutoring/groups/{token}';
+};
+
+export type GetTutoringGroupsByTokenErrors = {
+    /**
+     * Not Found
+     */
+    404: TutoringErrorResponse;
+};
+
+export type GetTutoringGroupsByTokenError = GetTutoringGroupsByTokenErrors[keyof GetTutoringGroupsByTokenErrors];
+
+export type GetTutoringGroupsByTokenResponses = {
+    /**
+     * OK
+     */
+    200: TutoringGroupInfoResponse;
+};
+
+export type GetTutoringGroupsByTokenResponse = GetTutoringGroupsByTokenResponses[keyof GetTutoringGroupsByTokenResponses];
+
+export type GetTutoringSessionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/tutoring/sessions';
+};
+
+export type GetTutoringSessionsResponses = {
+    /**
+     * OK
+     */
+    200: Array<TutoringTutoringSessionResponse>;
+};
+
+export type GetTutoringSessionsResponse = GetTutoringSessionsResponses[keyof GetTutoringSessionsResponses];
 
 export type GetTutoringTeachersData = {
     body?: never;

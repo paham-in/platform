@@ -167,9 +167,9 @@ func (h *Handler) ListBookings(c *fiber.Ctx) error {
 	return c.JSON(bookings)
 }
 
-// CreateBooking creates a new booking request (student only)
+// CreateBooking creates a new booking request (student or free user)
 // @Summary      Create booking
-// @Description  Murid booking jadwal guru
+// @Description  Murid booking jadwal guru. User gratis boleh join grup semi-private (role student digrant otomatis saat invoice lunas).
 // @Tags         Tutoring
 // @Accept       json
 // @Produce      json
@@ -179,7 +179,7 @@ func (h *Handler) ListBookings(c *fiber.Ctx) error {
 // @Failure      400 {object} ErrorResponse
 // @Router       /tutoring/bookings [post]
 func (h *Handler) CreateBooking(c *fiber.Ctx) error {
-	if !hasRole(c, "student") {
+	if !hasRole(c, "student") && !hasRole(c, "user") {
 		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk murid"})
 	}
 
@@ -187,12 +187,54 @@ func (h *Handler) CreateBooking(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
+
 	userID := c.Locals("user_id").(uint)
 	booking, err := h.svc.CreateBooking(userID, input)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.Status(201).JSON(booking)
+}
+
+// GroupInfo returns group info for a share link
+// @Summary      Group info
+// @Description  Mengembalikan info grup semi-private dari token undangan
+// @Tags         Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        token path string true "Group token"
+// @Success      200 {object} GroupInfoResponse
+// @Failure      404 {object} ErrorResponse
+// @Router       /tutoring/groups/{token} [get]
+func (h *Handler) GroupInfo(c *fiber.Ctx) error {
+	token := c.Params("token")
+	if token == "" {
+		return c.Status(400).JSON(ErrorResponse{Error: "token wajib diisi"})
+	}
+	info, err := h.svc.ListGroupInfo(token)
+	if err != nil {
+		return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(info)
+}
+
+// ListSessions returns upcoming sessions for the logged-in student
+// @Summary      My sessions
+// @Description  Mengembalikan jadwal pertemuan (muncul setelah invoice lunas)
+// @Tags         Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} TutoringSessionResponse
+// @Router       /tutoring/sessions [get]
+func (h *Handler) ListSessions(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(uint)
+	sessions, err := h.svc.ListMySessions(userID)
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(sessions)
 }
 
 // UpdateBookingStatus confirms or rejects a booking (teacher only)
@@ -232,7 +274,7 @@ func (h *Handler) UpdateBookingStatus(c *fiber.Ctx) error {
 
 func Routes(auth fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
-	svc := NewService(repo)
+	svc := NewService(repo, db)
 	h := NewHandler(svc)
 
 	auth.Get("/tutoring/teachers", h.ListTeachers)
@@ -242,4 +284,6 @@ func Routes(auth fiber.Router, db *gorm.DB) {
 	auth.Get("/tutoring/bookings", h.ListBookings)
 	auth.Post("/tutoring/bookings", h.CreateBooking)
 	auth.Patch("/tutoring/bookings/:id", h.UpdateBookingStatus)
+	auth.Get("/tutoring/groups/:token", h.GroupInfo)
+	auth.Get("/tutoring/sessions", h.ListSessions)
 }

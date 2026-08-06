@@ -1,11 +1,21 @@
 package tutoring
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"time"
 
 	"bimbel2/backend/internal/models"
+
+	"gorm.io/gorm"
 )
+
+const maxGroupSlots = 5
+
+// pricePerSession = biaya per pertemuan les privat (hardcode sementara).
+const pricePerSession = 30000.0
 
 type AvailabilityResponse struct {
 	ID        uint   `json:"id"`
@@ -16,17 +26,42 @@ type AvailabilityResponse struct {
 }
 
 type BookingResponse struct {
+	ID           uint   `json:"id"`
+	TeacherID    uint   `json:"teacher_id"`
+	Teacher      string `json:"teacher_name"`
+	StudentID    uint   `json:"student_id"`
+	Student      string `json:"student_name"`
+	Date         string `json:"date"`
+	StartTime    string `json:"start_time"`
+	EndTime      string `json:"end_time"`
+	Status       string `json:"status"`
+	Mode         string `json:"mode"`
+	SessionCount int    `json:"session_count"`
+	GroupToken   string `json:"group_token"`
+	Note         string `json:"note"`
+	CreatedAt    string `json:"created_at"`
+}
+
+type TutoringSessionResponse struct {
 	ID        uint   `json:"id"`
-	TeacherID uint   `json:"teacher_id"`
-	Teacher   string `json:"teacher_name"`
-	StudentID uint   `json:"student_id"`
-	Student   string `json:"student_name"`
+	BookingID uint   `json:"booking_id"`
 	Date      string `json:"date"`
 	StartTime string `json:"start_time"`
 	EndTime   string `json:"end_time"`
 	Status    string `json:"status"`
-	Note      string `json:"note"`
-	CreatedAt string `json:"created_at"`
+	Teacher   string `json:"teacher_name"`
+}
+
+type GroupInfoResponse struct {
+	TeacherID    uint   `json:"teacher_id"`
+	TeacherName  string `json:"teacher_name"`
+	Mode         string `json:"mode"`
+	SessionCount int    `json:"session_count"`
+	Date         string `json:"date"`
+	StartTime    string `json:"start_time"`
+	EndTime      string `json:"end_time"`
+	Participants int    `json:"participants"`
+	MaxSlots     int    `json:"max_slots"`
 }
 
 type TeacherResponse struct {
@@ -44,10 +79,11 @@ type SubjectInfo struct {
 
 type Service struct {
 	repo *Repository
+	db   *gorm.DB
 }
 
-func NewService(repo *Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo *Repository, db *gorm.DB) *Service {
+	return &Service{repo: repo, db: db}
 }
 
 func (s *Service) ListAvailability(teacherID uint) ([]AvailabilityResponse, error) {
@@ -124,14 +160,29 @@ func (s *Service) ListMyBookings(studentID uint) ([]BookingResponse, error) {
 }
 
 type CreateBookingInput struct {
-	TeacherID uint   `json:"teacher_id"`
-	Date      string `json:"date"`
-	StartTime string `json:"start_time"`
-	EndTime   string `json:"end_time"`
-	Note      string `json:"note"`
+	TeacherID    uint   `json:"teacher_id"`
+	Date         string `json:"date"`
+	StartTime    string `json:"start_time"`
+	EndTime      string `json:"end_time"`
+	Mode         string `json:"mode"`          // private/semi_private
+	SessionCount int    `json:"session_count"` // jumlah pertemuan (default 1)
+	GroupToken   string `json:"group_token"`   // isi utk join grup yang sudah ada
+	Note         string `json:"note"`
 }
 
 func (s *Service) CreateBooking(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
+	if input.Mode == "" {
+		input.Mode = "private"
+	}
+	if input.Mode != "private" && input.Mode != "semi_private" {
+		return nil, errors.New("mode harus private atau semi_private")
+	}
+	if input.SessionCount < 1 {
+		input.SessionCount = 1
+	}
+	if input.SessionCount > 52 {
+		return nil, errors.New("session_count maksimal 52")
+	}
 	if input.Date < time.Now().Format("2006-01-02") {
 		return nil, errors.New("tanggal tidak boleh di masa lalu")
 	}
@@ -139,38 +190,42 @@ func (s *Service) CreateBooking(studentID uint, input CreateBookingInput) (*Book
 		return nil, errors.New("start_time harus sebelum end_time")
 	}
 
-	// cek konflik jadwal guru: confirmed & pending memblokir slot.
-	newStart, err := timeToMinutes(input.StartTime)
-	if err != nil {
-		return nil, errors.New("start_time tidak valid")
+	if input.GroupToken != "" {
+		return s.joinGroup(studentID, input)
 	}
-	newEnd, err := timeToMinutes(input.EndTime)
-	if err != nil {
-		return nil, errors.New("end_time tidak valid")
-	}
-	existing, err := s.repo.ListBookingsByTeacherAndDate(input.TeacherID, input.Date, []string{"confirmed", "pending"})
-	if err != nil {
+	return s.createOrganizer(studentID, input)
+}
+
+func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
+	// validasi slot sesuai jadwal kosong guru
+	if err := s.validateAvailability(input.TeacherID, input.Date, input.StartTime, input.EndTime); err != nil {
 		return nil, err
 	}
-	for _, b := range existing {
-		bStart, err1 := timeToMinutes(b.StartTime)
-		bEnd, err2 := timeToMinutes(b.EndTime)
-		if err1 != nil || err2 != nil {
-			continue
+	// cek konflik jadwal guru
+	if err := s.checkTeacherConflict(input.TeacherID, input.Date, input.StartTime, input.EndTime, ""); err != nil {
+		return nil, err
+	}
+
+	token := ""
+	if input.Mode == "semi_private" {
+		t, err := generateToken()
+		if err != nil {
+			return nil, errors.New("gagal membuat token grup")
 		}
-		if hasOverlap(newStart, newEnd, bStart, bEnd) {
-			return nil, errors.New("guru sudah memiliki booking pada jam tersebut")
-		}
+		token = t
 	}
 
 	booking := models.Booking{
-		TeacherID: input.TeacherID,
-		StudentID: studentID,
-		Date:      input.Date,
-		StartTime: input.StartTime,
-		EndTime:   input.EndTime,
-		Status:    "pending",
-		Note:      input.Note,
+		TeacherID:    input.TeacherID,
+		StudentID:    studentID,
+		Date:         input.Date,
+		StartTime:    input.StartTime,
+		EndTime:      input.EndTime,
+		Status:       "pending",
+		Mode:         input.Mode,
+		SessionCount: input.SessionCount,
+		GroupToken:   token,
+		Note:         input.Note,
 	}
 	if err := s.repo.CreateBooking(&booking); err != nil {
 		return nil, err
@@ -181,6 +236,111 @@ func (s *Service) CreateBooking(studentID uint, input CreateBookingInput) (*Book
 	}
 	r := toBookingResponse(*created)
 	return &r, nil
+}
+
+func (s *Service) joinGroup(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
+	organizer, err := s.repo.GetBookingByToken(input.GroupToken)
+	if err != nil {
+		return nil, errors.New("grup tidak ditemukan")
+	}
+	if organizer.Status == "rejected" || organizer.Status == "cancelled" {
+		return nil, errors.New("grup sudah tidak aktif")
+	}
+	if organizer.StudentID == studentID {
+		return nil, errors.New("kamu sudah menjadi organizer grup ini")
+	}
+
+	existing, err := s.repo.ListBookingsByGroupToken(input.GroupToken)
+	if err != nil {
+		return nil, err
+	}
+	for _, b := range existing {
+		if b.StudentID == studentID {
+			return nil, errors.New("kamu sudah bergabung ke grup ini")
+		}
+	}
+
+	count, err := s.repo.CountGroupParticipants(input.GroupToken)
+	if err != nil {
+		return nil, err
+	}
+	if count >= maxGroupSlots {
+		return nil, errors.New("grup sudah penuh (maks 5 siswa)")
+	}
+
+	// peserta wajib memakai slot yang sama dgn organizer
+	if organizer.TeacherID != input.TeacherID ||
+		organizer.Date != input.Date ||
+		organizer.StartTime != input.StartTime ||
+		organizer.EndTime != input.EndTime {
+		return nil, errors.New("data booking harus sama dengan grup (guru, tanggal, jam)")
+	}
+
+	booking := models.Booking{
+		TeacherID:    organizer.TeacherID,
+		StudentID:    studentID,
+		Date:         organizer.Date,
+		StartTime:    organizer.StartTime,
+		EndTime:      organizer.EndTime,
+		Status:       "pending",
+		Mode:         organizer.Mode,
+		SessionCount: organizer.SessionCount,
+		GroupToken:   organizer.GroupToken,
+		Note:         input.Note,
+	}
+	if err := s.repo.CreateBooking(&booking); err != nil {
+		return nil, err
+	}
+	created, err := s.repo.GetBooking(booking.ID)
+	if err != nil {
+		return nil, err
+	}
+	r := toBookingResponse(*created)
+	return &r, nil
+}
+
+// validateAvailability memastikan (tanggal, jam) masuk dalam slot kosong guru.
+func (s *Service) validateAvailability(teacherID uint, date, startTime, endTime string) error {
+	dateObj, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		return errors.New("format tanggal tidak valid")
+	}
+	weekday := int(dateObj.Weekday())
+	slots, err := s.repo.ListAvailability(teacherID)
+	if err != nil {
+		return err
+	}
+	for _, slot := range slots {
+		if slot.DayOfWeek == weekday && slot.StartTime <= startTime && slot.EndTime >= endTime {
+			return nil
+		}
+	}
+	return errors.New("jadwal tidak tersedia untuk slot waktu tersebut")
+}
+
+// checkTeacherConflict memblokir booking yang bentrok dgn booking guru lain.
+// excludeToken dipakai utk mengabaikan booking dalam grup yang sama.
+func (s *Service) checkTeacherConflict(teacherID uint, date, startTime, endTime, excludeToken string) error {
+	newStart, _ := timeToMinutes(startTime)
+	newEnd, _ := timeToMinutes(endTime)
+	existing, err := s.repo.ListBookingsByTeacherAndDate(teacherID, date, []string{"confirmed", "pending"})
+	if err != nil {
+		return err
+	}
+	for _, b := range existing {
+		if excludeToken != "" && b.GroupToken == excludeToken {
+			continue
+		}
+		bStart, err1 := timeToMinutes(b.StartTime)
+		bEnd, err2 := timeToMinutes(b.EndTime)
+		if err1 != nil || err2 != nil {
+			continue
+		}
+		if hasOverlap(newStart, newEnd, bStart, bEnd) {
+			return errors.New("guru sudah memiliki booking pada jam tersebut")
+		}
+	}
+	return nil
 }
 
 // timeToMinutes mengubah "HH:mm" menjadi menit sejak tengah malam.
@@ -214,15 +374,145 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Booki
 		return nil, errors.New("booking sudah diproses sebelumnya")
 	}
 
-	if err := s.repo.UpdateBookingStatus(id, status); err != nil {
-		return nil, err
+	// kalau booking grup, status berlaku utk semua anggota ber-token sama
+	targets := []models.Booking{*booking}
+	if booking.GroupToken != "" {
+		group, err := s.repo.ListBookingsByGroupToken(booking.GroupToken)
+		if err != nil {
+			return nil, err
+		}
+		targets = group
 	}
+
+	if status == "rejected" {
+		for _, b := range targets {
+			if b.Status == "pending" {
+				if err := s.repo.UpdateBookingStatus(b.ID, "rejected"); err != nil {
+					return nil, err
+				}
+			}
+		}
+	} else {
+		for _, b := range targets {
+			if b.Status == "pending" {
+				if err := s.repo.UpdateBookingStatus(b.ID, "confirmed"); err != nil {
+					return nil, err
+				}
+				if err := s.createSessionsAndInvoice(b); err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
 	updated, err := s.repo.GetBooking(id)
 	if err != nil {
 		return nil, err
 	}
 	r := toBookingResponse(*updated)
 	return &r, nil
+}
+
+// createSessionsAndInvoice membuat sesi pertemuan mingguan + invoice pembayaran.
+func (s *Service) createSessionsAndInvoice(booking models.Booking) error {
+	date, err := time.Parse("2006-01-02", booking.Date)
+	if err != nil {
+		return errors.New("tanggal booking tidak valid")
+	}
+
+	sessions := make([]models.TutoringSession, booking.SessionCount)
+	startDate := date
+	endDate := date
+	for i := 0; i < booking.SessionCount; i++ {
+		d := date.AddDate(0, 0, 7*i)
+		if i == 0 {
+			startDate = d
+		}
+		endDate = d
+		sessions[i] = models.TutoringSession{
+			BookingID: booking.ID,
+			Date:      d.Format("2006-01-02"),
+			StartTime: booking.StartTime,
+			EndTime:   booking.EndTime,
+			Status:    "scheduled",
+		}
+	}
+	if err := s.repo.CreateSessions(sessions); err != nil {
+		return err
+	}
+
+	modeLabel := "private"
+	if booking.Mode == "semi_private" {
+		modeLabel = "semi-private"
+	}
+	invoice := models.Invoice{
+		UserID:    booking.StudentID,
+		Amount:    pricePerSession * float64(booking.SessionCount),
+		StartDate: startDate.Format("2006-01-02"),
+		EndDate:   endDate.Format("2006-01-02"),
+		Status:    "pending",
+		Note:      fmt.Sprintf("Les %s — %d pertemuan", modeLabel, booking.SessionCount),
+		BookingID: &booking.ID,
+	}
+	return s.repo.CreateInvoice(&invoice)
+}
+
+func (s *Service) ListGroupInfo(token string) (*GroupInfoResponse, error) {
+	organizer, err := s.repo.GetBookingByToken(token)
+	if err != nil {
+		return nil, errors.New("grup tidak ditemukan")
+	}
+	count, err := s.repo.CountGroupParticipants(token)
+	if err != nil {
+		return nil, err
+	}
+	teacherName := ""
+	if organizer.Teacher != nil {
+		teacherName = organizer.Teacher.Name
+	}
+	return &GroupInfoResponse{
+		TeacherID:    organizer.TeacherID,
+		TeacherName:  teacherName,
+		Mode:         organizer.Mode,
+		SessionCount: organizer.SessionCount,
+		Date:         organizer.Date,
+		StartTime:    organizer.StartTime,
+		EndTime:      organizer.EndTime,
+		Participants: int(count),
+		MaxSlots:     maxGroupSlots,
+	}, nil
+}
+
+func (s *Service) ListMySessions(studentID uint) ([]TutoringSessionResponse, error) {
+	sessions, err := s.repo.ListSessionsByUserPaid(studentID)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]TutoringSessionResponse, len(sessions))
+	for i, v := range sessions {
+		teacherName := ""
+		if v.Booking != nil && v.Booking.Teacher != nil {
+			teacherName = v.Booking.Teacher.Name
+		}
+		res[i] = TutoringSessionResponse{
+			ID:        v.ID,
+			BookingID: v.BookingID,
+			Date:      v.Date,
+			StartTime: v.StartTime,
+			EndTime:   v.EndTime,
+			Status:    v.Status,
+			Teacher:   teacherName,
+		}
+	}
+	return res, nil
+}
+
+func generateToken() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
 }
 
 func toBookingResponse(b models.Booking) BookingResponse {
@@ -235,17 +525,20 @@ func toBookingResponse(b models.Booking) BookingResponse {
 		teacherName = b.Teacher.Name
 	}
 	return BookingResponse{
-		ID:        b.ID,
-		TeacherID: b.TeacherID,
-		Teacher:   teacherName,
-		StudentID: b.StudentID,
-		Student:   studentName,
-		Date:      b.Date,
-		StartTime: b.StartTime,
-		EndTime:   b.EndTime,
-		Status:    b.Status,
-		Note:      b.Note,
-		CreatedAt: b.CreatedAt.Format("2006-01-02"),
+		ID:           b.ID,
+		TeacherID:    b.TeacherID,
+		Teacher:      teacherName,
+		StudentID:    b.StudentID,
+		Student:      studentName,
+		Date:         b.Date,
+		StartTime:    b.StartTime,
+		EndTime:      b.EndTime,
+		Status:       b.Status,
+		Mode:         b.Mode,
+		SessionCount: b.SessionCount,
+		GroupToken:   b.GroupToken,
+		Note:         b.Note,
+		CreatedAt:    b.CreatedAt.Format("2006-01-02"),
 	}
 }
 

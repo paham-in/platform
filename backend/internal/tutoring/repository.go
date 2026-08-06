@@ -88,3 +88,58 @@ func (r *Repository) GetBooking(id uint) (*models.Booking, error) {
 	}
 	return &b, nil
 }
+
+// GetBookingByToken mengambil booking organizer (yang pertama) dari token grup.
+func (r *Repository) GetBookingByToken(token string) (*models.Booking, error) {
+	var b models.Booking
+	if err := r.db.Preload("Teacher").Where("group_token = ?", token).Order("id asc").First(&b).Error; err != nil {
+		return nil, err
+	}
+	return &b, nil
+}
+
+// ListBookingsByGroupToken mengambil semua booking dgn token yang sama.
+func (r *Repository) ListBookingsByGroupToken(token string) ([]models.Booking, error) {
+	var bookings []models.Booking
+	if err := r.db.Preload("Student").Where("group_token = ?", token).Order("id asc").Find(&bookings).Error; err != nil {
+		return nil, err
+	}
+	return bookings, nil
+}
+
+// CountGroupParticipants menghitung peserta aktif (pending/confirmed) dalam grup.
+func (r *Repository) CountGroupParticipants(token string) (int64, error) {
+	var count int64
+	err := r.db.Model(&models.Booking{}).
+		Where("group_token = ? AND status IN ?", token, []string{"pending", "confirmed"}).
+		Count(&count).Error
+	return count, err
+}
+
+// CreateSessions menyimpan sesi pertemuan (bulk).
+func (r *Repository) CreateSessions(sessions []models.TutoringSession) error {
+	if len(sessions) == 0 {
+		return nil
+	}
+	return r.db.Create(&sessions).Error
+}
+
+// ListSessionsByUserPaid mengembalikan sesi milik user di mana invoice terkait sudah lunas.
+func (r *Repository) ListSessionsByUserPaid(studentID uint) ([]models.TutoringSession, error) {
+	var sessions []models.TutoringSession
+	if err := r.db.
+		Joins("JOIN bookings ON bookings.id = tutoring_sessions.booking_id").
+		Joins("JOIN invoices ON invoices.booking_id = bookings.id").
+		Where("bookings.student_id = ? AND invoices.status = ?", studentID, "paid").
+		Preload("Booking.Teacher").
+		Order("tutoring_sessions.date, tutoring_sessions.start_time").
+		Find(&sessions).Error; err != nil {
+		return nil, err
+	}
+	return sessions, nil
+}
+
+// CreateInvoice menyimpan invoice pembayaran utk sebuah booking.
+func (r *Repository) CreateInvoice(invoice *models.Invoice) error {
+	return r.db.Create(invoice).Error
+}

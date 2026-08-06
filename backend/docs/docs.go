@@ -2959,7 +2959,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Murid booking jadwal guru",
+                "description": "Murid booking jadwal guru. User gratis boleh join grup semi-private (role student digrant otomatis saat invoice lunas).",
                 "consumes": [
                     "application/json"
                 ],
@@ -3044,6 +3044,80 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tutoring/groups/{token}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan info grup semi-private dari token undangan",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Group info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Group token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.GroupInfoResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tutoring/sessions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan jadwal pertemuan (muncul setelah invoice lunas)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "My sessions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                            }
                         }
                     }
                 }
@@ -3908,11 +3982,20 @@ const docTemplate = `{
                 "end_time": {
                     "type": "string"
                 },
+                "group_token": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
+                "mode": {
+                    "type": "string"
+                },
                 "note": {
                     "type": "string"
+                },
+                "session_count": {
+                    "type": "integer"
                 },
                 "start_time": {
                     "type": "string"
@@ -3957,8 +4040,20 @@ const docTemplate = `{
                 "end_time": {
                     "type": "string"
                 },
+                "group_token": {
+                    "description": "isi utk join grup yang sudah ada",
+                    "type": "string"
+                },
+                "mode": {
+                    "description": "private/semi_private",
+                    "type": "string"
+                },
                 "note": {
                     "type": "string"
+                },
+                "session_count": {
+                    "description": "jumlah pertemuan (default 1)",
+                    "type": "integer"
                 },
                 "start_time": {
                     "type": "string"
@@ -3972,6 +4067,38 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.GroupInfoResponse": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "max_slots": {
+                    "type": "integer"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "participants": {
+                    "type": "integer"
+                },
+                "session_count": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                },
+                "teacher_name": {
                     "type": "string"
                 }
             }
@@ -4015,6 +4142,32 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/tutoring.SubjectInfo"
                     }
+                }
+            }
+        },
+        "tutoring.TutoringSessionResponse": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "teacher_name": {
+                    "type": "string"
                 }
             }
         },

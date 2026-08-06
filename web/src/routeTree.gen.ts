@@ -38,6 +38,7 @@ import { Route as DashboardAdminForumIndexRouteImport } from './routes/_dashboar
 import { Route as DashboardUserMaterialsMaterialIdRouteImport } from './routes/_dashboard/user/materials/$materialId'
 import { Route as DashboardTeacherTutoringAvailabilityRouteImport } from './routes/_dashboard/teacher/tutoring/availability'
 import { Route as DashboardTeacherForumIdRouteImport } from './routes/_dashboard/teacher/forum/$id'
+import { Route as DashboardStudentTutoringJoinRouteImport } from './routes/_dashboard/student/tutoring/join'
 import { Route as DashboardStudentTutoringTeacherIdRouteImport } from './routes/_dashboard/student/tutoring/$teacherId'
 import { Route as DashboardStudentForumNewRouteImport } from './routes/_dashboard/student/forum/new'
 import { Route as DashboardStudentForumMineRouteImport } from './routes/_dashboard/student/forum/mine'
@@ -214,6 +215,12 @@ const DashboardTeacherForumIdRoute = DashboardTeacherForumIdRouteImport.update({
   path: '/teacher/forum/$id',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardStudentTutoringJoinRoute =
+  DashboardStudentTutoringJoinRouteImport.update({
+    id: '/join',
+    path: '/join',
+    getParentRoute: () => DashboardStudentTutoringRoute,
+  } as any)
 const DashboardStudentTutoringTeacherIdRoute =
   DashboardStudentTutoringTeacherIdRouteImport.update({
     id: '/$teacherId',
@@ -326,6 +333,7 @@ export interface FileRoutesByFullPath {
   '/student/forum/mine': typeof DashboardStudentForumMineRoute
   '/student/forum/new': typeof DashboardStudentForumNewRoute
   '/student/tutoring/$teacherId': typeof DashboardStudentTutoringTeacherIdRoute
+  '/student/tutoring/join': typeof DashboardStudentTutoringJoinRoute
   '/teacher/forum/$id': typeof DashboardTeacherForumIdRoute
   '/teacher/tutoring/availability': typeof DashboardTeacherTutoringAvailabilityRoute
   '/user/materials/$materialId': typeof DashboardUserMaterialsMaterialIdRoute
@@ -369,6 +377,7 @@ export interface FileRoutesByTo {
   '/student/forum/mine': typeof DashboardStudentForumMineRoute
   '/student/forum/new': typeof DashboardStudentForumNewRoute
   '/student/tutoring/$teacherId': typeof DashboardStudentTutoringTeacherIdRoute
+  '/student/tutoring/join': typeof DashboardStudentTutoringJoinRoute
   '/teacher/forum/$id': typeof DashboardTeacherForumIdRoute
   '/teacher/tutoring/availability': typeof DashboardTeacherTutoringAvailabilityRoute
   '/user/materials/$materialId': typeof DashboardUserMaterialsMaterialIdRoute
@@ -416,6 +425,7 @@ export interface FileRoutesById {
   '/_dashboard/student/forum/mine': typeof DashboardStudentForumMineRoute
   '/_dashboard/student/forum/new': typeof DashboardStudentForumNewRoute
   '/_dashboard/student/tutoring/$teacherId': typeof DashboardStudentTutoringTeacherIdRoute
+  '/_dashboard/student/tutoring/join': typeof DashboardStudentTutoringJoinRoute
   '/_dashboard/teacher/forum/$id': typeof DashboardTeacherForumIdRoute
   '/_dashboard/teacher/tutoring/availability': typeof DashboardTeacherTutoringAvailabilityRoute
   '/_dashboard/user/materials/$materialId': typeof DashboardUserMaterialsMaterialIdRoute
@@ -463,6 +473,7 @@ export interface FileRouteTypes {
     | '/student/forum/mine'
     | '/student/forum/new'
     | '/student/tutoring/$teacherId'
+    | '/student/tutoring/join'
     | '/teacher/forum/$id'
     | '/teacher/tutoring/availability'
     | '/user/materials/$materialId'
@@ -506,6 +517,7 @@ export interface FileRouteTypes {
     | '/student/forum/mine'
     | '/student/forum/new'
     | '/student/tutoring/$teacherId'
+    | '/student/tutoring/join'
     | '/teacher/forum/$id'
     | '/teacher/tutoring/availability'
     | '/user/materials/$materialId'
@@ -552,6 +564,7 @@ export interface FileRouteTypes {
     | '/_dashboard/student/forum/mine'
     | '/_dashboard/student/forum/new'
     | '/_dashboard/student/tutoring/$teacherId'
+    | '/_dashboard/student/tutoring/join'
     | '/_dashboard/teacher/forum/$id'
     | '/_dashboard/teacher/tutoring/availability'
     | '/_dashboard/user/materials/$materialId'
@@ -787,6 +800,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardTeacherForumIdRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/student/tutoring/join': {
+      id: '/_dashboard/student/tutoring/join'
+      path: '/join'
+      fullPath: '/student/tutoring/join'
+      preLoaderRoute: typeof DashboardStudentTutoringJoinRouteImport
+      parentRoute: typeof DashboardStudentTutoringRoute
+    }
     '/_dashboard/student/tutoring/$teacherId': {
       id: '/_dashboard/student/tutoring/$teacherId'
       path: '/$teacherId'
@@ -897,6 +917,7 @@ declare module '@tanstack/react-router' {
 
 interface DashboardStudentTutoringRouteChildren {
   DashboardStudentTutoringTeacherIdRoute: typeof DashboardStudentTutoringTeacherIdRoute
+  DashboardStudentTutoringJoinRoute: typeof DashboardStudentTutoringJoinRoute
   DashboardStudentTutoringIndexRoute: typeof DashboardStudentTutoringIndexRoute
 }
 
@@ -904,6 +925,7 @@ const DashboardStudentTutoringRouteChildren: DashboardStudentTutoringRouteChildr
   {
     DashboardStudentTutoringTeacherIdRoute:
       DashboardStudentTutoringTeacherIdRoute,
+    DashboardStudentTutoringJoinRoute: DashboardStudentTutoringJoinRoute,
     DashboardStudentTutoringIndexRoute: DashboardStudentTutoringIndexRoute,
   }
 
