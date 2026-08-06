@@ -17,8 +17,8 @@ const dashboardLink = (roles?: string[]) => {
 }
 
 export default function Navbar() {
-  const { data: user } = useQuery(getMeOptions())
   const token = typeof window !== "undefined" && localStorage.getItem("token")
+  const { data: user } = useQuery({ ...getMeOptions(), enabled: !!token })
   const dashTo = token && user ? dashboardLink(user.roles as string[]) : "/login"
 
   return (

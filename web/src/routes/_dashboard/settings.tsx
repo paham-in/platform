@@ -13,6 +13,7 @@ import {
 import {
   getClassesOptions,
   getMeOptions,
+  getMeQueryKey,
   getSubjectsOptions,
   patchMeMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
@@ -67,7 +68,7 @@ function SettingsPage() {
   const updateProfile = useMutation({
     ...patchMeMutation(),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["me"] })
+      qc.invalidateQueries({ queryKey: getMeQueryKey() })
       toast.success("Profil berhasil disimpan")
     },
     onError: () => {

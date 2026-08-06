@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { getMeOptions, postLogoutMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { getMeOptions, getMeQueryKey, postLogoutMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
@@ -105,7 +105,8 @@ function DashboardLayout() {
     ...postLogoutMutation(),
     onSuccess: () => {
       localStorage.removeItem("token");
-      qc.setQueryData(["me"], null);
+      qc.setQueryData(getMeQueryKey(), null);
+      qc.removeQueries({ queryKey: getMeQueryKey() });
       navigate({ to: "/login" });
     },
   });
@@ -125,13 +126,18 @@ function DashboardLayout() {
   // di tiap render (kalau loading/user null, guard tetap di-register).
   const allowedUserPaths = ["/user", "/student/tutoring", "/student/payments"]
   useEffect(() => {
-    if (isLoading || hasPaidRole) return;
+    if (isLoading) return;
+    if (!user) {
+      navigate({ to: "/login" });
+      return;
+    }
+    if (hasPaidRole) return;
     const path = routerState.location.pathname;
     const allowed = allowedUserPaths.some((p) => path.startsWith(p));
     if (!allowed) {
       navigate({ to: "/user/dashboard" });
     }
-  }, [isLoading, hasPaidRole, routerState.location.pathname, navigate]);
+  }, [isLoading, hasPaidRole, user, routerState.location.pathname, navigate]);
 
   if (isLoading) {
     return (
@@ -141,10 +147,7 @@ function DashboardLayout() {
     );
   }
 
-  if (!user) {
-    navigate({ to: "/login" });
-    return null;
-  }
+  if (!user) return null;
 
   const filteredGroups = sidebarGroups
     .map((g) => ({
