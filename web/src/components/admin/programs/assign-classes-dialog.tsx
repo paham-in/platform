@@ -140,7 +140,8 @@ export function AssignClassesDialog({ program, classes, onClose }: AssignClasses
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="outline" onClick={onClose}>Tutup</Button>
             <Button onClick={addAll} disabled={assigning || selected.length === 0}>
-              {assigning ? <Spinner /> : `Tambah ${selected.length ? `(${selected.length})` : ""}`}
+              {assigning && <Spinner />}
+              Tambah{selected.length > 0 ? ` (${selected.length})` : ""}
             </Button>
           </div>
         </div>
