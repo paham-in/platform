@@ -13,8 +13,6 @@ import {
   getAdminStudentProgramsOptions,
   getAdminStudentProgramsQueryKey,
   deleteAdminStudentProgramsByIdMutation,
-  getAdminUsersOptions,
-  getAdminProgramsOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
 import type { StudentprogramStudentProgramResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -37,8 +35,6 @@ const studentProgramsSearchSchema = z.object({});
 
 function AdminStudentPrograms() {
   const { data: items = [], isLoading } = useQuery(getAdminStudentProgramsOptions());
-  const { data: users = [] } = useQuery(getAdminUsersOptions());
-  const { data: programs = [] } = useQuery(getAdminProgramsOptions());
   const [page, setPage] = useState(1);
   const [grantOpen, setGrantOpen] = useState(false);
   const [revokeTarget, setRevokeTarget] = useState<StudentprogramStudentProgramResponse | null>(null);
@@ -57,7 +53,7 @@ function AdminStudentPrograms() {
               Kelola program yang diakses setiap murid dan masa berlakunya.
             </p>
           </div>
-          <Button onClick={() => setGrantOpen(true)} disabled={users.length === 0 || programs.length === 0}>
+          <Button onClick={() => setGrantOpen(true)}>
             <Plus className="mr-1 h-4 w-4" /> Berikan Akses
           </Button>
         </div>
@@ -130,11 +126,7 @@ function AdminStudentPrograms() {
       </main>
 
       {grantOpen && (
-        <GrantProgramDialog
-          users={users}
-          programs={programs}
-          onClose={() => setGrantOpen(false)}
-        />
+        <GrantProgramDialog onClose={() => setGrantOpen(false)} />
       )}
 
       {revokeTarget && (

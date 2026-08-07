@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -13,17 +13,18 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import {
   postAdminStudentProgramsMutation,
   getAdminStudentProgramsQueryKey,
+  getAdminUsersOptions,
+  getAdminProgramsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { UserAdminUserResponse, ProgramProgramResponse } from "@/lib/api/types.gen"
 
 interface GrantProgramDialogProps {
-  users: UserAdminUserResponse[]
-  programs: ProgramProgramResponse[]
   onClose: () => void
 }
 
-export function GrantProgramDialog({ users, programs, onClose }: GrantProgramDialogProps) {
+export function GrantProgramDialog({ onClose }: GrantProgramDialogProps) {
   const qc = useQueryClient()
+  const { data: users = [] } = useQuery(getAdminUsersOptions())
+  const { data: programs = [] } = useQuery(getAdminProgramsOptions())
   const [userId, setUserId] = useState<number | undefined>()
   const [programId, setProgramId] = useState<number | undefined>()
   const [expiry, setExpiry] = useState<Date>()
@@ -61,9 +62,12 @@ export function GrantProgramDialog({ users, programs, onClose }: GrantProgramDia
             <Label htmlFor="user-select">Murid</Label>
             <Select value={userId} onValueChange={(v) => setUserId(Number(v))}>
               <SelectTrigger id="user-select" className="w-full" size="sm">
-                <SelectValue placeholder="Pilih murid..." />
+                <SelectValue placeholder={users.length ? "Pilih murid..." : "Tidak ada murid"} />
               </SelectTrigger>
               <SelectContent>
+                {users.length === 0 && (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">Tidak ada murid terdaftar</div>
+                )}
                 {users.map((u) => (
                   <SelectItem key={u.id} value={String(u.id)}>
                     {u.name} — {u.email}
@@ -76,9 +80,12 @@ export function GrantProgramDialog({ users, programs, onClose }: GrantProgramDia
             <Label htmlFor="program-select">Program</Label>
             <Select value={programId} onValueChange={(v) => setProgramId(Number(v))}>
               <SelectTrigger id="program-select" className="w-full" size="sm">
-                <SelectValue placeholder="Pilih program..." />
+                <SelectValue placeholder={programs.length ? "Pilih program..." : "Tidak ada program"} />
               </SelectTrigger>
               <SelectContent>
+                {programs.length === 0 && (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">Belum ada program</div>
+                )}
                 {programs.map((p) => (
                   <SelectItem key={p.id} value={String(p.id)}>
                     {p.name}
@@ -110,7 +117,8 @@ export function GrantProgramDialog({ users, programs, onClose }: GrantProgramDia
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="outline" onClick={onClose}>Batal</Button>
             <Button onClick={save} disabled={isPending || !canSave}>
-              {isPending ? <Spinner /> : "Berikan Akses"}
+              {isPending && <Spinner />}
+              Berikan Akses
             </Button>
           </div>
         </div>
