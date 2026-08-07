@@ -3194,6 +3194,36 @@ const docTemplate = `{
                 }
             }
         },
+        "/student-programs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "StudentProgram"
+                ],
+                "summary": "My student programs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/studentprogram.StudentProgramResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/subjects": {
             "get": {
                 "description": "Mengembalikan daftar semua mata pelajaran",

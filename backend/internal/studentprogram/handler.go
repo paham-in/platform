@@ -95,6 +95,34 @@ func (h *Handler) AdminRevokeStudentProgram(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "akses berhasil dicabut"})
 }
 
+// MyStudentPrograms daftar akses program milik user yang login
+// @Summary      My student programs
+// @Tags         StudentProgram
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} StudentProgramResponse
+// @Router       /student-programs [get]
+func (h *Handler) MyStudentPrograms(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok || userID == 0 {
+		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
+	}
+	sp, err := h.svc.List(ListFilter{UserID: userID})
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(sp)
+}
+
+func AuthRoutes(auth fiber.Router, db *gorm.DB) {
+	repo := NewRepository(db)
+	svc := NewService(repo, db)
+	h := NewHandler(svc)
+
+	auth.Get("/student-programs", h.MyStudentPrograms)
+}
+
 func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	svc := NewService(repo, db)

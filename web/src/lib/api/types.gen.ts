@@ -2589,6 +2589,22 @@ export type PostQuestionsByQuestionIdImagesResponses = {
 
 export type PostQuestionsByQuestionIdImagesResponse = PostQuestionsByQuestionIdImagesResponses[keyof PostQuestionsByQuestionIdImagesResponses];
 
+export type GetStudentProgramsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/student-programs';
+};
+
+export type GetStudentProgramsResponses = {
+    /**
+     * OK
+     */
+    200: Array<StudentprogramStudentProgramResponse>;
+};
+
+export type GetStudentProgramsResponse = GetStudentProgramsResponses[keyof GetStudentProgramsResponses];
+
 export type GetSubjectsData = {
     body?: never;
     path?: never;

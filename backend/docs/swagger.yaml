@@ -2860,6 +2860,24 @@ paths:
       summary: Upload question image
       tags:
       - Forum
+  /student-programs:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/studentprogram.StudentProgramResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: My student programs
+      tags:
+      - StudentProgram
   /subjects:
     get:
       consumes:

@@ -1,11 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
-import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { BookOpen, TrendingUp, Clock, CheckCircle2 } from "lucide-react"
+import { getMeOptions, getStudentProgramsOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { BookOpen, TrendingUp, Clock, CheckCircle2, BadgeCheck } from "lucide-react"
+import { format } from "date-fns"
 
 function StudentDashboard() {
   const { data: user } = useQuery(getMeOptions())
+  const { data: programs = [], isLoading: programsLoading } = useQuery(getStudentProgramsOptions())
+  const today = format(new Date(), "yyyy-MM-dd")
 
   return (
     <main className="p-6">
@@ -26,6 +30,56 @@ function StudentDashboard() {
           ))}
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Langganan & Akses</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {programsLoading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
+                </div>
+              ) : programs.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 py-4 text-center">
+                  <BadgeCheck className="h-8 w-8 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">
+                    Belum ada langganan. Berlangganan dulu untuk akses materi premium.
+                  </p>
+                  <Link to="/student/payments" className="text-sm font-medium text-primary hover:underline">
+                    Lihat halaman pembayaran →
+                  </Link>
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {programs.map((sp) => {
+                    const expired = (sp.expiry ?? "") < today
+                    return (
+                      <div key={sp.id} className="flex items-center justify-between gap-3 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
+                            {(sp.program?.name ?? "?")[0]}
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium">{sp.program?.name ?? "—"}</div>
+                            <div className="text-xs text-muted-foreground">Kadaluarsa {sp.expiry ?? "—"}</div>
+                          </div>
+                        </div>
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            expired ? "bg-muted text-muted-foreground" : "bg-green-100 text-green-700"
+                          }`}
+                        >
+                          {expired ? "Kadaluarsa" : "Aktif"}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
           <Card><CardHeader><CardTitle>Mata Pelajaran</CardTitle></CardHeader><CardContent>
             {["Matematika", "Fisika", "Bahasa Inggris", "Biologi"].map((s) => (
               <div key={s} className="flex items-center justify-between border-b py-3 last:border-0">
