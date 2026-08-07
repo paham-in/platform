@@ -196,6 +196,79 @@ func (h *Handler) CreateBooking(c *fiber.Ctx) error {
 	return c.Status(201).JSON(booking)
 }
 
+// AdminListBookings returns all bookings (admin only)
+// @Summary      List all bookings
+// @Description  Mengembalikan daftar semua booking les privat dari semua murid & guru
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} BookingResponse
+// @Router       /admin/tutoring/bookings [get]
+func (h *Handler) AdminListBookings(c *fiber.Ctx) error {
+	bookings, err := h.svc.ListAllBookings()
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(bookings)
+}
+
+// AdminCreateBooking creates a booking manually for a student (admin only)
+// @Summary      Create booking manually
+// @Description  Admin mendaftarkan les privat untuk murid. Langsung confirmed + buat sesi & invoice.
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body body AdminCreateBookingInput true "Booking data"
+// @Success      201 {object} BookingResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/tutoring/bookings [post]
+func (h *Handler) AdminCreateBooking(c *fiber.Ctx) error {
+	var input AdminCreateBookingInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	if input.StudentID == 0 {
+		return c.Status(400).JSON(ErrorResponse{Error: "student_id wajib diisi"})
+	}
+	if input.TeacherID == 0 {
+		return c.Status(400).JSON(ErrorResponse{Error: "teacher_id wajib diisi"})
+	}
+	booking, err := h.svc.AdminCreateBooking(input)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.Status(201).JSON(booking)
+}
+
+// AdminListAvailability returns availability slots for a teacher (admin only)
+// @Summary      List teacher availability
+// @Description  Mengembalikan slot kosong guru tertentu (utk dialog booking manual)
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        teacher_id query int true "Teacher ID"
+// @Success      200 {array} AvailabilityResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/tutoring/availability [get]
+func (h *Handler) AdminListAvailability(c *fiber.Ctx) error {
+	teacherIDStr := c.Query("teacher_id")
+	if teacherIDStr == "" {
+		return c.Status(400).JSON(ErrorResponse{Error: "teacher_id wajib diisi"})
+	}
+	tid, err := strconv.ParseUint(teacherIDStr, 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "teacher_id tidak valid"})
+	}
+	slots, err := h.svc.ListAvailability(uint(tid))
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(slots)
+}
+
 // GroupInfo returns group info for a share link
 // @Summary      Group info
 // @Description  Mengembalikan info grup semi-private dari token undangan
@@ -270,6 +343,16 @@ func (h *Handler) UpdateBookingStatus(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(booking)
+}
+
+func AdminRoutes(admin fiber.Router, db *gorm.DB) {
+	repo := NewRepository(db)
+	svc := NewService(repo, db)
+	h := NewHandler(svc)
+
+	admin.Get("/tutoring/bookings", h.AdminListBookings)
+	admin.Post("/tutoring/bookings", h.AdminCreateBooking)
+	admin.Get("/tutoring/availability", h.AdminListAvailability)
 }
 
 func Routes(auth fiber.Router, db *gorm.DB) {

@@ -116,6 +116,7 @@ func main() {
 	invoice.AdminRoutes(admin, db)
 	program.AdminRoutes(admin, db)
 	studentclass.AdminRoutes(admin, db)
+	tutoring.AdminRoutes(admin, db)
 
 	// background job: hapus sesi yang sudah kedaluwarsa setiap 1 jam
 	startSessionCleanup(db)

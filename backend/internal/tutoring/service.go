@@ -143,6 +143,14 @@ func (s *Service) ListTeachers() ([]TeacherResponse, error) {
 	return res, nil
 }
 
+func (s *Service) ListAllBookings() ([]BookingResponse, error) {
+	bookings, err := s.repo.ListAllBookings()
+	if err != nil {
+		return nil, err
+	}
+	return toBookingResponses(bookings), nil
+}
+
 func (s *Service) ListTeacherBookings(teacherID uint) ([]BookingResponse, error) {
 	bookings, err := s.repo.ListBookingsByTeacher(teacherID)
 	if err != nil {
@@ -167,6 +175,17 @@ type CreateBookingInput struct {
 	Mode         string `json:"mode"`          // private/semi_private
 	SessionCount int    `json:"session_count"` // jumlah pertemuan (default 1)
 	GroupToken   string `json:"group_token"`   // isi utk join grup yang sudah ada
+	Note         string `json:"note"`
+}
+
+type AdminCreateBookingInput struct {
+	StudentID    uint   `json:"student_id"`
+	TeacherID    uint   `json:"teacher_id"`
+	Date         string `json:"date"`
+	StartTime    string `json:"start_time"`
+	EndTime      string `json:"end_time"`
+	Mode         string `json:"mode"`          // private/semi_private
+	SessionCount int    `json:"session_count"` // jumlah pertemuan (default 1)
 	Note         string `json:"note"`
 }
 
@@ -228,6 +247,59 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 		Note:         input.Note,
 	}
 	if err := s.repo.CreateBooking(&booking); err != nil {
+		return nil, err
+	}
+	created, err := s.repo.GetBooking(booking.ID)
+	if err != nil {
+		return nil, err
+	}
+	r := toBookingResponse(*created)
+	return &r, nil
+}
+
+// AdminCreateBooking daftarkan les privat manual atas nama murid.
+// Langsung status confirmed + generate sesi & invoice (admin tinggal tandai lunas).
+func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingResponse, error) {
+	if input.Mode == "" {
+		input.Mode = "private"
+	}
+	if input.Mode != "private" && input.Mode != "semi_private" {
+		return nil, errors.New("mode harus private atau semi_private")
+	}
+	if input.SessionCount < 1 {
+		input.SessionCount = 1
+	}
+	if input.SessionCount > 52 {
+		return nil, errors.New("session_count maksimal 52")
+	}
+	if input.Date < time.Now().Format("2006-01-02") {
+		return nil, errors.New("tanggal tidak boleh di masa lalu")
+	}
+	if input.StartTime >= input.EndTime {
+		return nil, errors.New("start_time harus sebelum end_time")
+	}
+	if err := s.validateAvailability(input.TeacherID, input.Date, input.StartTime, input.EndTime); err != nil {
+		return nil, err
+	}
+	if err := s.checkTeacherConflict(input.TeacherID, input.Date, input.StartTime, input.EndTime, ""); err != nil {
+		return nil, err
+	}
+
+	booking := models.Booking{
+		TeacherID:    input.TeacherID,
+		StudentID:    input.StudentID,
+		Date:         input.Date,
+		StartTime:    input.StartTime,
+		EndTime:      input.EndTime,
+		Status:       "confirmed",
+		Mode:         input.Mode,
+		SessionCount: input.SessionCount,
+		Note:         input.Note,
+	}
+	if err := s.repo.CreateBooking(&booking); err != nil {
+		return nil, err
+	}
+	if err := s.createSessionsAndInvoice(booking); err != nil {
 		return nil, err
 	}
 	created, err := s.repo.GetBooking(booking.ID)

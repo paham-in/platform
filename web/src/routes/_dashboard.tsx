@@ -78,6 +78,7 @@ const sidebarGroups = [
       { label: "Program", icon: BookMarked, to: "/admin/programs" },
       { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects" },
       { label: "Hak Akses Murid", icon: Shield, to: "/admin/student-classes" },
+      { label: "Les Privat", icon: Calendar, to: "/admin/tutoring" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
     ],
   },

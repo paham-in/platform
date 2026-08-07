@@ -53,6 +53,14 @@ func (r *Repository) ListBookingsByTeacher(teacherID uint) ([]models.Booking, er
 	return bookings, nil
 }
 
+func (r *Repository) ListAllBookings() ([]models.Booking, error) {
+	var bookings []models.Booking
+	if err := r.db.Preload("Student").Preload("Teacher").Order("date desc, start_time").Find(&bookings).Error; err != nil {
+		return nil, err
+	}
+	return bookings, nil
+}
+
 func (r *Repository) ListBookingsByStudent(studentID uint) ([]models.Booking, error) {
 	var bookings []models.Booking
 	if err := r.db.Preload("Teacher").Where("student_id = ?", studentID).Order("date desc, start_time").Find(&bookings).Error; err != nil {

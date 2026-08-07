@@ -624,6 +624,27 @@ definitions:
       program_id:
         type: integer
     type: object
+  tutoring.AdminCreateBookingInput:
+    properties:
+      date:
+        type: string
+      end_time:
+        type: string
+      mode:
+        description: private/semi_private
+        type: string
+      note:
+        type: string
+      session_count:
+        description: jumlah pertemuan (default 1)
+        type: integer
+      start_time:
+        type: string
+      student_id:
+        type: integer
+      teacher_id:
+        type: integer
+    type: object
   tutoring.AvailabilityResponse:
     properties:
       day_of_week:
@@ -2145,6 +2166,83 @@ paths:
       summary: Delete subject image
       tags:
       - Admin Gallery
+  /admin/tutoring/availability:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan slot kosong guru tertentu (utk dialog booking manual)
+      parameters:
+      - description: Teacher ID
+        in: query
+        name: teacher_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/tutoring.AvailabilityResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List teacher availability
+      tags:
+      - Admin Tutoring
+  /admin/tutoring/bookings:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar semua booking les privat dari semua murid
+        & guru
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/tutoring.BookingResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List all bookings
+      tags:
+      - Admin Tutoring
+    post:
+      consumes:
+      - application/json
+      description: Admin mendaftarkan les privat untuk murid. Langsung confirmed +
+        buat sesi & invoice.
+      parameters:
+      - description: Booking data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tutoring.AdminCreateBookingInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/tutoring.BookingResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create booking manually
+      tags:
+      - Admin Tutoring
   /admin/users:
     get:
       consumes:

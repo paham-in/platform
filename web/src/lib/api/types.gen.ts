@@ -403,6 +403,23 @@ export type SubjectUpdateInput = {
     program_id?: number;
 };
 
+export type TutoringAdminCreateBookingInput = {
+    date?: string;
+    end_time?: string;
+    /**
+     * private/semi_private
+     */
+    mode?: string;
+    note?: string;
+    /**
+     * jumlah pertemuan (default 1)
+     */
+    session_count?: number;
+    start_time?: string;
+    student_id?: number;
+    teacher_id?: number;
+};
+
 export type TutoringAvailabilityResponse = {
     day_of_week?: number;
     end_time?: string;
@@ -1858,6 +1875,80 @@ export type DeleteAdminSubjectsBySubjectIdImagesByIdResponses = {
 };
 
 export type DeleteAdminSubjectsBySubjectIdImagesByIdResponse = DeleteAdminSubjectsBySubjectIdImagesByIdResponses[keyof DeleteAdminSubjectsBySubjectIdImagesByIdResponses];
+
+export type GetAdminTutoringAvailabilityData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Teacher ID
+         */
+        teacher_id: number;
+    };
+    url: '/admin/tutoring/availability';
+};
+
+export type GetAdminTutoringAvailabilityErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type GetAdminTutoringAvailabilityError = GetAdminTutoringAvailabilityErrors[keyof GetAdminTutoringAvailabilityErrors];
+
+export type GetAdminTutoringAvailabilityResponses = {
+    /**
+     * OK
+     */
+    200: Array<TutoringAvailabilityResponse>;
+};
+
+export type GetAdminTutoringAvailabilityResponse = GetAdminTutoringAvailabilityResponses[keyof GetAdminTutoringAvailabilityResponses];
+
+export type GetAdminTutoringBookingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/tutoring/bookings';
+};
+
+export type GetAdminTutoringBookingsResponses = {
+    /**
+     * OK
+     */
+    200: Array<TutoringBookingResponse>;
+};
+
+export type GetAdminTutoringBookingsResponse = GetAdminTutoringBookingsResponses[keyof GetAdminTutoringBookingsResponses];
+
+export type PostAdminTutoringBookingsData = {
+    /**
+     * Booking data
+     */
+    body: TutoringAdminCreateBookingInput;
+    path?: never;
+    query?: never;
+    url: '/admin/tutoring/bookings';
+};
+
+export type PostAdminTutoringBookingsErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PostAdminTutoringBookingsError = PostAdminTutoringBookingsErrors[keyof PostAdminTutoringBookingsErrors];
+
+export type PostAdminTutoringBookingsResponses = {
+    /**
+     * Created
+     */
+    201: TutoringBookingResponse;
+};
+
+export type PostAdminTutoringBookingsResponse = PostAdminTutoringBookingsResponses[keyof PostAdminTutoringBookingsResponses];
 
 export type GetAdminUsersData = {
     body?: never;
