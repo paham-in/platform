@@ -17,6 +17,7 @@ interface AssignOrphanDialogProps {
 
 export function AssignOrphanDialog({ classItem, programs, onClose }: AssignOrphanDialogProps) {
   const qc = useQueryClient()
+  const programOptions = programs.map((p) => ({ label: p.name ?? "", value: String(p.id) }))
   const [programId, setProgramId] = useState<number | undefined>()
   const { mutate: assign, isPending } = useMutation({
     ...postAdminProgramsByIdClassesMutation(),
@@ -37,13 +38,13 @@ export function AssignOrphanDialog({ classItem, programs, onClose }: AssignOrpha
         <div className="space-y-4 pt-4">
           <div className="space-y-2">
             <Label htmlFor="orphan-program">Program tujuan</Label>
-            <Select value={programId} onValueChange={(v) => setProgramId(Number(v))}>
+            <Select items={programOptions} value={programId} onValueChange={(v) => setProgramId(Number(v))}>
               <SelectTrigger id="orphan-program" className="w-full" size="sm">
                 <SelectValue placeholder="Pilih program..." />
               </SelectTrigger>
               <SelectContent>
-                {programs.map((p) => (
-                  <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                {programOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
