@@ -11,9 +11,18 @@ import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox"
+import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import {
   postAdminStudentProgramsMutation,
   getAdminStudentProgramsQueryKey,
-  getAdminUsersOptions,
+  getAdminStudentsOptions,
   getAdminProgramsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 
@@ -23,11 +32,12 @@ interface GrantProgramDialogProps {
 
 export function GrantProgramDialog({ onClose }: GrantProgramDialogProps) {
   const qc = useQueryClient()
-  const { data: users = [] } = useQuery(getAdminUsersOptions())
+  const { data: users = [] } = useQuery(getAdminStudentsOptions())
   const { data: programs = [] } = useQuery(getAdminProgramsOptions())
-  const [userId, setUserId] = useState<number | undefined>()
+  const [user, setUser] = useState<UserAdminUserResponse>()
   const [programId, setProgramId] = useState<number | undefined>()
   const [expiry, setExpiry] = useState<Date>()
+  const programOptions = programs.map((p) => ({ label: p.name ?? "", value: String(p.id) }))
 
   const { mutate: grant, isPending } = useMutation({
     ...postAdminStudentProgramsMutation(),
@@ -39,12 +49,12 @@ export function GrantProgramDialog({ onClose }: GrantProgramDialogProps) {
     onError: (err: any) => toast.error(err.error || "Gagal memberikan akses"),
   })
 
-  const canSave = userId && programId && expiry
+  const canSave = user && programId && expiry
   const save = () => {
     if (!canSave) return
     grant({
       body: {
-        user_id: userId,
+        user_id: user.id!,
         program_id: programId,
         expiry: format(expiry, "yyyy-MM-dd"),
       },
@@ -59,36 +69,44 @@ export function GrantProgramDialog({ onClose }: GrantProgramDialogProps) {
         </DialogHeader>
         <div className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="user-select">Murid</Label>
-            <Select value={userId} onValueChange={(v) => setUserId(Number(v))}>
-              <SelectTrigger id="user-select" className="w-full" size="sm">
-                <SelectValue placeholder={users.length ? "Pilih murid..." : "Tidak ada murid"} />
-              </SelectTrigger>
-              <SelectContent>
-                {users.length === 0 && (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">Tidak ada murid terdaftar</div>
-                )}
-                {users.map((u) => (
-                  <SelectItem key={u.id} value={String(u.id)}>
-                    {u.name} — {u.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Murid</Label>
+            <Combobox
+              autoHighlight
+              items={users}
+              value={user}
+              onValueChange={(v) => setUser(v ?? undefined)}
+              itemToStringLabel={(u) => (u ? `${u.name} — ${u.email}` : "")}
+            >
+              <ComboboxInput placeholder={users.length ? "Pilih murid..." : "Tidak ada murid"} />
+              <ComboboxContent>
+                <ComboboxEmpty>Tidak ada murid ditemukan</ComboboxEmpty>
+                <ComboboxList>
+                  {(u: UserAdminUserResponse) => (
+                    <ComboboxItem key={u.id} value={u}>
+                      <span className="flex min-w-0 flex-col">
+                        <span className="truncate">{u.name}</span>
+                        <span className="truncate text-xs text-muted-foreground">{u.email}</span>
+                      </span>
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
           </div>
           <div className="space-y-2">
             <Label htmlFor="program-select">Program</Label>
-            <Select value={programId} onValueChange={(v) => setProgramId(Number(v))}>
+            <Select
+              items={programOptions}
+              value={programId}
+              onValueChange={(v) => setProgramId(Number(v))}
+            >
               <SelectTrigger id="program-select" className="w-full" size="sm">
                 <SelectValue placeholder={programs.length ? "Pilih program..." : "Tidak ada program"} />
               </SelectTrigger>
               <SelectContent>
-                {programs.length === 0 && (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">Belum ada program</div>
-                )}
-                {programs.map((p) => (
-                  <SelectItem key={p.id} value={String(p.id)}>
-                    {p.name}
+                {programOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
                   </SelectItem>
                 ))}
               </SelectContent>

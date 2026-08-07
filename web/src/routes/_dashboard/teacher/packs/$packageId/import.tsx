@@ -237,7 +237,7 @@ function ImportQuestions() {
                       <span className="font-medium text-muted-foreground">Pertanyaan ke-{i + 1}</span>
                     </div>
                     {isDuplicate(i) && (
-                      <Badge variant="warning" className="shrink-0">
+                      <Badge variant="secondary" className="shrink-0">
                         <XCircle className="h-3 w-3" /> Duplikat
                       </Badge>
                     )}

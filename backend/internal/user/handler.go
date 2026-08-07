@@ -88,6 +88,24 @@ func (h *Handler) AdminListUsers(c *fiber.Ctx) error {
 	return c.JSON(users)
 }
 
+// AdminListStudents mengembalikan daftar user ber-role student (admin only)
+// @Summary      List students
+// @Description  Mengembalikan daftar semua user dengan role student (admin only)
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} AdminUserResponse
+// @Failure      500 {object} ErrorResponse
+// @Router       /admin/students [get]
+func (h *Handler) AdminListStudents(c *fiber.Ctx) error {
+	users, err := h.svc.ListUsers("", "student")
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data siswa"})
+	}
+	return c.JSON(users)
+}
+
 // AdminUpdateRole mengubah role user (admin only)
 // @Summary      Update user role
 // @Description  Mengubah role user (admin only)
@@ -285,6 +303,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	h := NewHandler(svc)
 
 	admin.Get("/users", h.AdminListUsers)
+	admin.Get("/students", h.AdminListStudents)
 	admin.Patch("/users/:id/role", h.AdminUpdateRole)
 	admin.Patch("/users/:id/subjects", h.AdminUpdateTeacherSubjects)
 	admin.Patch("/users/:id/payment", h.AdminTogglePayment)
