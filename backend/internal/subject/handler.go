@@ -61,7 +61,7 @@ func (h *Handler) AdminCreateSubject(c *fiber.Ctx) error {
 
 	subject, err := h.svc.Create(input)
 	if err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal menyimpan data"})
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.Status(201).JSON(subject)
 }
@@ -91,7 +91,7 @@ func (h *Handler) AdminUpdateSubject(c *fiber.Ctx) error {
 
 	subject, err := h.svc.Update(uint(id), input)
 	if err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengupdate data"})
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(subject)
 }

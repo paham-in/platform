@@ -10,25 +10,44 @@ import {
   postAdminClassesMutation,
   patchAdminClassesByIdMutation,
   getAdminClassesQueryKey,
+  getAdminProgramsQueryKey,
+  postAdminProgramsByIdClassesMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { ClassClassResponse } from "@/lib/api/types.gen"
 
 interface ClassFormDialogProps {
   class?: ClassClassResponse
+  /** Jika diisi, kelas baru otomatis masuk program ini setelah dibuat. */
+  programId?: number
   onClose: () => void
 }
 
-export function ClassFormDialog({ class: cls, onClose }: ClassFormDialogProps) {
+export function ClassFormDialog({ class: cls, programId, onClose }: ClassFormDialogProps) {
   const qc = useQueryClient()
   const [name, setName] = useState(cls?.name ?? "")
   const isEditing = Boolean(cls)
 
+  const { mutate: assign, isPending: assigning } = useMutation({
+    ...postAdminProgramsByIdClassesMutation(),
+    onSuccess: () => {
+      toast.success("Kelas berhasil ditambahkan ke program")
+      qc.invalidateQueries({ queryKey: getAdminClassesQueryKey() })
+      qc.invalidateQueries({ queryKey: getAdminProgramsQueryKey() })
+      onClose()
+    },
+    onError: (err: any) => toast.error(err.error || "Gagal menambahkan kelas ke program"),
+  })
+
   const { mutate: createClass, isPending: creating } = useMutation({
     ...postAdminClassesMutation(),
-    onSuccess: () => {
-      toast.success("Kelas berhasil ditambahkan")
-      qc.invalidateQueries({ queryKey: getAdminClassesQueryKey() })
-      onClose()
+    onSuccess: (data) => {
+      if (programId && data?.id) {
+        assign({ path: { id: programId }, body: { class_id: data.id } })
+      } else {
+        toast.success("Kelas berhasil ditambahkan")
+        qc.invalidateQueries({ queryKey: getAdminClassesQueryKey() })
+        onClose()
+      }
     },
     onError: (err: any) => toast.error(err.error || "Gagal menambahkan kelas"),
   })
@@ -43,7 +62,7 @@ export function ClassFormDialog({ class: cls, onClose }: ClassFormDialogProps) {
     onError: (err: any) => toast.error(err.error || "Gagal mengubah kelas"),
   })
 
-  const isPending = creating || updating
+  const isPending = creating || updating || assigning
 
   const save = () => {
     if (!name.trim()) return

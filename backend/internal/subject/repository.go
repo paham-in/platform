@@ -38,6 +38,21 @@ func (r *Repository) GetClassIDs(subjectID uint) ([]uint, error) {
 	return classIDs, nil
 }
 
+// HasClassOutsideProgram true jika ada kelas yang sudah terikat program lain.
+// Kelas dengan program_id NULL dianggap kompatibel program mana pun.
+func (r *Repository) HasClassOutsideProgram(programID uint, classIDs []uint) (bool, error) {
+	if len(classIDs) == 0 {
+		return false, nil
+	}
+	var n int64
+	if err := r.db.Model(&models.Class{}).
+		Where("id IN ? AND program_id IS NOT NULL AND program_id != ?", classIDs, programID).
+		Count(&n).Error; err != nil {
+		return false, err
+	}
+	return n > 0, nil
+}
+
 func (r *Repository) Create(subject *models.Subject) error {
 	return r.db.Create(subject).Error
 }

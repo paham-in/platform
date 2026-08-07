@@ -577,6 +577,8 @@ definitions:
         type: array
       name:
         type: string
+      program_id:
+        type: integer
     type: object
   subject.ErrorResponse:
     properties:
@@ -602,6 +604,8 @@ definitions:
         type: integer
       name:
         type: string
+      program_id:
+        type: integer
       slug:
         type: string
     type: object
@@ -613,6 +617,8 @@ definitions:
         type: array
       name:
         type: string
+      program_id:
+        type: integer
     type: object
   tutoring.AvailabilityResponse:
     properties:

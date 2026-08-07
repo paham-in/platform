@@ -375,6 +375,7 @@ export type StudentprogramUserRef = {
 export type SubjectCreateInput = {
     class_ids?: Array<number>;
     name?: string;
+    program_id?: number;
 };
 
 export type SubjectErrorResponse = {
@@ -390,12 +391,14 @@ export type SubjectSubjectResponse = {
     id?: number;
     material_count?: number;
     name?: string;
+    program_id?: number;
     slug?: string;
 };
 
 export type SubjectUpdateInput = {
     class_ids?: Array<number>;
     name?: string;
+    program_id?: number;
 };
 
 export type TutoringAvailabilityResponse = {

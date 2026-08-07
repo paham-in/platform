@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -31,11 +31,20 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/ui/spinner";
+import {
   ProgramFormDialog,
   DeleteProgramDialog,
-  AssignClassesDialog,
   AssignOrphanDialog,
 } from "@/components/admin/programs";
+import { ClassFormDialog, DeleteClassDialog } from "@/components/admin/classes";
 
 function AdminPrograms() {
   const { data: programs = [], isLoading } = useQuery(getAdminProgramsOptions());
@@ -43,8 +52,11 @@ function AdminPrograms() {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [formTarget, setFormTarget] = useState<{ open: boolean; editing: ProgramProgramResponse | null }>({ open: false, editing: null });
   const [deleteConfirm, setDeleteConfirm] = useState<ProgramProgramResponse | null>(null);
-  const [assignTarget, setAssignTarget] = useState<ProgramProgramResponse | null>(null);
   const [orphanTarget, setOrphanTarget] = useState<ClassClassResponse | null>(null);
+  const [createClassTarget, setCreateClassTarget] = useState<ProgramProgramResponse | null>(null);
+  const [unassignTarget, setUnassignTarget] = useState<ClassClassResponse | null>(null);
+  const [editClassTarget, setEditClassTarget] = useState<ClassClassResponse | null>(null);
+  const [deleteClassTarget, setDeleteClassTarget] = useState<ClassClassResponse | null>(null);
 
   const qc = useQueryClient()
   const unassignMut = useMutation({
@@ -111,7 +123,7 @@ function AdminPrograms() {
               const classCount = (p.classes ?? []).length
               return (
                 <Card key={p.id}>
-                  <CardContent>
+                  <CardHeader>
                     <div
                       className="flex cursor-pointer items-center justify-between gap-3"
                       onClick={() => p.id && toggle(p.id)}
@@ -140,9 +152,6 @@ function AdminPrograms() {
                             <MoreVertical className="h-4 w-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => setAssignTarget(p)}>
-                              <Layers className="h-4 w-4" /> Atur Kelas
-                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setFormTarget({ open: true, editing: p })}>
                               <Pencil className="h-4 w-4" /> Edit
                             </DropdownMenuItem>
@@ -153,37 +162,50 @@ function AdminPrograms() {
                         </DropdownMenu>
                       </div>
                     </div>
+                  </CardHeader>
 
-                    {isOpen && (
-                      <div className="mt-3 border-t pt-3">
+                  {isOpen && (
+                    <CardContent>
+                      <div className="border-t pt-4">
+                        <p className="text-sm font-medium">Kelas</p>
                         {(p.classes ?? []).length === 0 ? (
-                          <div className="flex items-center justify-between gap-3 py-1">
-                            <p className="text-sm text-muted-foreground">Belum ada kelas dalam program ini.</p>
-                            <Button size="sm" variant="outline" onClick={() => setAssignTarget(p)}>
-                              <Plus className="mr-1 h-3.5 w-3.5" /> Tambah Kelas
-                            </Button>
-                          </div>
+                          <p className="py-2 text-sm text-muted-foreground">Belum ada kelas dalam program ini.</p>
                         ) : (
                           <ul className="divide-y">
                             {(p.classes ?? []).map((c) => (
                               <li key={c.id} className="flex items-center justify-between gap-3 py-2">
                                 <span className="text-sm">{c.name}</span>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-muted-foreground hover:text-destructive"
-                                  onClick={() => c.id && unassignMut.mutate({ path: { class_id: c.id } })}
-                                  disabled={unassignMut.isPending}
-                                >
-                                  <Unplug className="mr-1 h-3.5 w-3.5" /> Lepas
-                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger
+                                    render={<Button variant="outline" size="icon" />}
+                                    aria-label={`Menu aksi untuk ${c.name}`}
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => c.id && setEditClassTarget(c)}>
+                                      <Pencil className="h-4 w-4" /> Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => c.id && setUnassignTarget(c)}>
+                                      <Unplug className="h-4 w-4" /> Lepas
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem variant="destructive" onClick={() => c.id && setDeleteClassTarget(c)}>
+                                      <Trash2 className="h-4 w-4" /> Hapus
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </li>
                             ))}
                           </ul>
                         )}
+                        <div className="pt-2">
+                          <Button size="sm" variant="outline" onClick={() => setCreateClassTarget(p)}>
+                            <Plus className="mr-1 h-3.5 w-3.5" /> Buat Kelas
+                          </Button>
+                        </div>
                       </div>
-                    )}
-                  </CardContent>
+                    </CardContent>
+                  )}
                 </Card>
               )
             })
@@ -221,16 +243,60 @@ function AdminPrograms() {
         <DeleteProgramDialog program={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
       )}
 
-      {assignTarget && (
-        <AssignClassesDialog program={assignTarget} classes={classes as ClassClassResponse[]} onClose={() => setAssignTarget(null)} />
-      )}
-
       {orphanTarget && (
         <AssignOrphanDialog
           classItem={orphanTarget}
           programs={programs}
           onClose={() => setOrphanTarget(null)}
         />
+      )}
+
+      {createClassTarget && (
+        <ClassFormDialog
+          programId={createClassTarget.id}
+          onClose={() => setCreateClassTarget(null)}
+        />
+      )}
+
+      {editClassTarget && (
+        <ClassFormDialog
+          class={editClassTarget}
+          onClose={() => setEditClassTarget(null)}
+        />
+      )}
+
+      {deleteClassTarget && (
+        <DeleteClassDialog
+          class={deleteClassTarget}
+          onClose={() => setDeleteClassTarget(null)}
+        />
+      )}
+
+      {unassignTarget && (
+        <AlertDialog open onOpenChange={(open) => !open && setUnassignTarget(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Lepas Kelas dari Program</AlertDialogTitle>
+              <AlertDialogDescription>
+                Kelas <strong>{unassignTarget.name}</strong> akan dilepas dari program ini.
+                Kelas tetap ada, tapi tidak lagi masuk program tersebut.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button variant="outline" onClick={() => setUnassignTarget(null)}>Batal</Button>
+              <Button
+                variant="destructive"
+                disabled={unassignMut.isPending}
+                onClick={() => {
+                  unassignMut.mutate({ path: { class_id: unassignTarget.id! } })
+                  setUnassignTarget(null)
+                }}
+              >
+                {unassignMut.isPending ? <Spinner /> : "Lepas"}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </>
   );

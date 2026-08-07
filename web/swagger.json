@@ -4543,6 +4543,9 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "program_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -4582,6 +4585,9 @@
                 "name": {
                     "type": "string"
                 },
+                "program_id": {
+                    "type": "integer"
+                },
                 "slug": {
                     "type": "string"
                 }
@@ -4598,6 +4604,9 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "program_id": {
+                    "type": "integer"
                 }
             }
         },

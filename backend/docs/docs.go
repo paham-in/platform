@@ -4546,6 +4546,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "program_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -4585,6 +4588,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "program_id": {
+                    "type": "integer"
+                },
                 "slug": {
                     "type": "string"
                 }
@@ -4601,6 +4607,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "program_id": {
+                    "type": "integer"
                 }
             }
         },

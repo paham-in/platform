@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import {
   getAdminClassesOptions,
+  getAdminProgramsOptions,
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
 import type { SubjectSubjectResponse } from "@/lib/api/types.gen";
@@ -40,10 +41,6 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { SubjectFormDialog, DeleteSubjectDialog } from "@/components/admin/subjects";
-import type { ClassClassResponse } from "@/lib/api/types.gen";
-
-type ClassOption = Pick<ClassClassResponse, "id" | "name">;
-
 const subjectsSearchSchema = z.object({
   search: z.string().optional(),
   class: z.coerce.number().optional(),
@@ -54,6 +51,7 @@ function AdminSubjects() {
   const { search: searchParam, class: classParam } = Route.useSearch();
   const { data: subjects = [], isLoading } = useQuery(getSubjectsOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
+  const { data: programs = [] } = useQuery(getAdminProgramsOptions());
   const [searchInput, setSearchInput] = useState(searchParam ?? "");
   const classFilter = classParam; // number | undefined
   const [page, setPage] = useState(1);
@@ -92,6 +90,9 @@ function AdminSubjects() {
       ?.map((id) => classes.find((c) => c.id === id)?.name)
       .filter(Boolean)
       .join(", ") ?? "-";
+
+  const programName = (id: number | undefined) =>
+    id === undefined ? "-" : programs.find((p) => p.id === id)?.name ?? "-";
 
   // Sync URL → local state when search changes externally
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam]);
@@ -170,6 +171,7 @@ function AdminSubjects() {
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Nama</TableHead>
                   <TableHead>Slug</TableHead>
+                  <TableHead>Program</TableHead>
                   <TableHead>Kelas</TableHead>
                   <TableHead>Jumlah Materi</TableHead>
                   <TableHead className="pr-6 text-right">Aksi</TableHead>
@@ -181,6 +183,7 @@ function AdminSubjects() {
                     <TableRow key={`skeleton-${i}`}>
                       <TableCell className="pl-6"><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                       <TableCell className="max-w-[200px]"><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
@@ -191,6 +194,9 @@ function AdminSubjects() {
                     <TableCell className="pl-6 font-medium">{s.name}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {s.slug}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {programName(s.program_id)}
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate text-muted-foreground">
                       {classNames(s.class_ids)}
@@ -215,7 +221,7 @@ function AdminSubjects() {
                 ))}
                 {!isLoading && paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="p-8 text-center">
+                    <TableCell colSpan={6} className="p-8 text-center">
                       {hasActiveFilter ? (
                         <div className="flex flex-col items-center gap-2">
                           <p className="text-muted-foreground">Tidak ada mata pelajaran yang cocok dengan filter.</p>
@@ -267,7 +273,6 @@ function AdminSubjects() {
       {formTarget.open && (
         <SubjectFormDialog
           subject={formTarget.editing ?? undefined}
-          classes={classes as ClassOption[]}
           onClose={() => setFormTarget({ open: false, editing: null })}
         />
       )}
