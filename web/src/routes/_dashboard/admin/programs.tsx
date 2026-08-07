@@ -1,32 +1,30 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { getAdminProgramsOptions, getAdminClassesOptions } from "@/lib/api/@tanstack/react-query.gen";
+  getAdminProgramsOptions,
+  getAdminProgramsQueryKey,
+  getAdminClassesOptions,
+  postAdminProgramsByIdClassesMutation,
+  deleteAdminProgramsClassesByClassIdMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
 import type { ProgramProgramResponse, ClassClassResponse } from "@/lib/api/types.gen";
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { z } from "zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import {
-  ChevronLeft,
+  ChevronDown,
   ChevronRight,
   Layers,
   MoreVertical,
   Pencil,
   Plus,
-  Search,
   Trash2,
-  X,
+  FolderOpen,
+  Unplug,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -34,159 +32,194 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import {
   ProgramFormDialog,
   DeleteProgramDialog,
   AssignClassesDialog,
 } from "@/components/admin/programs";
 
-const programsSearchSchema = z.object({
-  search: z.string().optional(),
-});
-
 function AdminPrograms() {
-  const navigate = useNavigate({ from: Route.fullPath });
-  const { search: searchParam } = Route.useSearch();
   const { data: programs = [], isLoading } = useQuery(getAdminProgramsOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
-  const [searchInput, setSearchInput] = useState(searchParam ?? "");
-  const [page, setPage] = useState(1);
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [formTarget, setFormTarget] = useState<{ open: boolean; editing: ProgramProgramResponse | null }>({ open: false, editing: null });
   const [deleteConfirm, setDeleteConfirm] = useState<ProgramProgramResponse | null>(null);
   const [assignTarget, setAssignTarget] = useState<ProgramProgramResponse | null>(null);
-  const perPage = 5;
+  const [orphanTarget, setOrphanTarget] = useState<ClassClassResponse | null>(null);
 
-  const filtered = programs.filter((p) =>
-    !searchParam ||
-    (p.name ?? "").toLowerCase().includes(searchParam.toLowerCase()),
-  );
-  const totalPages = Math.ceil(filtered.length / perPage);
-  const paged = filtered.slice((page - 1) * perPage, page * perPage);
+  const qc = useQueryClient()
+  const unassignMut = useMutation({
+    ...deleteAdminProgramsClassesByClassIdMutation(),
+    onSuccess: () => {
+      toast.success("Kelas dilepas dari program")
+      qc.invalidateQueries({ queryKey: getAdminProgramsQueryKey() })
+    },
+    onError: (err: any) => toast.error(err.error || "Gagal melepas kelas"),
+  })
 
-  const openAdd = () => setFormTarget({ open: true, editing: null });
-  const openEdit = (p: ProgramProgramResponse) => setFormTarget({ open: true, editing: p });
+  const toggle = (id: number) => {
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
-  // Sync URL → local state when search changes externally
-  useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam]);
-
-  // Debounce search → navigate to URL
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigate({
-        search: (prev) => ({ ...prev, search: searchInput || undefined }),
-        replace: true,
-      });
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-
-  const classNames = (ids?: { id?: number; name?: string }[]) =>
-    ids?.map((c) => c.name).filter(Boolean).join(", ") ?? "-";
+  const assignedIds = new Set(programs.flatMap((p) => (p.classes ?? []).map((c) => c.id!)))
+  const orphanClasses = classes.filter((c) => !assignedIds.has(c.id!))
 
   return (
     <>
       <main className="p-6">
-        <h1 className="mb-4 text-2xl font-bold tracking-tight">Program</h1>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              aria-label="Cari program"
-              placeholder="Cari program..."
-              className="pl-9 pr-9"
-              value={searchInput}
-              onChange={(e) => { setSearchInput(e.target.value); setPage(1); }}
-            />
-            {searchInput && (
-              <button
-                type="button"
-                aria-label="Bersihkan pencarian"
-                onClick={() => { setSearchInput(""); setPage(1); }}
-                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Program</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Kelola program dan kelas di dalamnya.
+            </p>
           </div>
-          <Button onClick={openAdd}>
-            <Plus className="mr-1 h-4 w-4" /> Tambah
+          <Button onClick={() => setFormTarget({ open: true, editing: null })}>
+            <Plus className="mr-1 h-4 w-4" /> Tambah Program
           </Button>
         </div>
-        <Card className="pt-0 gap-0 pb-0">
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/30">
-                  <TableHead className="pl-6">Nama</TableHead>
-                  <TableHead>Deskripsi</TableHead>
-                  <TableHead className="max-w-[220px]">Kelas</TableHead>
-                  <TableHead className="pr-6 text-right">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={`skeleton-${i}`}>
-                      <TableCell className="pl-6"><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                      <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : paged.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="pl-6 font-medium">{p.name}</TableCell>
-                    <TableCell className="max-w-[220px] truncate text-muted-foreground">
-                      {p.description || "—"}
-                    </TableCell>
-                    <TableCell className="max-w-[220px] truncate text-muted-foreground">
-                      {classNames(p.classes)}
-                    </TableCell>
-                    <TableCell className="pr-6 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
+
+        <div className="space-y-3">
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <Card key={`skeleton-${i}`}>
+                <CardContent className="flex items-center justify-between py-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                  <Skeleton className="h-8 w-24" />
+                </CardContent>
+              </Card>
+            ))
+          ) : programs.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center gap-2 py-10 text-center">
+                <FolderOpen className="h-8 w-8 text-muted-foreground" />
+                <p className="text-muted-foreground">Belum ada program. Buat program pertama kamu.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            programs.map((p) => {
+              const isOpen = expanded.has(p.id!)
+              const classCount = (p.classes ?? []).length
+              return (
+                <Card key={p.id}>
+                  <CardContent className="p-0">
+                    <div
+                      className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4"
+                      onClick={() => p.id && toggle(p.id)}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        {isOpen ? (
+                          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        )}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{p.name}</span>
+                            <Badge variant="secondary" className="shrink-0">
+                              {classCount} kelas
+                            </Badge>
+                          </div>
+                          {p.description && (
+                            <div className="truncate text-sm text-muted-foreground">{p.description}</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
                             <MoreVertical className="h-4 w-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => setAssignTarget(p)}>
-                            <Layers className="h-4 w-4" /> Atur Kelas
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEdit(p)}>
-                            <Pencil className="h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDeleteConfirm(p)}>
-                            <Trash2 className="h-4 w-4" /> Hapus
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {!isLoading && paged.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="p-8 text-center text-muted-foreground">
-                      {searchParam ? "Tidak ada program yang cocok dengan pencarian." : "Belum ada program."}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-          {totalPages > 1 && (
-            <CardFooter className="flex items-center justify-between border-t">
-              <p className="text-sm text-muted-foreground">
-                Halaman {page} dari {totalPages}
-              </p>
-              <div className="flex gap-1">
-                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardFooter>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => setAssignTarget(p)}>
+                              <Layers className="h-4 w-4" /> Atur Kelas
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setFormTarget({ open: true, editing: p })}>
+                              <Pencil className="h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setDeleteConfirm(p)}>
+                              <Trash2 className="h-4 w-4" /> Hapus
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+
+                    {isOpen && (
+                      <div className="border-t px-5 py-3">
+                        {(p.classes ?? []).length === 0 ? (
+                          <div className="flex items-center justify-between gap-3 py-1">
+                            <p className="text-sm text-muted-foreground">Belum ada kelas dalam program ini.</p>
+                            <Button size="sm" variant="outline" onClick={() => setAssignTarget(p)}>
+                              <Plus className="mr-1 h-3.5 w-3.5" /> Tambah Kelas
+                            </Button>
+                          </div>
+                        ) : (
+                          <ul className="divide-y">
+                            {(p.classes ?? []).map((c) => (
+                              <li key={c.id} className="flex items-center justify-between gap-3 py-2">
+                                <span className="text-sm">{c.name}</span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-muted-foreground hover:text-destructive"
+                                  onClick={() => c.id && unassignMut.mutate({ path: { class_id: c.id } })}
+                                  disabled={unassignMut.isPending}
+                                >
+                                  <Unplug className="mr-1 h-3.5 w-3.5" /> Lepas
+                                </Button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )
+            })
           )}
-        </Card>
+        </div>
+
+        {orphanClasses.length > 0 && (
+          <Card className="mt-6">
+            <CardContent className="p-0">
+              <div className="border-b px-5 py-3">
+                <h2 className="flex items-center gap-2 font-medium">
+                  <Unplug className="h-4 w-4 text-muted-foreground" />
+                  Kelas Tanpa Program
+                  <Badge variant="secondary">{orphanClasses.length}</Badge>
+                </h2>
+              </div>
+              <ul className="divide-y px-5">
+                {orphanClasses.map((c) => (
+                  <li key={c.id} className="flex items-center justify-between gap-3 py-2">
+                    <span className="text-sm">{c.name}</span>
+                    <Button size="sm" variant="outline" onClick={() => setOrphanTarget(c)}>
+                      <Layers className="mr-1 h-3.5 w-3.5" /> Masukkan ke Program
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
       </main>
 
       {formTarget.open && (
@@ -200,11 +233,70 @@ function AdminPrograms() {
       {assignTarget && (
         <AssignClassesDialog program={assignTarget} classes={classes as ClassClassResponse[]} onClose={() => setAssignTarget(null)} />
       )}
+
+      {orphanTarget && (
+        <AssignOrphanDialog
+          classItem={orphanTarget}
+          programs={programs}
+          onClose={() => setOrphanTarget(null)}
+        />
+      )}
     </>
   );
 }
 
+function AssignOrphanDialog({ classItem, programs, onClose }: {
+  classItem: ClassClassResponse
+  programs: ProgramProgramResponse[]
+  onClose: () => void
+}) {
+  const qc = useQueryClient()
+  const [programId, setProgramId] = useState<number | undefined>()
+  const { mutate: assign, isPending } = useMutation({
+    ...postAdminProgramsByIdClassesMutation(),
+    onSuccess: () => {
+      toast.success(`${classItem.name} dimasukkan ke program`)
+      qc.invalidateQueries({ queryKey: getAdminProgramsQueryKey() })
+      onClose()
+    },
+    onError: (err: any) => toast.error(err.error || "Gagal memasukkan kelas"),
+  })
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[420px]">
+        <DialogHeader>
+          <DialogTitle>Masukkan {classItem.name}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-4">
+          <div className="space-y-2">
+            <Label htmlFor="orphan-program">Program tujuan</Label>
+            <Select value={programId} onValueChange={(v) => setProgramId(Number(v))}>
+              <SelectTrigger id="orphan-program" className="w-full" size="sm">
+                <SelectValue placeholder="Pilih program..." />
+              </SelectTrigger>
+              <SelectContent>
+                {programs.map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={onClose}>Batal</Button>
+            <Button
+              onClick={() => programId && assign({ path: { id: programId }, body: { class_id: classItem.id! } })}
+              disabled={isPending || !programId}
+            >
+              {isPending ? <Spinner /> : "Masukkan"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export const Route = createFileRoute("/_dashboard/admin/programs")({
   component: AdminPrograms,
-  validateSearch: programsSearchSchema,
 });
