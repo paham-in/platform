@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -14,7 +13,7 @@ import { getTutoringAvailabilityOptions, getTutoringAvailabilityQueryKey, postTu
 import { Loader2, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
-function TeacherAvailability() {
+export function AvailabilitySchedule() {
   const qc = useQueryClient()
   const { data: slots = [], isLoading } = useQuery(getTutoringAvailabilityOptions())
   const [addOpen, setAddOpen] = useState(false)
@@ -52,7 +51,6 @@ function TeacherAvailability() {
 
   return (
     <>
-      <h2 className="mb-4 text-xl font-semibold">Jadwal Saya</h2>
       <div className="mb-4">
         <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Tambah Slot</Button>
       </div>
@@ -129,7 +127,3 @@ function TeacherAvailability() {
     </>
   )
 }
-
-export const Route = createFileRoute("/_dashboard/teacher/tutoring/availability")({
-  component: TeacherAvailability,
-})
