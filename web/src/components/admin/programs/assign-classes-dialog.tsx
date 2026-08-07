@@ -7,13 +7,23 @@ import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { X } from "lucide-react"
 import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxValue,
+  useComboboxAnchor,
+} from "@/components/ui/combobox"
+import {
   postAdminProgramsByIdClassesMutation,
   deleteAdminProgramsClassesByClassIdMutation,
   getAdminProgramsQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { ProgramProgramResponse } from "@/lib/api/types.gen"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import type { ClassClassResponse } from "@/lib/api/types.gen"
+import type { ProgramProgramResponse, ClassClassResponse } from "@/lib/api/types.gen"
 
 interface AssignClassesDialogProps {
   program: ProgramProgramResponse
@@ -23,16 +33,16 @@ interface AssignClassesDialogProps {
 
 export function AssignClassesDialog({ program, classes, onClose }: AssignClassesDialogProps) {
   const qc = useQueryClient()
+  const comboboxAnchor = useComboboxAnchor()
   const assignedIds = (program.classes ?? []).map((c) => c.id!)
   const available = classes.filter((c) => !assignedIds.includes(c.id!))
-  const [selected, setSelected] = useState<number | undefined>()
+  const [selected, setSelected] = useState<ClassClassResponse[]>([])
 
   const { mutate: assign, isPending: assigning } = useMutation({
     ...postAdminProgramsByIdClassesMutation(),
     onSuccess: () => {
       toast.success("Kelas ditambahkan ke program")
       qc.invalidateQueries({ queryKey: getAdminProgramsQueryKey() })
-      setSelected(undefined)
     },
     onError: (err: any) => toast.error(err.error || "Gagal menambahkan kelas"),
   })
@@ -47,6 +57,14 @@ export function AssignClassesDialog({ program, classes, onClose }: AssignClasses
   })
 
   const isPending = assigning || removing
+
+  const addAll = () => {
+    if (!program.id) return
+    selected.forEach((c) => {
+      if (c.id) assign({ path: { id: program.id! }, body: { class_id: c.id } })
+    })
+    setSelected([])
+  }
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -82,31 +100,47 @@ export function AssignClassesDialog({ program, classes, onClose }: AssignClasses
             )}
           </div>
 
-          <div className="flex items-end gap-2">
-            <div className="flex-1 space-y-2">
-              <Label htmlFor="class-select">Tambah kelas</Label>
-              <Select value={selected} onValueChange={(v) => setSelected(Number(v))}>
-                <SelectTrigger id="class-select" className="w-full" size="sm">
-                  <SelectValue placeholder={available.length ? "Pilih kelas..." : "Semua kelas sudah masuk"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {available.length === 0 ? (
-                    <div className="px-3 py-2 text-sm text-muted-foreground">Semua kelas sudah ada di program</div>
-                  ) : (
-                    available.map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>
-                        {c.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              onClick={() => selected && program.id && assign({ path: { id: program.id }, body: { class_id: selected } })}
-              disabled={!selected || assigning}
+          <div className="space-y-2">
+            <Label>Tambah kelas</Label>
+            <Combobox
+              multiple
+              autoHighlight
+              items={available}
+              value={selected}
+              onValueChange={setSelected}
+              itemToStringLabel={(c: ClassClassResponse) => c.name ?? ""}
             >
-              {assigning ? <Spinner /> : "Tambah"}
+              <ComboboxChips ref={comboboxAnchor} className="w-full">
+                <ComboboxValue>
+                  {(values: ClassClassResponse[]) => (
+                    <>
+                      {values.map((c) => (
+                        <ComboboxChip key={c.id}>{c.name}</ComboboxChip>
+                      ))}
+                      <ComboboxChipsInput
+                        placeholder={available.length ? "Pilih kelas..." : "Semua kelas sudah masuk"}
+                      />
+                    </>
+                  )}
+                </ComboboxValue>
+              </ComboboxChips>
+              <ComboboxContent anchor={comboboxAnchor}>
+                <ComboboxEmpty>Kelas tidak ditemukan</ComboboxEmpty>
+                <ComboboxList>
+                  {(c: ClassClassResponse) => (
+                    <ComboboxItem key={c.id} value={c}>
+                      {c.name}
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={onClose}>Tutup</Button>
+            <Button onClick={addAll} disabled={assigning || selected.length === 0}>
+              {assigning ? <Spinner /> : `Tambah ${selected.length ? `(${selected.length})` : ""}`}
             </Button>
           </div>
         </div>
