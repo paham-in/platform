@@ -1,255 +1,210 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { useState } from "react"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { getAdminProgramsOptions, getAdminClassesOptions } from "@/lib/api/@tanstack/react-query.gen";
+import type { ProgramProgramResponse, ClassClassResponse } from "@/lib/api/types.gen";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+  ChevronLeft,
+  ChevronRight,
+  Layers,
+  MoreVertical,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
+import { useState, useEffect } from "react";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogFooter,
-} from "@/components/ui/alert-dialog"
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import {
-  getAdminProgramsOptions,
-  getAdminProgramsQueryKey,
-  postAdminProgramsMutation,
-  patchAdminProgramsByIdMutation,
-  deleteAdminProgramsByIdMutation,
-  postAdminProgramsByIdClassesMutation,
-  deleteAdminProgramsClassesByClassIdMutation,
-} from "@/lib/api/@tanstack/react-query.gen"
-import {
-  getAdminClassesOptions,
-} from "@/lib/api/@tanstack/react-query.gen"
-import type { ProgramProgramResponse } from "@/lib/api/types.gen"
+  ProgramFormDialog,
+  DeleteProgramDialog,
+  AssignClassesDialog,
+} from "@/components/admin/programs";
 
-type Program = ProgramProgramResponse
+const programsSearchSchema = z.object({
+  search: z.string().optional(),
+});
 
 function AdminPrograms() {
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { search: searchParam } = Route.useSearch();
+  const { data: programs = [], isLoading } = useQuery(getAdminProgramsOptions());
+  const { data: classes = [] } = useQuery(getAdminClassesOptions());
+  const [searchInput, setSearchInput] = useState(searchParam ?? "");
+  const [page, setPage] = useState(1);
+  const [formTarget, setFormTarget] = useState<{ open: boolean; editing: ProgramProgramResponse | null }>({ open: false, editing: null });
+  const [deleteConfirm, setDeleteConfirm] = useState<ProgramProgramResponse | null>(null);
+  const [assignTarget, setAssignTarget] = useState<ProgramProgramResponse | null>(null);
+  const perPage = 5;
+
+  const filtered = programs.filter((p) =>
+    !searchParam ||
+    (p.name ?? "").toLowerCase().includes(searchParam.toLowerCase()),
+  );
+  const totalPages = Math.ceil(filtered.length / perPage);
+  const paged = filtered.slice((page - 1) * perPage, page * perPage);
+
+  const openAdd = () => setFormTarget({ open: true, editing: null });
+  const openEdit = (p: ProgramProgramResponse) => setFormTarget({ open: true, editing: p });
+
+  // Sync URL → local state when search changes externally
+  useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam]);
+
+  // Debounce search → navigate to URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({
+        search: (prev) => ({ ...prev, search: searchInput || undefined }),
+        replace: true,
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const classNames = (ids?: { id?: number; name?: string }[]) =>
+    ids?.map((c) => c.name).filter(Boolean).join(", ") ?? "-";
+
   return (
     <>
       <main className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold tracking-tight">Program</h1>
-          <CreateProgramButton />
-        </div>
-        <ProgramList />
-        <CreateProgramDialog />
-      </main>
-    </>
-  )
-}
-
-// ---- list ----
-function ProgramList() {
-  const qc = useQueryClient()
-  const { data: programs = [], isLoading } = useQuery(getAdminProgramsOptions())
-  const { data: classes = [] } = useQuery(getAdminClassesOptions())
-
-  const deleteMut = useMutation({
-    ...deleteAdminProgramsByIdMutation(),
-    onSuccess: () => {
-      toast.success("Program dihapus")
-      qc.invalidateQueries({ queryKey: getAdminProgramsQueryKey() })
-    },
-    onError: (err: any) => toast.error(err?.error || "Gagal hapus"),
-  })
-
-  const unassignMut = useMutation({
-    ...deleteAdminProgramsClassesByClassIdMutation(),
-    onSuccess: () => {
-      toast.success("Kelas dilepas")
-      qc.invalidateQueries({ queryKey: getAdminProgramsQueryKey() })
-    },
-    onError: (err: any) => toast.error(err?.error || "Gagal"),
-  })
-
-  const [editing, setEditing] = useState<Program | null>(null)
-  const [deleting, setDeleting] = useState<Program | null>(null)
-
-  if (isLoading) return <p className="text-muted-foreground">Memuat…</p>
-  if (!programs.length) return <p className="text-muted-foreground">Belum ada program.</p>
-
-  return (
-    <div className="space-y-3">
-      {programs.map((p) => (
-        <Card key={p.id}>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">{p.name}</div>
-                <div className="text-sm text-muted-foreground">{p.description || p.slug}</div>
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => setEditing(p)}>Edit</Button>
-                <Button size="sm" variant="destructive" onClick={() => setDeleting(p)}>Hapus</Button>
-              </div>
-            </div>
-            {p.classes && p.classes.length > 0 && (
-              <div className="mt-2 text-sm text-muted-foreground">
-                Kelas: {p.classes.map((c) => c.name).join(", ")}
-              </div>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight">Program</h1>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              aria-label="Cari program"
+              placeholder="Cari program..."
+              className="pl-9 pr-9"
+              value={searchInput}
+              onChange={(e) => { setSearchInput(e.target.value); setPage(1); }}
+            />
+            {searchInput && (
+              <button
+                type="button"
+                aria-label="Bersihkan pencarian"
+                onClick={() => { setSearchInput(""); setPage(1); }}
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
             )}
-          </CardContent>
-        </Card>
-      ))}
-      <EditProgramDialog
-        open={!!editing}
-        program={editing}
-        classes={classes}
-        onClose={() => setEditing(null)}
-      />
-      <DeleteProgramDialog
-        open={!!deleting}
-        program={deleting}
-        onConfirm={() => deleting && deleteMut.mutate({ path: { id: deleting.id! } })}
-        onClose={() => setDeleting(null)}
-      />
-    </div>
-  )
-}
-
-// ---- create / edit dialog ----
-function CreateProgramButton() {
-  const [open, setOpen] = useState(false)
-  return (
-    <>
-      <Button onClick={() => setOpen(true)}>Buat Program</Button>
-      <CreateProgramDialog open={open} onClose={() => setOpen(false)} />
-    </>
-  )
-}
-
-function CreateProgramDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const qc = useQueryClient()
-  const [name, setName] = useState("")
-  const [desc, setDesc] = useState("")
-  const mut = useMutation({
-    ...postAdminProgramsMutation(),
-    onSuccess: () => {
-      toast.success("Program dibuat")
-      qc.invalidateQueries({ queryKey: getAdminProgramsQueryKey() })
-      onClose()
-    },
-    onError: (err: any) => toast.error(err?.error || "Gagal"),
-  })
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Buat Program</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3 py-2">
-          <div>
-            <Label>Nama</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <div>
-            <Label>Deskripsi</Label>
-            <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button onClick={() => mut.mutate({ body: { name, description: desc } })} disabled={mut.isPending || !name}>
-            {mut.isPending ? "Menyimpan…" : "Simpan"}
+          <Button onClick={openAdd}>
+            <Plus className="mr-1 h-4 w-4" /> Tambah
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function EditProgramDialog({ open, program, classes, onClose }: {
-  open: boolean
-  program: Program | null
-  classes: any[]
-  onClose: () => void
-}) {
-  const qc = useQueryClient()
-  const [name, setName] = useState(program?.name || "")
-  const [desc, setDesc] = useState(program?.description || "")
-  const assignMut = useMutation({
-    ...postAdminProgramsByIdClassesMutation(),
-    onSuccess: () => {
-      toast.success("Kelas dikaitkan")
-      qc.invalidateQueries({ queryKey: getAdminProgramsQueryKey() })
-    },
-    onError: (err: any) => toast.error(err?.error || "Gagal"),
-  })
-  // sync saat program berubah
-  if (program && name !== program.name) setName(program.name)
-  if (program && desc !== program.description) setDesc(program.description || "")
-  const save = () => {
-    if (!program) return
-    // update basic (name/desc) — paketkan ke PATCH via put, tapi SDK belum ada per-update-field dialog. pakai patch mutation
-  }
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader><DialogTitle>Edit Program</DialogTitle></DialogHeader>
-        <div className="space-y-3 py-2">
-          <div>
-            <Label>Nama</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div>
-            <Label>Deskripsi</Label>
-            <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
-          </div>
-          <Button size="sm" variant="outline" onClick={() => {
-            const cid = prompt("Class ID")
-            if (cid) assignMut.mutate({ path: { id: program!.id!, classId: Number(cid) }, body: { class_id: Number(cid) } } as any)
-          }}>Assign Kelas</Button>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Tutup</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
+        <Card className="pt-0 gap-0 pb-0">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="pl-6">Nama</TableHead>
+                  <TableHead>Deskripsi</TableHead>
+                  <TableHead className="max-w-[220px]">Kelas</TableHead>
+                  <TableHead className="pr-6 text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell className="pl-6"><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                      <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : paged.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="pl-6 font-medium">{p.name}</TableCell>
+                    <TableCell className="max-w-[220px] truncate text-muted-foreground">
+                      {p.description || "—"}
+                    </TableCell>
+                    <TableCell className="max-w-[220px] truncate text-muted-foreground">
+                      {classNames(p.classes)}
+                    </TableCell>
+                    <TableCell className="pr-6 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
+                            <MoreVertical className="h-4 w-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => setAssignTarget(p)}>
+                            <Layers className="h-4 w-4" /> Atur Kelas
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEdit(p)}>
+                            <Pencil className="h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDeleteConfirm(p)}>
+                            <Trash2 className="h-4 w-4" /> Hapus
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {!isLoading && paged.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="p-8 text-center text-muted-foreground">
+                      {searchParam ? "Tidak ada program yang cocok dengan pencarian." : "Belum ada program."}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+          {totalPages > 1 && (
+            <CardFooter className="flex items-center justify-between border-t">
+              <p className="text-sm text-muted-foreground">
+                Halaman {page} dari {totalPages}
+              </p>
+              <div className="flex gap-1">
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardFooter>
+          )}
+        </Card>
+      </main>
 
-function DeleteProgramDialog({ open, program, onConfirm, onClose }: {
-  open: boolean
-  program: Program | null
-  onConfirm: () => void
-  onClose: () => void
-}) {
-  return (
-    <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Hapus Program?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Program <strong>{program?.name}</strong> akan dihapus. Kelas yang terkait akan dilepas.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button variant="destructive" onClick={onConfirm}>Hapus</Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  )
+      {formTarget.open && (
+        <ProgramFormDialog program={formTarget.editing ?? undefined} onClose={() => setFormTarget({ open: false, editing: null })} />
+      )}
+
+      {deleteConfirm && (
+        <DeleteProgramDialog program={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+      )}
+
+      {assignTarget && (
+        <AssignClassesDialog program={assignTarget} classes={classes as ClassClassResponse[]} onClose={() => setAssignTarget(null)} />
+      )}
+    </>
+  );
 }
 
 export const Route = createFileRoute("/_dashboard/admin/programs")({
   component: AdminPrograms,
-})
+  validateSearch: programsSearchSchema,
+});
