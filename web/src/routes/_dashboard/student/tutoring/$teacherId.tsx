@@ -9,14 +9,14 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Spinner } from "@/components/ui/spinner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getTutoringTeachersOptions, getTutoringAvailabilityOptions, postTutoringBookingsMutation, getTutoringBookingsQueryKey } from "@/lib/api/@tanstack/react-query.gen"
+import { getTutoringTeachersOptions, getTutoringAvailabilityOptions, postTutoringBookingsMutation, getTutoringBookingsQueryKey, getMeOptions, getClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { CalendarIcon, CheckCircle2, Copy, Loader2, UserRound, Users } from "lucide-react"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
 import { useState } from "react"
 import { toast } from "sonner"
 
-const PRICE_PER_SESSION = 30000
+const DEFAULT_PRICE = 30000
 
 const bookTeacherSearchSchema = z.object({
   mode: z.enum(["private", "semi_private"]).optional(),
@@ -29,9 +29,13 @@ function BookTeacher() {
   const qc = useQueryClient()
   const { data: teachers = [] } = useQuery(getTutoringTeachersOptions())
   const { data: slots = [], isLoading } = useQuery(getTutoringAvailabilityOptions({ query: { teacher_id: Number(teacherId) } }))
+  const { data: me } = useQuery(getMeOptions())
+  const { data: classes = [] } = useQuery(getClassesOptions())
 
   const [mode, setMode] = useState<"private" | "semi_private">(modeParam ?? "private")
   const [sessionCount, setSessionCount] = useState(countParam ?? 1)
+  const myClass = classes.find((c) => c.id === me?.class_id)
+  const pricePerSession = mode === "semi_private" ? (myClass?.semi_private_price || DEFAULT_PRICE) : (myClass?.price_per_session || DEFAULT_PRICE)
   const [selectedSlot, setSelectedSlot] = useState<{ day: number; start: string; end: string } | null>(null)
   const [date, setDate] = useState("")
   const [note, setNote] = useState("")
@@ -63,7 +67,7 @@ function BookTeacher() {
   const handleBook = () => {
     if (!selectedSlot || !date) return
     createBooking({
-      body: { teacher_id: Number(teacherId), date, start_time: selectedSlot.start, end_time: selectedSlot.end, mode, session_count: sessionCount, note },
+      body: { teacher_id: Number(teacherId), date, start_time: selectedSlot.start, end_time: selectedSlot.end, mode, session_count: sessionCount, note, class_id: me?.class_id },
     })
   }
 
@@ -183,9 +187,14 @@ function BookTeacher() {
           <div className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3">
             <div className="text-sm">
               <p className="font-medium">Total ({sessionCount}× pertemuan)</p>
-              <p className="text-xs text-muted-foreground">Rp {PRICE_PER_SESSION.toLocaleString("id-ID")} / pertemuan</p>
+              <p className="text-xs text-muted-foreground">
+                Rp {pricePerSession.toLocaleString("id-ID")} / pertemuan
+                {myClass && (mode === "semi_private" ? !myClass.semi_private_price : !myClass.price_per_session) && (
+                  <span className="ml-1 text-amber-600">(kelas tanpa harga)</span>
+                )}
+              </p>
             </div>
-            <p className="text-lg font-bold">Rp {(PRICE_PER_SESSION * sessionCount).toLocaleString("id-ID")}</p>
+            <p className="text-lg font-bold">Rp {(pricePerSession * sessionCount).toLocaleString("id-ID")}</p>
           </div>
 
           <div className="flex justify-end gap-2">

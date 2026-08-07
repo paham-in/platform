@@ -15,9 +15,11 @@ func NewService(repo *Repository) *Service {
 }
 
 type ClassResponse struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
-	Slug string `json:"slug"`
+	ID                uint    `json:"id"`
+	Name              string  `json:"name"`
+	Slug              string  `json:"slug"`
+	PricePerSession   float64 `json:"price_per_session"`
+	SemiPrivatePrice  float64 `json:"semi_private_price"`
 }
 
 func (s *Service) List() ([]ClassResponse, error) {
@@ -41,11 +43,13 @@ func (s *Service) Get(id uint) (*ClassResponse, error) {
 	return &r, nil
 }
 
-func (s *Service) Create(name string) (*ClassResponse, error) {
+func (s *Service) Create(name string, price, semiPrice float64) (*ClassResponse, error) {
 	slug := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
 	class := models.Class{
-		Name: name,
-		Slug: slug,
+		Name:             name,
+		Slug:             slug,
+		PricePerSession:  price,
+		SemiPrivatePrice: semiPrice,
 	}
 	if err := s.repo.Create(&class); err != nil {
 		return nil, err
@@ -54,11 +58,17 @@ func (s *Service) Create(name string) (*ClassResponse, error) {
 	return &r, nil
 }
 
-func (s *Service) Update(id uint, name string) (*ClassResponse, error) {
+func (s *Service) Update(id uint, name string, price, semiPrice *float64) (*ClassResponse, error) {
 	updates := map[string]interface{}{}
 	if name != "" {
 		updates["name"] = name
 		updates["slug"] = strings.ToLower(strings.ReplaceAll(name, " ", "-"))
+	}
+	if price != nil {
+		updates["price_per_session"] = *price
+	}
+	if semiPrice != nil {
+		updates["semi_private_price"] = *semiPrice
 	}
 	if err := s.repo.Update(id, updates); err != nil {
 		return nil, err
@@ -72,8 +82,10 @@ func (s *Service) Delete(id uint) error {
 
 func toResponse(c models.Class) ClassResponse {
 	return ClassResponse{
-		ID:   c.ID,
-		Name: c.Name,
-		Slug: c.Slug,
+		ID:               c.ID,
+		Name:             c.Name,
+		Slug:             c.Slug,
+		PricePerSession:  c.PricePerSession,
+		SemiPrivatePrice: c.SemiPrivatePrice,
 	}
 }

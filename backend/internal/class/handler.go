@@ -53,7 +53,9 @@ func (h *Handler) AdminListClasses(c *fiber.Ctx) error {
 // @Router       /admin/classes [post]
 func (h *Handler) AdminCreateClass(c *fiber.Ctx) error {
 	var input struct {
-		Name string `json:"name"`
+		Name             string  `json:"name"`
+		PricePerSession  float64 `json:"price_per_session"`
+		SemiPrivatePrice float64 `json:"semi_private_price"`
 	}
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
@@ -62,7 +64,7 @@ func (h *Handler) AdminCreateClass(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "nama wajib diisi"})
 	}
 
-	class, err := h.svc.Create(input.Name)
+	class, err := h.svc.Create(input.Name, input.PricePerSession, input.SemiPrivatePrice)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menyimpan data"})
 	}
@@ -88,13 +90,15 @@ func (h *Handler) AdminUpdateClass(c *fiber.Ctx) error {
 	}
 
 	var input struct {
-		Name string `json:"name"`
+		Name             string   `json:"name"`
+		PricePerSession  *float64 `json:"price_per_session"`
+		SemiPrivatePrice *float64 `json:"semi_private_price"`
 	}
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 
-	class, err := h.svc.Update(uint(id), input.Name)
+	class, err := h.svc.Update(uint(id), input.Name, input.PricePerSession, input.SemiPrivatePrice)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengupdate data"})
 	}

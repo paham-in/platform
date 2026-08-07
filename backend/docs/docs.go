@@ -3938,6 +3938,12 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "price_per_session": {
+                    "type": "number"
+                },
+                "semi_private_price": {
+                    "type": "number"
+                },
                 "slug": {
                     "type": "string"
                 }
@@ -4742,6 +4748,9 @@ const docTemplate = `{
         "tutoring.AdminCreateBookingInput": {
             "type": "object",
             "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
                 "date": {
                     "type": "string"
                 },
@@ -4793,6 +4802,9 @@ const docTemplate = `{
         "tutoring.BookingResponse": {
             "type": "object",
             "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -4854,6 +4866,9 @@ const docTemplate = `{
         "tutoring.CreateBookingInput": {
             "type": "object",
             "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
                 "date": {
                     "type": "string"
                 },
@@ -5010,6 +5025,9 @@ const docTemplate = `{
             "properties": {
                 "avatar_url": {
                     "type": "string"
+                },
+                "class_id": {
+                    "type": "integer"
                 },
                 "created_at": {
                     "type": "string"

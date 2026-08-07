@@ -16,4 +16,5 @@ type Booking struct {
 	SessionCount int    `gorm:"not null;default:1" json:"session_count"`
 	GroupToken   string `gorm:"size:64;index" json:"group_token"`      // token undangan grup semi_private
 	Note         string `gorm:"size:500" json:"note"`
+	ClassID      *uint  `gorm:"index" json:"class_id,omitempty"`       // snapshot kelas murid saat booking
 }

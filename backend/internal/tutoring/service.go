@@ -14,8 +14,9 @@ import (
 
 const maxGroupSlots = 5
 
-// pricePerSession = biaya per pertemuan les privat (hardcode sementara).
-const pricePerSession = 30000.0
+// defaultPrice = fallback biaya per pertemuan les privat ketika kelas
+// murid tidak punya harga / class_id kosong (data lama).
+const defaultPrice = 30000.0
 
 type AvailabilityResponse struct {
 	ID        uint   `json:"id"`
@@ -39,6 +40,7 @@ type BookingResponse struct {
 	SessionCount int    `json:"session_count"`
 	GroupToken   string `json:"group_token"`
 	Note         string `json:"note"`
+	ClassID      *uint  `json:"class_id,omitempty"`
 	CreatedAt    string `json:"created_at"`
 }
 
@@ -176,6 +178,7 @@ type CreateBookingInput struct {
 	SessionCount int    `json:"session_count"` // jumlah pertemuan (default 1)
 	GroupToken   string `json:"group_token"`   // isi utk join grup yang sudah ada
 	Note         string `json:"note"`
+	ClassID      *uint  `json:"class_id,omitempty"`
 }
 
 type AdminCreateBookingInput struct {
@@ -187,6 +190,7 @@ type AdminCreateBookingInput struct {
 	Mode         string `json:"mode"`          // private/semi_private
 	SessionCount int    `json:"session_count"` // jumlah pertemuan (default 1)
 	Note         string `json:"note"`
+	ClassID      *uint  `json:"class_id,omitempty"`
 }
 
 func (s *Service) CreateBooking(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
@@ -245,6 +249,7 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 		SessionCount: input.SessionCount,
 		GroupToken:   token,
 		Note:         input.Note,
+		ClassID:      input.ClassID,
 	}
 	if err := s.repo.CreateBooking(&booking); err != nil {
 		return nil, err
@@ -295,6 +300,7 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 		Mode:         input.Mode,
 		SessionCount: input.SessionCount,
 		Note:         input.Note,
+		ClassID:      input.ClassID,
 	}
 	if err := s.repo.CreateBooking(&booking); err != nil {
 		return nil, err
@@ -359,6 +365,7 @@ func (s *Service) joinGroup(studentID uint, input CreateBookingInput) (*BookingR
 		SessionCount: organizer.SessionCount,
 		GroupToken:   organizer.GroupToken,
 		Note:         input.Note,
+		ClassID:      organizer.ClassID,
 	}
 	if err := s.repo.CreateBooking(&booking); err != nil {
 		return nil, err
@@ -485,6 +492,19 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Booki
 	return &r, nil
 }
 
+// getClassPrices mengembalikan harga les privat per kelas.
+// Kelas tidak ditemukan / belum diisi harga → 0 (fallback defaultPrice).
+func (s *Service) getClassPrices(classID *uint) (price, semiPrice float64) {
+	if classID == nil {
+		return 0, 0
+	}
+	var class models.Class
+	if err := s.repo.db.First(&class, *classID).Error; err != nil {
+		return 0, 0
+	}
+	return class.PricePerSession, class.SemiPrivatePrice
+}
+
 // createSessionsAndInvoice membuat sesi pertemuan mingguan + invoice pembayaran.
 func (s *Service) createSessionsAndInvoice(booking models.Booking) error {
 	date, err := time.Parse("2006-01-02", booking.Date)
@@ -517,9 +537,17 @@ func (s *Service) createSessionsAndInvoice(booking models.Booking) error {
 	if booking.Mode == "semi_private" {
 		modeLabel = "semi-private"
 	}
+	price, semiPrice := s.getClassPrices(booking.ClassID)
+	perSession := price
+	if booking.Mode == "semi_private" {
+		perSession = semiPrice
+	}
+	if perSession <= 0 {
+		perSession = defaultPrice
+	}
 	invoice := models.Invoice{
 		UserID:    booking.StudentID,
-		Amount:    pricePerSession * float64(booking.SessionCount),
+		Amount:    perSession * float64(booking.SessionCount),
 		StartDate: startDate.Format("2006-01-02"),
 		EndDate:   endDate.Format("2006-01-02"),
 		Status:    "pending",
@@ -610,6 +638,7 @@ func toBookingResponse(b models.Booking) BookingResponse {
 		SessionCount: b.SessionCount,
 		GroupToken:   b.GroupToken,
 		Note:         b.Note,
+		ClassID:      b.ClassID,
 		CreatedAt:    b.CreatedAt.Format("2006-01-02"),
 	}
 }

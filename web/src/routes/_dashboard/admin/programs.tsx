@@ -79,6 +79,15 @@ function AdminPrograms() {
 
   const assignedIds = new Set(programs.flatMap((p) => (p.classes ?? []).map((c) => c.id!)))
   const orphanClasses = classes.filter((c) => !assignedIds.has(c.id!))
+  const classById = new Map(classes.map((c) => [c.id!, c]))
+
+  const priceLabel = (cls?: ClassClassResponse) => {
+    if (!cls) return ""
+    const parts: string[] = []
+    if (cls.price_per_session) parts.push(`Rp ${cls.price_per_session.toLocaleString("id-ID")} / pertemuan`)
+    if (cls.semi_private_price) parts.push(`semi: Rp ${cls.semi_private_price.toLocaleString("id-ID")} / pertemuan`)
+    return parts.join(" · ")
+  }
 
   return (
     <>
@@ -174,7 +183,14 @@ function AdminPrograms() {
                           <ul className="divide-y">
                             {(p.classes ?? []).map((c) => (
                               <li key={c.id} className="flex items-center justify-between gap-3 py-2">
-                                <span className="text-sm">{c.name}</span>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium">{c.name}</p>
+                                  {priceLabel(classById.get(c.id!)) && (
+                                    <p className="truncate text-xs text-muted-foreground">
+                                      {priceLabel(classById.get(c.id!))}
+                                    </p>
+                                  )}
+                                </div>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger
                                     render={<Button variant="outline" size="icon" />}
@@ -223,7 +239,12 @@ function AdminPrograms() {
               <ul className="mt-3 divide-y">
                 {orphanClasses.map((c) => (
                   <li key={c.id} className="flex items-center justify-between gap-3 py-2">
-                    <span className="text-sm">{c.name}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{c.name}</p>
+                      {priceLabel(c) && (
+                        <p className="truncate text-xs text-muted-foreground">{priceLabel(c)}</p>
+                      )}
+                    </div>
                     <Button size="sm" variant="outline" onClick={() => setOrphanTarget(c)}>
                       <Layers className="mr-1 h-3.5 w-3.5" /> Masukkan ke Program
                     </Button>

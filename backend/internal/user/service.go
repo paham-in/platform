@@ -36,6 +36,7 @@ type AdminUserResponse struct {
 	Roles         []string      `json:"roles"`
 	AvatarURL     string        `json:"avatar_url"`
 	PaymentStatus string        `json:"payment_status"`
+	ClassID       *uint         `json:"class_id"`
 	CreatedAt     string        `json:"created_at"`
 	Subjects      []SubjectInfo `json:"subjects"`
 }
@@ -192,6 +193,7 @@ func (s *Service) ListUsers(search string, role string) ([]AdminUserResponse, er
 			Roles:         roleNames(u),
 			AvatarURL:     u.AvatarURL,
 			PaymentStatus: u.PaymentStatus,
+			ClassID:       u.ClassID,
 			CreatedAt:     u.CreatedAt.Format("2006-01-02"),
 			Subjects:      subjectInfos(u.Subjects),
 		}
@@ -231,6 +233,7 @@ func (s *Service) SetTeacherSubjects(id uint, input SetTeacherSubjectsInput) (*A
 		Roles:         roleNames(*u),
 		AvatarURL:     u.AvatarURL,
 		PaymentStatus: u.PaymentStatus,
+		ClassID:       u.ClassID,
 		CreatedAt:     u.CreatedAt.Format("2006-01-02"),
 		Subjects:      subjectInfos(u.Subjects),
 	}, nil

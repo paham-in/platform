@@ -71,6 +71,8 @@ export type ChapterUpdateInput = {
 export type ClassClassResponse = {
     id?: number;
     name?: string;
+    price_per_session?: number;
+    semi_private_price?: number;
     slug?: string;
 };
 
@@ -404,6 +406,7 @@ export type SubjectUpdateInput = {
 };
 
 export type TutoringAdminCreateBookingInput = {
+    class_id?: number;
     date?: string;
     end_time?: string;
     /**
@@ -429,6 +432,7 @@ export type TutoringAvailabilityResponse = {
 };
 
 export type TutoringBookingResponse = {
+    class_id?: number;
     created_at?: string;
     date?: string;
     end_time?: string;
@@ -452,6 +456,7 @@ export type TutoringCreateAvailabilityInput = {
 };
 
 export type TutoringCreateBookingInput = {
+    class_id?: number;
     date?: string;
     end_time?: string;
     /**
@@ -522,6 +527,7 @@ export type UploadUploadResponse = {
 
 export type UserAdminUserResponse = {
     avatar_url?: string;
+    class_id?: number;
     created_at?: string;
     email?: string;
     id?: number;

@@ -107,6 +107,10 @@ definitions:
         type: integer
       name:
         type: string
+      price_per_session:
+        type: number
+      semi_private_price:
+        type: number
       slug:
         type: string
     type: object
@@ -626,6 +630,8 @@ definitions:
     type: object
   tutoring.AdminCreateBookingInput:
     properties:
+      class_id:
+        type: integer
       date:
         type: string
       end_time:
@@ -660,6 +666,8 @@ definitions:
     type: object
   tutoring.BookingResponse:
     properties:
+      class_id:
+        type: integer
       created_at:
         type: string
       date:
@@ -700,6 +708,8 @@ definitions:
     type: object
   tutoring.CreateBookingInput:
     properties:
+      class_id:
+        type: integer
       date:
         type: string
       end_time:
@@ -803,6 +813,8 @@ definitions:
     properties:
       avatar_url:
         type: string
+      class_id:
+        type: integer
       created_at:
         type: string
       email:

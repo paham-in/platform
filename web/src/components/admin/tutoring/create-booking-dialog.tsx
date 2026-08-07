@@ -26,9 +26,10 @@ import {
   getAdminStudentsOptions,
   getTutoringTeachersOptions,
   getAdminTutoringAvailabilityOptions,
+  getAdminClassesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 
-const PRICE_PER_SESSION = 30000
+const DEFAULT_PRICE = 30000
 
 interface CreateBookingDialogProps {
   onClose: () => void
@@ -38,6 +39,7 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
   const qc = useQueryClient()
   const { data: students = [] } = useQuery(getAdminStudentsOptions())
   const { data: teachers = [] } = useQuery(getTutoringTeachersOptions())
+  const { data: classes = [] } = useQuery(getAdminClassesOptions())
   const [student, setStudent] = useState<UserAdminUserResponse>()
   const [teacher, setTeacher] = useState<TutoringTeacherResponse | undefined>()
   const [sessionCount, setSessionCount] = useState(1)
@@ -62,6 +64,9 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal membuat booking"),
   })
 
+  const studentClass = classes.find((c) => c.id === student?.class_id)
+  const pricePerSession = studentClass?.price_per_session || DEFAULT_PRICE
+
   const canSubmit = student && teacher && selectedSlot && date && !isPending
   const save = () => {
     if (!student || !teacher || !selectedSlot || !date) return
@@ -75,6 +80,7 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
         mode: "private",
         session_count: sessionCount,
         note,
+        class_id: student.class_id,
       },
     })
   }
@@ -236,9 +242,14 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
               <div className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3">
                 <div className="text-sm">
                   <p className="font-medium">Total ({sessionCount}× pertemuan)</p>
-                  <p className="text-xs text-muted-foreground">Rp {PRICE_PER_SESSION.toLocaleString("id-ID")} / pertemuan</p>
+                  <p className="text-xs text-muted-foreground">
+                    Rp {pricePerSession.toLocaleString("id-ID")} / pertemuan
+                    {studentClass && !studentClass.price_per_session && (
+                      <span className="ml-1 text-amber-600">(kelas tanpa harga)</span>
+                    )}
+                  </p>
                 </div>
-                <p className="text-lg font-bold">Rp {(PRICE_PER_SESSION * sessionCount).toLocaleString("id-ID")}</p>
+                <p className="text-lg font-bold">Rp {(pricePerSession * sessionCount).toLocaleString("id-ID")}</p>
               </div>
             </>
           )}

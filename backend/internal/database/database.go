@@ -176,6 +176,12 @@ func Migrate(db *gorm.DB) {
 		db.Migrator().CreateTable(&models.StudentClass{})
 	}
 
+	// migrasi: classes tambah harga les privat per kelas
+	if !db.Migrator().HasColumn(&models.Class{}, "price_per_session") {
+		db.Exec("ALTER TABLE classes ADD COLUMN price_per_session DECIMAL(12,2) NOT NULL DEFAULT 0")
+		db.Exec("ALTER TABLE classes ADD COLUMN semi_private_price DECIMAL(12,2) NOT NULL DEFAULT 0")
+	}
+
 	// migrasi: classes tambah program_id; invoices ganti program_id → class_id
 	if !db.Migrator().HasColumn(&models.Class{}, "program_id") {
 		db.Exec("ALTER TABLE classes ADD COLUMN program_id BIGINT DEFAULT NULL")
