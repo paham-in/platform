@@ -77,7 +77,7 @@ const sidebarGroups = [
       { label: "Pembayaran", icon: CreditCard, to: "/admin/payments" },
       { label: "Program", icon: BookMarked, to: "/admin/programs" },
       { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects" },
-      { label: "Hak Akses Murid", icon: Shield, to: "/admin/student-programs" },
+      { label: "Hak Akses Murid", icon: Shield, to: "/admin/student-classes" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
     ],
   },

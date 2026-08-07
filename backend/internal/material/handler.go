@@ -200,20 +200,21 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 // @Router       /materials [get]
 func (h *Handler) ListMaterials(c *fiber.Ctx) error {
 	includePremium := middleware.CanAccessPremium(c, h.db)
+	classIDs := middleware.AccessibleClassIDs(c, h.db)
 
 	if chapterIDStr := c.Query("chapter_id"); chapterIDStr != "" {
 		chapterID, err := strconv.ParseUint(chapterIDStr, 10, 64)
 		if err != nil {
 			return c.Status(400).JSON(ErrorResponse{Error: "chapter_id tidak valid"})
 		}
-		materials, err := h.svc.ListPublishedByChapter(uint(chapterID), includePremium)
+		materials, err := h.svc.ListPublishedByChapter(uint(chapterID), includePremium, classIDs)
 		if err != nil {
 			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 		}
 		return c.JSON(materials)
 	}
 
-	materials, err := h.svc.ListPublished(includePremium)
+	materials, err := h.svc.ListPublished(includePremium, classIDs)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
@@ -247,8 +248,8 @@ func (h *Handler) GetMaterial(c *fiber.Ctx) error {
 	if material.Status != "published" && !isStaff(c) {
 		return c.Status(403).JSON(ErrorResponse{Error: "materi tidak tersedia"})
 	}
-	// premium butuh role berbayar
-	if !material.IsFree && !middleware.CanAccessPremium(c, h.db) {
+	// premium butuh akses kelas tempat materi ini berada
+	if !material.IsFree && !middleware.CanAccessClass(c, h.db, material.ClassID) {
 		return c.Status(403).JSON(ErrorResponse{Error: "materi ini berbayar — berlangganan dulu"})
 	}
 

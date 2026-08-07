@@ -2,13 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
-import { getMeOptions, getStudentProgramsOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getMeOptions, getStudentClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { BookOpen, TrendingUp, Clock, CheckCircle2, BadgeCheck } from "lucide-react"
 import { format } from "date-fns"
 
 function StudentDashboard() {
   const { data: user } = useQuery(getMeOptions())
-  const { data: programs = [], isLoading: programsLoading } = useQuery(getStudentProgramsOptions())
+  const { data: classes = [], isLoading: programsLoading } = useQuery(getStudentClassesOptions())
   const today = format(new Date(), "yyyy-MM-dd")
 
   return (
@@ -41,7 +41,7 @@ function StudentDashboard() {
                     <Skeleton key={i} className="h-12 w-full" />
                   ))}
                 </div>
-              ) : programs.length === 0 ? (
+              ) : classes.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 py-4 text-center">
                   <BadgeCheck className="h-8 w-8 text-muted-foreground/40" />
                   <p className="text-sm text-muted-foreground">
@@ -53,16 +53,16 @@ function StudentDashboard() {
                 </div>
               ) : (
                 <div className="divide-y">
-                  {programs.map((sp) => {
+                  {classes.map((sp) => {
                     const expired = (sp.expiry ?? "") < today
                     return (
                       <div key={sp.id} className="flex items-center justify-between gap-3 py-3">
                         <div className="flex items-center gap-3">
                           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
-                            {(sp.program?.name ?? "?")[0]}
+                            {(sp.class?.name ?? "?")[0]}
                           </div>
                           <div>
-                            <div className="text-sm font-medium">{sp.program?.name ?? "—"}</div>
+                            <div className="text-sm font-medium">{sp.class?.name ?? "—"}</div>
                             <div className="text-xs text-muted-foreground">Kadaluarsa {sp.expiry ?? "—"}</div>
                           </div>
                         </div>

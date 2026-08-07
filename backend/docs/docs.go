@@ -1599,7 +1599,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/student-programs": {
+        "/admin/student-classes": {
             "get": {
                 "security": [
                     {
@@ -1613,9 +1613,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "StudentProgram"
+                    "StudentClass"
                 ],
-                "summary": "List student programs",
+                "summary": "List student classes",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1625,8 +1625,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Filter by program ID",
-                        "name": "program_id",
+                        "description": "Filter by class ID",
+                        "name": "class_id",
                         "in": "query"
                     }
                 ],
@@ -1636,7 +1636,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/studentprogram.StudentProgramResponse"
+                                "$ref": "#/definitions/studentclass.StudentClassResponse"
                             }
                         }
                     }
@@ -1655,9 +1655,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "StudentProgram"
+                    "StudentClass"
                 ],
-                "summary": "Grant student program",
+                "summary": "Grant student class",
                 "parameters": [
                     {
                         "description": "Data",
@@ -1665,7 +1665,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/studentprogram.CreateInput"
+                            "$ref": "#/definitions/studentclass.CreateInput"
                         }
                     }
                 ],
@@ -1673,19 +1673,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/studentprogram.StudentProgramResponse"
+                            "$ref": "#/definitions/studentclass.StudentClassResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/studentprogram.ErrorResponse"
+                            "$ref": "#/definitions/studentclass.ErrorResponse"
                         }
                     }
                 }
             }
         },
-        "/admin/student-programs/{id}": {
+        "/admin/student-classes/{id}": {
             "delete": {
                 "security": [
                     {
@@ -1699,13 +1699,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "StudentProgram"
+                    "StudentClass"
                 ],
-                "summary": "Revoke student program",
+                "summary": "Revoke student class",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "StudentProgram ID",
+                        "description": "StudentClass ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1715,13 +1715,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/studentprogram.MessageResponse"
+                            "$ref": "#/definitions/studentclass.MessageResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/studentprogram.ErrorResponse"
+                            "$ref": "#/definitions/studentclass.ErrorResponse"
                         }
                     }
                 }
@@ -3194,7 +3194,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/student-programs": {
+        "/student-classes": {
             "get": {
                 "security": [
                     {
@@ -3208,16 +3208,16 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "StudentProgram"
+                    "StudentClass"
                 ],
-                "summary": "My student programs",
+                "summary": "My student classes",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/studentprogram.StudentProgramResponse"
+                                "$ref": "#/definitions/studentclass.StudentClassResponse"
                             }
                         }
                     }
@@ -3969,14 +3969,14 @@ const docTemplate = `{
                 "amount": {
                     "type": "number"
                 },
+                "class_id": {
+                    "type": "integer"
+                },
                 "end_date": {
                     "type": "string"
                 },
                 "note": {
                     "type": "string"
-                },
-                "program_id": {
-                    "type": "integer"
                 },
                 "start_date": {
                     "type": "string"
@@ -4082,6 +4082,9 @@ const docTemplate = `{
                 },
                 "chapter_name": {
                     "type": "string"
+                },
+                "class_id": {
+                    "type": "integer"
                 },
                 "content": {
                     "type": "string"
@@ -4456,38 +4459,7 @@ const docTemplate = `{
                 }
             }
         },
-        "studentprogram.CreateInput": {
-            "type": "object",
-            "properties": {
-                "expiry": {
-                    "description": "\"YYYY-MM-DD\"",
-                    "type": "string"
-                },
-                "program_id": {
-                    "type": "integer"
-                },
-                "user_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "studentprogram.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "studentprogram.MessageResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "studentprogram.ProgramRef": {
+        "studentclass.ClassRef": {
             "type": "object",
             "properties": {
                 "id": {
@@ -4495,12 +4467,52 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "program_name": {
+                    "type": "string"
                 }
             }
         },
-        "studentprogram.StudentProgramResponse": {
+        "studentclass.CreateInput": {
             "type": "object",
             "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "expiry": {
+                    "description": "\"YYYY-MM-DD\"",
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "studentclass.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "studentclass.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "studentclass.StudentClassResponse": {
+            "type": "object",
+            "properties": {
+                "class": {
+                    "$ref": "#/definitions/studentclass.ClassRef"
+                },
+                "class_id": {
+                    "type": "integer"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -4510,21 +4522,15 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "program": {
-                    "$ref": "#/definitions/studentprogram.ProgramRef"
-                },
-                "program_id": {
-                    "type": "integer"
-                },
                 "user": {
-                    "$ref": "#/definitions/studentprogram.UserRef"
+                    "$ref": "#/definitions/studentclass.UserRef"
                 },
                 "user_id": {
                     "type": "integer"
                 }
             }
         },
-        "studentprogram.UserRef": {
+        "studentclass.UserRef": {
             "type": "object",
             "properties": {
                 "id": {

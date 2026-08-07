@@ -21,7 +21,7 @@ import (
 	"bimbel2/backend/internal/questionpackage"
 	"bimbel2/backend/internal/program"
 	"bimbel2/backend/internal/storage"
-	"bimbel2/backend/internal/studentprogram"
+	"bimbel2/backend/internal/studentclass"
 	"bimbel2/backend/internal/subject"
 	"bimbel2/backend/internal/upload"
 	"bimbel2/backend/internal/user"
@@ -87,7 +87,7 @@ func main() {
 	chapter.PublicRoutes(auth, db, minioClient)
 	material.PublicRoutes(auth, db)
 	questionpackage.AuthRoutes(auth, db)
-	studentprogram.AuthRoutes(auth, db)
+	studentclass.AuthRoutes(auth, db)
 		tutoring.Routes(auth, db)
 	pushSvc := push.NewService(db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
 	push.Routes(auth, db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
@@ -115,7 +115,7 @@ func main() {
 	forum.AdminRoutes(admin, db)
 	invoice.AdminRoutes(admin, db)
 	program.AdminRoutes(admin, db)
-	studentprogram.AdminRoutes(admin, db)
+	studentclass.AdminRoutes(admin, db)
 
 	// background job: hapus sesi yang sudah kedaluwarsa setiap 1 jam
 	startSessionCleanup(db)

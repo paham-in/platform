@@ -10,7 +10,9 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
-import { postAdminInvoicesMutation, getAdminInvoicesQueryKey } from "@/lib/api/@tanstack/react-query.gen"
+import { postAdminInvoicesMutation, getAdminInvoicesQueryKey, getAdminProgramsOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { useQuery } from "@tanstack/react-query"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
 
 interface CreateInvoiceDialogProps {
@@ -20,10 +22,18 @@ interface CreateInvoiceDialogProps {
 
 export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps) {
   const qc = useQueryClient()
+  const { data: programs = [] } = useQuery(getAdminProgramsOptions())
   const [amount, setAmount] = useState("")
   const [startDate, setStartDate] = useState<Date>()
   const [endDate, setEndDate] = useState<Date>()
+  const [classId, setClassId] = useState<number | undefined>()
   const [note, setNote] = useState("")
+  const classOptions = programs.flatMap((p) =>
+    (p.classes ?? []).map((c) => ({
+      label: `${p.name ?? ""} — ${c.name ?? ""}`,
+      value: String(c.id),
+    }))
+  )
 
   const { mutate: createInvoice, isPending: creating } = useMutation({
     ...postAdminInvoicesMutation(),
@@ -43,6 +53,7 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
         amount: parseFloat(amount),
         start_date: format(startDate, "yyyy-MM-dd"),
         end_date: format(endDate, "yyyy-MM-dd"),
+        class_id: classId,
         note: note,
       },
     })
@@ -104,6 +115,25 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
                 </PopoverContent>
               </Popover>
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="invoice-class-select">Kelas (untuk akses otomatis saat lunas)</Label>
+            <Select
+              items={classOptions}
+              value={classId}
+              onValueChange={(v) => setClassId(Number(v))}
+            >
+              <SelectTrigger id="invoice-class-select" className="w-full" size="sm">
+                <SelectValue placeholder={classOptions.length ? "Pilih kelas..." : "Tidak ada kelas"} />
+              </SelectTrigger>
+              <SelectContent>
+                {classOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label>Catatan (opsional)</Label>

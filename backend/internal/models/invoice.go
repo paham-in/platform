@@ -11,6 +11,6 @@ type Invoice struct {
 	EndDate   string  `gorm:"size:10;not null" json:"end_date"`
 	Status    string  `gorm:"size:20;default:pending" json:"status"`
 	Note      string  `gorm:"size:500" json:"note"`
-	ProgramID *uint   `gorm:"index" json:"program_id,omitempty"`
+	ClassID   *uint   `gorm:"index" json:"class_id,omitempty"`
 	BookingID *uint   `gorm:"index" json:"booking_id,omitempty"` // tautan invoice↔booking les privat
 }

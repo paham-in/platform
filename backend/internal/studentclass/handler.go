@@ -1,4 +1,4 @@
-package studentprogram
+package studentclass
 
 import (
 	"strconv"
@@ -23,26 +23,26 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
-// AdminListStudentPrograms daftar hak akses student-program
-// @Summary      List student programs
-// @Tags         StudentProgram
+// AdminListStudentClasses daftar hak akses student-class
+// @Summary      List student classes
+// @Tags         StudentClass
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        user_id query int false "Filter by user ID"
-// @Param        program_id query int false "Filter by program ID"
-// @Success      200 {array} StudentProgramResponse
-// @Router       /admin/student-programs [get]
-func (h *Handler) AdminListStudentPrograms(c *fiber.Ctx) error {
+// @Param        class_id query int false "Filter by class ID"
+// @Success      200 {array} StudentClassResponse
+// @Router       /admin/student-classes [get]
+func (h *Handler) AdminListStudentClasses(c *fiber.Ctx) error {
 	filter := ListFilter{}
 	if uid := c.Query("user_id"); uid != "" {
 		if id, err := strconv.ParseUint(uid, 10, 64); err == nil {
 			filter.UserID = uint(id)
 		}
 	}
-	if pid := c.Query("program_id"); pid != "" {
-		if id, err := strconv.ParseUint(pid, 10, 64); err == nil {
-			filter.ProgramID = uint(id)
+	if cid := c.Query("class_id"); cid != "" {
+		if id, err := strconv.ParseUint(cid, 10, 64); err == nil {
+			filter.ClassID = uint(id)
 		}
 	}
 	sp, err := h.svc.List(filter)
@@ -52,17 +52,17 @@ func (h *Handler) AdminListStudentPrograms(c *fiber.Ctx) error {
 	return c.JSON(sp)
 }
 
-// AdminGrantStudentProgram beri student akses program (manual grant)
-// @Summary      Grant student program
-// @Tags         StudentProgram
+// AdminGrantStudentClass beri student akses kelas (manual grant)
+// @Summary      Grant student class
+// @Tags         StudentClass
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        body body CreateInput true "Data"
-// @Success      201 {object} StudentProgramResponse
+// @Success      201 {object} StudentClassResponse
 // @Failure      400 {object} ErrorResponse
-// @Router       /admin/student-programs [post]
-func (h *Handler) AdminGrantStudentProgram(c *fiber.Ctx) error {
+// @Router       /admin/student-classes [post]
+func (h *Handler) AdminGrantStudentClass(c *fiber.Ctx) error {
 	var input CreateInput
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
@@ -74,17 +74,17 @@ func (h *Handler) AdminGrantStudentProgram(c *fiber.Ctx) error {
 	return c.Status(201).JSON(sp)
 }
 
-// AdminRevokeStudentProgram cabut akses student-program
-// @Summary      Revoke student program
-// @Tags         StudentProgram
+// AdminRevokeStudentClass cabut akses student-class
+// @Summary      Revoke student class
+// @Tags         StudentClass
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "StudentProgram ID"
+// @Param        id path int true "StudentClass ID"
 // @Success      200 {object} MessageResponse
 // @Failure      400 {object} ErrorResponse
-// @Router       /admin/student-programs/{id} [delete]
-func (h *Handler) AdminRevokeStudentProgram(c *fiber.Ctx) error {
+// @Router       /admin/student-classes/{id} [delete]
+func (h *Handler) AdminRevokeStudentClass(c *fiber.Ctx) error {
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
@@ -95,15 +95,15 @@ func (h *Handler) AdminRevokeStudentProgram(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "akses berhasil dicabut"})
 }
 
-// MyStudentPrograms daftar akses program milik user yang login
-// @Summary      My student programs
-// @Tags         StudentProgram
+// MyStudentClasses daftar akses kelas milik user yang login
+// @Summary      My student classes
+// @Tags         StudentClass
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {array} StudentProgramResponse
-// @Router       /student-programs [get]
-func (h *Handler) MyStudentPrograms(c *fiber.Ctx) error {
+// @Success      200 {array} StudentClassResponse
+// @Router       /student-classes [get]
+func (h *Handler) MyStudentClasses(c *fiber.Ctx) error {
 	userID, ok := c.Locals("user_id").(uint)
 	if !ok || userID == 0 {
 		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
@@ -120,7 +120,7 @@ func AuthRoutes(auth fiber.Router, db *gorm.DB) {
 	svc := NewService(repo, db)
 	h := NewHandler(svc)
 
-	auth.Get("/student-programs", h.MyStudentPrograms)
+	auth.Get("/student-classes", h.MyStudentClasses)
 }
 
 func AdminRoutes(admin fiber.Router, db *gorm.DB) {
@@ -128,7 +128,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	svc := NewService(repo, db)
 	h := NewHandler(svc)
 
-	admin.Get("/student-programs", h.AdminListStudentPrograms)
-	admin.Post("/student-programs", h.AdminGrantStudentProgram)
-	admin.Delete("/student-programs/:id", h.AdminRevokeStudentProgram)
+	admin.Get("/student-classes", h.AdminListStudentClasses)
+	admin.Post("/student-classes", h.AdminGrantStudentClass)
+	admin.Delete("/student-classes/:id", h.AdminRevokeStudentClass)
 }

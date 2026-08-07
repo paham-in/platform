@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"errors"
+
 	"bimbel2/backend/internal/config"
 	"bimbel2/backend/internal/models"
 
@@ -33,7 +35,7 @@ func Migrate(db *gorm.DB) {
 	// clean up orphaned subject_images before AutoMigrate (FK constraint)
 	db.Exec("DELETE FROM subject_images WHERE user_id NOT IN (SELECT id FROM users)")
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentProgram{})
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{})
 
 	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
 	for _, name := range []string{"student", "teacher", "admin"} {
@@ -165,23 +167,51 @@ func Migrate(db *gorm.DB) {
 		db.Migrator().DropTable("package_questions")
 	}
 
-	// migrasi: program + student_programs (buat eksplisit lewat Migrator
+	// migrasi: program + student_classes (buat eksplisit lewat Migrator
 	// agar tak bergantung AutoMigrate global yang bisa gagal di mid-cycle).
 	if !db.Migrator().HasTable(&models.Program{}) {
 		db.Migrator().CreateTable(&models.Program{})
 	}
-	if !db.Migrator().HasTable(&models.StudentProgram{}) {
-		db.Migrator().CreateTable(&models.StudentProgram{})
+	if !db.Migrator().HasTable(&models.StudentClass{}) {
+		db.Migrator().CreateTable(&models.StudentClass{})
 	}
 
-	// migrasi: classes + invoices tambah program_id (fitur program)
+	// migrasi: classes tambah program_id; invoices ganti program_id → class_id
 	if !db.Migrator().HasColumn(&models.Class{}, "program_id") {
 		db.Exec("ALTER TABLE classes ADD COLUMN program_id BIGINT DEFAULT NULL")
 		db.Exec("CREATE INDEX idx_classes_program_id ON classes(program_id)")
 	}
-	if !db.Migrator().HasColumn(&models.Invoice{}, "program_id") {
-		db.Exec("ALTER TABLE invoices ADD COLUMN program_id BIGINT DEFAULT NULL")
-		db.Exec("CREATE INDEX idx_invoices_program_id ON invoices(program_id)")
+	if db.Migrator().HasColumn(&models.Invoice{}, "program_id") {
+		db.Exec("ALTER TABLE invoices DROP COLUMN program_id")
+	}
+	if !db.Migrator().HasColumn(&models.Invoice{}, "class_id") {
+		db.Exec("ALTER TABLE invoices ADD COLUMN class_id BIGINT DEFAULT NULL")
+		db.Exec("CREATE INDEX idx_invoices_class_id ON invoices(class_id)")
+	}
+
+	// backfill: student_programs (per-program) → student_classes (per-kelas).
+	// Akses program lama → grant ke semua kelas dalam program itu. Idempoten.
+	if db.Migrator().HasTable("student_programs") {
+		type oldSP struct {
+			UserID    uint
+			ProgramID uint
+			Expiry    string
+		}
+		var rows []oldSP
+		db.Table("student_programs").Find(&rows)
+		for _, r := range rows {
+			var classIDs []uint
+			db.Model(&models.Class{}).Where("program_id = ?", r.ProgramID).Pluck("id", &classIDs)
+			for _, cid := range classIDs {
+				var sc models.StudentClass
+				err := db.Where("user_id = ? AND class_id = ?", r.UserID, cid).First(&sc).Error
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					db.Create(&models.StudentClass{UserID: r.UserID, ClassID: cid, Expiry: r.Expiry})
+				}
+			}
+		}
+		db.Migrator().DropTable("student_programs")
+		log.Println("Migrated student_programs → student_classes")
 	}
 
 	// seed program default "Sekolah" bila belum ada

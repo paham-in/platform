@@ -20,42 +20,47 @@ import {
 } from "@/components/ui/combobox"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
 import {
-  postAdminStudentProgramsMutation,
-  getAdminStudentProgramsQueryKey,
+  postAdminStudentClassesMutation,
+  getAdminStudentClassesQueryKey,
   getAdminStudentsOptions,
   getAdminProgramsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 
-interface GrantProgramDialogProps {
+interface GrantClassDialogProps {
   onClose: () => void
 }
 
-export function GrantProgramDialog({ onClose }: GrantProgramDialogProps) {
+export function GrantClassDialog({ onClose }: GrantClassDialogProps) {
   const qc = useQueryClient()
   const { data: users = [] } = useQuery(getAdminStudentsOptions())
   const { data: programs = [] } = useQuery(getAdminProgramsOptions())
   const [user, setUser] = useState<UserAdminUserResponse>()
-  const [programId, setProgramId] = useState<number | undefined>()
+  const [classId, setClassId] = useState<number | undefined>()
   const [expiry, setExpiry] = useState<Date>()
-  const programOptions = programs.map((p) => ({ label: p.name ?? "", value: String(p.id) }))
+  const classOptions = programs.flatMap((p) =>
+    (p.classes ?? []).map((c) => ({
+      label: `${p.name ?? ""} — ${c.name ?? ""}`,
+      value: String(c.id),
+    }))
+  )
 
   const { mutate: grant, isPending } = useMutation({
-    ...postAdminStudentProgramsMutation(),
+    ...postAdminStudentClassesMutation(),
     onSuccess: () => {
       toast.success("Akses berhasil diberikan")
-      qc.invalidateQueries({ queryKey: getAdminStudentProgramsQueryKey() })
+      qc.invalidateQueries({ queryKey: getAdminStudentClassesQueryKey() })
       onClose()
     },
     onError: (err: any) => toast.error(err.error || "Gagal memberikan akses"),
   })
 
-  const canSave = user && programId && expiry
+  const canSave = user && classId && expiry
   const save = () => {
     if (!canSave) return
     grant({
       body: {
         user_id: user.id!,
-        program_id: programId,
+        class_id: classId,
         expiry: format(expiry, "yyyy-MM-dd"),
       },
     })
@@ -94,17 +99,17 @@ export function GrantProgramDialog({ onClose }: GrantProgramDialogProps) {
             </Combobox>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="program-select">Program</Label>
+            <Label htmlFor="class-select">Kelas</Label>
             <Select
-              items={programOptions}
-              value={programId}
-              onValueChange={(v) => setProgramId(Number(v))}
+              items={classOptions}
+              value={classId}
+              onValueChange={(v) => setClassId(Number(v))}
             >
-              <SelectTrigger id="program-select" className="w-full" size="sm">
-                <SelectValue placeholder={programs.length ? "Pilih program..." : "Tidak ada program"} />
+              <SelectTrigger id="class-select" className="w-full" size="sm">
+                <SelectValue placeholder={classOptions.length ? "Pilih kelas..." : "Tidak ada kelas"} />
               </SelectTrigger>
               <SelectContent>
-                {programOptions.map((opt) => (
+                {classOptions.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </SelectItem>

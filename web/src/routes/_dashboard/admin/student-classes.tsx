@@ -10,18 +10,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  getAdminStudentProgramsOptions,
-  getAdminStudentProgramsQueryKey,
-  deleteAdminStudentProgramsByIdMutation,
+  getAdminStudentClassesOptions,
+  getAdminStudentClassesQueryKey,
+  deleteAdminStudentClassesByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
-import type { StudentprogramStudentProgramResponse } from "@/lib/api/types.gen";
+import type { StudentclassStudentClassResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { ChevronLeft, ChevronRight, Plus, SearchX, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { GrantProgramDialog } from "@/components/admin/student-programs";
+import { GrantClassDialog } from "@/components/admin/student-classes";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -31,13 +31,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const studentProgramsSearchSchema = z.object({});
+const studentClassesSearchSchema = z.object({});
 
-function AdminStudentPrograms() {
-  const { data: items = [], isLoading } = useQuery(getAdminStudentProgramsOptions());
+function AdminStudentClasses() {
+  const { data: items = [], isLoading } = useQuery(getAdminStudentClassesOptions());
   const [page, setPage] = useState(1);
   const [grantOpen, setGrantOpen] = useState(false);
-  const [revokeTarget, setRevokeTarget] = useState<StudentprogramStudentProgramResponse | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<StudentclassStudentClassResponse | null>(null);
   const perPage = 8;
 
   const totalPages = Math.ceil(items.length / perPage);
@@ -50,7 +50,7 @@ function AdminStudentPrograms() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Hak Akses Murid</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Kelola program yang diakses setiap murid dan masa berlakunya.
+              Kelola kelas yang diakses setiap murid dan masa berlakunya.
             </p>
           </div>
           <Button onClick={() => setGrantOpen(true)}>
@@ -63,6 +63,7 @@ function AdminStudentPrograms() {
               <TableHeader>
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Murid</TableHead>
+                  <TableHead>Kelas</TableHead>
                   <TableHead>Program</TableHead>
                   <TableHead>Kadaluarsa</TableHead>
                   <TableHead className="pr-6">Aksi</TableHead>
@@ -75,13 +76,15 @@ function AdminStudentPrograms() {
                       <TableCell className="pl-6"><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                       <TableCell className="pr-6"><Skeleton className="h-8 w-16 rounded ml-auto" /></TableCell>
                     </TableRow>
                   ))
                 ) : paged.map((sp) => (
                   <TableRow key={sp.id}>
                     <TableCell className="pl-6 font-medium">{sp.user?.name ?? "—"}</TableCell>
-                    <TableCell>{sp.program?.name ?? "—"}</TableCell>
+                    <TableCell>{sp.class?.name ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{sp.class?.program_name ?? "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{sp.expiry}</TableCell>
                     <TableCell className="pr-6 text-right">
                       <Button
@@ -96,7 +99,7 @@ function AdminStudentPrograms() {
                 ))}
                 {!isLoading && paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="p-8 text-center">
+                    <TableCell colSpan={5} className="p-8 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <SearchX className="h-6 w-6 text-muted-foreground" />
                         <p className="text-muted-foreground">Belum ada hak akses. Berikan akses pertama ke murid.</p>
@@ -126,7 +129,7 @@ function AdminStudentPrograms() {
       </main>
 
       {grantOpen && (
-        <GrantProgramDialog onClose={() => setGrantOpen(false)} />
+        <GrantClassDialog onClose={() => setGrantOpen(false)} />
       )}
 
       {revokeTarget && (
@@ -137,15 +140,15 @@ function AdminStudentPrograms() {
 }
 
 function RevokeDialog({ access, onClose }: {
-  access: StudentprogramStudentProgramResponse
+  access: StudentclassStudentClassResponse
   onClose: () => void
 }) {
   const qc = useQueryClient()
   const { mutate: revoke, isPending } = useMutation({
-    ...deleteAdminStudentProgramsByIdMutation(),
+    ...deleteAdminStudentClassesByIdMutation(),
     onSuccess: () => {
       toast.success("Akses berhasil dicabut")
-      qc.invalidateQueries({ queryKey: getAdminStudentProgramsQueryKey() })
+      qc.invalidateQueries({ queryKey: getAdminStudentClassesQueryKey() })
       onClose()
     },
     onError: (err: any) => toast.error(err.error || "Gagal mencabut akses"),
@@ -157,8 +160,8 @@ function RevokeDialog({ access, onClose }: {
         <AlertDialogHeader>
           <AlertDialogTitle>Cabut Hak Akses</AlertDialogTitle>
           <AlertDialogDescription>
-            Hapus akses <strong>{access.program?.name}</strong> untuk{" "}
-            <strong>{access.user?.name}</strong>? Murid tidak lagi bisa mengakses konten program ini.
+            Hapus akses <strong>{access.class?.name}</strong> untuk{" "}
+            <strong>{access.user?.name}</strong>? Murid tidak lagi bisa mengakses konten kelas ini.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -172,7 +175,7 @@ function RevokeDialog({ access, onClose }: {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/admin/student-programs")({
-  component: AdminStudentPrograms,
-  validateSearch: studentProgramsSearchSchema,
+export const Route = createFileRoute("/_dashboard/admin/student-classes")({
+  component: AdminStudentClasses,
+  validateSearch: studentClassesSearchSchema,
 });

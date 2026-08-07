@@ -39,12 +39,15 @@ func (r *Repository) Get(id uint) (*models.Material, error) {
 }
 
 // ListPublished mengembalikan materi berstatus published. includePremium=false
-// hanya menyertakan materi free (is_free=true).
-func (r *Repository) ListPublished(includePremium bool) ([]models.Material, error) {
+// hanya menyertakan materi free (is_free=true). includePremium=true dengan classIDs
+// (non-nil) membatasi premium ke kelas tertentu; classIDs nil = semua kelas (staff).
+func (r *Repository) ListPublished(includePremium bool, classIDs []uint) ([]models.Material, error) {
 	var materials []models.Material
 	q := r.db.Preload("Chapter").Where("status = ?", "published")
 	if !includePremium {
 		q = q.Where("is_free = ?", true)
+	} else if classIDs != nil {
+		q = q.Where("is_free = ? OR chapter_id IN (SELECT id FROM chapters WHERE class_id IN ?)", true, classIDs)
 	}
 	if err := q.Order("\"order\" asc, title asc").Find(&materials).Error; err != nil {
 		return nil, err
@@ -52,11 +55,13 @@ func (r *Repository) ListPublished(includePremium bool) ([]models.Material, erro
 	return materials, nil
 }
 
-func (r *Repository) ListPublishedByChapter(chapterID uint, includePremium bool) ([]models.Material, error) {
+func (r *Repository) ListPublishedByChapter(chapterID uint, includePremium bool, classIDs []uint) ([]models.Material, error) {
 	var materials []models.Material
 	q := r.db.Preload("Chapter").Where("chapter_id = ? AND status = ?", chapterID, "published")
 	if !includePremium {
 		q = q.Where("is_free = ?", true)
+	} else if classIDs != nil {
+		q = q.Where("is_free = ? OR chapter_id IN (SELECT id FROM chapters WHERE class_id IN ?)", true, classIDs)
 	}
 	if err := q.Order("\"order\" asc, title asc").Find(&materials).Error; err != nil {
 		return nil, err

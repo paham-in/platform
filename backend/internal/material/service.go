@@ -17,6 +17,7 @@ func NewService(repo *Repository) *Service {
 type MaterialResponse struct {
 	ID          uint   `json:"id"`
 	ChapterID   uint   `json:"chapter_id"`
+	ClassID     uint   `json:"class_id"`
 	ChapterName string `json:"chapter_name"`
 	Title       string `json:"title"`
 	Slug        string `json:"slug"`
@@ -47,16 +48,17 @@ func (s *Service) ListByChapter(chapterID uint) ([]MaterialResponse, error) {
 
 // ListPublished untuk akses murid/user — hanya materi published.
 // includePremium=false membatasi ke materi free saja.
-func (s *Service) ListPublished(includePremium bool) ([]MaterialResponse, error) {
-	materials, err := s.repo.ListPublished(includePremium)
+// classIDs non-nil membatasi premium ke kelas tertentu; nil = semua kelas (staff).
+func (s *Service) ListPublished(includePremium bool, classIDs []uint) ([]MaterialResponse, error) {
+	materials, err := s.repo.ListPublished(includePremium, classIDs)
 	if err != nil {
 		return nil, err
 	}
 	return toResponses(materials), nil
 }
 
-func (s *Service) ListPublishedByChapter(chapterID uint, includePremium bool) ([]MaterialResponse, error) {
-	materials, err := s.repo.ListPublishedByChapter(chapterID, includePremium)
+func (s *Service) ListPublishedByChapter(chapterID uint, includePremium bool, classIDs []uint) ([]MaterialResponse, error) {
+	materials, err := s.repo.ListPublishedByChapter(chapterID, includePremium, classIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -175,6 +177,7 @@ func toResponse(m models.Material) MaterialResponse {
 	return MaterialResponse{
 		ID:          m.ID,
 		ChapterID:   m.ChapterID,
+		ClassID:     m.Chapter.ClassID,
 		ChapterName: chapterName,
 		Title:       m.Title,
 		Slug:        m.Slug,

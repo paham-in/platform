@@ -53,8 +53,8 @@ type CreateInput struct {
 	Amount    float64 `json:"amount"`
 	StartDate string  `json:"start_date"`
 	EndDate   string  `json:"end_date"`
-	Note      string  `json:"note"`
-	ProgramID *uint   `json:"program_id,omitempty"`
+	Note    string  `json:"note"`
+	ClassID *uint   `json:"class_id,omitempty"`
 }
 
 func (s *Service) Create(input CreateInput) (*InvoiceResponse, error) {
@@ -73,9 +73,9 @@ func (s *Service) Create(input CreateInput) (*InvoiceResponse, error) {
 		Amount:    input.Amount,
 		StartDate: input.StartDate,
 		EndDate:   input.EndDate,
-		Status:    "pending",
-		Note:      input.Note,
-		ProgramID: input.ProgramID,
+		Status:  "pending",
+		Note:    input.Note,
+		ClassID: input.ClassID,
 	}
 	if err := s.repo.Create(&invoice); err != nil {
 		return nil, err
@@ -108,17 +108,17 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 	// akses premium dihitung query-realtime dari invoice paid + end_date aktif.
 	// tidak perlu grant role/manual — semua pendaftar otomatis student.
 	//
-	// invoice lunas yang punya program_id → otomatis grant StudentProgram
-	// (akses premium via program). Jika kembali ke pending → revoke StudentProgram.
-	if invoice.ProgramID != nil {
-		// hapus akses lama untuk kombinasi (user, program) supaya expiry selalu ikut end_date invoice
-		s.db.Where("user_id = ? AND program_id = ?", invoice.UserID, *invoice.ProgramID).
-			Delete(&models.StudentProgram{})
+	// invoice lunas yang punya class_id → otomatis grant StudentClass
+	// (akses premium via kelas). Jika kembali ke pending → revoke StudentClass.
+	if invoice.ClassID != nil {
+		// hapus akses lama untuk kombinasi (user, class) supaya expiry selalu ikut end_date invoice
+		s.db.Where("user_id = ? AND class_id = ?", invoice.UserID, *invoice.ClassID).
+			Delete(&models.StudentClass{})
 		if newStatus == "paid" {
-			s.db.Create(&models.StudentProgram{
-				UserID:    invoice.UserID,
-				ProgramID: *invoice.ProgramID,
-				Expiry:    invoice.EndDate,
+			s.db.Create(&models.StudentClass{
+				UserID:  invoice.UserID,
+				ClassID: *invoice.ClassID,
+				Expiry:  invoice.EndDate,
 			})
 		}
 	}

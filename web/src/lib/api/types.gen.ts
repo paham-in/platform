@@ -136,9 +136,9 @@ export type GalleryGalleryImageResponse = {
 
 export type InvoiceCreateInput = {
     amount?: number;
+    class_id?: number;
     end_date?: string;
     note?: string;
-    program_id?: number;
     start_date?: string;
     user_id?: number;
 };
@@ -182,6 +182,7 @@ export type MaterialErrorResponse = {
 export type MaterialMaterialResponse = {
     chapter_id?: number;
     chapter_name?: string;
+    class_id?: number;
     content?: string;
     description?: string;
     id?: number;
@@ -335,39 +336,40 @@ export type QuestionpackageUpdateInput = {
     name?: string;
 };
 
-export type StudentprogramCreateInput = {
+export type StudentclassClassRef = {
+    id?: number;
+    name?: string;
+    program_name?: string;
+};
+
+export type StudentclassCreateInput = {
+    class_id?: number;
     /**
      * "YYYY-MM-DD"
      */
     expiry?: string;
-    program_id?: number;
     user_id?: number;
 };
 
-export type StudentprogramErrorResponse = {
+export type StudentclassErrorResponse = {
     error?: string;
 };
 
-export type StudentprogramMessageResponse = {
+export type StudentclassMessageResponse = {
     message?: string;
 };
 
-export type StudentprogramProgramRef = {
-    id?: number;
-    name?: string;
-};
-
-export type StudentprogramStudentProgramResponse = {
+export type StudentclassStudentClassResponse = {
+    class?: StudentclassClassRef;
+    class_id?: number;
     created_at?: string;
     expiry?: string;
     id?: number;
-    program?: StudentprogramProgramRef;
-    program_id?: number;
-    user?: StudentprogramUserRef;
+    user?: StudentclassUserRef;
     user_id?: number;
 };
 
-export type StudentprogramUserRef = {
+export type StudentclassUserRef = {
     id?: number;
     name?: string;
 };
@@ -1564,7 +1566,7 @@ export type DeleteAdminQuestionsByIdResponses = {
 
 export type DeleteAdminQuestionsByIdResponse = DeleteAdminQuestionsByIdResponses[keyof DeleteAdminQuestionsByIdResponses];
 
-export type GetAdminStudentProgramsData = {
+export type GetAdminStudentClassesData = {
     body?: never;
     path?: never;
     query?: {
@@ -1573,79 +1575,79 @@ export type GetAdminStudentProgramsData = {
          */
         user_id?: number;
         /**
-         * Filter by program ID
+         * Filter by class ID
          */
-        program_id?: number;
+        class_id?: number;
     };
-    url: '/admin/student-programs';
+    url: '/admin/student-classes';
 };
 
-export type GetAdminStudentProgramsResponses = {
+export type GetAdminStudentClassesResponses = {
     /**
      * OK
      */
-    200: Array<StudentprogramStudentProgramResponse>;
+    200: Array<StudentclassStudentClassResponse>;
 };
 
-export type GetAdminStudentProgramsResponse = GetAdminStudentProgramsResponses[keyof GetAdminStudentProgramsResponses];
+export type GetAdminStudentClassesResponse = GetAdminStudentClassesResponses[keyof GetAdminStudentClassesResponses];
 
-export type PostAdminStudentProgramsData = {
+export type PostAdminStudentClassesData = {
     /**
      * Data
      */
-    body: StudentprogramCreateInput;
+    body: StudentclassCreateInput;
     path?: never;
     query?: never;
-    url: '/admin/student-programs';
+    url: '/admin/student-classes';
 };
 
-export type PostAdminStudentProgramsErrors = {
+export type PostAdminStudentClassesErrors = {
     /**
      * Bad Request
      */
-    400: StudentprogramErrorResponse;
+    400: StudentclassErrorResponse;
 };
 
-export type PostAdminStudentProgramsError = PostAdminStudentProgramsErrors[keyof PostAdminStudentProgramsErrors];
+export type PostAdminStudentClassesError = PostAdminStudentClassesErrors[keyof PostAdminStudentClassesErrors];
 
-export type PostAdminStudentProgramsResponses = {
+export type PostAdminStudentClassesResponses = {
     /**
      * Created
      */
-    201: StudentprogramStudentProgramResponse;
+    201: StudentclassStudentClassResponse;
 };
 
-export type PostAdminStudentProgramsResponse = PostAdminStudentProgramsResponses[keyof PostAdminStudentProgramsResponses];
+export type PostAdminStudentClassesResponse = PostAdminStudentClassesResponses[keyof PostAdminStudentClassesResponses];
 
-export type DeleteAdminStudentProgramsByIdData = {
+export type DeleteAdminStudentClassesByIdData = {
     body?: never;
     path: {
         /**
-         * StudentProgram ID
+         * StudentClass ID
          */
         id: number;
     };
     query?: never;
-    url: '/admin/student-programs/{id}';
+    url: '/admin/student-classes/{id}';
 };
 
-export type DeleteAdminStudentProgramsByIdErrors = {
+export type DeleteAdminStudentClassesByIdErrors = {
     /**
      * Bad Request
      */
-    400: StudentprogramErrorResponse;
+    400: StudentclassErrorResponse;
 };
 
-export type DeleteAdminStudentProgramsByIdError = DeleteAdminStudentProgramsByIdErrors[keyof DeleteAdminStudentProgramsByIdErrors];
+export type DeleteAdminStudentClassesByIdError = DeleteAdminStudentClassesByIdErrors[keyof DeleteAdminStudentClassesByIdErrors];
 
-export type DeleteAdminStudentProgramsByIdResponses = {
+export type DeleteAdminStudentClassesByIdResponses = {
     /**
      * OK
      */
-    200: StudentprogramMessageResponse;
+    200: StudentclassMessageResponse;
 };
 
-export type DeleteAdminStudentProgramsByIdResponse = DeleteAdminStudentProgramsByIdResponses[keyof DeleteAdminStudentProgramsByIdResponses];
+export type DeleteAdminStudentClassesByIdResponse = DeleteAdminStudentClassesByIdResponses[keyof DeleteAdminStudentClassesByIdResponses];
 
 export type GetAdminStudentsData = {
     body?: never;
@@ -2592,21 +2594,21 @@ export type PostQuestionsByQuestionIdImagesResponses = {
 
 export type PostQuestionsByQuestionIdImagesResponse = PostQuestionsByQuestionIdImagesResponses[keyof PostQuestionsByQuestionIdImagesResponses];
 
-export type GetStudentProgramsData = {
+export type GetStudentClassesData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/student-programs';
+    url: '/student-classes';
 };
 
-export type GetStudentProgramsResponses = {
+export type GetStudentClassesResponses = {
     /**
      * OK
      */
-    200: Array<StudentprogramStudentProgramResponse>;
+    200: Array<StudentclassStudentClassResponse>;
 };
 
-export type GetStudentProgramsResponse = GetStudentProgramsResponses[keyof GetStudentProgramsResponses];
+export type GetStudentClassesResponse = GetStudentClassesResponses[keyof GetStudentClassesResponses];
 
 export type GetSubjectsData = {
     body?: never;

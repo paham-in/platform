@@ -204,12 +204,12 @@ definitions:
     properties:
       amount:
         type: number
+      class_id:
+        type: integer
       end_date:
         type: string
       note:
         type: string
-      program_id:
-        type: integer
       start_date:
         type: string
       user_id:
@@ -278,6 +278,8 @@ definitions:
         type: integer
       chapter_name:
         type: string
+      class_id:
+        type: integer
       content:
         type: string
       description:
@@ -518,51 +520,53 @@ definitions:
       name:
         type: string
     type: object
-  studentprogram.CreateInput:
-    properties:
-      expiry:
-        description: '"YYYY-MM-DD"'
-        type: string
-      program_id:
-        type: integer
-      user_id:
-        type: integer
-    type: object
-  studentprogram.ErrorResponse:
-    properties:
-      error:
-        type: string
-    type: object
-  studentprogram.MessageResponse:
-    properties:
-      message:
-        type: string
-    type: object
-  studentprogram.ProgramRef:
+  studentclass.ClassRef:
     properties:
       id:
         type: integer
       name:
         type: string
+      program_name:
+        type: string
     type: object
-  studentprogram.StudentProgramResponse:
+  studentclass.CreateInput:
     properties:
+      class_id:
+        type: integer
+      expiry:
+        description: '"YYYY-MM-DD"'
+        type: string
+      user_id:
+        type: integer
+    type: object
+  studentclass.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  studentclass.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  studentclass.StudentClassResponse:
+    properties:
+      class:
+        $ref: '#/definitions/studentclass.ClassRef'
+      class_id:
+        type: integer
       created_at:
         type: string
       expiry:
         type: string
       id:
         type: integer
-      program:
-        $ref: '#/definitions/studentprogram.ProgramRef'
-      program_id:
-        type: integer
       user:
-        $ref: '#/definitions/studentprogram.UserRef'
+        $ref: '#/definitions/studentclass.UserRef'
       user_id:
         type: integer
     type: object
-  studentprogram.UserRef:
+  studentclass.UserRef:
     properties:
       id:
         type: integer
@@ -1860,7 +1864,7 @@ paths:
       tags:
       - Admin
       - Admin
-  /admin/student-programs:
+  /admin/student-classes:
     get:
       consumes:
       - application/json
@@ -1869,9 +1873,9 @@ paths:
         in: query
         name: user_id
         type: integer
-      - description: Filter by program ID
+      - description: Filter by class ID
         in: query
-        name: program_id
+        name: class_id
         type: integer
       produces:
       - application/json
@@ -1880,13 +1884,13 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/studentprogram.StudentProgramResponse'
+              $ref: '#/definitions/studentclass.StudentClassResponse'
             type: array
       security:
       - BearerAuth: []
-      summary: List student programs
+      summary: List student classes
       tags:
-      - StudentProgram
+      - StudentClass
     post:
       consumes:
       - application/json
@@ -1896,29 +1900,29 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/studentprogram.CreateInput'
+          $ref: '#/definitions/studentclass.CreateInput'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/studentprogram.StudentProgramResponse'
+            $ref: '#/definitions/studentclass.StudentClassResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/studentprogram.ErrorResponse'
+            $ref: '#/definitions/studentclass.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Grant student program
+      summary: Grant student class
       tags:
-      - StudentProgram
-  /admin/student-programs/{id}:
+      - StudentClass
+  /admin/student-classes/{id}:
     delete:
       consumes:
       - application/json
       parameters:
-      - description: StudentProgram ID
+      - description: StudentClass ID
         in: path
         name: id
         required: true
@@ -1929,16 +1933,16 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/studentprogram.MessageResponse'
+            $ref: '#/definitions/studentclass.MessageResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/studentprogram.ErrorResponse'
+            $ref: '#/definitions/studentclass.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Revoke student program
+      summary: Revoke student class
       tags:
-      - StudentProgram
+      - StudentClass
   /admin/students:
     get:
       consumes:
@@ -2866,7 +2870,7 @@ paths:
       summary: Upload question image
       tags:
       - Forum
-  /student-programs:
+  /student-classes:
     get:
       consumes:
       - application/json
@@ -2877,13 +2881,13 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/studentprogram.StudentProgramResponse'
+              $ref: '#/definitions/studentclass.StudentClassResponse'
             type: array
       security:
       - BearerAuth: []
-      summary: My student programs
+      summary: My student classes
       tags:
-      - StudentProgram
+      - StudentClass
   /subjects:
     get:
       consumes:
