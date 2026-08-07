@@ -1933,6 +1933,29 @@ paths:
       summary: Revoke student program
       tags:
       - StudentProgram
+  /admin/students:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar semua user dengan role student (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/user.AdminUserResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List students
+      tags:
+      - Admin
   /admin/subjects:
     post:
       consumes:

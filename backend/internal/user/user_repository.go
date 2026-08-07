@@ -43,10 +43,7 @@ func (r *UserRepository) List(search string, role string) ([]models.User, error)
 	}
 
 	if role != "" {
-		query = query.Joins("JOIN user_roles ON user_roles.user_id = users.id").
-			Joins("JOIN roles ON roles.id = user_roles.role_id").
-			Where("roles.name = ?", role).
-			Group("users.id")
+		query = query.Where("EXISTS (SELECT 1 FROM user_roles JOIN roles ON roles.id = user_roles.role_id WHERE user_roles.user_id = users.id AND roles.name = ?)", role)
 	}
 
 	var users []models.User

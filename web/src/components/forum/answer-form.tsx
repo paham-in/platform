@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { TiptapEditor } from "@/components/ui/tiptap-editor"
 import { YoutubeEmbed } from "@/components/ui/youtube-embed"
-import { TabsPanel, TabsRoot, TabsTab, TabsList } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
   postQuestionsByQuestionIdAnswersMutation,
   getQuestionsByQuestionIdAnswersQueryKey,
@@ -56,15 +56,15 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
     <section className="mt-6 space-y-3">
       <h3 className="text-sm font-semibold">Tulis Jawaban</h3>
       {canVideo ? (
-        <TabsRoot value={mode} onValueChange={(v) => setMode((v as "text" | "video") ?? "text")}>
+        <Tabs value={mode} onValueChange={(v) => setMode((v as "text" | "video") ?? "text")}>
           <TabsList>
-            <TabsTab value="text">Teks</TabsTab>
-            <TabsTab value="video">Video YouTube</TabsTab>
+            <TabsTrigger value="text">Teks</TabsTrigger>
+            <TabsTrigger value="video">Video YouTube</TabsTrigger>
           </TabsList>
-          <TabsPanel value="text">
+          <TabsContent value="text">
             <TiptapEditor content={content} onChange={setContent} allowImages={false} />
-          </TabsPanel>
-          <TabsPanel value="video">
+          </TabsContent>
+          <TabsContent value="video">
             <div className="space-y-2">
               <Input
                 value={videoUrl}
@@ -73,8 +73,8 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
               />
               {videoUrl && <YoutubeEmbed url={videoUrl} className="mt-2" />}
             </div>
-          </TabsPanel>
-        </TabsRoot>
+          </TabsContent>
+        </Tabs>
       ) : (
         <TiptapEditor content={content} onChange={setContent} allowImages={false} />
       )}

@@ -1644,6 +1644,31 @@ export type DeleteAdminStudentProgramsByIdResponses = {
 
 export type DeleteAdminStudentProgramsByIdResponse = DeleteAdminStudentProgramsByIdResponses[keyof DeleteAdminStudentProgramsByIdResponses];
 
+export type GetAdminStudentsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/students';
+};
+
+export type GetAdminStudentsErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: UserErrorResponse;
+};
+
+export type GetAdminStudentsError = GetAdminStudentsErrors[keyof GetAdminStudentsErrors];
+
+export type GetAdminStudentsResponses = {
+    /**
+     * OK
+     */
+    200: Array<UserAdminUserResponse>;
+};
+
+export type GetAdminStudentsResponse = GetAdminStudentsResponses[keyof GetAdminStudentsResponses];
+
 export type PostAdminSubjectsData = {
     /**
      * Data subject
