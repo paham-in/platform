@@ -3716,7 +3716,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan jadwal pertemuan (muncul setelah invoice lunas)",
+                "description": "Jadwal pertemuan. Guru: semua sesi dari booking-nya. Murid: sesi setelah invoice lunas.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4995,10 +4995,19 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
                 "start_time": {
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                },
+                "student_name": {
                     "type": "string"
                 },
                 "teacher_name": {

@@ -1726,7 +1726,7 @@ export const getTutoringSessionsQueryKey = (options?: Options<GetTutoringSession
 /**
  * My sessions
  *
- * Mengembalikan jadwal pertemuan (muncul setelah invoice lunas)
+ * Jadwal pertemuan. Guru: semua sesi dari booking-nya. Murid: sesi setelah invoice lunas.
  */
 export const getTutoringSessionsOptions = (options?: Options<GetTutoringSessionsData>) => queryOptions<GetTutoringSessionsResponse, DefaultError, GetTutoringSessionsResponse, ReturnType<typeof getTutoringSessionsQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {

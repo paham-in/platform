@@ -1085,7 +1085,7 @@ export const getTutoringGroupsByToken = <ThrowOnError extends boolean = false>(o
 /**
  * My sessions
  *
- * Mengembalikan jadwal pertemuan (muncul setelah invoice lunas)
+ * Jadwal pertemuan. Guru: semua sesi dari booking-nya. Murid: sesi setelah invoice lunas.
  */
 export const getTutoringSessions = <ThrowOnError extends boolean = false>(options?: Options<GetTutoringSessionsData, ThrowOnError>): RequestResult<GetTutoringSessionsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetTutoringSessionsResponses, unknown, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],

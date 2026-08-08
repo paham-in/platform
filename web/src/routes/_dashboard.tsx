@@ -52,6 +52,7 @@ const sidebarGroups = [
     links: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/student/dashboard" },
       { label: "Materi", icon: BookMarked, to: "/student/materials" },
+      { label: "Kalender", icon: Calendar, to: "/student/calendar" },
       { label: "Tanya Jawab", icon: Home, to: "/student/forum" },
       { label: "Les Privat", icon: Calendar, to: "/student/tutoring" },
       { label: "Pembayaran", icon: CreditCard, to: "/student/payments" },
@@ -64,6 +65,7 @@ const sidebarGroups = [
       { label: "Dashboard", icon: LayoutDashboard, to: "/teacher/dashboard" },
       { label: "Materi", icon: BookOpen, to: "/teacher/chapters" },
       { label: "Paket Soal", icon: ListChecks, to: "/teacher/packs" },
+      { label: "Kalender", icon: Calendar, to: "/teacher/calendar" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/teacher/forum" },
       { label: "Les Privat", icon: Calendar, to: "/teacher/tutoring" },
     ],

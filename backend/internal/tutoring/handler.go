@@ -292,9 +292,9 @@ func (h *Handler) GroupInfo(c *fiber.Ctx) error {
 	return c.JSON(info)
 }
 
-// ListSessions returns upcoming sessions for the logged-in student
+// ListSessions returns meeting sessions (teacher: all own sessions, student: paid sessions)
 // @Summary      My sessions
-// @Description  Mengembalikan jadwal pertemuan (muncul setelah invoice lunas)
+// @Description  Jadwal pertemuan. Guru: semua sesi dari booking-nya. Murid: sesi setelah invoice lunas.
 // @Tags         Tutoring
 // @Accept       json
 // @Produce      json
@@ -303,6 +303,15 @@ func (h *Handler) GroupInfo(c *fiber.Ctx) error {
 // @Router       /tutoring/sessions [get]
 func (h *Handler) ListSessions(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
+
+	if hasRole(c, "teacher") || hasRole(c, "admin") {
+		sessions, err := h.svc.ListTeacherSessions(userID)
+		if err != nil {
+			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+		}
+		return c.JSON(sessions)
+	}
+
 	sessions, err := h.svc.ListMySessions(userID)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})

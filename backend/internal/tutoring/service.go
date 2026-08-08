@@ -52,6 +52,9 @@ type TutoringSessionResponse struct {
 	EndTime   string `json:"end_time"`
 	Status    string `json:"status"`
 	Teacher   string `json:"teacher_name"`
+	Student   string `json:"student_name"`
+	Mode      string `json:"mode"`
+	Note      string `json:"note"`
 }
 
 type GroupInfoResponse struct {
@@ -583,16 +586,31 @@ func (s *Service) ListGroupInfo(token string) (*GroupInfoResponse, error) {
 	}, nil
 }
 
-func (s *Service) ListMySessions(studentID uint) ([]TutoringSessionResponse, error) {
-	sessions, err := s.repo.ListSessionsByUserPaid(studentID)
+// ListTeacherSessions mengembalikan semua sesi pertemuan milik guru.
+func (s *Service) ListTeacherSessions(teacherID uint) ([]TutoringSessionResponse, error) {
+	sessions, err := s.repo.ListSessionsByTeacher(teacherID)
 	if err != nil {
 		return nil, err
 	}
+	return toSessionResponses(sessions), nil
+}
+
+func toSessionResponses(sessions []models.TutoringSession) []TutoringSessionResponse {
 	res := make([]TutoringSessionResponse, len(sessions))
 	for i, v := range sessions {
 		teacherName := ""
-		if v.Booking != nil && v.Booking.Teacher != nil {
-			teacherName = v.Booking.Teacher.Name
+		studentName := ""
+		mode := ""
+		note := ""
+		if v.Booking != nil {
+			if v.Booking.Teacher != nil {
+				teacherName = v.Booking.Teacher.Name
+			}
+			if v.Booking.Student != nil {
+				studentName = v.Booking.Student.Name
+			}
+			mode = v.Booking.Mode
+			note = v.Booking.Note
 		}
 		res[i] = TutoringSessionResponse{
 			ID:        v.ID,
@@ -602,9 +620,20 @@ func (s *Service) ListMySessions(studentID uint) ([]TutoringSessionResponse, err
 			EndTime:   v.EndTime,
 			Status:    v.Status,
 			Teacher:   teacherName,
+			Student:   studentName,
+			Mode:      mode,
+			Note:      note,
 		}
 	}
-	return res, nil
+	return res
+}
+
+func (s *Service) ListMySessions(studentID uint) ([]TutoringSessionResponse, error) {
+	sessions, err := s.repo.ListSessionsByUserPaid(studentID)
+	if err != nil {
+		return nil, err
+	}
+	return toSessionResponses(sessions), nil
 }
 
 func generateToken() (string, error) {

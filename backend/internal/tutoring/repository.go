@@ -132,6 +132,21 @@ func (r *Repository) CreateSessions(sessions []models.TutoringSession) error {
 	return r.db.Create(&sessions).Error
 }
 
+// ListSessionsByTeacher mengembalikan semua sesi dari booking milik guru.
+func (r *Repository) ListSessionsByTeacher(teacherID uint) ([]models.TutoringSession, error) {
+	var sessions []models.TutoringSession
+	if err := r.db.
+		Joins("JOIN bookings ON bookings.id = tutoring_sessions.booking_id").
+		Where("bookings.teacher_id = ?", teacherID).
+		Preload("Booking.Student").
+		Preload("Booking.Teacher").
+		Order("tutoring_sessions.date, tutoring_sessions.start_time").
+		Find(&sessions).Error; err != nil {
+		return nil, err
+	}
+	return sessions, nil
+}
+
 // ListSessionsByUserPaid mengembalikan sesi milik user di mana invoice terkait sudah lunas.
 func (r *Repository) ListSessionsByUserPaid(studentID uint) ([]models.TutoringSession, error) {
 	var sessions []models.TutoringSession

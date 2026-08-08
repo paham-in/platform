@@ -19,9 +19,11 @@ import { Route as DashboardUserMaterialsRouteImport } from './routes/_dashboard/
 import { Route as DashboardUserDashboardRouteImport } from './routes/_dashboard/user/dashboard'
 import { Route as DashboardTeacherTutoringRouteImport } from './routes/_dashboard/teacher/tutoring'
 import { Route as DashboardTeacherDashboardRouteImport } from './routes/_dashboard/teacher/dashboard'
+import { Route as DashboardTeacherCalendarRouteImport } from './routes/_dashboard/teacher/calendar'
 import { Route as DashboardStudentTutoringRouteImport } from './routes/_dashboard/student/tutoring'
 import { Route as DashboardStudentPaymentsRouteImport } from './routes/_dashboard/student/payments'
 import { Route as DashboardStudentDashboardRouteImport } from './routes/_dashboard/student/dashboard'
+import { Route as DashboardStudentCalendarRouteImport } from './routes/_dashboard/student/calendar'
 import { Route as DashboardAdminUsersRouteImport } from './routes/_dashboard/admin/users'
 import { Route as DashboardAdminTutoringRouteImport } from './routes/_dashboard/admin/tutoring'
 import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard/admin/subjects'
@@ -106,6 +108,12 @@ const DashboardTeacherDashboardRoute =
     path: '/teacher/dashboard',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardTeacherCalendarRoute =
+  DashboardTeacherCalendarRouteImport.update({
+    id: '/teacher/calendar',
+    path: '/teacher/calendar',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardStudentTutoringRoute =
   DashboardStudentTutoringRouteImport.update({
     id: '/student/tutoring',
@@ -122,6 +130,12 @@ const DashboardStudentDashboardRoute =
   DashboardStudentDashboardRouteImport.update({
     id: '/student/dashboard',
     path: '/student/dashboard',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardStudentCalendarRoute =
+  DashboardStudentCalendarRouteImport.update({
+    id: '/student/calendar',
+    path: '/student/calendar',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardAdminUsersRoute = DashboardAdminUsersRouteImport.update({
@@ -320,9 +334,11 @@ export interface FileRoutesByFullPath {
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/tutoring': typeof DashboardAdminTutoringRoute
   '/admin/users': typeof DashboardAdminUsersRoute
+  '/student/calendar': typeof DashboardStudentCalendarRoute
   '/student/dashboard': typeof DashboardStudentDashboardRoute
   '/student/payments': typeof DashboardStudentPaymentsRoute
   '/student/tutoring': typeof DashboardStudentTutoringRouteWithChildren
+  '/teacher/calendar': typeof DashboardTeacherCalendarRoute
   '/teacher/dashboard': typeof DashboardTeacherDashboardRoute
   '/teacher/tutoring': typeof DashboardTeacherTutoringRoute
   '/user/dashboard': typeof DashboardUserDashboardRoute
@@ -366,8 +382,10 @@ export interface FileRoutesByTo {
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/tutoring': typeof DashboardAdminTutoringRoute
   '/admin/users': typeof DashboardAdminUsersRoute
+  '/student/calendar': typeof DashboardStudentCalendarRoute
   '/student/dashboard': typeof DashboardStudentDashboardRoute
   '/student/payments': typeof DashboardStudentPaymentsRoute
+  '/teacher/calendar': typeof DashboardTeacherCalendarRoute
   '/teacher/dashboard': typeof DashboardTeacherDashboardRoute
   '/teacher/tutoring': typeof DashboardTeacherTutoringRoute
   '/user/dashboard': typeof DashboardUserDashboardRoute
@@ -413,9 +431,11 @@ export interface FileRoutesById {
   '/_dashboard/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/_dashboard/admin/tutoring': typeof DashboardAdminTutoringRoute
   '/_dashboard/admin/users': typeof DashboardAdminUsersRoute
+  '/_dashboard/student/calendar': typeof DashboardStudentCalendarRoute
   '/_dashboard/student/dashboard': typeof DashboardStudentDashboardRoute
   '/_dashboard/student/payments': typeof DashboardStudentPaymentsRoute
   '/_dashboard/student/tutoring': typeof DashboardStudentTutoringRouteWithChildren
+  '/_dashboard/teacher/calendar': typeof DashboardTeacherCalendarRoute
   '/_dashboard/teacher/dashboard': typeof DashboardTeacherDashboardRoute
   '/_dashboard/teacher/tutoring': typeof DashboardTeacherTutoringRoute
   '/_dashboard/user/dashboard': typeof DashboardUserDashboardRoute
@@ -461,9 +481,11 @@ export interface FileRouteTypes {
     | '/admin/subjects'
     | '/admin/tutoring'
     | '/admin/users'
+    | '/student/calendar'
     | '/student/dashboard'
     | '/student/payments'
     | '/student/tutoring'
+    | '/teacher/calendar'
     | '/teacher/dashboard'
     | '/teacher/tutoring'
     | '/user/dashboard'
@@ -507,8 +529,10 @@ export interface FileRouteTypes {
     | '/admin/subjects'
     | '/admin/tutoring'
     | '/admin/users'
+    | '/student/calendar'
     | '/student/dashboard'
     | '/student/payments'
+    | '/teacher/calendar'
     | '/teacher/dashboard'
     | '/teacher/tutoring'
     | '/user/dashboard'
@@ -553,9 +577,11 @@ export interface FileRouteTypes {
     | '/_dashboard/admin/subjects'
     | '/_dashboard/admin/tutoring'
     | '/_dashboard/admin/users'
+    | '/_dashboard/student/calendar'
     | '/_dashboard/student/dashboard'
     | '/_dashboard/student/payments'
     | '/_dashboard/student/tutoring'
+    | '/_dashboard/teacher/calendar'
     | '/_dashboard/teacher/dashboard'
     | '/_dashboard/teacher/tutoring'
     | '/_dashboard/user/dashboard'
@@ -668,6 +694,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardTeacherDashboardRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/teacher/calendar': {
+      id: '/_dashboard/teacher/calendar'
+      path: '/teacher/calendar'
+      fullPath: '/teacher/calendar'
+      preLoaderRoute: typeof DashboardTeacherCalendarRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/student/tutoring': {
       id: '/_dashboard/student/tutoring'
       path: '/student/tutoring'
@@ -687,6 +720,13 @@ declare module '@tanstack/react-router' {
       path: '/student/dashboard'
       fullPath: '/student/dashboard'
       preLoaderRoute: typeof DashboardStudentDashboardRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/student/calendar': {
+      id: '/_dashboard/student/calendar'
+      path: '/student/calendar'
+      fullPath: '/student/calendar'
+      preLoaderRoute: typeof DashboardStudentCalendarRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/admin/users': {
@@ -958,9 +998,11 @@ interface DashboardRouteChildren {
   DashboardAdminSubjectsRoute: typeof DashboardAdminSubjectsRoute
   DashboardAdminTutoringRoute: typeof DashboardAdminTutoringRoute
   DashboardAdminUsersRoute: typeof DashboardAdminUsersRoute
+  DashboardStudentCalendarRoute: typeof DashboardStudentCalendarRoute
   DashboardStudentDashboardRoute: typeof DashboardStudentDashboardRoute
   DashboardStudentPaymentsRoute: typeof DashboardStudentPaymentsRoute
   DashboardStudentTutoringRoute: typeof DashboardStudentTutoringRouteWithChildren
+  DashboardTeacherCalendarRoute: typeof DashboardTeacherCalendarRoute
   DashboardTeacherDashboardRoute: typeof DashboardTeacherDashboardRoute
   DashboardTeacherTutoringRoute: typeof DashboardTeacherTutoringRoute
   DashboardUserDashboardRoute: typeof DashboardUserDashboardRoute
@@ -998,9 +1040,11 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminSubjectsRoute: DashboardAdminSubjectsRoute,
   DashboardAdminTutoringRoute: DashboardAdminTutoringRoute,
   DashboardAdminUsersRoute: DashboardAdminUsersRoute,
+  DashboardStudentCalendarRoute: DashboardStudentCalendarRoute,
   DashboardStudentDashboardRoute: DashboardStudentDashboardRoute,
   DashboardStudentPaymentsRoute: DashboardStudentPaymentsRoute,
   DashboardStudentTutoringRoute: DashboardStudentTutoringRouteWithChildren,
+  DashboardTeacherCalendarRoute: DashboardTeacherCalendarRoute,
   DashboardTeacherDashboardRoute: DashboardTeacherDashboardRoute,
   DashboardTeacherTutoringRoute: DashboardTeacherTutoringRoute,
   DashboardUserDashboardRoute: DashboardUserDashboardRoute,

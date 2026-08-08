@@ -793,9 +793,15 @@ definitions:
         type: string
       id:
         type: integer
+      mode:
+        type: string
+      note:
+        type: string
       start_time:
         type: string
       status:
+        type: string
+      student_name:
         type: string
       teacher_name:
         type: string
@@ -3234,7 +3240,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan jadwal pertemuan (muncul setelah invoice lunas)
+      description: 'Jadwal pertemuan. Guru: semua sesi dari booking-nya. Murid: sesi
+        setelah invoice lunas.'
       produces:
       - application/json
       responses:

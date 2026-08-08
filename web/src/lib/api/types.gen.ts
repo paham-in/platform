@@ -514,8 +514,11 @@ export type TutoringTutoringSessionResponse = {
     date?: string;
     end_time?: string;
     id?: number;
+    mode?: string;
+    note?: string;
     start_time?: string;
     status?: string;
+    student_name?: string;
     teacher_name?: string;
 };
 
