@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -17,8 +17,6 @@ import {
   getAdminClassesQueryKey,
   patchAdminClassesByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { ClassClassResponse } from "@/lib/api/types.gen"
-
 const fmtRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`
 
 function AdminSettings() {
@@ -65,24 +63,39 @@ function AdminSettings() {
 
   const saveClass = useMutation({
     ...patchAdminClassesByIdMutation(),
-    onSuccess: () => {
-      toast.success("Harga kelas diperbarui")
-      qc.invalidateQueries({ queryKey: getAdminClassesQueryKey() })
-    },
-    onError: (err: any) => toast.error(err?.error || "Gagal mengubah harga kelas"),
   })
 
-  const handleSaveClass = (cls: ClassClassResponse) => {
-    const row = classPrices[cls.id!]
-    if (!row) return
-    saveClass.mutate({
-      path: { id: cls.id! },
-      body: {
-        name: cls.name,
-        price_per_session: row.private === "" ? undefined : Number(row.private),
-        semi_private_price: row.semi === "" ? undefined : Number(row.semi),
-      },
-    })
+  // kelas yang harganya beda dari nilai server → yang perlu disimpan
+  const dirtyClasses = classes.filter((c) => {
+    const row = classPrices[c.id!]
+    if (!row) return false
+    return (
+      row.private !== (c.price_per_session?.toString() ?? "") ||
+      row.semi !== (c.semi_private_price?.toString() ?? "")
+    )
+  })
+
+  const handleSaveAll = async () => {
+    if (dirtyClasses.length === 0) return
+    try {
+      await Promise.all(
+        dirtyClasses.map((cls) => {
+          const row = classPrices[cls.id!]
+          return saveClass.mutateAsync({
+            path: { id: cls.id! },
+            body: {
+              name: cls.name,
+              price_per_session: row.private === "" ? undefined : Number(row.private),
+              semi_private_price: row.semi === "" ? undefined : Number(row.semi),
+            },
+          })
+        })
+      )
+      toast.success("Harga kelas diperbarui")
+      qc.invalidateQueries({ queryKey: getAdminClassesQueryKey() })
+    } catch (err: any) {
+      toast.error(err?.error || "Gagal mengubah harga kelas")
+    }
   }
 
   const isLoading = settingsLoading
@@ -129,42 +142,44 @@ function AdminSettings() {
                     <span className="text-sm text-muted-foreground">%</span>
                   </div>
                 </div>
-                <Button onClick={() => saveSettings.mutate({ body: { teacher_fee_percent: fee } })} disabled={saveSettings.isPending}>
-                  {saveSettings.isPending ? <Spinner /> : "Simpan"}
-                </Button>
               </div>
             )}
           </CardContent>
+          <CardFooter>
+            <div className="flex w-full items-center justify-end">
+              <Button onClick={() => saveSettings.mutate({ body: { teacher_fee_percent: fee } })} disabled={saveSettings.isPending}>
+                {saveSettings.isPending ? <Spinner /> : "Simpan"}
+              </Button>
+            </div>
+          </CardFooter>
         </Card>
 
         {/* Harga per Kelas */}
-        <Card className="gap-0 pb-0 pt-0">
+        <Card>
           <CardHeader>
             <CardTitle>Harga per Kelas</CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="px-0">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
-                  <TableHead className="pl-6">Kelas</TableHead>
+                  <TableHead className="pl-(--card-spacing)">Kelas</TableHead>
                   <TableHead>Private (Rp)</TableHead>
-                  <TableHead>Semi Private (Rp)</TableHead>
-                  <TableHead className="pr-6 text-right">Aksi</TableHead>
+                  <TableHead className="pr-(--card-spacing)">Semi Private (Rp)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {classesLoading ? (
                   Array.from({ length: 3 }).map((_, i) => (
                     <TableRow key={`skeleton-${i}`}>
-                      <TableCell className="pl-6"><Skeleton className="h-4 w-28" /></TableCell>
+                      <TableCell className="pl-(--card-spacing)"><Skeleton className="h-4 w-28" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-28" /></TableCell>
-                      <TableCell className="pr-6 text-right"><Skeleton className="ml-auto h-8 w-20" /></TableCell>
+                      <TableCell className="pr-(--card-spacing)"><Skeleton className="h-8 w-28" /></TableCell>
                     </TableRow>
                   ))
                 ) : classes.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="p-8 text-center text-muted-foreground">
+                    <TableCell colSpan={3} className="py-8 text-center text-muted-foreground">
                       Belum ada kelas.
                     </TableCell>
                   </TableRow>
@@ -173,50 +188,44 @@ function AdminSettings() {
                     const row = classPrices[cls.id!]
                     return (
                       <TableRow key={cls.id}>
-                        <TableCell className="pl-6 font-medium">{cls.name}</TableCell>
+                        <TableCell className="font-medium pl-(--card-spacing)">{cls.name}</TableCell>
                         <TableCell>
-                          <Input
-                            type="number"
-                            min="0"
-                            className="h-8 w-32"
-                            value={row?.private ?? ""}
-                            onChange={(e) =>
-                              setClassPrices((prev) => ({
-                                ...prev,
-                                [cls.id!]: { private: e.target.value, semi: prev[cls.id!]?.semi ?? "" },
-                              }))
-                            }
-                          />
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Fee guru: {fmtRp(teacherFee(row?.private ?? ""))}
-                          </p>
+                          <div className="space-y-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              className="h-8 w-32"
+                              value={row?.private ?? ""}
+                              onChange={(e) =>
+                                setClassPrices((prev) => ({
+                                  ...prev,
+                                  [cls.id!]: { private: e.target.value, semi: prev[cls.id!]?.semi ?? "" },
+                                }))
+                              }
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Fee guru: {fmtRp(teacherFee(row?.private ?? ""))}
+                            </p>
+                          </div>
                         </TableCell>
                         <TableCell>
-                          <Input
-                            type="number"
-                            min="0"
-                            className="h-8 w-32"
-                            value={row?.semi ?? ""}
-                            onChange={(e) =>
-                              setClassPrices((prev) => ({
-                                ...prev,
-                                [cls.id!]: { private: prev[cls.id!]?.private ?? "", semi: e.target.value },
-                              }))
-                            }
-                          />
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Fee guru: {fmtRp(teacherFee(row?.semi ?? ""))}
-                          </p>
-                        </TableCell>
-                        <TableCell className="pr-6 text-right">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleSaveClass(cls)}
-                            disabled={saveClass.isPending || !row}
-                          >
-                            Simpan
-                          </Button>
+                          <div className="space-y-1">
+                            <Input
+                              type="number"
+                              min="0"
+                              className="h-8 w-32"
+                              value={row?.semi ?? ""}
+                              onChange={(e) =>
+                                setClassPrices((prev) => ({
+                                  ...prev,
+                                  [cls.id!]: { private: prev[cls.id!]?.private ?? "", semi: e.target.value },
+                                }))
+                              }
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Fee guru: {fmtRp(teacherFee(row?.semi ?? ""))}
+                            </p>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )
@@ -224,10 +233,20 @@ function AdminSettings() {
                 )}
               </TableBody>
             </Table>
-            <p className="p-4 text-xs text-muted-foreground">
-              Kosongkan bila belum ditentukan.
-            </p>
           </CardContent>
+          <CardFooter>
+            <div className="flex w-full items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Kosongkan bila belum ditentukan.
+              </p>
+              <Button
+                onClick={handleSaveAll}
+                disabled={saveClass.isPending || dirtyClasses.length === 0}
+              >
+                {saveClass.isPending ? <Spinner /> : "Simpan"}
+              </Button>
+            </div>
+          </CardFooter>
         </Card>
       </div>
     </main>
