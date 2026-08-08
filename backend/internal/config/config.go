@@ -30,6 +30,7 @@ type Config struct {
 	MinioBucket        string
 	MinioUseSSL        bool
 	TeacherFeePercent  float64
+	EvidenceRetentionDays int
 }
 
 func Load() *Config {
@@ -58,6 +59,7 @@ func Load() *Config {
 		MinioBucket:        getEnv("MINIO_BUCKET", "bimbel"),
 		MinioUseSSL:        false,
 		TeacherFeePercent:  getEnvFloat("TEACHER_FEE_PERCENT", 70),
+		EvidenceRetentionDays: getEnvInt("EVIDENCE_RETENTION_DAYS", 7),
 	}
 }
 
@@ -65,6 +67,15 @@ func getEnvFloat(key string, fallback float64) float64 {
 	if v := os.Getenv(key); v != "" {
 		if f, err := strconv.ParseFloat(v, 64); err == nil {
 			return f
+		}
+	}
+	return fallback
+}
+
+func getEnvInt(key string, fallback int) int {
+	if v := os.Getenv(key); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			return n
 		}
 	}
 	return fallback

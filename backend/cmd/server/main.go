@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -121,6 +122,9 @@ func main() {
 	// background job: hapus sesi yang sudah kedaluwarsa setiap 1 jam
 	startSessionCleanup(db)
 
+	// background job: hapus bukti kehadiran approved yang melewati masa simpan
+	startEvidenceCleanup(db, minioClient, cfg.EvidenceRetentionDays)
+
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)
 	log.Fatal(app.Listen(":" + port))
@@ -147,6 +151,46 @@ func cleanupExpiredSessions(repo *user.SessionRepository) {
 	}
 	if deleted > 0 {
 		log.Printf("[session-cleanup] %d sesi kedaluwarsa dihapus", deleted)
+	}
+}
+
+// startEvidenceCleanup menghapus bukti kehadiran approved yang melewati
+// masa simpan (retentionDays) dari MinIO. Fire pertama saat tengah malam
+// berikutnya, lalu tiap 24 jam.
+func startEvidenceCleanup(db *gorm.DB, minioClient *storage.MinioClient, retentionDays int) {
+	if minioClient == nil {
+		log.Println("[evidence-cleanup] MinIO tidak tersedia — cleanup dilewati")
+		return
+	}
+	repo := tutoring.NewRepository(db)
+	go func() {
+		now := time.Now()
+		next := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, 1)
+		time.Sleep(time.Until(next))
+		for {
+			cleanupApprovedEvidence(repo, minioClient, retentionDays)
+			time.Sleep(24 * time.Hour)
+		}
+	}()
+}
+
+func cleanupApprovedEvidence(repo *tutoring.Repository, minioClient *storage.MinioClient, retentionDays int) {
+	cutoff := time.Now().AddDate(0, 0, -retentionDays)
+	sessions, err := repo.ListApprovedEvidenceOlderThan(cutoff)
+	if err != nil {
+		log.Printf("[evidence-cleanup] gagal query: %v", err)
+		return
+	}
+	for _, s := range sessions {
+		if err := minioClient.Delete(context.Background(), s.EvidenceURL); err != nil {
+			log.Printf("[evidence-cleanup] gagal hapus %s: %v", s.EvidenceURL, err)
+			continue
+		}
+		if err := repo.ClearSessionEvidence(s.ID); err != nil {
+			log.Printf("[evidence-cleanup] gagal kosongkan evidence sesi %d: %v", s.ID, err)
+			continue
+		}
+		log.Printf("[evidence-cleanup] bukti sesi %d dihapus", s.ID)
 	}
 }
 

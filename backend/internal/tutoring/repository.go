@@ -2,6 +2,7 @@ package tutoring
 
 import (
 	"errors"
+	"time"
 
 	"bimbel2/backend/internal/models"
 
@@ -198,6 +199,23 @@ func (r *Repository) ListAllBookingsWithSessions() ([]models.Booking, error) {
 		return nil, err
 	}
 	return bookings, nil
+}
+
+// ListApprovedEvidenceOlderThan mengembalikan sesi done dengan bukti yg
+// terakhir diupdate sebelum cutoff (utk dihapus dari MinIO).
+func (r *Repository) ListApprovedEvidenceOlderThan(cutoff time.Time) ([]models.TutoringSession, error) {
+	var sessions []models.TutoringSession
+	if err := r.db.
+		Where("status = ? AND evidence_url <> '' AND updated_at < ?", "done", cutoff).
+		Find(&sessions).Error; err != nil {
+		return nil, err
+	}
+	return sessions, nil
+}
+
+// ClearSessionEvidence mengosongkan kolom evidence_url sesi.
+func (r *Repository) ClearSessionEvidence(id uint) error {
+	return r.db.Model(&models.TutoringSession{}).Where("id = ?", id).Update("evidence_url", "").Error
 }
 
 // ToggleSessionFeePaid membalik status fee_paid sebuah sesi.
