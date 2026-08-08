@@ -16,8 +16,6 @@ import { id } from "date-fns/locale"
 import { useState } from "react"
 import { toast } from "sonner"
 
-const DEFAULT_PRICE = 30000
-
 const bookTeacherSearchSchema = z.object({
   mode: z.enum(["private", "semi_private"]).optional(),
   count: z.coerce.number().int().min(1).max(52).optional(),
@@ -35,7 +33,7 @@ function BookTeacher() {
   const [mode, setMode] = useState<"private" | "semi_private">(modeParam ?? "private")
   const [sessionCount, setSessionCount] = useState(countParam ?? 1)
   const myClass = classes.find((c) => c.id === me?.class_id)
-  const pricePerSession = mode === "semi_private" ? (myClass?.semi_private_price || DEFAULT_PRICE) : (myClass?.price_per_session || DEFAULT_PRICE)
+  const pricePerSession = mode === "semi_private" ? (myClass?.semi_private_price ?? 0) : (myClass?.price_per_session ?? 0)
   const [selectedSlot, setSelectedSlot] = useState<{ day: number; start: string; end: string } | null>(null)
   const [date, setDate] = useState("")
   const [note, setNote] = useState("")

@@ -87,6 +87,7 @@ const sidebarGroups = [
       { label: "Bukti Kehadiran", icon: Camera, to: "/admin/attendance" },
       { label: "Rekap Les", icon: ClipboardList, to: "/admin/tutoring-report" },
       { label: "Fee Guru", icon: Wallet, to: "/admin/teacher-fees" },
+      { label: "Pengaturan", icon: Settings, to: "/admin/settings" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
     ],
   },

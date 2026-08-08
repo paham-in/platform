@@ -21,6 +21,7 @@ import (
 	"bimbel2/backend/internal/questionbank"
 	"bimbel2/backend/internal/questionpackage"
 	"bimbel2/backend/internal/program"
+	"bimbel2/backend/internal/setting"
 	"bimbel2/backend/internal/storage"
 	"bimbel2/backend/internal/studentclass"
 	"bimbel2/backend/internal/subject"
@@ -51,6 +52,11 @@ func main() {
 	db := database.Connect(cfg)
 	database.Migrate(db)
 	seedAdmin(db, cfg)
+
+	// konfigurasi bisnis (fee guru, harga default) tersimpan di DB, admin bisa
+	// ubah lewat UI. Env TEACHER_FEE_PERCENT cuma dipakai sekali saat seed.
+	settingSvc := setting.NewService(setting.NewRepository(db), cfg.TeacherFeePercent)
+	settingSvc.EnsureDefaults()
 
 	minioClient, err := storage.NewMinioClient(cfg)
 	if err != nil {
@@ -89,7 +95,7 @@ func main() {
 	material.PublicRoutes(auth, db)
 	questionpackage.AuthRoutes(auth, db)
 	studentclass.AuthRoutes(auth, db)
-		tutoring.Routes(auth, db, minioClient, cfg.TeacherFeePercent)
+		tutoring.Routes(auth, db, minioClient, settingSvc)
 	pushSvc := push.NewService(db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
 	push.Routes(auth, db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
 	answer.AuthRoutes(auth, db, pushSvc)
@@ -117,7 +123,8 @@ func main() {
 	invoice.AdminRoutes(admin, db)
 	program.AdminRoutes(admin, db)
 	studentclass.AdminRoutes(admin, db)
-	tutoring.AdminRoutes(admin, db, minioClient, cfg.TeacherFeePercent)
+	setting.AdminRoutes(admin, db, cfg.TeacherFeePercent)
+	tutoring.AdminRoutes(admin, db, minioClient, settingSvc)
 
 	// background job: hapus sesi yang sudah kedaluwarsa setiap 1 jam
 	startSessionCleanup(db)

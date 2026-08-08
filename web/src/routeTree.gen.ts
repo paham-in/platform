@@ -30,6 +30,7 @@ import { Route as DashboardAdminTutoringRouteImport } from './routes/_dashboard/
 import { Route as DashboardAdminTeacherFeesRouteImport } from './routes/_dashboard/admin/teacher-fees'
 import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard/admin/subjects'
 import { Route as DashboardAdminStudentClassesRouteImport } from './routes/_dashboard/admin/student-classes'
+import { Route as DashboardAdminSettingsRouteImport } from './routes/_dashboard/admin/settings'
 import { Route as DashboardAdminProgramsRouteImport } from './routes/_dashboard/admin/programs'
 import { Route as DashboardAdminDashboardRouteImport } from './routes/_dashboard/admin/dashboard'
 import { Route as DashboardAdminAttendanceRouteImport } from './routes/_dashboard/admin/attendance'
@@ -174,6 +175,11 @@ const DashboardAdminStudentClassesRoute =
     path: '/admin/student-classes',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardAdminSettingsRoute = DashboardAdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAdminProgramsRoute = DashboardAdminProgramsRouteImport.update({
   id: '/admin/programs',
   path: '/admin/programs',
@@ -352,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/admin/attendance': typeof DashboardAdminAttendanceRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/admin/programs': typeof DashboardAdminProgramsRoute
+  '/admin/settings': typeof DashboardAdminSettingsRoute
   '/admin/student-classes': typeof DashboardAdminStudentClassesRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/teacher-fees': typeof DashboardAdminTeacherFeesRoute
@@ -403,6 +410,7 @@ export interface FileRoutesByTo {
   '/admin/attendance': typeof DashboardAdminAttendanceRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/admin/programs': typeof DashboardAdminProgramsRoute
+  '/admin/settings': typeof DashboardAdminSettingsRoute
   '/admin/student-classes': typeof DashboardAdminStudentClassesRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/teacher-fees': typeof DashboardAdminTeacherFeesRoute
@@ -455,6 +463,7 @@ export interface FileRoutesById {
   '/_dashboard/admin/attendance': typeof DashboardAdminAttendanceRoute
   '/_dashboard/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/_dashboard/admin/programs': typeof DashboardAdminProgramsRoute
+  '/_dashboard/admin/settings': typeof DashboardAdminSettingsRoute
   '/_dashboard/admin/student-classes': typeof DashboardAdminStudentClassesRoute
   '/_dashboard/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/_dashboard/admin/teacher-fees': typeof DashboardAdminTeacherFeesRoute
@@ -508,6 +517,7 @@ export interface FileRouteTypes {
     | '/admin/attendance'
     | '/admin/dashboard'
     | '/admin/programs'
+    | '/admin/settings'
     | '/admin/student-classes'
     | '/admin/subjects'
     | '/admin/teacher-fees'
@@ -559,6 +569,7 @@ export interface FileRouteTypes {
     | '/admin/attendance'
     | '/admin/dashboard'
     | '/admin/programs'
+    | '/admin/settings'
     | '/admin/student-classes'
     | '/admin/subjects'
     | '/admin/teacher-fees'
@@ -610,6 +621,7 @@ export interface FileRouteTypes {
     | '/_dashboard/admin/attendance'
     | '/_dashboard/admin/dashboard'
     | '/_dashboard/admin/programs'
+    | '/_dashboard/admin/settings'
     | '/_dashboard/admin/student-classes'
     | '/_dashboard/admin/subjects'
     | '/_dashboard/admin/teacher-fees'
@@ -808,6 +820,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/student-classes'
       fullPath: '/admin/student-classes'
       preLoaderRoute: typeof DashboardAdminStudentClassesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/settings': {
+      id: '/_dashboard/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof DashboardAdminSettingsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/admin/programs': {
@@ -1055,6 +1074,7 @@ interface DashboardRouteChildren {
   DashboardAdminAttendanceRoute: typeof DashboardAdminAttendanceRoute
   DashboardAdminDashboardRoute: typeof DashboardAdminDashboardRoute
   DashboardAdminProgramsRoute: typeof DashboardAdminProgramsRoute
+  DashboardAdminSettingsRoute: typeof DashboardAdminSettingsRoute
   DashboardAdminStudentClassesRoute: typeof DashboardAdminStudentClassesRoute
   DashboardAdminSubjectsRoute: typeof DashboardAdminSubjectsRoute
   DashboardAdminTeacherFeesRoute: typeof DashboardAdminTeacherFeesRoute
@@ -1100,6 +1120,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminAttendanceRoute: DashboardAdminAttendanceRoute,
   DashboardAdminDashboardRoute: DashboardAdminDashboardRoute,
   DashboardAdminProgramsRoute: DashboardAdminProgramsRoute,
+  DashboardAdminSettingsRoute: DashboardAdminSettingsRoute,
   DashboardAdminStudentClassesRoute: DashboardAdminStudentClassesRoute,
   DashboardAdminSubjectsRoute: DashboardAdminSubjectsRoute,
   DashboardAdminTeacherFeesRoute: DashboardAdminTeacherFeesRoute,

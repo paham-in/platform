@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"bimbel2/backend/internal/setting"
 	"bimbel2/backend/internal/storage"
 
 	"github.com/disintegration/imaging"
@@ -668,9 +669,9 @@ func (h *Handler) AdminToggleFeePaid(c *fiber.Ctx) error {
 	return c.JSON(session)
 }
 
-func AdminRoutes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClient, feePercent float64) {
+func AdminRoutes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClient, settings *setting.Service) {
 	repo := NewRepository(db)
-	svc := NewService(repo, db, feePercent)
+	svc := NewService(repo, db, settings)
 	h := NewHandler(svc, minioClient)
 
 	admin.Get("/tutoring/bookings", h.AdminListBookings)
@@ -683,9 +684,9 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClie
 	admin.Patch("/tutoring/fees/:id", h.AdminToggleFeePaid)
 }
 
-func Routes(auth fiber.Router, db *gorm.DB, minioClient *storage.MinioClient, feePercent float64) {
+func Routes(auth fiber.Router, db *gorm.DB, minioClient *storage.MinioClient, settings *setting.Service) {
 	repo := NewRepository(db)
-	svc := NewService(repo, db, feePercent)
+	svc := NewService(repo, db, settings)
 	h := NewHandler(svc, minioClient)
 
 	auth.Get("/tutoring/teachers", h.ListTeachers)

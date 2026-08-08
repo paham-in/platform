@@ -338,6 +338,10 @@ export type QuestionpackageUpdateInput = {
     name?: string;
 };
 
+export type SettingErrorResponse = {
+    error?: string;
+};
+
 export type StudentclassClassRef = {
     id?: number;
     name?: string;
@@ -1631,6 +1635,56 @@ export type DeleteAdminQuestionsByIdResponses = {
 };
 
 export type DeleteAdminQuestionsByIdResponse = DeleteAdminQuestionsByIdResponses[keyof DeleteAdminQuestionsByIdResponses];
+
+export type GetAdminSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/settings';
+};
+
+export type GetAdminSettingsResponses = {
+    /**
+     * OK
+     */
+    200: {
+        [key: string]: string;
+    };
+};
+
+export type GetAdminSettingsResponse = GetAdminSettingsResponses[keyof GetAdminSettingsResponses];
+
+export type PatchAdminSettingsData = {
+    /**
+     * Data settings
+     */
+    body: {
+        [key: string]: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/admin/settings';
+};
+
+export type PatchAdminSettingsErrors = {
+    /**
+     * Bad Request
+     */
+    400: SettingErrorResponse;
+};
+
+export type PatchAdminSettingsError = PatchAdminSettingsErrors[keyof PatchAdminSettingsErrors];
+
+export type PatchAdminSettingsResponses = {
+    /**
+     * OK
+     */
+    200: {
+        [key: string]: string;
+    };
+};
+
+export type PatchAdminSettingsResponse = PatchAdminSettingsResponses[keyof PatchAdminSettingsResponses];
 
 export type GetAdminStudentClassesData = {
     body?: never;

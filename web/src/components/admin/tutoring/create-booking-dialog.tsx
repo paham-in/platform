@@ -29,8 +29,6 @@ import {
   getAdminClassesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 
-const DEFAULT_PRICE = 30000
-
 interface CreateBookingDialogProps {
   onClose: () => void
 }
@@ -65,7 +63,7 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
   })
 
   const studentClass = classes.find((c) => c.id === student?.class_id)
-  const pricePerSession = studentClass?.price_per_session || DEFAULT_PRICE
+  const pricePerSession = studentClass?.price_per_session ?? 0
 
   const canSubmit = student && teacher && selectedSlot && date && !isPending
   const save = () => {

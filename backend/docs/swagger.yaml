@@ -524,6 +524,11 @@ definitions:
       name:
         type: string
     type: object
+  setting.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
   studentclass.ClassRef:
     properties:
       id:
@@ -1967,6 +1972,54 @@ paths:
       summary: Admin list questions
       tags:
       - Admin
+      - Admin
+  /admin/settings:
+    get:
+      description: Mengambil semua konfigurasi aplikasi (admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get app settings
+      tags:
+      - Admin
+    patch:
+      consumes:
+      - application/json
+      description: Menyimpan konfigurasi aplikasi (admin only)
+      parameters:
+      - description: Data settings
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/setting.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update app settings
+      tags:
       - Admin
   /admin/student-classes:
     get:

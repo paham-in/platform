@@ -8,15 +8,12 @@ import (
 	"time"
 
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/setting"
 
 	"gorm.io/gorm"
 )
 
 const maxGroupSlots = 5
-
-// defaultPrice = fallback biaya per pertemuan les privat ketika kelas
-// murid tidak punya harga / class_id kosong (data lama).
-const defaultPrice = 30000.0
 
 type AvailabilityResponse struct {
 	ID        uint   `json:"id"`
@@ -86,18 +83,18 @@ type SubjectInfo struct {
 }
 
 type Service struct {
-	repo       *Repository
-	db         *gorm.DB
-	feePercent float64
+	repo     *Repository
+	db       *gorm.DB
+	settings *setting.Service
 }
 
-func NewService(repo *Repository, db *gorm.DB, feePercent float64) *Service {
-	return &Service{repo: repo, db: db, feePercent: feePercent}
+func NewService(repo *Repository, db *gorm.DB, settings *setting.Service) *Service {
+	return &Service{repo: repo, db: db, settings: settings}
 }
 
 // sessionFee menghitung fee guru utk satu sesi: persentase dari harga sesi.
 func (s *Service) sessionFee(price float64) float64 {
-	return price * s.feePercent / 100
+	return price * s.settings.TeacherFeePercent() / 100
 }
 
 func (s *Service) ListAvailability(teacherID uint) ([]AvailabilityResponse, error) {
@@ -505,7 +502,7 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Booki
 }
 
 // getClassPrices mengembalikan harga les privat per kelas.
-// Kelas tidak ditemukan / belum diisi harga → 0 (fallback defaultPrice).
+// Kelas tidak ditemukan / belum diisi harga → 0.
 func (s *Service) getClassPrices(classID *uint) (price, semiPrice float64) {
 	if classID == nil {
 		return 0, 0
@@ -515,6 +512,16 @@ func (s *Service) getClassPrices(classID *uint) (price, semiPrice float64) {
 		return 0, 0
 	}
 	return class.PricePerSession, class.SemiPrivatePrice
+}
+
+// perSessionPrice menghitung harga per pertemuan utk mode tertentu.
+// Admin diharapkan mengisi harga tiap kelas; kelas tanpa harga → 0.
+func (s *Service) perSessionPrice(classID *uint, mode string) float64 {
+	price, semiPrice := s.getClassPrices(classID)
+	if mode == "semi_private" {
+		return semiPrice
+	}
+	return price
 }
 
 // createSessionsAndInvoice membuat sesi pertemuan mingguan + invoice pembayaran.
@@ -549,14 +556,7 @@ func (s *Service) createSessionsAndInvoice(booking models.Booking) error {
 	if booking.Mode == "semi_private" {
 		modeLabel = "semi-private"
 	}
-	price, semiPrice := s.getClassPrices(booking.ClassID)
-	perSession := price
-	if booking.Mode == "semi_private" {
-		perSession = semiPrice
-	}
-	if perSession <= 0 {
-		perSession = defaultPrice
-	}
+	perSession := s.perSessionPrice(booking.ClassID, booking.Mode)
 	invoice := models.Invoice{
 		UserID:    booking.StudentID,
 		Amount:    perSession * float64(booking.SessionCount),
@@ -849,14 +849,7 @@ func (s *Service) ListAdminSessionReport() ([]AdminBookingReport, error) {
 	}
 	reports := make([]AdminBookingReport, 0, len(bookings))
 	for _, b := range bookings {
-		price, semiPrice := s.getClassPrices(b.ClassID)
-		perSession := price
-		if b.Mode == "semi_private" {
-			perSession = semiPrice
-		}
-		if perSession <= 0 {
-			perSession = defaultPrice
-		}
+		perSession := s.perSessionPrice(b.ClassID, b.Mode)
 		rep := AdminBookingReport{
 			BookingID:       b.ID,
 			Mode:            b.Mode,
@@ -907,14 +900,7 @@ func (s *Service) ListTeacherFeeSessions() ([]TutoringSessionResponse, error) {
 			continue
 		}
 		res := toSessionResponses([]models.TutoringSession{v})[0]
-		price, semiPrice := s.getClassPrices(v.Booking.ClassID)
-		perSession := price
-		if v.Booking.Mode == "semi_private" {
-			perSession = semiPrice
-		}
-		if perSession <= 0 {
-			perSession = defaultPrice
-		}
+		perSession := s.perSessionPrice(v.Booking.ClassID, v.Booking.Mode)
 		res.FeeAmount = s.sessionFee(perSession)
 		result = append(result, res)
 	}
@@ -953,14 +939,7 @@ func (s *Service) ListTeacherEarnings(teacherID uint) (*TeacherEarningsResponse,
 		if v.Status != "done" || v.Booking == nil {
 			continue
 		}
-		price, semiPrice := s.getClassPrices(v.Booking.ClassID)
-		perSession := price
-		if v.Booking.Mode == "semi_private" {
-			perSession = semiPrice
-		}
-		if perSession <= 0 {
-			perSession = defaultPrice
-		}
+		perSession := s.perSessionPrice(v.Booking.ClassID, v.Booking.Mode)
 		fee := s.sessionFee(perSession)
 		sv := toSessionResponses([]models.TutoringSession{v})[0]
 		sv.FeeAmount = fee
