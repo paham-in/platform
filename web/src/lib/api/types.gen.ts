@@ -496,6 +496,19 @@ export type TutoringMessageResponse = {
     message?: string;
 };
 
+export type TutoringRescheduleSessionInput = {
+    date?: string;
+    end_time?: string;
+    start_time?: string;
+};
+
+export type TutoringReviewEvidenceInput = {
+    /**
+     * approve/reject
+     */
+    action?: string;
+};
+
 export type TutoringSubjectInfo = {
     id?: number;
     name?: string;
@@ -513,6 +526,7 @@ export type TutoringTutoringSessionResponse = {
     booking_id?: number;
     date?: string;
     end_time?: string;
+    evidence_url?: string;
     id?: number;
     mode?: string;
     note?: string;
@@ -1959,6 +1973,60 @@ export type PostAdminTutoringBookingsResponses = {
 
 export type PostAdminTutoringBookingsResponse = PostAdminTutoringBookingsResponses[keyof PostAdminTutoringBookingsResponses];
 
+export type GetAdminTutoringEvidenceData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Filter status: review atau done
+         */
+        status?: string;
+    };
+    url: '/admin/tutoring/evidence';
+};
+
+export type GetAdminTutoringEvidenceResponses = {
+    /**
+     * OK
+     */
+    200: Array<TutoringTutoringSessionResponse>;
+};
+
+export type GetAdminTutoringEvidenceResponse = GetAdminTutoringEvidenceResponses[keyof GetAdminTutoringEvidenceResponses];
+
+export type PatchAdminTutoringEvidenceByIdData = {
+    /**
+     * Aksi: approve atau reject
+     */
+    body: TutoringReviewEvidenceInput;
+    path: {
+        /**
+         * Session ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/tutoring/evidence/{id}';
+};
+
+export type PatchAdminTutoringEvidenceByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PatchAdminTutoringEvidenceByIdError = PatchAdminTutoringEvidenceByIdErrors[keyof PatchAdminTutoringEvidenceByIdErrors];
+
+export type PatchAdminTutoringEvidenceByIdResponses = {
+    /**
+     * OK
+     */
+    200: TutoringTutoringSessionResponse;
+};
+
+export type PatchAdminTutoringEvidenceByIdResponse = PatchAdminTutoringEvidenceByIdResponses[keyof PatchAdminTutoringEvidenceByIdResponses];
+
 export type GetAdminUsersData = {
     body?: never;
     path?: never;
@@ -2952,6 +3020,104 @@ export type GetTutoringSessionsResponses = {
 };
 
 export type GetTutoringSessionsResponse = GetTutoringSessionsResponses[keyof GetTutoringSessionsResponses];
+
+export type PatchTutoringSessionsByIdData = {
+    /**
+     * Jadwal baru
+     */
+    body: TutoringRescheduleSessionInput;
+    path: {
+        /**
+         * Session ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/tutoring/sessions/{id}';
+};
+
+export type PatchTutoringSessionsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PatchTutoringSessionsByIdError = PatchTutoringSessionsByIdErrors[keyof PatchTutoringSessionsByIdErrors];
+
+export type PatchTutoringSessionsByIdResponses = {
+    /**
+     * OK
+     */
+    200: TutoringTutoringSessionResponse;
+};
+
+export type PatchTutoringSessionsByIdResponse = PatchTutoringSessionsByIdResponses[keyof PatchTutoringSessionsByIdResponses];
+
+export type PostTutoringSessionsByIdCancelData = {
+    body?: never;
+    path: {
+        /**
+         * Session ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/tutoring/sessions/{id}/cancel';
+};
+
+export type PostTutoringSessionsByIdCancelErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PostTutoringSessionsByIdCancelError = PostTutoringSessionsByIdCancelErrors[keyof PostTutoringSessionsByIdCancelErrors];
+
+export type PostTutoringSessionsByIdCancelResponses = {
+    /**
+     * OK
+     */
+    200: TutoringTutoringSessionResponse;
+};
+
+export type PostTutoringSessionsByIdCancelResponse = PostTutoringSessionsByIdCancelResponses[keyof PostTutoringSessionsByIdCancelResponses];
+
+export type PostTutoringSessionsByIdEvidenceData = {
+    body: {
+        /**
+         * Foto bukti
+         */
+        image: Blob | File;
+    };
+    path: {
+        /**
+         * Session ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/tutoring/sessions/{id}/evidence';
+};
+
+export type PostTutoringSessionsByIdEvidenceErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PostTutoringSessionsByIdEvidenceError = PostTutoringSessionsByIdEvidenceErrors[keyof PostTutoringSessionsByIdEvidenceErrors];
+
+export type PostTutoringSessionsByIdEvidenceResponses = {
+    /**
+     * OK
+     */
+    200: TutoringTutoringSessionResponse;
+};
+
+export type PostTutoringSessionsByIdEvidenceResponse = PostTutoringSessionsByIdEvidenceResponses[keyof PostTutoringSessionsByIdEvidenceResponses];
 
 export type GetTutoringTeachersData = {
     body?: never;

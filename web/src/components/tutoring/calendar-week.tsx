@@ -1,9 +1,11 @@
 import { addDays, addWeeks, format, isSameDay, parseISO, startOfWeek } from "date-fns"
 import { id } from "date-fns/locale"
-import { useEffect, useState } from "react"
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Calendar as CalendarIcon, CalendarClock, ChevronLeft, ChevronRight, Clock, Upload, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
 export type CalendarEvent = {
@@ -15,6 +17,7 @@ export type CalendarEvent = {
   subtitle?: string // mode: "Private" / "Semi Private"
   note?: string
   status?: string // scheduled/done/cancelled | confirmed/pending/...
+  evidenceUrl?: string // foto bukti kehadiran (presigned URL)
 }
 
 const HOUR_START = 6
@@ -33,6 +36,8 @@ function statusMeta(status?: string) {
       return { label: "Selesai", className: "border-zinc-600 bg-zinc-500 text-white" }
     case "cancelled":
       return { label: "Dibatalkan", className: "border-zinc-500 bg-zinc-400 text-white" }
+    case "review":
+      return { label: "Menunggu Validasi", className: "border-amber-600 bg-amber-500 text-white" }
     case "pending":
       return { label: "Menunggu", className: "border-amber-600 bg-amber-500 text-white" }
     case "confirmed":
@@ -46,13 +51,29 @@ export function CalendarWeek({
   events,
   weekStart,
   onWeekStartChange,
+  onUploadEvidence,
+  onReschedule,
+  onCancelSession,
 }: {
   events: CalendarEvent[]
   weekStart: Date
   onWeekStartChange: (date: Date) => void
+  onUploadEvidence?: (sessionId: number, file: File) => void
+  onReschedule?: (sessionId: number, date: string, start: string, end: string) => void
+  onCancelSession?: (sessionId: number) => void
 }) {
   const [selected, setSelected] = useState<CalendarEvent | null>(null)
   const [now, setNow] = useState(() => new Date())
+  const [uploading, setUploading] = useState(false)
+  const [rescheduleOpen, setRescheduleOpen] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
+  const [reschedDate, setReschedDate] = useState("")
+  const [reschedStart, setReschedStart] = useState("")
+  const [reschedEnd, setReschedEnd] = useState("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const isTeacher = !!onUploadEvidence || !!onReschedule || !!onCancelSession
+  const canAct = selected?.status === "scheduled" && isTeacher
 
   // garis "sekarang" maju tiap menit
   useEffect(() => {
@@ -181,10 +202,61 @@ export function CalendarWeek({
                   </span>
                 </div>
               )}
+              {selected.evidenceUrl && (
+                <div>
+                  <p className="mb-1 text-xs font-medium text-muted-foreground">Bukti kehadiran</p>
+                  <a href={selected.evidenceUrl} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg border">
+                    <img src={selected.evidenceUrl} alt="Foto bukti kehadiran" className="max-h-48 w-full object-cover" />
+                  </a>
+                </div>
+              )}
               {selected.note && (
                 <div className="rounded-lg bg-muted/50 px-3 py-2">
                   <p className="mb-0.5 text-xs font-medium text-muted-foreground">Catatan</p>
                   <p className="whitespace-pre-wrap">{selected.note}</p>
+                </div>
+              )}
+
+              {canAct && (
+                <div className="grid gap-2 border-t pt-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4" /> {uploading ? "Mengunggah…" : "Upload Bukti Kehadiran"}
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0]
+                      e.target.value = ""
+                      if (f && selected) {
+                        setUploading(true)
+                        try {
+                          await onUploadEvidence?.(selected.id, f)
+                          setSelected(null)
+                        } finally {
+                          setUploading(false)
+                        }
+                      }
+                    }}
+                  />
+                  <Button size="sm" variant="outline" onClick={() => {
+                    setReschedDate(selected.date)
+                    setReschedStart(selected.start)
+                    setReschedEnd(selected.end)
+                    setRescheduleOpen(true)
+                  }}>
+                    <CalendarClock className="h-4 w-4" /> Reschedule
+                  </Button>
+                  <Button size="sm" variant="outline" className="text-red-600 hover:text-red-600" onClick={() => setCancelOpen(true)}>
+                    <XCircle className="h-4 w-4" /> Batalkan Sesi
+                  </Button>
                 </div>
               )}
             </div>
@@ -194,6 +266,72 @@ export function CalendarWeek({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Reschedule Sesi</DialogTitle>
+            <DialogDescription>Pindahkan ke jadwal lain. Sampaikan perubahan ke murid via WhatsApp.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 text-sm">
+            <div className="grid gap-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Tanggal</label>
+              <Input type="date" value={reschedDate} min={format(new Date(), "yyyy-MM-dd")} onChange={(e) => setReschedDate(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Mulai</label>
+                <Input type="time" value={reschedStart} onChange={(e) => setReschedStart(e.target.value)} />
+              </div>
+              <div className="grid gap-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Selesai</label>
+                <Input type="time" value={reschedEnd} onChange={(e) => setReschedEnd(e.target.value)} />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRescheduleOpen(false)}>Batal</Button>
+            <Button
+              disabled={!reschedDate || !reschedStart || !reschedEnd}
+              onClick={() => {
+                if (selected) {
+                  onReschedule?.(selected.id, reschedDate, reschedStart, reschedEnd)
+                  setRescheduleOpen(false)
+                  setSelected(null)
+                }
+              }}
+            >
+              Simpan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Batalkan sesi ini?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sesi akan ditandai dibatalkan dan hilang dari kalender aktif. Invoice tidak berubah. Beri tahu murid via WhatsApp.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Kembali</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={() => {
+                if (selected) {
+                  onCancelSession?.(selected.id)
+                  setCancelOpen(false)
+                  setSelected(null)
+                }
+              }}
+            >
+              Ya, batalkan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

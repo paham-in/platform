@@ -12,6 +12,7 @@ import {
 import {
   BookMarked,
   BookOpen,
+  Camera,
   CreditCard,
   Home,
   LayoutDashboard,
@@ -81,6 +82,7 @@ const sidebarGroups = [
       { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects" },
       { label: "Hak Akses Murid", icon: Shield, to: "/admin/student-classes" },
       { label: "Les Privat", icon: Calendar, to: "/admin/tutoring" },
+      { label: "Bukti Kehadiran", icon: Camera, to: "/admin/attendance" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
     ],
   },

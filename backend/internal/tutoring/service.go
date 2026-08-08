@@ -45,16 +45,17 @@ type BookingResponse struct {
 }
 
 type TutoringSessionResponse struct {
-	ID        uint   `json:"id"`
-	BookingID uint   `json:"booking_id"`
-	Date      string `json:"date"`
-	StartTime string `json:"start_time"`
-	EndTime   string `json:"end_time"`
-	Status    string `json:"status"`
-	Teacher   string `json:"teacher_name"`
-	Student   string `json:"student_name"`
-	Mode      string `json:"mode"`
-	Note      string `json:"note"`
+	ID           uint   `json:"id"`
+	BookingID    uint   `json:"booking_id"`
+	Date         string `json:"date"`
+	StartTime    string `json:"start_time"`
+	EndTime      string `json:"end_time"`
+	Status       string `json:"status"`
+	Teacher      string `json:"teacher_name"`
+	Student      string `json:"student_name"`
+	Mode         string `json:"mode"`
+	Note         string `json:"note"`
+	EvidenceURL  string `json:"evidence_url,omitempty"`
 }
 
 type GroupInfoResponse struct {
@@ -613,16 +614,17 @@ func toSessionResponses(sessions []models.TutoringSession) []TutoringSessionResp
 			note = v.Booking.Note
 		}
 		res[i] = TutoringSessionResponse{
-			ID:        v.ID,
-			BookingID: v.BookingID,
-			Date:      v.Date,
-			StartTime: v.StartTime,
-			EndTime:   v.EndTime,
-			Status:    v.Status,
-			Teacher:   teacherName,
-			Student:   studentName,
-			Mode:      mode,
-			Note:      note,
+			ID:          v.ID,
+			BookingID:   v.BookingID,
+			Date:        v.Date,
+			StartTime:   v.StartTime,
+			EndTime:     v.EndTime,
+			Status:      v.Status,
+			Teacher:     teacherName,
+			Student:     studentName,
+			Mode:        mode,
+			Note:        note,
+			EvidenceURL: v.EvidenceURL,
 		}
 	}
 	return res
@@ -634,6 +636,184 @@ func (s *Service) ListMySessions(studentID uint) ([]TutoringSessionResponse, err
 		return nil, err
 	}
 	return toSessionResponses(sessions), nil
+}
+
+const evidenceWindowDays = 7
+
+type RescheduleSessionInput struct {
+	Date      string `json:"date"`
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
+}
+
+type ReviewEvidenceInput struct {
+	Action string `json:"action"` // approve/reject
+}
+
+// getOwnedSession mengambil sesi milik guru dan memastikan guru pemilik booking-nya.
+func (s *Service) getOwnedSession(sessionID, teacherID uint) (*models.TutoringSession, error) {
+	session, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, errors.New("sesi tidak ditemukan")
+	}
+	if session.Booking == nil || session.Booking.TeacherID != teacherID {
+		return nil, errors.New("bukan guru pemilik sesi ini")
+	}
+	return session, nil
+}
+
+// RescheduleSession memindahkan sesi ke waktu lain oleh guru (tanpa approval murid).
+func (s *Service) RescheduleSession(sessionID, teacherID uint, input RescheduleSessionInput) (*TutoringSessionResponse, error) {
+	session, err := s.getOwnedSession(sessionID, teacherID)
+	if err != nil {
+		return nil, err
+	}
+	if session.Status != "scheduled" {
+		return nil, errors.New("hanya sesi terjadwal yang bisa di-reschedule")
+	}
+	if input.Date < time.Now().Format("2006-01-02") {
+		return nil, errors.New("tanggal tidak boleh di masa lalu")
+	}
+	if input.StartTime >= input.EndTime {
+		return nil, errors.New("start_time harus sebelum end_time")
+	}
+	if err := s.validateAvailability(teacherID, input.Date, input.StartTime, input.EndTime); err != nil {
+		return nil, err
+	}
+	conflict, err := s.repo.SessionConflict(teacherID, input.Date, input.StartTime, input.EndTime, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	if conflict {
+		return nil, errors.New("guru sudah memiliki sesi pada jam tersebut")
+	}
+	if err := s.repo.UpdateSession(sessionID, map[string]interface{}{
+		"date":       input.Date,
+		"start_time": input.StartTime,
+		"end_time":   input.EndTime,
+	}); err != nil {
+		return nil, err
+	}
+	updated, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	res := toSessionResponses([]models.TutoringSession{*updated})
+	return &res[0], nil
+}
+
+// CancelSession membatalkan sesi oleh guru (scheduled → cancelled).
+func (s *Service) CancelSession(sessionID, teacherID uint) (*TutoringSessionResponse, error) {
+	session, err := s.getOwnedSession(sessionID, teacherID)
+	if err != nil {
+		return nil, err
+	}
+	if session.Status != "scheduled" {
+		return nil, errors.New("hanya sesi terjadwal yang bisa dibatalkan")
+	}
+	if err := s.repo.UpdateSession(sessionID, map[string]interface{}{"status": "cancelled"}); err != nil {
+		return nil, err
+	}
+	updated, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	res := toSessionResponses([]models.TutoringSession{*updated})
+	return &res[0], nil
+}
+
+// UploadEvidence menyimpan foto bukti kehadiran guru dan menandai sesi "review"
+// (menunggu validasi admin). Jendela upload: mulai jam sesi mulai sampai H+7 setelah sesi berakhir.
+func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (*TutoringSessionResponse, error) {
+	session, err := s.getOwnedSession(sessionID, teacherID)
+	if err != nil {
+		return nil, err
+	}
+	if session.Status != "scheduled" {
+		return nil, errors.New("hanya sesi terjadwal yang bisa diisi bukti kehadiran")
+	}
+	start, err := time.ParseInLocation("2006-01-02 15:04", session.Date+" "+session.StartTime, time.Local)
+	if err != nil {
+		return nil, errors.New("waktu sesi tidak valid")
+	}
+	end, err := time.ParseInLocation("2006-01-02 15:04", session.Date+" "+session.EndTime, time.Local)
+	if err != nil {
+		return nil, errors.New("waktu sesi tidak valid")
+	}
+	now := time.Now()
+	if now.Before(start) {
+		return nil, errors.New("sesi belum dimulai — upload bukti setelah jam mulai")
+	}
+	deadline := end.Add(evidenceWindowDays * 24 * time.Hour)
+	if now.After(deadline) {
+		return nil, errors.New("batas upload bukti sudah lewat (maksimal 7 hari setelah sesi berakhir)")
+	}
+	if err := s.repo.UpdateSession(sessionID, map[string]interface{}{
+		"evidence_url": objectName,
+		"status":       "review",
+	}); err != nil {
+		return nil, err
+	}
+	updated, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	res := toSessionResponses([]models.TutoringSession{*updated})
+	return &res[0], nil
+}
+
+// ListEvidence mengembalikan sesi yang punya bukti, difilter status ("" = semua).
+func (s *Service) ListEvidence(status string) ([]TutoringSessionResponse, error) {
+	sessions, err := s.repo.ListSessionsWithEvidence(status)
+	if err != nil {
+		return nil, err
+	}
+	return toSessionResponses(sessions), nil
+}
+
+// ApproveEvidence menyetujui bukti → sesi selesai.
+func (s *Service) ApproveEvidence(sessionID uint) (*TutoringSessionResponse, error) {
+	session, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, errors.New("sesi tidak ditemukan")
+	}
+	if session.EvidenceURL == "" || session.Status != "review" {
+		return nil, errors.New("tidak ada bukti yang menunggu validasi pada sesi ini")
+	}
+	if err := s.repo.UpdateSession(sessionID, map[string]interface{}{"status": "done"}); err != nil {
+		return nil, err
+	}
+	updated, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	res := toSessionResponses([]models.TutoringSession{*updated})
+	return &res[0], nil
+}
+
+// RejectEvidence menolak bukti → sesi kembali terjadwal, bukti dihapus.
+// Mengembalikan objectName bukti lama supaya handler bisa menghapus file MinIO.
+func (s *Service) RejectEvidence(sessionID uint) (*TutoringSessionResponse, string, error) {
+	session, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, "", errors.New("sesi tidak ditemukan")
+	}
+	if session.EvidenceURL == "" || session.Status != "review" {
+		return nil, "", errors.New("tidak ada bukti yang menunggu validasi pada sesi ini")
+	}
+	oldObject := session.EvidenceURL
+	if err := s.repo.UpdateSession(sessionID, map[string]interface{}{
+		"evidence_url": "",
+		"status":       "scheduled",
+	}); err != nil {
+		return nil, "", err
+	}
+	updated, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, "", err
+	}
+	res := toSessionResponses([]models.TutoringSession{*updated})
+	return &res[0], oldObject, nil
 }
 
 func generateToken() (string, error) {

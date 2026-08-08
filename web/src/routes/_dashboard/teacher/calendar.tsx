@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { startOfWeek, parseISO, isValid, format } from "date-fns"
 import { CalendarWeek } from "@/components/tutoring/calendar-week"
-import { getTutoringSessionsOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getTutoringSessionsOptions, getTutoringSessionsQueryKey, patchTutoringSessionsByIdMutation, postTutoringSessionsByIdCancelMutation, postTutoringSessionsByIdEvidenceMutation } from "@/lib/api/@tanstack/react-query.gen"
 import { Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import { z } from "zod"
 
 const calendarSearchSchema = z.object({
@@ -19,8 +20,38 @@ function parseWeekStart(param?: string): Date {
 
 function TeacherCalendarPage() {
   const navigate = useNavigate({ from: Route.fullPath })
+  const qc = useQueryClient()
   const { week } = Route.useSearch()
   const { data: sessions = [], isLoading } = useQuery(getTutoringSessionsOptions())
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: getTutoringSessionsQueryKey() })
+
+  const reschedule = useMutation({
+    ...patchTutoringSessionsByIdMutation(),
+    onSuccess: () => {
+      toast.success("Jadwal sesi diperbarui")
+      invalidate()
+    },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal reschedule"),
+  })
+
+  const cancel = useMutation({
+    ...postTutoringSessionsByIdCancelMutation(),
+    onSuccess: () => {
+      toast.success("Sesi dibatalkan")
+      invalidate()
+    },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal membatalkan sesi"),
+  })
+
+  const upload = useMutation({
+    ...postTutoringSessionsByIdEvidenceMutation(),
+    onSuccess: () => {
+      toast.success("Bukti terunggah — menunggu validasi admin")
+      invalidate()
+    },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal upload bukti"),
+  })
 
   if (isLoading) return <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
 
@@ -43,6 +74,7 @@ function TeacherCalendarPage() {
     subtitle: s.mode === "semi_private" ? "Semi Private" : "Private",
     note: s.note,
     status: s.status,
+    evidenceUrl: s.evidence_url,
   }))
 
   return (
@@ -51,7 +83,14 @@ function TeacherCalendarPage() {
         <h1 className="text-2xl font-bold tracking-tight">Kalender</h1>
         <p className="text-sm text-muted-foreground">Jadwal pertemuan les privat kamu</p>
       </div>
-      <CalendarWeek events={events} weekStart={weekStart} onWeekStartChange={handleWeekStartChange} />
+      <CalendarWeek
+        events={events}
+        weekStart={weekStart}
+        onWeekStartChange={handleWeekStartChange}
+        onUploadEvidence={(id, file) => upload.mutate({ path: { id }, body: { image: file } })}
+        onReschedule={(id, date, start, end) => reschedule.mutate({ path: { id }, body: { date, start_time: start, end_time: end } })}
+        onCancelSession={(id) => cancel.mutate({ path: { id } })}
+      />
     </main>
   )
 }

@@ -2163,6 +2163,97 @@
                 }
             }
         },
+        "/admin/tutoring/evidence": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan sesi yang punya bukti kehadiran. Filter status opsional: review/done.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "List attendance evidence",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter status: review atau done",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/tutoring/evidence/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin menyetujui atau menolak bukti kehadiran guru. Setujui → sesi Selesai. Tolak → sesi kembali Terjadwal \u0026 bukti dihapus.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "Review attendance evidence",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Aksi: approve atau reject",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ReviewEvidenceInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/users": {
             "get": {
                 "security": [
@@ -3737,6 +3828,151 @@
                 }
             }
         },
+        "/tutoring/sessions/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Guru memindahkan sesi pertemuan ke jadwal baru (setelah diskusi dgn murid). Tanpa approval.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Reschedule session",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Jadwal baru",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.RescheduleSessionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tutoring/sessions/{id}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Guru membatalkan sesi yang tidak bisa dihadiri. Invoice tidak berubah.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Cancel session",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tutoring/sessions/{id}/evidence": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Guru mengunggah foto bukti kehadiran sesi. Berhasil → sesi otomatis Selesai. Batas H+7 setelah sesi berakhir.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Upload attendance evidence",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Foto bukti",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tutoring/teachers": {
             "get": {
                 "security": [
@@ -4943,6 +5179,29 @@
                 }
             }
         },
+        "tutoring.RescheduleSessionInput": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.ReviewEvidenceInput": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "approve/reject",
+                    "type": "string"
+                }
+            }
+        },
         "tutoring.SubjectInfo": {
             "type": "object",
             "properties": {
@@ -4987,6 +5246,9 @@
                     "type": "string"
                 },
                 "end_time": {
+                    "type": "string"
+                },
+                "evidence_url": {
                     "type": "string"
                 },
                 "id": {

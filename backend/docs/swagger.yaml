@@ -761,6 +761,21 @@ definitions:
       message:
         type: string
     type: object
+  tutoring.RescheduleSessionInput:
+    properties:
+      date:
+        type: string
+      end_time:
+        type: string
+      start_time:
+        type: string
+    type: object
+  tutoring.ReviewEvidenceInput:
+    properties:
+      action:
+        description: approve/reject
+        type: string
+    type: object
   tutoring.SubjectInfo:
     properties:
       id:
@@ -790,6 +805,8 @@ definitions:
       date:
         type: string
       end_time:
+        type: string
+      evidence_url:
         type: string
       id:
         type: integer
@@ -2261,6 +2278,65 @@ paths:
       summary: Create booking manually
       tags:
       - Admin Tutoring
+  /admin/tutoring/evidence:
+    get:
+      consumes:
+      - application/json
+      description: 'Mengembalikan sesi yang punya bukti kehadiran. Filter status opsional:
+        review/done.'
+      parameters:
+      - description: 'Filter status: review atau done'
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/tutoring.TutoringSessionResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List attendance evidence
+      tags:
+      - Admin Tutoring
+  /admin/tutoring/evidence/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Admin menyetujui atau menolak bukti kehadiran guru. Setujui → sesi
+        Selesai. Tolak → sesi kembali Terjadwal & bukti dihapus.
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'Aksi: approve atau reject'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tutoring.ReviewEvidenceInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.TutoringSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Review attendance evidence
+      tags:
+      - Admin Tutoring
   /admin/users:
     get:
       consumes:
@@ -3254,6 +3330,100 @@ paths:
       security:
       - BearerAuth: []
       summary: My sessions
+      tags:
+      - Tutoring
+  /tutoring/sessions/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Guru memindahkan sesi pertemuan ke jadwal baru (setelah diskusi
+        dgn murid). Tanpa approval.
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Jadwal baru
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tutoring.RescheduleSessionInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.TutoringSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reschedule session
+      tags:
+      - Tutoring
+  /tutoring/sessions/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Guru membatalkan sesi yang tidak bisa dihadiri. Invoice tidak berubah.
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.TutoringSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel session
+      tags:
+      - Tutoring
+  /tutoring/sessions/{id}/evidence:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Guru mengunggah foto bukti kehadiran sesi. Berhasil → sesi otomatis
+        Selesai. Batas H+7 setelah sesi berakhir.
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Foto bukti
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.TutoringSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload attendance evidence
       tags:
       - Tutoring
   /tutoring/teachers:

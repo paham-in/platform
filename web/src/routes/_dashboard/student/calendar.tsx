@@ -43,6 +43,7 @@ function StudentCalendarPage() {
     subtitle: s.mode === "semi_private" ? "Semi Private" : "Private",
     note: s.note,
     status: s.status,
+    evidenceUrl: s.evidence_url,
   }))
 
   return (

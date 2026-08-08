@@ -12,4 +12,5 @@ type TutoringSession struct {
 	StartTime string   `gorm:"size:5;not null" json:"start_time"` // "HH:mm"
 	EndTime   string   `gorm:"size:5;not null" json:"end_time"`   // "HH:mm"
 	Status    string   `gorm:"size:20;default:scheduled" json:"status"` // scheduled/done/cancelled
+	EvidenceURL string `gorm:"size:500" json:"evidence_url"`       // foto bukti kehadiran
 }

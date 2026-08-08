@@ -30,6 +30,7 @@ import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard/
 import { Route as DashboardAdminStudentClassesRouteImport } from './routes/_dashboard/admin/student-classes'
 import { Route as DashboardAdminProgramsRouteImport } from './routes/_dashboard/admin/programs'
 import { Route as DashboardAdminDashboardRouteImport } from './routes/_dashboard/admin/dashboard'
+import { Route as DashboardAdminAttendanceRouteImport } from './routes/_dashboard/admin/attendance'
 import { Route as DashboardTeacherPacksIndexRouteImport } from './routes/_dashboard/teacher/packs/index'
 import { Route as DashboardTeacherForumIndexRouteImport } from './routes/_dashboard/teacher/forum/index'
 import { Route as DashboardTeacherChaptersIndexRouteImport } from './routes/_dashboard/teacher/chapters/index'
@@ -169,6 +170,12 @@ const DashboardAdminDashboardRoute = DashboardAdminDashboardRouteImport.update({
   path: '/admin/dashboard',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAdminAttendanceRoute =
+  DashboardAdminAttendanceRouteImport.update({
+    id: '/admin/attendance',
+    path: '/admin/attendance',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardTeacherPacksIndexRoute =
   DashboardTeacherPacksIndexRouteImport.update({
     id: '/teacher/packs/',
@@ -328,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/admin/attendance': typeof DashboardAdminAttendanceRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/admin/programs': typeof DashboardAdminProgramsRoute
   '/admin/student-classes': typeof DashboardAdminStudentClassesRoute
@@ -376,6 +384,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/admin/attendance': typeof DashboardAdminAttendanceRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/admin/programs': typeof DashboardAdminProgramsRoute
   '/admin/student-classes': typeof DashboardAdminStudentClassesRoute
@@ -425,6 +434,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/_dashboard/admin/attendance': typeof DashboardAdminAttendanceRoute
   '/_dashboard/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/_dashboard/admin/programs': typeof DashboardAdminProgramsRoute
   '/_dashboard/admin/student-classes': typeof DashboardAdminStudentClassesRoute
@@ -475,6 +485,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/settings'
     | '/auth/callback'
+    | '/admin/attendance'
     | '/admin/dashboard'
     | '/admin/programs'
     | '/admin/student-classes'
@@ -523,6 +534,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/settings'
     | '/auth/callback'
+    | '/admin/attendance'
     | '/admin/dashboard'
     | '/admin/programs'
     | '/admin/student-classes'
@@ -571,6 +583,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_dashboard/settings'
     | '/auth/callback'
+    | '/_dashboard/admin/attendance'
     | '/_dashboard/admin/dashboard'
     | '/_dashboard/admin/programs'
     | '/_dashboard/admin/student-classes'
@@ -769,6 +782,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/dashboard'
       fullPath: '/admin/dashboard'
       preLoaderRoute: typeof DashboardAdminDashboardRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/attendance': {
+      id: '/_dashboard/admin/attendance'
+      path: '/admin/attendance'
+      fullPath: '/admin/attendance'
+      preLoaderRoute: typeof DashboardAdminAttendanceRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/teacher/packs/': {
@@ -992,6 +1012,7 @@ const DashboardUserMaterialsRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardAdminAttendanceRoute: typeof DashboardAdminAttendanceRoute
   DashboardAdminDashboardRoute: typeof DashboardAdminDashboardRoute
   DashboardAdminProgramsRoute: typeof DashboardAdminProgramsRoute
   DashboardAdminStudentClassesRoute: typeof DashboardAdminStudentClassesRoute
@@ -1034,6 +1055,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardAdminAttendanceRoute: DashboardAdminAttendanceRoute,
   DashboardAdminDashboardRoute: DashboardAdminDashboardRoute,
   DashboardAdminProgramsRoute: DashboardAdminProgramsRoute,
   DashboardAdminStudentClassesRoute: DashboardAdminStudentClassesRoute,

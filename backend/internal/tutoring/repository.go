@@ -1,6 +1,8 @@
 package tutoring
 
 import (
+	"errors"
+
 	"bimbel2/backend/internal/models"
 
 	"gorm.io/gorm"
@@ -165,4 +167,61 @@ func (r *Repository) ListSessionsByUserPaid(studentID uint) ([]models.TutoringSe
 // CreateInvoice menyimpan invoice pembayaran utk sebuah booking.
 func (r *Repository) CreateInvoice(invoice *models.Invoice) error {
 	return r.db.Create(invoice).Error
+}
+
+// ListSessionsWithEvidence mengembalikan sesi yang punya bukti kehadiran.
+// status opsional: "" = semua, atau "review"/"done".
+func (r *Repository) ListSessionsWithEvidence(status string) ([]models.TutoringSession, error) {
+	var sessions []models.TutoringSession
+	q := r.db.Where("evidence_url <> ''").Preload("Booking.Student").Preload("Booking.Teacher")
+	if status != "" {
+		q = q.Where("status = ?", status)
+	}
+	if err := q.Order("date desc, start_time").Find(&sessions).Error; err != nil {
+		return nil, err
+	}
+	return sessions, nil
+}
+
+// GetSession mengambil satu sesi pertemuan beserta booking guru/murid.
+func (r *Repository) GetSession(id uint) (*models.TutoringSession, error) {
+	var s models.TutoringSession
+	if err := r.db.Preload("Booking.Teacher").Preload("Booking.Student").First(&s, id).Error; err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
+// SessionConflict memeriksa bentrok jam guru pada tanggal tertentu,
+// mengabaikan sesi yang sama (excludeSessionID) dan sesi yang dibatalkan.
+func (r *Repository) SessionConflict(teacherID uint, date, startTime, endTime string, excludeSessionID uint) (bool, error) {
+	var sessions []models.TutoringSession
+	if err := r.db.
+		Joins("JOIN bookings ON bookings.id = tutoring_sessions.booking_id").
+		Where("bookings.teacher_id = ? AND tutoring_sessions.date = ? AND tutoring_sessions.status <> ? AND tutoring_sessions.id <> ?",
+			teacherID, date, "cancelled", excludeSessionID).
+		Find(&sessions).Error; err != nil {
+		return false, err
+	}
+	newStart, err1 := timeToMinutes(startTime)
+	newEnd, err2 := timeToMinutes(endTime)
+	if err1 != nil || err2 != nil {
+		return true, errors.New("format waktu tidak valid")
+	}
+	for _, s := range sessions {
+		sStart, e1 := timeToMinutes(s.StartTime)
+		sEnd, e2 := timeToMinutes(s.EndTime)
+		if e1 != nil || e2 != nil {
+			continue
+		}
+		if hasOverlap(newStart, newEnd, sStart, sEnd) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// UpdateSession memperbarui field sesi tertentu.
+func (r *Repository) UpdateSession(id uint, fields map[string]interface{}) error {
+	return r.db.Model(&models.TutoringSession{}).Where("id = ?", id).Updates(fields).Error
 }
