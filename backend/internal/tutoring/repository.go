@@ -169,6 +169,49 @@ func (r *Repository) CreateInvoice(invoice *models.Invoice) error {
 	return r.db.Create(invoice).Error
 }
 
+// ListSessionsDone mengembalikan semua sesi yang sudah terlaksana (done),
+// dengan booking guru/murid/invoice untuk perhitungan fee.
+func (r *Repository) ListSessionsDone() ([]models.TutoringSession, error) {
+	var sessions []models.TutoringSession
+	if err := r.db.
+		Where("status = ?", "done").
+		Preload("Booking.Student").
+		Preload("Booking.Teacher").
+		Preload("Booking.Invoice").
+		Order("date desc, start_time").
+		Find(&sessions).Error; err != nil {
+		return nil, err
+	}
+	return sessions, nil
+}
+
+// ListAllBookingsWithSessions mengembalikan semua booking + sesi + guru/murid,
+// untuk rekap jumlah pertemuan per booking.
+func (r *Repository) ListAllBookingsWithSessions() ([]models.Booking, error) {
+	var bookings []models.Booking
+	if err := r.db.
+		Preload("Teacher").
+		Preload("Student").
+		Preload("Sessions").
+		Order("created_at desc").
+		Find(&bookings).Error; err != nil {
+		return nil, err
+	}
+	return bookings, nil
+}
+
+// ToggleSessionFeePaid membalik status fee_paid sebuah sesi.
+func (r *Repository) ToggleSessionFeePaid(id uint) (bool, error) {
+	var s models.TutoringSession
+	if err := r.db.First(&s, id).Error; err != nil {
+		return false, err
+	}
+	if err := r.db.Model(&s).Update("fee_paid", !s.FeePaid).Error; err != nil {
+		return false, err
+	}
+	return !s.FeePaid, nil
+}
+
 // ListSessionsWithEvidence mengembalikan sesi yang punya bukti kehadiran.
 // status opsional: "" = semua, atau "review"/"done".
 func (r *Repository) ListSessionsWithEvidence(status string) ([]models.TutoringSession, error) {

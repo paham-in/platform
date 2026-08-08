@@ -405,6 +405,22 @@ export type SubjectUpdateInput = {
     program_id?: number;
 };
 
+export type TutoringAdminBookingReport = {
+    booking_id?: number;
+    cancelled_count?: number;
+    done_count?: number;
+    fee_per_session?: number;
+    fee_unpaid_total?: number;
+    invoice_status?: string;
+    mode?: string;
+    price_per_session?: number;
+    refund_amount?: number;
+    scheduled_count?: number;
+    session_count?: number;
+    student_name?: string;
+    teacher_name?: string;
+};
+
 export type TutoringAdminCreateBookingInput = {
     class_id?: number;
     date?: string;
@@ -514,6 +530,14 @@ export type TutoringSubjectInfo = {
     name?: string;
 };
 
+export type TutoringTeacherEarningsResponse = {
+    fee_paid_total?: number;
+    fee_unpaid_total?: number;
+    sessions?: Array<TutoringTutoringSessionResponse>;
+    total_fee?: number;
+    total_sessions?: number;
+};
+
 export type TutoringTeacherResponse = {
     avatar_url?: string;
     email?: string;
@@ -527,6 +551,8 @@ export type TutoringTutoringSessionResponse = {
     date?: string;
     end_time?: string;
     evidence_url?: string;
+    fee_amount?: number;
+    fee_paid?: boolean;
     id?: number;
     mode?: string;
     note?: string;
@@ -2027,6 +2053,68 @@ export type PatchAdminTutoringEvidenceByIdResponses = {
 
 export type PatchAdminTutoringEvidenceByIdResponse = PatchAdminTutoringEvidenceByIdResponses[keyof PatchAdminTutoringEvidenceByIdResponses];
 
+export type GetAdminTutoringFeesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/tutoring/fees';
+};
+
+export type GetAdminTutoringFeesResponses = {
+    /**
+     * OK
+     */
+    200: Array<TutoringTutoringSessionResponse>;
+};
+
+export type GetAdminTutoringFeesResponse = GetAdminTutoringFeesResponses[keyof GetAdminTutoringFeesResponses];
+
+export type PatchAdminTutoringFeesByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Session ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/tutoring/fees/{id}';
+};
+
+export type PatchAdminTutoringFeesByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PatchAdminTutoringFeesByIdError = PatchAdminTutoringFeesByIdErrors[keyof PatchAdminTutoringFeesByIdErrors];
+
+export type PatchAdminTutoringFeesByIdResponses = {
+    /**
+     * OK
+     */
+    200: TutoringTutoringSessionResponse;
+};
+
+export type PatchAdminTutoringFeesByIdResponse = PatchAdminTutoringFeesByIdResponses[keyof PatchAdminTutoringFeesByIdResponses];
+
+export type GetAdminTutoringReportData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/tutoring/report';
+};
+
+export type GetAdminTutoringReportResponses = {
+    /**
+     * OK
+     */
+    200: Array<TutoringAdminBookingReport>;
+};
+
+export type GetAdminTutoringReportResponse = GetAdminTutoringReportResponses[keyof GetAdminTutoringReportResponses];
+
 export type GetAdminUsersData = {
     body?: never;
     path?: never;
@@ -2974,6 +3062,22 @@ export type PatchTutoringBookingsByIdResponses = {
 };
 
 export type PatchTutoringBookingsByIdResponse = PatchTutoringBookingsByIdResponses[keyof PatchTutoringBookingsByIdResponses];
+
+export type GetTutoringEarningsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/tutoring/earnings';
+};
+
+export type GetTutoringEarningsResponses = {
+    /**
+     * OK
+     */
+    200: TutoringTeacherEarningsResponse;
+};
+
+export type GetTutoringEarningsResponse = GetTutoringEarningsResponses[keyof GetTutoringEarningsResponses];
 
 export type GetTutoringGroupsByTokenData = {
     body?: never;

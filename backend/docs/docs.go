@@ -2257,6 +2257,111 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/tutoring/fees": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Daftar sesi terlaksana dari booking yang sudah lunas, utk pencatatan fee guru.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "List teacher fees",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/tutoring/fees/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Membalik status fee guru pada sesi (sudah/belum dibayar).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "Toggle fee paid",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/tutoring/report": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Rekap jumlah pertemuan terlaksana/batal per booking + estimasi refund.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "Tutoring session report",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/tutoring.AdminBookingReport"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/admin/users": {
             "get": {
                 "security": [
@@ -3757,6 +3862,34 @@ const docTemplate = `{
                 }
             }
         },
+        "/tutoring/earnings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Riwayat sesi selesai milik guru + estimasi fee (persen dari harga sesi).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "My earnings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.TeacherEarningsResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tutoring/groups/{token}": {
             "get": {
                 "security": [
@@ -4981,6 +5114,50 @@ const docTemplate = `{
                 }
             }
         },
+        "tutoring.AdminBookingReport": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "integer"
+                },
+                "cancelled_count": {
+                    "type": "integer"
+                },
+                "done_count": {
+                    "type": "integer"
+                },
+                "fee_per_session": {
+                    "type": "number"
+                },
+                "fee_unpaid_total": {
+                    "type": "number"
+                },
+                "invoice_status": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "price_per_session": {
+                    "type": "number"
+                },
+                "refund_amount": {
+                    "type": "number"
+                },
+                "scheduled_count": {
+                    "type": "integer"
+                },
+                "session_count": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
         "tutoring.AdminCreateBookingInput": {
             "type": "object",
             "properties": {
@@ -5216,6 +5393,29 @@ const docTemplate = `{
                 }
             }
         },
+        "tutoring.TeacherEarningsResponse": {
+            "type": "object",
+            "properties": {
+                "fee_paid_total": {
+                    "type": "number"
+                },
+                "fee_unpaid_total": {
+                    "type": "number"
+                },
+                "sessions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                    }
+                },
+                "total_fee": {
+                    "type": "number"
+                },
+                "total_sessions": {
+                    "type": "integer"
+                }
+            }
+        },
         "tutoring.TeacherResponse": {
             "type": "object",
             "properties": {
@@ -5253,6 +5453,12 @@ const docTemplate = `{
                 },
                 "evidence_url": {
                     "type": "string"
+                },
+                "fee_amount": {
+                    "type": "number"
+                },
+                "fee_paid": {
+                    "type": "boolean"
                 },
                 "id": {
                     "type": "integer"

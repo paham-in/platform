@@ -88,7 +88,7 @@ func main() {
 	material.PublicRoutes(auth, db)
 	questionpackage.AuthRoutes(auth, db)
 	studentclass.AuthRoutes(auth, db)
-		tutoring.Routes(auth, db, minioClient)
+		tutoring.Routes(auth, db, minioClient, cfg.TeacherFeePercent)
 	pushSvc := push.NewService(db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
 	push.Routes(auth, db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
 	answer.AuthRoutes(auth, db, pushSvc)
@@ -116,7 +116,7 @@ func main() {
 	invoice.AdminRoutes(admin, db)
 	program.AdminRoutes(admin, db)
 	studentclass.AdminRoutes(admin, db)
-	tutoring.AdminRoutes(admin, db, minioClient)
+	tutoring.AdminRoutes(admin, db, minioClient, cfg.TeacherFeePercent)
 
 	// background job: hapus sesi yang sudah kedaluwarsa setiap 1 jam
 	startSessionCleanup(db)

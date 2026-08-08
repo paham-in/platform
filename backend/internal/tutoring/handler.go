@@ -582,9 +582,95 @@ func (h *Handler) UpdateBookingStatus(c *fiber.Ctx) error {
 	return c.JSON(booking)
 }
 
-func AdminRoutes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClient) {
+// MyEarnings returns teacher's done sessions + fee estimate (teacher)
+// @Summary      My earnings
+// @Description  Riwayat sesi selesai milik guru + estimasi fee (persen dari harga sesi).
+// @Tags         Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} TeacherEarningsResponse
+// @Router       /tutoring/earnings [get]
+func (h *Handler) MyEarnings(c *fiber.Ctx) error {
+	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
+		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
+	}
+	userID := c.Locals("user_id").(uint)
+	resp, err := h.svc.ListTeacherEarnings(userID)
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(resp)
+}
+
+// AdminListReport returns per-booking session summary + refund estimate (admin only)
+// @Summary      Tutoring session report
+// @Description  Rekap jumlah pertemuan terlaksana/batal per booking + estimasi refund.
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} AdminBookingReport
+// @Router       /admin/tutoring/report [get]
+func (h *Handler) AdminListReport(c *fiber.Ctx) error {
+	reports, err := h.svc.ListAdminSessionReport()
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(reports)
+}
+
+// AdminListFees returns done sessions for teacher fee tracking (admin only)
+// @Summary      List teacher fees
+// @Description  Daftar sesi terlaksana dari booking yang sudah lunas, utk pencatatan fee guru.
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {array} TutoringSessionResponse
+// @Router       /admin/tutoring/fees [get]
+func (h *Handler) AdminListFees(c *fiber.Ctx) error {
+	sessions, err := h.svc.ListTeacherFeeSessions()
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	for i := range sessions {
+		if sessions[i].EvidenceURL == "" || h.minio == nil {
+			continue
+		}
+		if url, err := h.minio.PresignedURL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
+			sessions[i].EvidenceURL = url
+		}
+	}
+	return c.JSON(sessions)
+}
+
+// AdminToggleFeePaid toggles teacher fee payment status on a session (admin only)
+// @Summary      Toggle fee paid
+// @Description  Membalik status fee guru pada sesi (sudah/belum dibayar).
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Session ID"
+// @Success      200 {object} TutoringSessionResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/tutoring/fees/{id} [patch]
+func (h *Handler) AdminToggleFeePaid(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	session, err := h.svc.ToggleSessionFeePaid(uint(id))
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(session)
+}
+
+func AdminRoutes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClient, feePercent float64) {
 	repo := NewRepository(db)
-	svc := NewService(repo, db)
+	svc := NewService(repo, db, feePercent)
 	h := NewHandler(svc, minioClient)
 
 	admin.Get("/tutoring/bookings", h.AdminListBookings)
@@ -592,11 +678,14 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClie
 	admin.Get("/tutoring/availability", h.AdminListAvailability)
 	admin.Get("/tutoring/evidence", h.AdminListEvidence)
 	admin.Patch("/tutoring/evidence/:id", h.AdminReviewEvidence)
+	admin.Get("/tutoring/report", h.AdminListReport)
+	admin.Get("/tutoring/fees", h.AdminListFees)
+	admin.Patch("/tutoring/fees/:id", h.AdminToggleFeePaid)
 }
 
-func Routes(auth fiber.Router, db *gorm.DB, minioClient *storage.MinioClient) {
+func Routes(auth fiber.Router, db *gorm.DB, minioClient *storage.MinioClient, feePercent float64) {
 	repo := NewRepository(db)
-	svc := NewService(repo, db)
+	svc := NewService(repo, db, feePercent)
 	h := NewHandler(svc, minioClient)
 
 	auth.Get("/tutoring/teachers", h.ListTeachers)
@@ -608,6 +697,7 @@ func Routes(auth fiber.Router, db *gorm.DB, minioClient *storage.MinioClient) {
 	auth.Patch("/tutoring/bookings/:id", h.UpdateBookingStatus)
 	auth.Get("/tutoring/groups/:token", h.GroupInfo)
 	auth.Get("/tutoring/sessions", h.ListSessions)
+	auth.Get("/tutoring/earnings", h.MyEarnings)
 	auth.Patch("/tutoring/sessions/:id", h.UpdateSession)
 	auth.Post("/tutoring/sessions/:id/cancel", h.CancelSession)
 	auth.Post("/tutoring/sessions/:id/evidence", h.UploadSessionEvidence)

@@ -45,17 +45,19 @@ type BookingResponse struct {
 }
 
 type TutoringSessionResponse struct {
-	ID           uint   `json:"id"`
-	BookingID    uint   `json:"booking_id"`
-	Date         string `json:"date"`
-	StartTime    string `json:"start_time"`
-	EndTime      string `json:"end_time"`
-	Status       string `json:"status"`
-	Teacher      string `json:"teacher_name"`
-	Student      string `json:"student_name"`
-	Mode         string `json:"mode"`
-	Note         string `json:"note"`
-	EvidenceURL  string `json:"evidence_url,omitempty"`
+	ID           uint    `json:"id"`
+	BookingID    uint    `json:"booking_id"`
+	Date         string  `json:"date"`
+	StartTime    string  `json:"start_time"`
+	EndTime      string  `json:"end_time"`
+	Status       string  `json:"status"`
+	Teacher      string  `json:"teacher_name"`
+	Student      string  `json:"student_name"`
+	Mode         string  `json:"mode"`
+	Note         string  `json:"note"`
+	EvidenceURL  string  `json:"evidence_url,omitempty"`
+	FeePaid      bool    `json:"fee_paid,omitempty"`
+	FeeAmount    float64 `json:"fee_amount,omitempty"`
 }
 
 type GroupInfoResponse struct {
@@ -84,12 +86,18 @@ type SubjectInfo struct {
 }
 
 type Service struct {
-	repo *Repository
-	db   *gorm.DB
+	repo       *Repository
+	db         *gorm.DB
+	feePercent float64
 }
 
-func NewService(repo *Repository, db *gorm.DB) *Service {
-	return &Service{repo: repo, db: db}
+func NewService(repo *Repository, db *gorm.DB, feePercent float64) *Service {
+	return &Service{repo: repo, db: db, feePercent: feePercent}
+}
+
+// sessionFee menghitung fee guru utk satu sesi: persentase dari harga sesi.
+func (s *Service) sessionFee(price float64) float64 {
+	return price * s.feePercent / 100
 }
 
 func (s *Service) ListAvailability(teacherID uint) ([]AvailabilityResponse, error) {
@@ -625,6 +633,7 @@ func toSessionResponses(sessions []models.TutoringSession) []TutoringSessionResp
 			Mode:        mode,
 			Note:        note,
 			EvidenceURL: v.EvidenceURL,
+			FeePaid:     v.FeePaid,
 		}
 	}
 	return res
@@ -814,6 +823,157 @@ func (s *Service) RejectEvidence(sessionID uint) (*TutoringSessionResponse, stri
 	}
 	res := toSessionResponses([]models.TutoringSession{*updated})
 	return &res[0], oldObject, nil
+}
+
+type AdminBookingReport struct {
+	BookingID       uint    `json:"booking_id"`
+	Teacher         string  `json:"teacher_name"`
+	Student         string  `json:"student_name"`
+	Mode            string  `json:"mode"`
+	SessionCount    int     `json:"session_count"`
+	DoneCount       int     `json:"done_count"`
+	CancelledCount  int     `json:"cancelled_count"`
+	ScheduledCount  int     `json:"scheduled_count"`
+	PricePerSession float64 `json:"price_per_session"`
+	FeePerSession   float64 `json:"fee_per_session"`
+	FeeUnpaidTotal  float64 `json:"fee_unpaid_total"`
+	RefundAmount    float64 `json:"refund_amount"`
+	InvoiceStatus   string  `json:"invoice_status"`
+}
+
+// ListAdminSessionReport mengagregasi jumlah pertemuan per booking + nominal refund.
+func (s *Service) ListAdminSessionReport() ([]AdminBookingReport, error) {
+	bookings, err := s.repo.ListAllBookingsWithSessions()
+	if err != nil {
+		return nil, err
+	}
+	reports := make([]AdminBookingReport, 0, len(bookings))
+	for _, b := range bookings {
+		price, semiPrice := s.getClassPrices(b.ClassID)
+		perSession := price
+		if b.Mode == "semi_private" {
+			perSession = semiPrice
+		}
+		if perSession <= 0 {
+			perSession = defaultPrice
+		}
+		rep := AdminBookingReport{
+			BookingID:       b.ID,
+			Mode:            b.Mode,
+			SessionCount:    b.SessionCount,
+			PricePerSession: perSession,
+			FeePerSession:   s.sessionFee(perSession),
+			InvoiceStatus:   "pending",
+		}
+		if b.Teacher != nil {
+			rep.Teacher = b.Teacher.Name
+		}
+		if b.Student != nil {
+			rep.Student = b.Student.Name
+		}
+		if b.Invoice != nil {
+			rep.InvoiceStatus = b.Invoice.Status
+		}
+		for _, sess := range b.Sessions {
+			switch sess.Status {
+			case "done":
+				rep.DoneCount++
+				if !sess.FeePaid {
+					rep.FeeUnpaidTotal += rep.FeePerSession
+				}
+			case "cancelled":
+				rep.CancelledCount++
+			case "scheduled", "review":
+				rep.ScheduledCount++
+			}
+		}
+		rep.RefundAmount = float64(rep.CancelledCount) * perSession
+		reports = append(reports, rep)
+	}
+	return reports, nil
+}
+
+// ListTeacherFeeSessions mengembalikan sesi terlaksana (done) dari booking yang
+// invoice-nya sudah lunas, utk pencatatan fee guru.
+func (s *Service) ListTeacherFeeSessions() ([]TutoringSessionResponse, error) {
+	sessions, err := s.repo.ListSessionsDone()
+	if err != nil {
+		return nil, err
+	}
+	result := make([]TutoringSessionResponse, 0, len(sessions))
+	for _, v := range sessions {
+		// hanya sesi yang muridnya sudah bayar
+		if v.Booking == nil || v.Booking.Invoice == nil || v.Booking.Invoice.Status != "paid" {
+			continue
+		}
+		res := toSessionResponses([]models.TutoringSession{v})[0]
+		price, semiPrice := s.getClassPrices(v.Booking.ClassID)
+		perSession := price
+		if v.Booking.Mode == "semi_private" {
+			perSession = semiPrice
+		}
+		if perSession <= 0 {
+			perSession = defaultPrice
+		}
+		res.FeeAmount = s.sessionFee(perSession)
+		result = append(result, res)
+	}
+	return result, nil
+}
+
+// ToggleSessionFeePaid membalik status pembayaran fee guru pada sesi.
+func (s *Service) ToggleSessionFeePaid(sessionID uint) (*TutoringSessionResponse, error) {
+	if _, err := s.repo.ToggleSessionFeePaid(sessionID); err != nil {
+		return nil, errors.New("sesi tidak ditemukan")
+	}
+	updated, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	res := toSessionResponses([]models.TutoringSession{*updated})
+	return &res[0], nil
+}
+
+type TeacherEarningsResponse struct {
+	TotalSessions  int                       `json:"total_sessions"`
+	TotalFee       float64                   `json:"total_fee"`
+	FeePaidTotal   float64                   `json:"fee_paid_total"`
+	FeeUnpaidTotal float64                   `json:"fee_unpaid_total"`
+	Sessions       []TutoringSessionResponse `json:"sessions"`
+}
+
+// ListTeacherEarnings mengembalikan riwayat sesi selesai milik guru + estimasi fee.
+func (s *Service) ListTeacherEarnings(teacherID uint) (*TeacherEarningsResponse, error) {
+	sessions, err := s.repo.ListSessionsByTeacher(teacherID)
+	if err != nil {
+		return nil, err
+	}
+	resp := &TeacherEarningsResponse{}
+	for _, v := range sessions {
+		if v.Status != "done" || v.Booking == nil {
+			continue
+		}
+		price, semiPrice := s.getClassPrices(v.Booking.ClassID)
+		perSession := price
+		if v.Booking.Mode == "semi_private" {
+			perSession = semiPrice
+		}
+		if perSession <= 0 {
+			perSession = defaultPrice
+		}
+		fee := s.sessionFee(perSession)
+		sv := toSessionResponses([]models.TutoringSession{v})[0]
+		sv.FeeAmount = fee
+		resp.Sessions = append(resp.Sessions, sv)
+		resp.TotalSessions++
+		resp.TotalFee += fee
+		if v.FeePaid {
+			resp.FeePaidTotal += fee
+		} else {
+			resp.FeeUnpaidTotal += fee
+		}
+	}
+	return resp, nil
 }
 
 func generateToken() (string, error) {

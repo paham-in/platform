@@ -2,10 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookingRequests } from "@/components/teacher/tutoring/booking-requests"
 import { AvailabilitySchedule } from "@/components/teacher/tutoring/availability-schedule"
+import { Earnings } from "@/components/teacher/tutoring/earnings"
 import { z } from "zod"
 
 const tutoringSearchSchema = z.object({
-  tab: z.enum(["requests", "schedule"]).optional(),
+  tab: z.enum(["requests", "schedule", "earnings"]).optional(),
 })
 
 function TeacherTutoringPage() {
@@ -21,16 +22,18 @@ function TeacherTutoringPage() {
       <Tabs
         value={tab ?? "requests"}
         onValueChange={(v) => navigate({
-          search: (prev) => ({ ...prev, tab: v === "requests" ? undefined : v as "requests" | "schedule" }),
+          search: (prev) => ({ ...prev, tab: v === "requests" ? undefined : v as "requests" | "schedule" | "earnings" }),
           replace: true,
         })}
       >
         <TabsList className="mb-4">
           <TabsTrigger value="requests">Permintaan</TabsTrigger>
           <TabsTrigger value="schedule">Jadwal Saya</TabsTrigger>
+          <TabsTrigger value="earnings">Pendapatan</TabsTrigger>
         </TabsList>
         <TabsContent value="requests"><BookingRequests /></TabsContent>
         <TabsContent value="schedule"><AvailabilitySchedule /></TabsContent>
+        <TabsContent value="earnings"><Earnings /></TabsContent>
       </Tabs>
     </main>
   )

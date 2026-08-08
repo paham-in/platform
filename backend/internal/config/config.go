@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -28,6 +29,7 @@ type Config struct {
 	MinioSecretKey     string
 	MinioBucket        string
 	MinioUseSSL        bool
+	TeacherFeePercent  float64
 }
 
 func Load() *Config {
@@ -55,7 +57,17 @@ func Load() *Config {
 		MinioSecretKey:     getEnv("MINIO_SECRET_KEY", "minioadmin"),
 		MinioBucket:        getEnv("MINIO_BUCKET", "bimbel"),
 		MinioUseSSL:        false,
+		TeacherFeePercent:  getEnvFloat("TEACHER_FEE_PERCENT", 70),
 	}
+}
+
+func getEnvFloat(key string, fallback float64) float64 {
+	if v := os.Getenv(key); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			return f
+		}
+	}
+	return fallback
 }
 
 func getEnv(key, fallback string) string {
