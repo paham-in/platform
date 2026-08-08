@@ -1,6 +1,6 @@
 import { addDays, addWeeks, format, isSameDay, parseISO, startOfWeek } from "date-fns"
 import { id } from "date-fns/locale"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -42,26 +42,44 @@ function statusMeta(status?: string) {
   }
 }
 
-export function CalendarWeek({ events }: { events: CalendarEvent[] }) {
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }))
+export function CalendarWeek({
+  events,
+  weekStart,
+  onWeekStartChange,
+}: {
+  events: CalendarEvent[]
+  weekStart: Date
+  onWeekStartChange: (date: Date) => void
+}) {
   const [selected, setSelected] = useState<CalendarEvent | null>(null)
+  const [now, setNow] = useState(() => new Date())
+
+  // garis "sekarang" maju tiap menit
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(t)
+  }, [])
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const weekEnd = days[6]
   const today = new Date()
   const rangeLabel = `${format(weekStart, "d MMM")} – ${format(weekEnd, "d MMM yyyy", { locale: id })}`
 
+  const inViewWeek = weekStart <= today && today <= weekEnd
+  const nowMin = now.getHours() * 60 + now.getMinutes()
+  const nowVisible = inViewWeek && nowMin >= HOUR_START * 60 && nowMin <= HOUR_END * 60
+
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
-          <Button variant="outline" size="icon-sm" aria-label="Minggu sebelumnya" onClick={() => setWeekStart(addWeeks(weekStart, -1))}>
+          <Button variant="outline" size="icon-sm" aria-label="Minggu sebelumnya" onClick={() => onWeekStartChange(addWeeks(weekStart, -1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}>
+          <Button variant="outline" size="sm" onClick={() => onWeekStartChange(startOfWeek(new Date(), { weekStartsOn: 1 }))}>
             Hari Ini
           </Button>
-          <Button variant="outline" size="icon-sm" aria-label="Minggu berikutnya" onClick={() => setWeekStart(addWeeks(weekStart, 1))}>
+          <Button variant="outline" size="icon-sm" aria-label="Minggu berikutnya" onClick={() => onWeekStartChange(addWeeks(weekStart, 1))}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -101,6 +119,14 @@ export function CalendarWeek({ events }: { events: CalendarEvent[] }) {
                     <div key={i} className="h-12 border-t border-border/60" />
                   ))}
                   <div className="pointer-events-none absolute inset-0" />
+                  {nowVisible && isSameDay(day, today) && (
+                    <div
+                      className="pointer-events-none absolute inset-x-0 z-20 border-t-2 border-red-500"
+                      style={{ top: (nowMin - HOUR_START * 60) * (PX_PER_HOUR / 60) }}
+                    >
+                      <span className="absolute -top-1 -left-1 size-2 rounded-full bg-red-500" />
+                    </div>
+                  )}
                   {dayEvents.map((ev) => (
                     <button
                       key={ev.id}
