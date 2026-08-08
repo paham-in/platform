@@ -176,7 +176,7 @@ function DashboardLayout() {
             </Button>
           </div>
 
-          <nav className="mt-8 flex-1 space-y-4 overflow-y-auto">
+          <nav className="mt-8 flex-1 space-y-4 overflow-y-auto no-scrollbar">
             {filteredGroups.map((group) => (
               <div key={group.label}>
                 <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
