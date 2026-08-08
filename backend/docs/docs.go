@@ -2742,7 +2742,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan daftar semua chapter untuk user yang sudah login",
+                "description": "Mengembalikan daftar chapter. Student hanya melihat chapter",
                 "consumes": [
                     "application/json"
                 ],
@@ -3003,7 +3003,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengubah nama dan/atau kelas user yang sedang login",
+                "description": "Mengubah nama user yang sedang login",
                 "consumes": [
                     "application/json"
                 ],

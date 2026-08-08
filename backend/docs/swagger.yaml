@@ -2697,7 +2697,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar semua chapter untuk user yang sudah login
+      description: Mengembalikan daftar chapter. Student hanya melihat chapter
       parameters:
       - description: Filter by class ID
         in: query
@@ -2860,7 +2860,7 @@ paths:
     patch:
       consumes:
       - application/json
-      description: Mengubah nama dan/atau kelas user yang sedang login
+      description: Mengubah nama user yang sedang login
       parameters:
       - description: Data profile
         in: body

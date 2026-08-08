@@ -33,6 +33,34 @@ func (r *Repository) List() ([]models.Chapter, error) {
 	return chapters, nil
 }
 
+// ListScoped mengembalikan chapter. classIDs non-nil membatasi ke kelas
+// tertentu (hak akses student); nil = semua kelas (staff).
+func (r *Repository) ListScoped(classIDs []uint) ([]models.Chapter, error) {
+	q := r.db.Preload("Class").Preload("Subject")
+	if classIDs != nil {
+		q = q.Where("class_id IN ?", classIDs)
+	}
+	var chapters []models.Chapter
+	if err := q.Order("\"order\" asc, title asc").Find(&chapters).Error; err != nil {
+		return nil, err
+	}
+	return chapters, nil
+}
+
+// ListByClassSubjectScoped sama dengan ListScoped tapi difilter class+subject.
+func (r *Repository) ListByClassSubjectScoped(classID, subjectID uint, classIDs []uint) ([]models.Chapter, error) {
+	q := r.db.Preload("Class").Preload("Subject").
+		Where("class_id = ? AND subject_id = ?", classID, subjectID)
+	if classIDs != nil {
+		q = q.Where("class_id IN ?", classIDs)
+	}
+	var chapters []models.Chapter
+	if err := q.Order("\"order\" asc, title asc").Find(&chapters).Error; err != nil {
+		return nil, err
+	}
+	return chapters, nil
+}
+
 func (r *Repository) Get(id uint) (*models.Chapter, error) {
 	var chapter models.Chapter
 	if err := r.db.Preload("Class").Preload("Subject").First(&chapter, id).Error; err != nil {

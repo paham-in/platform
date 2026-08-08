@@ -4,14 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  getClassesOptions,
   getMeOptions,
   getMeQueryKey,
   getSubjectsOptions,
@@ -29,11 +21,9 @@ import { toast } from "sonner"
 function SettingsPage() {
   const qc = useQueryClient()
   const { data: user, isLoading: userLoading } = useQuery(getMeOptions())
-  const { data: classes = [] } = useQuery(getClassesOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
 
   const [name, setName] = useState("")
-  const [classId, setClassId] = useState("")
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([])
   const [initialized, setInitialized] = useState(false)
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">(
@@ -42,27 +32,13 @@ function SettingsPage() {
   const [notifSubscribing, setNotifSubscribing] = useState(false)
   const [showNotifHelp, setShowNotifHelp] = useState(false)
 
-  const classOptions = [
-    { label: "Tidak ada", value: "none" },
-    ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id!) })),
-  ]
-
   const roles = user?.roles ?? []
   const isTeacher = roles.includes("teacher")
-  const isStudent = roles.includes("student")
 
   if (user && !initialized) {
     setName(user.name ?? "")
     setSelectedSubjectIds((user.subjects ?? []).map((s) => s.id!).filter((id) => id !== undefined))
-    if (user.class_id) {
-      const found = classes.find((c) => c.id === user.class_id)
-      setClassId(String(user.class_id))
-      // only mark init after classes loaded so SelectItem exists
-      if (found || classes.length === 0) setInitialized(true)
-    } else {
-      setClassId("none")
-      setInitialized(true)
-    }
+    setInitialized(true)
   }
 
   const updateProfile = useMutation({
@@ -93,10 +69,6 @@ function SettingsPage() {
   const handleSave = () => {
     const body: Record<string, unknown> = {}
     if (name !== user?.name) body.name = name
-    if (isStudent) {
-      const parsedClassId = classId === "none" ? null : Number(classId)
-      if (parsedClassId !== (user as any)?.class_id) body.class_id = parsedClassId
-    }
     if (isTeacher) {
       const current = (user?.subjects ?? []).map((s) => s.id!).filter((id) => id !== undefined).sort()
       const next = [...selectedSubjectIds].sort()
@@ -206,26 +178,6 @@ function SettingsPage() {
             <Label htmlFor="name">Nama</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-
-          {isStudent && (
-            <div className="space-y-2">
-              <Label htmlFor="class">Kelas</Label>
-              <Select items={classOptions} value={classId} onValueChange={(v) => setClassId(v ?? "none")}>
-                <SelectTrigger id="class" className="w-full">
-                  <SelectValue placeholder="Pilih kelas">
-                    {classId === "none" ? "Tidak ada" : classes.find((c) => String(c.id) === classId)?.name ?? classId}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {classOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
         </CardContent>
       </Card>
 

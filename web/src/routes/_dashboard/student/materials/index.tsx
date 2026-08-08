@@ -10,12 +10,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import {
   getChaptersOptions,
   getClassesOptions,
-  getMeOptions,
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
@@ -25,31 +23,17 @@ import { Search, SearchX, BookOpen, ChevronRight, GraduationCap, Layers, Funnel,
 
 const materialsSearchSchema = z.object({
   search: z.string().optional(),
-  class: z.string().optional(),
   subject: z.string().optional(),
 })
 
 function MaterialsPage() {
   const navigate = useNavigate({ from: Route.fullPath })
-  const { search: searchParam, class: classParam, subject: subjectParam } = Route.useSearch()
+  const { search: searchParam, subject: subjectParam } = Route.useSearch()
   const { data: chapters = [], isLoading, isError } = useQuery(getChaptersOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const { data: classes = [] } = useQuery(getClassesOptions())
-  const { data: user } = useQuery(getMeOptions())
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
-  const [autoInited, setAutoInited] = useState(false)
-  const classFilter = classParam ?? "all"
   const subjectFilter = subjectParam ?? "all"
-
-  // auto-init: default ke kelas user kalau URL belum set kelas
-  useEffect(() => {
-    if (autoInited || classParam) return
-    const cid = (user as any)?.class_id
-    if (cid) {
-      navigate({ search: (prev) => ({ ...prev, class: String(cid) }), replace: true })
-      setAutoInited(true)
-    }
-  }, [user, classParam, autoInited, navigate])
 
   // sync URL → local search input
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
@@ -62,29 +46,21 @@ function MaterialsPage() {
     return () => clearTimeout(timer)
   }, [searchInput, navigate])
 
-  const classOptions = [
-    { label: "Semua Kelas", value: "all" },
-    ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id) })),
-  ]
   const subjectOptions = [
     { label: "Semua Subjek", value: "all" },
     ...subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) })),
   ]
-  const activeFilterCount = [classFilter, subjectFilter].filter((f) => f !== "all").length
-  const hasActiveFilter = !!searchParam || classFilter !== "all" || subjectFilter !== "all"
+  const activeFilterCount = subjectFilter !== "all" ? 1 : 0
+  const hasActiveFilter = !!searchParam || subjectFilter !== "all"
 
-  const setClassFilter = (v: string) => {
-    navigate({ search: (prev) => ({ ...prev, class: v === "all" ? undefined : v }), replace: true })
-  }
   const setSubjectFilter = (v: string) => {
     navigate({ search: (prev) => ({ ...prev, subject: v === "all" ? undefined : v }), replace: true })
   }
 
   const filtered = chapters.filter((c) => {
     const matchSearch = !searchParam || (c.title ?? "").toLowerCase().includes(searchParam.toLowerCase())
-    const matchClass = classFilter === "all" || String(c.class_id) === classFilter
     const matchSubject = subjectFilter === "all" || String(c.subject_id) === subjectFilter
-    return matchSearch && matchClass && matchSubject
+    return matchSearch && matchSubject
   })
 
   const subjectName = (id: number | undefined) => subjects.find((s) => s.id === id)?.name ?? "-"
@@ -165,13 +141,6 @@ function MaterialsPage() {
             )}
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-52">
-            <DropdownMenuRadioGroup value={classFilter} onValueChange={(v) => { if (v) setClassFilter(v) }}>
-              <DropdownMenuLabel>Kelas</DropdownMenuLabel>
-              {classOptions.map((opt) => (
-                <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-            <DropdownMenuSeparator />
             <DropdownMenuRadioGroup value={subjectFilter} onValueChange={(v) => { if (v) setSubjectFilter(v) }}>
               <DropdownMenuLabel>Subjek</DropdownMenuLabel>
               {subjectOptions.map((opt) => (

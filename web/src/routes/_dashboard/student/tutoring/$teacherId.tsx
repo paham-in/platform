@@ -5,15 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Spinner } from "@/components/ui/spinner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getTutoringTeachersOptions, getTutoringAvailabilityOptions, postTutoringBookingsMutation, getTutoringBookingsQueryKey, getMeOptions, getClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getTutoringTeachersOptions, getTutoringAvailabilityOptions, postTutoringBookingsMutation, getTutoringBookingsQueryKey, getStudentClassesOptions, getClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { CalendarIcon, CheckCircle2, Copy, Loader2, UserRound, Users } from "lucide-react"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 const bookTeacherSearchSchema = z.object({
@@ -27,12 +28,13 @@ function BookTeacher() {
   const qc = useQueryClient()
   const { data: teachers = [] } = useQuery(getTutoringTeachersOptions())
   const { data: slots = [], isLoading } = useQuery(getTutoringAvailabilityOptions({ query: { teacher_id: Number(teacherId) } }))
-  const { data: me } = useQuery(getMeOptions())
+  const { data: myClasses = [] } = useQuery(getStudentClassesOptions())
   const { data: classes = [] } = useQuery(getClassesOptions())
 
   const [mode, setMode] = useState<"private" | "semi_private">(modeParam ?? "private")
   const [sessionCount, setSessionCount] = useState(countParam ?? 1)
-  const myClass = classes.find((c) => c.id === me?.class_id)
+  const [classId, setClassId] = useState("")
+  const myClass = classes.find((c) => c.id === Number(classId))
   const pricePerSession = mode === "semi_private" ? (myClass?.semi_private_price ?? 0) : (myClass?.price_per_session ?? 0)
   const [selectedSlot, setSelectedSlot] = useState<{ day: number; start: string; end: string } | null>(null)
   const [date, setDate] = useState("")
@@ -43,6 +45,11 @@ function BookTeacher() {
   const teacher = teachers.find((u) => u.id === Number(teacherId))
   const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
   const countOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12]
+
+  // auto-pilih kelas kalau murid cuma punya 1 langganan
+  useEffect(() => {
+    if (!classId && myClasses.length === 1) setClassId(String(myClasses[0].class_id))
+  }, [myClasses, classId])
 
   const { mutate: createBooking, isPending } = useMutation({
     ...postTutoringBookingsMutation(),
@@ -60,12 +67,12 @@ function BookTeacher() {
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal booking"),
   })
 
-  const canSubmit = !!selectedSlot && !!date && !isPending
+  const canSubmit = !!selectedSlot && !!date && !!classId && !isPending
 
   const handleBook = () => {
-    if (!selectedSlot || !date) return
+    if (!selectedSlot || !date || !classId) return
     createBooking({
-      body: { teacher_id: Number(teacherId), date, start_time: selectedSlot.start, end_time: selectedSlot.end, mode, session_count: sessionCount, note, class_id: me?.class_id },
+      body: { teacher_id: Number(teacherId), date, start_time: selectedSlot.start, end_time: selectedSlot.end, mode, session_count: sessionCount, note, class_id: Number(classId) },
     })
   }
 
@@ -175,6 +182,28 @@ function BookTeacher() {
               </PopoverContent>
             </Popover>
             <p className="text-xs text-muted-foreground">Pertemuan berikutnya berjalan mingguan di hari & jam yang sama.</p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="class-select">Kelas</Label>
+            {myClasses.length === 0 ? (
+              <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                Kamu belum punya akses kelas. Hubungi admin untuk berlangganan.
+              </p>
+            ) : (
+              <Select items={myClasses.map((c) => ({ label: c.class?.name ?? "-", value: String(c.class_id) }))} value={classId} onValueChange={(v) => setClassId(v ?? "")}>
+                <SelectTrigger id="class-select" className="w-full" size="sm">
+                  <SelectValue placeholder="Pilih kelas" />
+                </SelectTrigger>
+                <SelectContent>
+                  {myClasses.map((c) => (
+                    <SelectItem key={c.id} value={String(c.class_id)}>
+                      {c.class?.name ?? "-"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="space-y-1.5">

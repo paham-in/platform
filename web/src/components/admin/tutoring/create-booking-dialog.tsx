@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon, Loader2, CheckCircle2 } from "lucide-react"
@@ -27,6 +28,7 @@ import {
   getTutoringTeachersOptions,
   getAdminTutoringAvailabilityOptions,
   getAdminClassesOptions,
+  getAdminStudentClassesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 
 interface CreateBookingDialogProps {
@@ -44,6 +46,12 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
   const [selectedSlot, setSelectedSlot] = useState<{ day: number; start: string; end: string } | null>(null)
   const [date, setDate] = useState("")
   const [note, setNote] = useState("")
+  const [classId, setClassId] = useState("")
+
+  const { data: studentClasses = [] } = useQuery({
+    ...getAdminStudentClassesOptions({ query: { user_id: student?.id ?? 0 } }),
+    enabled: !!student?.id,
+  })
 
   const { data: slots = [], isLoading: slotsLoading } = useQuery({
     ...getAdminTutoringAvailabilityOptions({
@@ -62,12 +70,18 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal membuat booking"),
   })
 
-  const studentClass = classes.find((c) => c.id === student?.class_id)
-  const pricePerSession = studentClass?.price_per_session ?? 0
+  const myClass = classes.find((c) => c.id === Number(classId))
+  const pricePerSession = myClass?.price_per_session ?? 0
 
-  const canSubmit = student && teacher && selectedSlot && date && !isPending
+  // auto-pilih kelas kalau murid cuma punya 1 langganan
+  useEffect(() => {
+    if (student && !classId && studentClasses.length === 1) setClassId(String(studentClasses[0].class_id))
+    if (!student) setClassId("")
+  }, [student, studentClasses, classId])
+
+  const canSubmit = student && teacher && selectedSlot && date && classId && !isPending
   const save = () => {
-    if (!student || !teacher || !selectedSlot || !date) return
+    if (!student || !teacher || !selectedSlot || !date || !classId) return
     createBooking({
       body: {
         student_id: student.id!,
@@ -78,7 +92,7 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
         mode: "private",
         session_count: sessionCount,
         note,
-        class_id: student.class_id,
+        class_id: Number(classId),
       },
     })
   }
@@ -99,7 +113,7 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
               autoHighlight
               items={students}
               value={student}
-              onValueChange={(v) => setStudent(v ?? undefined)}
+              onValueChange={(v) => { setStudent(v ?? undefined); setClassId("") }}
               itemToStringLabel={(u) => (u ? `${u.name} — ${u.email}` : "")}
             >
               <ComboboxInput placeholder={students.length ? "Pilih murid..." : "Tidak ada murid"} />
@@ -117,6 +131,30 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="admin-booking-class">Kelas</Label>
+            {!student ? (
+              <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">Pilih murid dulu</p>
+            ) : studentClasses.length === 0 ? (
+              <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                Murid ini belum punya akses kelas.
+              </p>
+            ) : (
+              <Select items={studentClasses.map((c) => ({ label: c.class?.name ?? "-", value: String(c.class_id) }))} value={classId} onValueChange={(v) => setClassId(v ?? "")}>
+                <SelectTrigger id="admin-booking-class" className="w-full" size="sm">
+                  <SelectValue placeholder="Pilih kelas" />
+                </SelectTrigger>
+                <SelectContent>
+                  {studentClasses.map((c) => (
+                    <SelectItem key={c.id} value={String(c.class_id)}>
+                      {c.class?.name ?? "-"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -242,7 +280,7 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
                   <p className="font-medium">Total ({sessionCount}× pertemuan)</p>
                   <p className="text-xs text-muted-foreground">
                     Rp {pricePerSession.toLocaleString("id-ID")} / pertemuan
-                    {studentClass && !studentClass.price_per_session && (
+                    {myClass && !myClass.price_per_session && (
                       <span className="ml-1 text-amber-600">(kelas tanpa harga)</span>
                     )}
                   </p>

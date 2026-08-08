@@ -1258,7 +1258,7 @@ export const getChaptersQueryKey = (options?: Options<GetChaptersData>) => creat
 /**
  * List chapters
  *
- * Mengembalikan daftar semua chapter untuk user yang sudah login
+ * Mengembalikan daftar chapter. Student hanya melihat chapter
  */
 export const getChaptersOptions = (options?: Options<GetChaptersData>) => queryOptions<GetChaptersResponse, DefaultError, GetChaptersResponse, ReturnType<typeof getChaptersQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
@@ -1395,7 +1395,7 @@ export const getMeOptions = (options?: Options<GetMeData>) => queryOptions<GetMe
 /**
  * Update profile
  *
- * Mengubah nama dan/atau kelas user yang sedang login
+ * Mengubah nama user yang sedang login
  */
 export const patchMeMutation = (options?: Partial<Options<PatchMeData>>): UseMutationOptions<PatchMeResponse, PatchMeError, Options<PatchMeData>> => {
     const mutationOptions: UseMutationOptions<PatchMeResponse, PatchMeError, Options<PatchMeData>> = {

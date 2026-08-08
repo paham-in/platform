@@ -229,6 +229,15 @@ func (s *Service) CreateBooking(studentID uint, input CreateBookingInput) (*Book
 }
 
 func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
+	// kelas booking wajib diisi — ambil dari langganan aktif kalau tidak dikirim
+	if input.ClassID == nil {
+		classID, err := s.resolveStudentClassID(studentID)
+		if err != nil {
+			return nil, err
+		}
+		input.ClassID = classID
+	}
+
 	// validasi slot sesuai jadwal kosong guru
 	if err := s.validateAvailability(input.TeacherID, input.Date, input.StartTime, input.EndTime); err != nil {
 		return nil, err
@@ -297,6 +306,15 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 	}
 	if err := s.checkTeacherConflict(input.TeacherID, input.Date, input.StartTime, input.EndTime, ""); err != nil {
 		return nil, err
+	}
+
+	// kelas booking wajib diisi — ambil dari langganan aktif kalau tidak dikirim
+	if input.ClassID == nil {
+		classID, err := s.resolveStudentClassID(input.StudentID)
+		if err != nil {
+			return nil, err
+		}
+		input.ClassID = classID
 	}
 
 	booking := models.Booking{
@@ -499,6 +517,26 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Booki
 	}
 	r := toBookingResponse(*updated)
 	return &r, nil
+}
+
+// resolveStudentClassID mengambil class_id dari langganan aktif student
+// (student_classes). 0 langganan → error; 1 → langsung dipakai; >1 → minta pilih.
+func (s *Service) resolveStudentClassID(studentID uint) (*uint, error) {
+	today := time.Now().Format("2006-01-02")
+	var ids []uint
+	if err := s.repo.db.Model(&models.StudentClass{}).
+		Where("user_id = ? AND expiry >= ?", studentID, today).
+		Distinct("class_id").Order("class_id asc").Pluck("class_id", &ids).Error; err != nil {
+		return nil, err
+	}
+	switch len(ids) {
+	case 0:
+		return nil, errors.New("kamu belum punya akses kelas — hubungi admin")
+	case 1:
+		return &ids[0], nil
+	default:
+		return nil, errors.New("pilih kelas dulu sebelum booking")
+	}
 }
 
 // getClassPrices mengembalikan harga les privat per kelas.

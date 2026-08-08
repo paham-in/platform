@@ -196,9 +196,9 @@ func (h *Handler) AdminDeleteUser(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "user berhasil dihapus"})
 }
 
-// UpdateProfile mengubah nama dan kelas user saat ini
+// UpdateProfile mengubah nama user saat ini
 // @Summary      Update profile
-// @Description  Mengubah nama dan/atau kelas user yang sedang login
+// @Description  Mengubah nama user yang sedang login
 // @Tags         Auth
 // @Accept       json
 // @Produce      json
@@ -215,14 +215,13 @@ func (h *Handler) UpdateProfile(c *fiber.Ctx) error {
 
 	var input struct {
 		Name       *string `json:"name"`
-		ClassID    *uint   `json:"class_id"`
 		SubjectIDs *[]uint `json:"subject_ids"`
 	}
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 
-	user, err := h.svc.UpdateProfile(userID, UpdateProfileInput{Name: input.Name, ClassID: input.ClassID, SubjectIDs: input.SubjectIDs})
+	user, err := h.svc.UpdateProfile(userID, UpdateProfileInput{Name: input.Name, SubjectIDs: input.SubjectIDs})
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}

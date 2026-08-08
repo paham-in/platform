@@ -802,7 +802,7 @@ export const getAuthGoogleCallback = <ThrowOnError extends boolean = false>(opti
 /**
  * List chapters
  *
- * Mengembalikan daftar semua chapter untuk user yang sudah login
+ * Mengembalikan daftar chapter. Student hanya melihat chapter
  */
 export const getChapters = <ThrowOnError extends boolean = false>(options?: Options<GetChaptersData, ThrowOnError>): RequestResult<GetChaptersResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetChaptersResponses, unknown, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],
@@ -879,7 +879,7 @@ export const getMe = <ThrowOnError extends boolean = false>(options?: Options<Ge
 /**
  * Update profile
  *
- * Mengubah nama dan/atau kelas user yang sedang login
+ * Mengubah nama user yang sedang login
  */
 export const patchMe = <ThrowOnError extends boolean = false>(options: Options<PatchMeData, ThrowOnError>): RequestResult<PatchMeResponses, PatchMeErrors, ThrowOnError> => (options.client ?? client).patch<PatchMeResponses, PatchMeErrors, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],

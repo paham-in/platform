@@ -270,18 +270,12 @@ func (s *Service) UpdatePaymentStatus(id uint, status string) error {
 
 type UpdateProfileInput struct {
 	Name       *string `json:"name"`
-	ClassID    *uint   `json:"class_id"`
 	SubjectIDs *[]uint `json:"subject_ids"`
 }
 
 func (s *Service) UpdateProfile(id uint, input UpdateProfileInput) (*UserResponse, error) {
 	if input.Name != nil {
 		if err := s.userRepo.UpdateName(id, *input.Name); err != nil {
-			return nil, errInternal
-		}
-	}
-	if input.ClassID != nil {
-		if err := s.userRepo.UpdateClassID(id, *input.ClassID); err != nil {
 			return nil, errInternal
 		}
 	}

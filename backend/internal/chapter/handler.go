@@ -3,6 +3,7 @@ package chapter
 import (
 	"strconv"
 
+	"bimbel2/backend/internal/middleware"
 	"bimbel2/backend/internal/storage"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,10 +20,11 @@ type MessageResponse struct {
 
 type Handler struct {
 	svc *Service
+	db  *gorm.DB
 }
 
-func NewHandler(svc *Service) *Handler {
-	return &Handler{svc: svc}
+func NewHandler(svc *Service, db *gorm.DB) *Handler {
+	return &Handler{svc: svc, db: db}
 }
 
 // AdminListChapters mengembalikan daftar semua chapter (admin only)
@@ -151,7 +153,7 @@ func (h *Handler) AdminDeleteChapter(c *fiber.Ctx) error {
 func AdminRoutes(admin fiber.Router, db *gorm.DB, minio *storage.MinioClient) {
 	repo := NewRepository(db)
 	svc := NewService(repo, minio)
-	h := NewHandler(svc)
+	h := NewHandler(svc, db)
 
 	admin.Get("/chapters", h.AdminListChapters)
 	admin.Post("/chapters", h.AdminCreateChapter)
@@ -161,7 +163,8 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, minio *storage.MinioClient) {
 
 // ListChapters mengembalikan daftar chapter (memerlukan login)
 // @Summary      List chapters
-// @Description  Mengembalikan daftar semua chapter untuk user yang sudah login
+// @Description  Mengembalikan daftar chapter. Student hanya melihat chapter
+// kelas yang dia langganan; user lain (admin/teacher/user) melihat semua.
 // @Tags         Chapters
 // @Accept       json
 // @Produce      json
@@ -171,13 +174,47 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, minio *storage.MinioClient) {
 // @Success      200 {array} ChapterResponse
 // @Router       /chapters [get]
 func (h *Handler) ListChapters(c *fiber.Ctx) error {
-	return h.AdminListChapters(c)
+	// student → hanya kelas dengan StudentClass aktif; lainnya semua kelas
+	var classIDs []uint
+	roles, ok := c.Locals("roles").([]string)
+	if ok {
+		for _, r := range roles {
+			if r == "student" {
+				classIDs = middleware.AccessibleClassIDs(c, h.db)
+				break
+			}
+		}
+	}
+
+	classIDStr := c.Query("class_id")
+	subjectIDStr := c.Query("subject_id")
+	if classIDStr != "" && subjectIDStr != "" {
+		classID, err := strconv.ParseUint(classIDStr, 10, 64)
+		if err != nil {
+			return c.Status(400).JSON(ErrorResponse{Error: "class_id tidak valid"})
+		}
+		subjectID, err := strconv.ParseUint(subjectIDStr, 10, 64)
+		if err != nil {
+			return c.Status(400).JSON(ErrorResponse{Error: "subject_id tidak valid"})
+		}
+		chapters, err := h.svc.ListByClassSubjectScoped(uint(classID), uint(subjectID), classIDs)
+		if err != nil {
+			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+		}
+		return c.JSON(chapters)
+	}
+
+	chapters, err := h.svc.ListScoped(classIDs)
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(chapters)
 }
 
 func PublicRoutes(app fiber.Router, db *gorm.DB, minio *storage.MinioClient) {
 	repo := NewRepository(db)
 	svc := NewService(repo, minio)
-	h := NewHandler(svc)
+	h := NewHandler(svc, db)
 
 	app.Get("/chapters", h.ListChapters)
 }
