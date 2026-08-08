@@ -44,15 +44,38 @@ func hasRole(c *fiber.Ctx, role string) bool {
 
 // ListTeachers returns all teachers (role teacher) for booking
 // @Summary      List teachers
-// @Description  Mengembalikan daftar guru yang tersedia untuk dibooking murid
+// @Description  Mengembalikan daftar guru yang tersedia untuk dibooking murid. Bisa difilter by subject_id dan slot waktu (day_of_week + start_time + end_time).
 // @Tags         Tutoring
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
+// @Param        subject_id   query int    false "Filter guru yang mengajar mapel ini"
+// @Param        day_of_week  query int    false "Filter slot di hari ini (0=Sun..6=Sat)"
+// @Param        start_time   query string false "Filter slot yang contain waktu mulai (HH:mm)"
+// @Param        end_time     query string false "Filter slot yang contain waktu selesai (HH:mm)"
 // @Success      200 {array} TeacherResponse
 // @Router       /tutoring/teachers [get]
 func (h *Handler) ListTeachers(c *fiber.Ctx) error {
-	teachers, err := h.svc.ListTeachers()
+	var filter TeacherFilter
+	if v := c.Query("subject_id"); v != "" {
+		id, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			return c.Status(400).JSON(ErrorResponse{Error: "subject_id tidak valid"})
+		}
+		uid := uint(id)
+		filter.SubjectID = &uid
+	}
+	if v := c.Query("day_of_week"); v != "" {
+		d, err := strconv.Atoi(v)
+		if err != nil {
+			return c.Status(400).JSON(ErrorResponse{Error: "day_of_week tidak valid"})
+		}
+		filter.DayOfWeek = &d
+	}
+	filter.StartTime = c.Query("start_time")
+	filter.EndTime = c.Query("end_time")
+
+	teachers, err := h.svc.ListTeachers(filter)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
@@ -249,6 +272,37 @@ func (h *Handler) AdminCreateBooking(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.Status(201).JSON(booking)
+}
+
+// AssignTeacher assigns a teacher to a booking without one (admin only)
+// @Summary      Assign teacher to booking
+// @Description  Admin menetapkan guru ke booking tanpa guru. Status tetap pending, guru lalu approve sendiri.
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path int true "Booking ID"
+// @Param        body body AssignTeacherInput true "Teacher ID"
+// @Success      200 {object} BookingResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/tutoring/bookings/{id}/assign [patch]
+func (h *Handler) AssignTeacher(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input AssignTeacherInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	if input.TeacherID == 0 {
+		return c.Status(400).JSON(ErrorResponse{Error: "teacher_id wajib diisi"})
+	}
+	booking, err := h.svc.AssignTeacher(uint(id), input.TeacherID)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(booking)
 }
 
 // AdminListAvailability returns availability slots for a teacher (admin only)
@@ -677,6 +731,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClie
 	admin.Get("/tutoring/bookings", h.AdminListBookings)
 	admin.Post("/tutoring/bookings", h.AdminCreateBooking)
 	admin.Get("/tutoring/availability", h.AdminListAvailability)
+	admin.Patch("/tutoring/bookings/:id/assign", h.AssignTeacher)
 	admin.Get("/tutoring/evidence", h.AdminListEvidence)
 	admin.Patch("/tutoring/evidence/:id", h.AdminReviewEvidence)
 	admin.Get("/tutoring/report", h.AdminListReport)

@@ -2243,6 +2243,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/tutoring/bookings/{id}/assign": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin menetapkan guru ke booking tanpa guru. Status tetap pending, guru lalu approve sendiri.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "Assign teacher to booking",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Booking ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Teacher ID",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.AssignTeacherInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.BookingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/tutoring/evidence": {
             "get": {
                 "security": [
@@ -4193,7 +4245,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan daftar guru yang tersedia untuk dibooking murid",
+                "description": "Mengembalikan daftar guru yang tersedia untuk dibooking murid. Bisa difilter by subject_id dan slot waktu (day_of_week + start_time + end_time).",
                 "consumes": [
                     "application/json"
                 ],
@@ -4204,6 +4256,32 @@ const docTemplate = `{
                     "Tutoring"
                 ],
                 "summary": "List teachers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Filter guru yang mengajar mapel ini",
+                        "name": "subject_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter slot di hari ini (0=Sun..6=Sat)",
+                        "name": "day_of_week",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter slot yang contain waktu mulai (HH:mm)",
+                        "name": "start_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter slot yang contain waktu selesai (HH:mm)",
+                        "name": "end_time",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -5272,6 +5350,17 @@ const docTemplate = `{
                 "student_id": {
                     "type": "integer"
                 },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "tutoring.AssignTeacherInput": {
+            "type": "object",
+            "properties": {
                 "teacher_id": {
                     "type": "integer"
                 }
@@ -5339,6 +5428,12 @@ const docTemplate = `{
                 "student_name": {
                     "type": "string"
                 },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "subject_name": {
+                    "type": "string"
+                },
                 "teacher_id": {
                     "type": "integer"
                 },
@@ -5391,7 +5486,12 @@ const docTemplate = `{
                 "start_time": {
                     "type": "string"
                 },
+                "subject_id": {
+                    "description": "mapel yang murid mau (wajib)",
+                    "type": "integer"
+                },
                 "teacher_id": {
+                    "description": "nil = belum ada guru, ditangani admin",
                     "type": "integer"
                 }
             }
@@ -5515,6 +5615,12 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "slots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tutoring.AvailabilityResponse"
+                    }
                 },
                 "subjects": {
                     "type": "array",

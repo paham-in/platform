@@ -682,6 +682,13 @@ definitions:
         type: string
       student_id:
         type: integer
+      subject_id:
+        type: integer
+      teacher_id:
+        type: integer
+    type: object
+  tutoring.AssignTeacherInput:
+    properties:
       teacher_id:
         type: integer
     type: object
@@ -726,6 +733,10 @@ definitions:
         type: integer
       student_name:
         type: string
+      subject_id:
+        type: integer
+      subject_name:
+        type: string
       teacher_id:
         type: integer
       teacher_name:
@@ -761,7 +772,11 @@ definitions:
         type: integer
       start_time:
         type: string
+      subject_id:
+        description: mapel yang murid mau (wajib)
+        type: integer
       teacher_id:
+        description: nil = belum ada guru, ditangani admin
         type: integer
     type: object
   tutoring.ErrorResponse:
@@ -842,6 +857,10 @@ definitions:
         type: integer
       name:
         type: string
+      slots:
+        items:
+          $ref: '#/definitions/tutoring.AvailabilityResponse'
+        type: array
       subjects:
         items:
           $ref: '#/definitions/tutoring.SubjectInfo'
@@ -2379,6 +2398,40 @@ paths:
       summary: Create booking manually
       tags:
       - Admin Tutoring
+  /admin/tutoring/bookings/{id}/assign:
+    patch:
+      consumes:
+      - application/json
+      description: Admin menetapkan guru ke booking tanpa guru. Status tetap pending,
+        guru lalu approve sendiri.
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Teacher ID
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tutoring.AssignTeacherInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.BookingResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign teacher to booking
+      tags:
+      - Admin Tutoring
   /admin/tutoring/evidence:
     get:
       consumes:
@@ -3616,7 +3669,25 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar guru yang tersedia untuk dibooking murid
+      description: Mengembalikan daftar guru yang tersedia untuk dibooking murid.
+        Bisa difilter by subject_id dan slot waktu (day_of_week + start_time + end_time).
+      parameters:
+      - description: Filter guru yang mengajar mapel ini
+        in: query
+        name: subject_id
+        type: integer
+      - description: Filter slot di hari ini (0=Sun..6=Sat)
+        in: query
+        name: day_of_week
+        type: integer
+      - description: Filter slot yang contain waktu mulai (HH:mm)
+        in: query
+        name: start_time
+        type: string
+      - description: Filter slot yang contain waktu selesai (HH:mm)
+        in: query
+        name: end_time
+        type: string
       produces:
       - application/json
       responses:

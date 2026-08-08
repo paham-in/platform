@@ -440,6 +440,11 @@ export type TutoringAdminCreateBookingInput = {
     session_count?: number;
     start_time?: string;
     student_id?: number;
+    subject_id?: number;
+    teacher_id?: number;
+};
+
+export type TutoringAssignTeacherInput = {
     teacher_id?: number;
 };
 
@@ -465,6 +470,8 @@ export type TutoringBookingResponse = {
     status?: string;
     student_id?: number;
     student_name?: string;
+    subject_id?: number;
+    subject_name?: string;
     teacher_id?: number;
     teacher_name?: string;
 };
@@ -493,6 +500,13 @@ export type TutoringCreateBookingInput = {
      */
     session_count?: number;
     start_time?: string;
+    /**
+     * mapel yang murid mau (wajib)
+     */
+    subject_id?: number;
+    /**
+     * nil = belum ada guru, ditangani admin
+     */
     teacher_id?: number;
 };
 
@@ -547,6 +561,7 @@ export type TutoringTeacherResponse = {
     email?: string;
     id?: number;
     name?: string;
+    slots?: Array<TutoringAvailabilityResponse>;
     subjects?: Array<TutoringSubjectInfo>;
 };
 
@@ -2053,6 +2068,39 @@ export type PostAdminTutoringBookingsResponses = {
 
 export type PostAdminTutoringBookingsResponse = PostAdminTutoringBookingsResponses[keyof PostAdminTutoringBookingsResponses];
 
+export type PatchAdminTutoringBookingsByIdAssignData = {
+    /**
+     * Teacher ID
+     */
+    body: TutoringAssignTeacherInput;
+    path: {
+        /**
+         * Booking ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/tutoring/bookings/{id}/assign';
+};
+
+export type PatchAdminTutoringBookingsByIdAssignErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PatchAdminTutoringBookingsByIdAssignError = PatchAdminTutoringBookingsByIdAssignErrors[keyof PatchAdminTutoringBookingsByIdAssignErrors];
+
+export type PatchAdminTutoringBookingsByIdAssignResponses = {
+    /**
+     * OK
+     */
+    200: TutoringBookingResponse;
+};
+
+export type PatchAdminTutoringBookingsByIdAssignResponse = PatchAdminTutoringBookingsByIdAssignResponses[keyof PatchAdminTutoringBookingsByIdAssignResponses];
+
 export type GetAdminTutoringEvidenceData = {
     body?: never;
     path?: never;
@@ -3280,7 +3328,24 @@ export type PostTutoringSessionsByIdEvidenceResponse = PostTutoringSessionsByIdE
 export type GetTutoringTeachersData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Filter guru yang mengajar mapel ini
+         */
+        subject_id?: number;
+        /**
+         * Filter slot di hari ini (0=Sun..6=Sat)
+         */
+        day_of_week?: number;
+        /**
+         * Filter slot yang contain waktu mulai (HH:mm)
+         */
+        start_time?: string;
+        /**
+         * Filter slot yang contain waktu selesai (HH:mm)
+         */
+        end_time?: string;
+    };
     url: '/tutoring/teachers';
 };
 

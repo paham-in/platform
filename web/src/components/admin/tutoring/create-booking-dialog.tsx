@@ -29,6 +29,7 @@ import {
   getAdminTutoringAvailabilityOptions,
   getAdminClassesOptions,
   getAdminStudentClassesOptions,
+  getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 
 interface CreateBookingDialogProps {
@@ -40,8 +41,10 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
   const { data: students = [] } = useQuery(getAdminStudentsOptions())
   const { data: teachers = [] } = useQuery(getTutoringTeachersOptions())
   const { data: classes = [] } = useQuery(getAdminClassesOptions())
+  const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [student, setStudent] = useState<UserAdminUserResponse>()
   const [teacher, setTeacher] = useState<TutoringTeacherResponse | undefined>()
+  const [subjectId, setSubjectId] = useState("")
   const [sessionCount, setSessionCount] = useState(1)
   const [selectedSlot, setSelectedSlot] = useState<{ day: number; start: string; end: string } | null>(null)
   const [date, setDate] = useState("")
@@ -79,13 +82,14 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
     if (!student) setClassId("")
   }, [student, studentClasses, classId])
 
-  const canSubmit = student && teacher && selectedSlot && date && classId && !isPending
+  const canSubmit = student && teacher && selectedSlot && date && classId && subjectId && !isPending
   const save = () => {
-    if (!student || !teacher || !selectedSlot || !date || !classId) return
+    if (!student || !teacher || !selectedSlot || !date || !classId || !subjectId) return
     createBooking({
       body: {
         student_id: student.id!,
         teacher_id: teacher.id!,
+        subject_id: Number(subjectId),
         date,
         start_time: selectedSlot.start,
         end_time: selectedSlot.end,
@@ -96,6 +100,8 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
       },
     })
   }
+
+  const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
   const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
   const countOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12]
@@ -185,6 +191,20 @@ export function CreateBookingDialog({ onClose }: CreateBookingDialogProps) {
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="admin-booking-subject">Mapel</Label>
+            <Select items={subjectOptions} value={subjectId} onValueChange={(v) => setSubjectId(v ?? "")}>
+              <SelectTrigger id="admin-booking-subject" className="w-full" size="sm">
+                <SelectValue placeholder="Pilih mapel" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjectOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {teacher && (

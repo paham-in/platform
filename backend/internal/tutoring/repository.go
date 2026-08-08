@@ -40,6 +40,23 @@ func (r *Repository) ListTeachers() ([]models.User, error) {
 	return users, nil
 }
 
+// ListTeachersBySubject mengembalikan guru yang mengajar subject tertentu.
+func (r *Repository) ListTeachersBySubject(subjectID uint) ([]models.User, error) {
+	var users []models.User
+	if err := r.db.
+		Joins("JOIN user_roles ON user_roles.user_id = users.id").
+		Joins("JOIN roles ON roles.id = user_roles.role_id").
+		Joins("JOIN teacher_subjects ON teacher_subjects.user_id = users.id").
+		Where("roles.name = ? AND teacher_subjects.subject_id = ?", "teacher", subjectID).
+		Preload("Roles").
+		Preload("Subjects").
+		Order("users.name").
+		Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (r *Repository) CreateAvailability(slot *models.Availability) error {
 	return r.db.Create(slot).Error
 }
@@ -92,9 +109,13 @@ func (r *Repository) UpdateBookingStatus(id uint, status string) error {
 	return r.db.Model(&models.Booking{}).Where("id = ?", id).Update("status", status).Error
 }
 
+func (r *Repository) UpdateBookingTeacher(id, teacherID uint) error {
+	return r.db.Model(&models.Booking{}).Where("id = ?", id).Update("teacher_id", teacherID).Error
+}
+
 func (r *Repository) GetBooking(id uint) (*models.Booking, error) {
 	var b models.Booking
-	if err := r.db.Preload("Student").Preload("Teacher").First(&b, id).Error; err != nil {
+	if err := r.db.Preload("Student").Preload("Teacher").Preload("Subject").First(&b, id).Error; err != nil {
 		return nil, err
 	}
 	return &b, nil

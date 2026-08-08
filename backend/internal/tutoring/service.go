@@ -25,10 +25,12 @@ type AvailabilityResponse struct {
 
 type BookingResponse struct {
 	ID           uint   `json:"id"`
-	TeacherID    uint   `json:"teacher_id"`
+	TeacherID    *uint  `json:"teacher_id,omitempty"`
 	Teacher      string `json:"teacher_name"`
 	StudentID    uint   `json:"student_id"`
 	Student      string `json:"student_name"`
+	SubjectID    uint   `json:"subject_id"`
+	Subject      string `json:"subject_name"`
 	Date         string `json:"date"`
 	StartTime    string `json:"start_time"`
 	EndTime      string `json:"end_time"`
@@ -70,11 +72,19 @@ type GroupInfoResponse struct {
 }
 
 type TeacherResponse struct {
-	ID        uint          `json:"id"`
-	Name      string        `json:"name"`
-	Email     string        `json:"email"`
-	AvatarURL string        `json:"avatar_url"`
-	Subjects  []SubjectInfo `json:"subjects"`
+	ID        uint                  `json:"id"`
+	Name      string                `json:"name"`
+	Email     string                `json:"email"`
+	AvatarURL string                `json:"avatar_url"`
+	Subjects  []SubjectInfo         `json:"subjects"`
+	Slots     []AvailabilityResponse `json:"slots,omitempty"`
+}
+
+type TeacherFilter struct {
+	SubjectID *uint
+	DayOfWeek *int
+	StartTime string
+	EndTime   string
 }
 
 type SubjectInfo struct {
@@ -138,18 +148,51 @@ func (s *Service) DeleteAvailability(id, teacherID uint) error {
 	return s.repo.DeleteAvailability(id, teacherID)
 }
 
-func (s *Service) ListTeachers() ([]TeacherResponse, error) {
-	users, err := s.repo.ListTeachers()
+func (s *Service) ListTeachers(filter TeacherFilter) ([]TeacherResponse, error) {
+	var users []models.User
+	var err error
+	if filter.SubjectID != nil {
+		users, err = s.repo.ListTeachersBySubject(*filter.SubjectID)
+	} else {
+		users, err = s.repo.ListTeachers()
+	}
 	if err != nil {
 		return nil, err
 	}
-	res := make([]TeacherResponse, len(users))
-	for i, u := range users {
+
+	res := make([]TeacherResponse, 0, len(users))
+	for _, u := range users {
 		subjects := make([]SubjectInfo, len(u.Subjects))
-		for j, s := range u.Subjects {
-			subjects[j] = SubjectInfo{ID: s.ID, Name: s.Name}
+		for j, subj := range u.Subjects {
+			subjects[j] = SubjectInfo{ID: subj.ID, Name: subj.Name}
 		}
-		res[i] = TeacherResponse{ID: u.ID, Name: u.Name, Email: u.Email, AvatarURL: u.AvatarURL, Subjects: subjects}
+		t := TeacherResponse{ID: u.ID, Name: u.Name, Email: u.Email, AvatarURL: u.AvatarURL, Subjects: subjects}
+
+		// slot filter: hanya guru yang punya availability contain request.
+		if filter.DayOfWeek != nil || filter.StartTime != "" || filter.EndTime != "" {
+			slots, err := s.repo.ListAvailability(u.ID)
+			if err != nil {
+				continue
+			}
+			matched := make([]AvailabilityResponse, 0, len(slots))
+			for _, slot := range slots {
+				if filter.DayOfWeek != nil && slot.DayOfWeek != *filter.DayOfWeek {
+					continue
+				}
+				if filter.StartTime != "" && slot.StartTime > filter.StartTime {
+					continue
+				}
+				if filter.EndTime != "" && slot.EndTime < filter.EndTime {
+					continue
+				}
+				matched = append(matched, AvailabilityResponse{ID: slot.ID, TeacherID: slot.TeacherID, DayOfWeek: slot.DayOfWeek, StartTime: slot.StartTime, EndTime: slot.EndTime})
+			}
+			if len(matched) == 0 {
+				continue // guru tanpa slot yang cocok
+			}
+			t.Slots = matched
+		}
+		res = append(res, t)
 	}
 	return res, nil
 }
@@ -179,7 +222,8 @@ func (s *Service) ListMyBookings(studentID uint) ([]BookingResponse, error) {
 }
 
 type CreateBookingInput struct {
-	TeacherID    uint   `json:"teacher_id"`
+	TeacherID    *uint  `json:"teacher_id"`    // nil = belum ada guru, ditangani admin
+	SubjectID    uint   `json:"subject_id"`    // mapel yang murid mau (wajib)
 	Date         string `json:"date"`
 	StartTime    string `json:"start_time"`
 	EndTime      string `json:"end_time"`
@@ -190,9 +234,14 @@ type CreateBookingInput struct {
 	ClassID      *uint  `json:"class_id,omitempty"`
 }
 
+type AssignTeacherInput struct {
+	TeacherID uint `json:"teacher_id"`
+}
+
 type AdminCreateBookingInput struct {
 	StudentID    uint   `json:"student_id"`
 	TeacherID    uint   `json:"teacher_id"`
+	SubjectID    uint   `json:"subject_id"`
 	Date         string `json:"date"`
 	StartTime    string `json:"start_time"`
 	EndTime      string `json:"end_time"`
@@ -238,12 +287,25 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 		input.ClassID = classID
 	}
 
+	// mapel wajib + harus satu program dengan kelas murid
+	if input.SubjectID == 0 {
+		return nil, errors.New("pilih mata pelajaran dulu")
+	}
+	if err := s.validateSubjectProgram(input.SubjectID, *input.ClassID); err != nil {
+		return nil, err
+	}
+
+	// booking tanpa guru → diserahkan ke admin
+	if input.TeacherID == nil {
+		return s.createNoTeacherBooking(studentID, input)
+	}
+
 	// validasi slot sesuai jadwal kosong guru
-	if err := s.validateAvailability(input.TeacherID, input.Date, input.StartTime, input.EndTime); err != nil {
+	if err := s.validateAvailability(*input.TeacherID, input.Date, input.StartTime, input.EndTime); err != nil {
 		return nil, err
 	}
 	// cek konflik jadwal guru
-	if err := s.checkTeacherConflict(input.TeacherID, input.Date, input.StartTime, input.EndTime, ""); err != nil {
+	if err := s.checkTeacherConflict(*input.TeacherID, input.Date, input.StartTime, input.EndTime, ""); err != nil {
 		return nil, err
 	}
 
@@ -259,6 +321,7 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 	booking := models.Booking{
 		TeacherID:    input.TeacherID,
 		StudentID:    studentID,
+		SubjectID:    input.SubjectID,
 		Date:         input.Date,
 		StartTime:    input.StartTime,
 		EndTime:      input.EndTime,
@@ -278,6 +341,52 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 	}
 	r := toBookingResponse(*created)
 	return &r, nil
+}
+
+// createNoTeacherBooking membuat booking tanpa guru untuk diproses admin.
+// Semi-private butuh guru (grup berbagi jadwal), jadi ditolak.
+func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
+	if input.Mode == "semi_private" {
+		return nil, errors.New("semi-private butuh guru — pilih guru dari daftar")
+	}
+	booking := models.Booking{
+		TeacherID:    nil,
+		StudentID:    studentID,
+		SubjectID:    input.SubjectID,
+		Date:         input.Date,
+		StartTime:    input.StartTime,
+		EndTime:      input.EndTime,
+		Status:       "pending",
+		Mode:         "private",
+		SessionCount: input.SessionCount,
+		Note:         input.Note,
+		ClassID:      input.ClassID,
+	}
+	if err := s.repo.CreateBooking(&booking); err != nil {
+		return nil, err
+	}
+	created, err := s.repo.GetBooking(booking.ID)
+	if err != nil {
+		return nil, err
+	}
+	r := toBookingResponse(*created)
+	return &r, nil
+}
+
+// validateSubjectProgram memastikan mapel satu program dengan kelas murid.
+func (s *Service) validateSubjectProgram(subjectID, classID uint) error {
+	var subject models.Subject
+	if err := s.repo.db.First(&subject, subjectID).Error; err != nil {
+		return errors.New("mata pelajaran tidak ditemukan")
+	}
+	var class models.Class
+	if err := s.repo.db.First(&class, classID).Error; err != nil {
+		return errors.New("kelas tidak ditemukan")
+	}
+	if subject.ProgramID != nil && class.ProgramID != nil && *subject.ProgramID != *class.ProgramID {
+		return errors.New("mata pelajaran tidak sesuai dengan kelas kamu")
+	}
+	return nil
 }
 
 // AdminCreateBooking daftarkan les privat manual atas nama murid.
@@ -317,9 +426,17 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 		input.ClassID = classID
 	}
 
+	if input.SubjectID == 0 {
+		return nil, errors.New("subject_id wajib diisi")
+	}
+	if err := s.validateSubjectProgram(input.SubjectID, *input.ClassID); err != nil {
+		return nil, err
+	}
+
 	booking := models.Booking{
-		TeacherID:    input.TeacherID,
+		TeacherID:    &input.TeacherID,
 		StudentID:    input.StudentID,
+		SubjectID:    input.SubjectID,
 		Date:         input.Date,
 		StartTime:    input.StartTime,
 		EndTime:      input.EndTime,
@@ -374,7 +491,8 @@ func (s *Service) joinGroup(studentID uint, input CreateBookingInput) (*BookingR
 	}
 
 	// peserta wajib memakai slot yang sama dgn organizer
-	if organizer.TeacherID != input.TeacherID ||
+	if organizer.TeacherID == nil || input.TeacherID == nil ||
+		*organizer.TeacherID != *input.TeacherID ||
 		organizer.Date != input.Date ||
 		organizer.StartTime != input.StartTime ||
 		organizer.EndTime != input.EndTime {
@@ -384,6 +502,7 @@ func (s *Service) joinGroup(studentID uint, input CreateBookingInput) (*BookingR
 	booking := models.Booking{
 		TeacherID:    organizer.TeacherID,
 		StudentID:    studentID,
+		SubjectID:    organizer.SubjectID,
 		Date:         organizer.Date,
 		StartTime:    organizer.StartTime,
 		EndTime:      organizer.EndTime,
@@ -473,7 +592,10 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Booki
 	if err != nil {
 		return nil, errors.New("booking tidak ditemukan")
 	}
-	if booking.TeacherID != teacherID {
+	if booking.TeacherID == nil {
+		return nil, errors.New("booking belum punya guru — ditangani admin")
+	}
+	if *booking.TeacherID != teacherID {
 		return nil, errors.New("hanya guru terkait yang bisa mengubah status")
 	}
 	if booking.Status != "pending" {
@@ -511,6 +633,36 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Booki
 		}
 	}
 
+	updated, err := s.repo.GetBooking(id)
+	if err != nil {
+		return nil, err
+	}
+	r := toBookingResponse(*updated)
+	return &r, nil
+}
+
+// AssignTeacher menetapkan guru ke booking tanpa guru (admin). Status tetap pending,
+// guru yang dipilih lalu approve sendiri. Validasi slot + konflik jadwal.
+func (s *Service) AssignTeacher(id, teacherID uint) (*BookingResponse, error) {
+	booking, err := s.repo.GetBooking(id)
+	if err != nil {
+		return nil, errors.New("booking tidak ditemukan")
+	}
+	if booking.TeacherID != nil {
+		return nil, errors.New("booking sudah punya guru")
+	}
+	if booking.Status != "pending" {
+		return nil, errors.New("booking sudah diproses sebelumnya")
+	}
+	if err := s.validateAvailability(teacherID, booking.Date, booking.StartTime, booking.EndTime); err != nil {
+		return nil, err
+	}
+	if err := s.checkTeacherConflict(teacherID, booking.Date, booking.StartTime, booking.EndTime, ""); err != nil {
+		return nil, err
+	}
+	if err := s.repo.UpdateBookingTeacher(id, teacherID); err != nil {
+		return nil, err
+	}
 	updated, err := s.repo.GetBooking(id)
 	if err != nil {
 		return nil, err
@@ -617,11 +769,15 @@ func (s *Service) ListGroupInfo(token string) (*GroupInfoResponse, error) {
 		return nil, err
 	}
 	teacherName := ""
+	teacherID := uint(0)
+	if organizer.TeacherID != nil {
+		teacherID = *organizer.TeacherID
+	}
 	if organizer.Teacher != nil {
 		teacherName = organizer.Teacher.Name
 	}
 	return &GroupInfoResponse{
-		TeacherID:    organizer.TeacherID,
+		TeacherID:    teacherID,
 		TeacherName:  teacherName,
 		Mode:         organizer.Mode,
 		SessionCount: organizer.SessionCount,
@@ -703,7 +859,7 @@ func (s *Service) getOwnedSession(sessionID, teacherID uint) (*models.TutoringSe
 	if err != nil {
 		return nil, errors.New("sesi tidak ditemukan")
 	}
-	if session.Booking == nil || session.Booking.TeacherID != teacherID {
+	if session.Booking == nil || session.Booking.TeacherID == nil || *session.Booking.TeacherID != teacherID {
 		return nil, errors.New("bukan guru pemilik sesi ini")
 	}
 	return session, nil
@@ -1004,11 +1160,15 @@ func generateToken() (string, error) {
 func toBookingResponse(b models.Booking) BookingResponse {
 	studentName := ""
 	teacherName := ""
+	subjectName := ""
 	if b.Student != nil {
 		studentName = b.Student.Name
 	}
 	if b.Teacher != nil {
 		teacherName = b.Teacher.Name
+	}
+	if b.Subject != nil {
+		subjectName = b.Subject.Name
 	}
 	return BookingResponse{
 		ID:           b.ID,
@@ -1016,6 +1176,8 @@ func toBookingResponse(b models.Booking) BookingResponse {
 		Teacher:      teacherName,
 		StudentID:    b.StudentID,
 		Student:      studentName,
+		SubjectID:    b.SubjectID,
+		Subject:      subjectName,
 		Date:         b.Date,
 		StartTime:    b.StartTime,
 		EndTime:      b.EndTime,

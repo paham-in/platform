@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Spinner } from "@/components/ui/spinner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getTutoringTeachersOptions, getTutoringAvailabilityOptions, postTutoringBookingsMutation, getTutoringBookingsQueryKey, getStudentClassesOptions, getClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getTutoringTeachersOptions, getTutoringAvailabilityOptions, postTutoringBookingsMutation, getTutoringBookingsQueryKey, getStudentClassesOptions, getClassesOptions, getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { CalendarIcon, CheckCircle2, Copy, Loader2, UserRound, Users } from "lucide-react"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
@@ -20,23 +20,31 @@ import { toast } from "sonner"
 const bookTeacherSearchSchema = z.object({
   mode: z.enum(["private", "semi_private"]).optional(),
   count: z.coerce.number().int().min(1).max(52).optional(),
+  subject_id: z.coerce.number().int().optional(),
+  day: z.coerce.number().int().min(0).max(6).optional(),
+  start_time: z.string().optional(),
+  end_time: z.string().optional(),
 })
 
 function BookTeacher() {
   const { teacherId } = Route.useParams()
-  const { mode: modeParam, count: countParam } = Route.useSearch()
+  const { mode: modeParam, count: countParam, subject_id: subjectIdParam, day: dayParam, start_time: startTimeParam, end_time: endTimeParam } = Route.useSearch()
   const qc = useQueryClient()
   const { data: teachers = [] } = useQuery(getTutoringTeachersOptions())
   const { data: slots = [], isLoading } = useQuery(getTutoringAvailabilityOptions({ query: { teacher_id: Number(teacherId) } }))
   const { data: myClasses = [] } = useQuery(getStudentClassesOptions())
   const { data: classes = [] } = useQuery(getClassesOptions())
+  const { data: subjects = [] } = useQuery(getSubjectsOptions())
 
   const [mode, setMode] = useState<"private" | "semi_private">(modeParam ?? "private")
   const [sessionCount, setSessionCount] = useState(countParam ?? 1)
   const [classId, setClassId] = useState("")
+  const [subjectId, setSubjectId] = useState(subjectIdParam ? String(subjectIdParam) : "")
   const myClass = classes.find((c) => c.id === Number(classId))
   const pricePerSession = mode === "semi_private" ? (myClass?.semi_private_price ?? 0) : (myClass?.price_per_session ?? 0)
-  const [selectedSlot, setSelectedSlot] = useState<{ day: number; start: string; end: string } | null>(null)
+  const [selectedSlot, setSelectedSlot] = useState<{ day: number; start: string; end: string } | null>(
+    dayParam && startTimeParam && endTimeParam ? { day: dayParam, start: startTimeParam, end: endTimeParam } : null,
+  )
   const [date, setDate] = useState("")
   const [note, setNote] = useState("")
   const [shareOpen, setShareOpen] = useState(false)
@@ -45,6 +53,7 @@ function BookTeacher() {
   const teacher = teachers.find((u) => u.id === Number(teacherId))
   const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
   const countOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12]
+  const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
   // auto-pilih kelas kalau murid cuma punya 1 langganan
   useEffect(() => {
@@ -67,12 +76,12 @@ function BookTeacher() {
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal booking"),
   })
 
-  const canSubmit = !!selectedSlot && !!date && !!classId && !isPending
+  const canSubmit = !!selectedSlot && !!date && !!classId && !!subjectId && !isPending
 
   const handleBook = () => {
-    if (!selectedSlot || !date || !classId) return
+    if (!selectedSlot || !date || !classId || !subjectId) return
     createBooking({
-      body: { teacher_id: Number(teacherId), date, start_time: selectedSlot.start, end_time: selectedSlot.end, mode, session_count: sessionCount, note, class_id: Number(classId) },
+      body: { teacher_id: Number(teacherId), subject_id: Number(subjectId), date, start_time: selectedSlot.start, end_time: selectedSlot.end, mode, session_count: sessionCount, note, class_id: Number(classId) },
     })
   }
 
@@ -182,6 +191,20 @@ function BookTeacher() {
               </PopoverContent>
             </Popover>
             <p className="text-xs text-muted-foreground">Pertemuan berikutnya berjalan mingguan di hari & jam yang sama.</p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="subject-select">Mata Pelajaran</Label>
+            <Select items={subjectOptions} value={subjectId} onValueChange={(v) => setSubjectId(v ?? "")}>
+              <SelectTrigger id="subject-select" className="w-full" size="sm">
+                <SelectValue placeholder="Pilih mapel" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjectOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-1.5">
