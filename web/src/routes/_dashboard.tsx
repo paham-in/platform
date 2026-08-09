@@ -12,28 +12,47 @@ import {
 import {
   BookMarked,
   BookOpen,
-  Camera,
+  Calendar,
+  ChevronRight,
   CreditCard,
   DatabaseZap,
-  GraduationCap,
   Home,
   LayoutDashboard,
   ListChecks,
   LogOut,
-  Menu,
   MessageSquare,
-  Moon,
   Settings,
   Shield,
-  Sun,
   Users,
-  X,
-  Calendar,
-  ShieldAlert,
+  type LucideIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useTheme } from "@/components/theme-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { homeForRoles, requiredRoleForPath, roleLabel } from "@/lib/role";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -43,18 +62,27 @@ import {
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
 
-const sidebarGroups = [
+type SidebarItem = {
+  label: string;
+  icon: LucideIcon;
+  to?: string;
+  devOnly?: boolean;
+  items?: { label: string; to: string }[];
+};
+type SidebarGroup = { label: string; roles: string[]; items: SidebarItem[] };
+
+const sidebarGroups: SidebarGroup[] = [
   {
     label: "Umum",
     roles: ["student", "teacher", "admin"],
-    links: [
+    items: [
       { label: "Pengaturan", icon: Settings, to: "/settings" },
     ],
   },
   {
     label: "Murid",
     roles: ["student"],
-    links: [
+    items: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/student/dashboard" },
       { label: "Materi", icon: BookMarked, to: "/student/materials" },
       { label: "Kalender", icon: Calendar, to: "/student/calendar" },
@@ -66,28 +94,54 @@ const sidebarGroups = [
   {
     label: "Guru",
     roles: ["teacher"],
-    links: [
+    items: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/teacher/dashboard" },
       { label: "Materi", icon: BookOpen, to: "/teacher/chapters" },
       { label: "Paket Soal", icon: ListChecks, to: "/teacher/packs" },
       { label: "Kalender", icon: Calendar, to: "/teacher/calendar" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/teacher/forum" },
-      { label: "Les Privat", icon: Calendar, to: "/teacher/tutoring" },
+      {
+        label: "Les Privat",
+        icon: Calendar,
+        items: [
+          { label: "Permintaan Booking", to: "/teacher/tutoring/requests" },
+          { label: "Jadwal Slot", to: "/teacher/tutoring/schedule" },
+          { label: "Pendapatan Les", to: "/teacher/tutoring/earnings" },
+        ],
+      },
     ],
   },
   {
     label: "Admin",
     roles: ["admin"],
-    links: [
+    items: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/admin/dashboard" },
-      { label: "Kelola User", icon: Users, to: "/admin/users" },
-      { label: "Pembayaran", icon: CreditCard, to: "/admin/payments" },
-      { label: "Program & Kelas", icon: BookMarked, to: "/admin/programs" },
-      { label: "Mata Pelajaran", icon: BookMarked, to: "/admin/subjects" },
-      { label: "Mata Pelajaran Guru", icon: GraduationCap, to: "/admin/teacher-subjects" },
-      { label: "Hak Akses Murid", icon: Shield, to: "/admin/student-classes" },
+      {
+        label: "User & Akses",
+        icon: Users,
+        items: [
+          { label: "Kelola User", to: "/admin/users" },
+          { label: "Hak Akses Murid", to: "/admin/student-classes" },
+        ],
+      },
+      {
+        label: "Keuangan",
+        icon: CreditCard,
+        items: [
+          { label: "Pembayaran Murid", to: "/admin/payments" },
+          { label: "Validasi & Fee Guru", to: "/admin/attendance" },
+        ],
+      },
+      {
+        label: "Kurikulum",
+        icon: BookMarked,
+        items: [
+          { label: "Program & Kelas", to: "/admin/programs" },
+          { label: "Mata Pelajaran", to: "/admin/subjects" },
+          { label: "Mata Pelajaran Guru", to: "/admin/teacher-subjects" },
+        ],
+      },
       { label: "Les Privat", icon: Calendar, to: "/admin/tutoring" },
-      { label: "Validasi & Fee Guru", icon: Camera, to: "/admin/attendance" },
       { label: "Pengaturan", icon: Settings, to: "/admin/settings" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
       { label: "Reset Data", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },
@@ -99,7 +153,7 @@ function AccessDenied({ requiredRole, userRoles }: { requiredRole: string; userR
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-        <ShieldAlert className="h-6 w-6" />
+        <Shield className="h-6 w-6" />
       </div>
       <div>
         <h2 className="text-xl font-bold tracking-tight">Akses Ditolak</h2>
@@ -111,7 +165,110 @@ function AccessDenied({ requiredRole, userRoles }: { requiredRole: string; userR
         <Button>Kembali ke Dashboard</Button>
       </Link>
     </main>
-  )
+  );
+}
+
+function AppSidebar({
+  groups,
+  userName,
+  logoutPending,
+  onLogoutClick,
+}: {
+  groups: SidebarGroup[];
+  userName?: string;
+  logoutPending: boolean;
+  onLogoutClick: () => void;
+}) {
+  const { pathname } = useRouterState().location;
+  const { setOpenMobile } = useSidebar();
+  const isActive = (to?: string) => !!to && (pathname === to || pathname.startsWith(to + "/"));
+  const closeMobile = () => setOpenMobile(false);
+
+  return (
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" render={<Link to="/" onClick={closeMobile} />}>
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+                p
+              </div>
+              <div className="flex flex-col gap-0.5 leading-none">
+                <span className="font-semibold">paham.in</span>
+                <span className="text-xs text-muted-foreground">{userName}</span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent>
+        {groups.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarMenu>
+              {group.items.map((item) =>
+                item.items?.length ? (
+                  <Collapsible
+                    key={item.label}
+                    defaultOpen={item.items.some((sub) => pathname.startsWith(sub.to))}
+                    className="group/collapsible"
+                    render={<SidebarMenuItem />}
+                  >
+                    <CollapsibleTrigger
+                      render={<SidebarMenuButton tooltip={item.label} />}
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-open/collapsible:rotate-90" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.items.map((sub) => (
+                          <SidebarMenuSubItem key={sub.label}>
+                            <SidebarMenuSubButton
+                              isActive={isActive(sub.to)}
+                              render={<Link to={sub.to} onClick={closeMobile} />}
+                            >
+                              <span>{sub.label}</span>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </Collapsible>
+                ) : (
+                  <SidebarMenuItem key={item.label}>
+                    <SidebarMenuButton
+                      tooltip={item.label}
+                      isActive={isActive(item.to)}
+                      render={<Link to={item.to!} onClick={closeMobile} />}
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              )}
+            </SidebarMenu>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Keluar" onClick={onLogoutClick}>
+              {logoutPending ? <Spinner /> : <LogOut />}
+              <span>Keluar</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+
+      <SidebarRail />
+    </Sidebar>
+  );
 }
 
 function DashboardLayout() {
@@ -119,7 +276,6 @@ function DashboardLayout() {
   const qc = useQueryClient();
   const { data: user, isLoading } = useQuery(getMeOptions());
   const routerState = useRouterState();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   const logout = useMutation({
@@ -131,7 +287,6 @@ function DashboardLayout() {
       navigate({ to: "/login" });
     },
   });
-  const { theme, setTheme } = useTheme();
   const confirmLogout = () => {
     setLogoutConfirmOpen(false);
     logout.mutate({});
@@ -182,77 +337,25 @@ function DashboardLayout() {
   const filteredGroups = sidebarGroups
     .map((g) => ({
       ...g,
-      links: g.roles.some((r) => userRoles.includes(r))
-        ? g.links.filter((l) => !("devOnly" in l && l.devOnly && !devResetEnabled))
+      items: g.roles.some((r) => userRoles.includes(r))
+        ? g.items.filter((l) => !("devOnly" in l && l.devOnly && !devResetEnabled))
         : [],
     }))
-    .filter((g) => g.links.length > 0);
+    .filter((g) => g.items.length > 0);
 
   return (
-    <div className="min-h-screen bg-muted/20">
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
-
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 flex-col border-r bg-card p-4 transition-transform ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:flex`}
-      >
-        <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">p</div>
-              <span className="text-lg font-bold">paham.in</span>
-            </Link>
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(false)}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <nav className="mt-8 flex-1 space-y-4 overflow-y-auto no-scrollbar">
-            {filteredGroups.map((group) => (
-              <div key={group.label}>
-                <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
-                  {group.label}
-                </p>
-                <div className="space-y-0.5">
-                  {group.links.map((l) => (
-                    <Link
-                      key={l.to}
-                      to={l.to}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                      activeProps={{ className: "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground bg-muted" }}
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      <l.icon className="h-4 w-4" /> {l.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </nav>
-
-          <div className="space-y-1 border-t pt-4">
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-3 text-muted-foreground" onClick={() => setLogoutConfirmOpen(true)} disabled={logout.isPending}>
-              {logout.isPending ? <Spinner /> : <LogOut className="h-4 w-4" />} Keluar
-            </Button>
-          </div>
-        </div>
-      </aside>
-
-      <div className="flex flex-col md:ml-64 h-screen overflow-y-auto">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-card px-4 shrink-0">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(true)}>
-            <Menu className="h-5 w-5" />
-          </Button>
+    <SidebarProvider>
+      <AppSidebar
+        groups={filteredGroups}
+        userName={user.name}
+        logoutPending={logout.isPending}
+        onLogoutClick={() => setLogoutConfirmOpen(true)}
+      />
+      <SidebarInset>
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-4 border-b bg-background px-4">
+          <SidebarTrigger className="-ml-1" />
           <div className="flex-1" />
-          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
+          <ThemeToggle compact />
           <div className="flex items-center gap-2">
             {user?.avatar_url ? (
               <img src={user.avatar_url} alt="" className="h-7 w-7 rounded-full" />
@@ -262,10 +365,10 @@ function DashboardLayout() {
             <span className="text-sm text-muted-foreground">{user?.name}</span>
           </div>
         </header>
-        <div className="flex-1">
+        <div className="flex flex-1 flex-col">
           {denied ? <AccessDenied requiredRole={requiredRole!} userRoles={userRoles} /> : <Outlet />}
         </div>
-      </div>
+      </SidebarInset>
 
       <AlertDialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
         <AlertDialogContent>
@@ -281,7 +384,7 @@ function DashboardLayout() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </SidebarProvider>
   );
 }
 
