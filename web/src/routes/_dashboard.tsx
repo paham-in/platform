@@ -29,9 +29,11 @@ import {
   Users,
   X,
   Calendar,
+  ShieldAlert,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTheme } from "@/components/theme-provider";
+import { homeForRoles, requiredRoleForPath, roleLabel } from "@/lib/role";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -93,6 +95,25 @@ const sidebarGroups = [
   },
 ];
 
+function AccessDenied({ requiredRole, userRoles }: { requiredRole: string; userRoles: string[] }) {
+  return (
+    <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+        <ShieldAlert className="h-6 w-6" />
+      </div>
+      <div>
+        <h2 className="text-xl font-bold tracking-tight">Akses Ditolak</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Halaman ini khusus untuk role {roleLabel(requiredRole)}. Akun kamu tidak punya akses ke sini.
+        </p>
+      </div>
+      <Link to={homeForRoles(userRoles)}>
+        <Button>Kembali ke Dashboard</Button>
+      </Link>
+    </main>
+  )
+}
+
 function DashboardLayout() {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -119,6 +140,12 @@ function DashboardLayout() {
   const userRoles = (user?.roles as string[]) ?? [];
   const hasAccessRole = ["student", "teacher", "admin"].some((r) => userRoles.includes(r));
   const isAdmin = userRoles.includes("admin");
+
+  // guard role: halaman di bawah /admin, /teacher, /student hanya boleh di-render
+  // oleh role yang berhak. Role mismatch → tampil halaman "Akses Ditolak".
+  const pathname = routerState.location.pathname;
+  const requiredRole = requiredRoleForPath(pathname);
+  const denied = !!requiredRole && !userRoles.includes(requiredRole);
   // cek flag fitur reset dari backend; hanya dipanggil kalau admin,
   // dipakai buat nyembunyiin menu "Reset Data" kalau fitur mati.
   const { data: devReset } = useQuery({
@@ -236,7 +263,7 @@ function DashboardLayout() {
           </div>
         </header>
         <div className="flex-1">
-          <Outlet />
+          {denied ? <AccessDenied requiredRole={requiredRole!} userRoles={userRoles} /> : <Outlet />}
         </div>
       </div>
 
