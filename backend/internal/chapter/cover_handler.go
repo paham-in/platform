@@ -68,12 +68,17 @@ func (h *CoverHandler) UploadCover(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengunggah gambar"})
 	}
 
-	// delete old cover if exists
+	// update DB dulu; kalau gagal, hapus file baru biar tidak orphan
+	if err := h.db.Model(&chapter).Update("cover_url", objectName).Error; err != nil {
+		_ = h.minio.Delete(c.Context(), objectName)
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal menyimpan cover"})
+	}
+
+	// hapus cover lama — di sini DB sudah menunjuk file baru, jadi kalau
+	// hapus file lama gagal, cover lama cuma jadi orphan (tidak merusak state).
 	if chapter.CoverURL != "" && strings.HasPrefix(chapter.CoverURL, "covers/") {
 		_ = h.minio.Delete(c.Context(), chapter.CoverURL)
 	}
-
-	h.db.Model(&chapter).Update("cover_url", objectName)
 
 	return c.JSON(MessageResponse{Message: "cover berhasil diupload"})
 }

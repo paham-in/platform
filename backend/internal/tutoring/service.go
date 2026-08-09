@@ -1192,9 +1192,9 @@ func (s *Service) CancelSession(sessionID, teacherID uint) (*TutoringSessionResp
 	return &res[0], nil
 }
 
-// UploadEvidence menyimpan foto bukti kehadiran guru dan menandai sesi "review"
-// (menunggu validasi admin). Jendela upload: mulai jam sesi mulai sampai H+7 setelah sesi berakhir.
-func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (*TutoringSessionResponse, error) {
+// checkEvidenceEligible memvalidasi sesi milik guru, berstatus scheduled, dan
+// masih dalam jendela upload. Mengembalikan session kalau valid.
+func (s *Service) checkEvidenceEligible(sessionID, teacherID uint) (*models.TutoringSession, error) {
 	session, err := s.getOwnedSession(sessionID, teacherID)
 	if err != nil {
 		return nil, err
@@ -1217,6 +1217,23 @@ func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (
 	deadline := end.Add(evidenceWindowDays * 24 * time.Hour)
 	if now.After(deadline) {
 		return nil, errors.New("batas upload bukti sudah lewat (maksimal 7 hari setelah sesi berakhir)")
+	}
+	return session, nil
+}
+
+// ValidateEvidenceUpload dipanggil handler SEBELUM upload file ke MinIO —
+// supaya file tidak ter-upload percuma (lalu jadi orphan) kalau sesi bukan
+// milik guru / bukan scheduled / di luar jendela waktu.
+func (s *Service) ValidateEvidenceUpload(sessionID, teacherID uint) error {
+	_, err := s.checkEvidenceEligible(sessionID, teacherID)
+	return err
+}
+
+// UploadEvidence menyimpan foto bukti kehadiran guru dan menandai sesi "review"
+// (menunggu validasi admin). Jendela upload: mulai jam sesi mulai sampai H+7 setelah sesi berakhir.
+func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (*TutoringSessionResponse, error) {
+	if _, err := s.checkEvidenceEligible(sessionID, teacherID); err != nil {
+		return nil, err
 	}
 	if err := s.repo.UpdateSession(sessionID, map[string]interface{}{
 		"evidence_url": objectName,
@@ -1270,6 +1287,20 @@ func (s *Service) ApproveEvidence(sessionID uint) (*TutoringSessionResponse, err
 	}
 	res := toSessionResponses([]models.TutoringSession{*updated})
 	return &res[0], nil
+}
+
+// ValidateEvidenceReject memvalidasi sesi punya bukti yang menunggu validasi
+// dan mengembalikan objectName-nya. Dipanggil handler SEBELUM menghapus file
+// MinIO — kalau hapus file gagal, DB tidak diubah (tetap konsisten, bisa retry).
+func (s *Service) ValidateEvidenceReject(sessionID uint) (string, error) {
+	session, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return "", errors.New("sesi tidak ditemukan")
+	}
+	if session.EvidenceURL == "" || session.Status != "review" {
+		return "", errors.New("tidak ada bukti yang menunggu validasi pada sesi ini")
+	}
+	return session.EvidenceURL, nil
 }
 
 // RejectEvidence menolak bukti → sesi kembali terjadwal, bukti dihapus.

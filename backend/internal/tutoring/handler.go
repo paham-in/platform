@@ -506,6 +506,12 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 	}
 	userID := c.Locals("user_id").(uint)
 
+	// validasi ownership/status/jendela upload SEBELUM upload file ke MinIO —
+	// hindari file orphan kalau sesi bukan milik guru / belum waktunya.
+	if err := h.svc.ValidateEvidenceUpload(uint(id), userID); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+
 	file, err := c.FormFile("image")
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "file tidak ditemukan"})
@@ -547,6 +553,8 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 
 	session, err := h.svc.UploadEvidence(uint(id), userID, objectName)
 	if err != nil {
+		// file sudah ter-upload tapi simpan DB gagal — hapus biar tidak orphan.
+		_ = h.minio.Delete(c.Context(), objectName)
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(session)
@@ -611,12 +619,20 @@ func (h *Handler) AdminReviewEvidence(c *fiber.Ctx) error {
 		}
 		return c.JSON(session)
 	case "reject":
-		session, oldObject, err := h.svc.RejectEvidence(uint(id))
+		// hapus file MinIO DULU — kalau gagal, DB tidak diubah (sesi tetap
+		// review, bukti masih ada) sehingga konsisten dan bisa di-retry.
+		oldObject, err := h.svc.ValidateEvidenceReject(uint(id))
 		if err != nil {
 			return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 		}
 		if h.minio != nil && oldObject != "" {
-			_ = h.minio.Delete(c.Context(), oldObject)
+			if err := h.minio.Delete(c.Context(), oldObject); err != nil {
+				return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus bukti: " + err.Error()})
+			}
+		}
+		session, _, err := h.svc.RejectEvidence(uint(id))
+		if err != nil {
+			return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 		}
 		return c.JSON(session)
 	default:
