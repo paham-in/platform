@@ -904,6 +904,15 @@ definitions:
       url:
         type: string
     type: object
+  user.AdminCreateStudentInput:
+    properties:
+      class_id:
+        type: integer
+      email:
+        type: string
+      name:
+        type: string
+    type: object
   user.AdminUserResponse:
     properties:
       avatar_url:
@@ -2398,6 +2407,34 @@ paths:
       summary: Create booking manually
       tags:
       - Admin Tutoring
+  /admin/tutoring/bookings/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus booking beserta sesi dan invoice terkait. Dipakai utk
+        koreksi booking manual yang salah input.
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete booking
+      tags:
+      - Tutoring
   /admin/tutoring/bookings/{id}/assign:
     patch:
       consumes:
@@ -2590,6 +2627,38 @@ paths:
       summary: List all users
       tags:
       - Admin
+    post:
+      consumes:
+      - application/json
+      description: Membuat user ber-role student tanpa password utk murid yang belum
+        punya akun (misal SD)
+      parameters:
+      - description: Nama & email murid
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/user.AdminCreateStudentInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.AdminUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create student (dummy)
+      tags:
+      - Admin
   /admin/users/{id}:
     delete:
       consumes:
@@ -2619,6 +2688,44 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete user
+      tags:
+      - Admin
+  /admin/users/{id}/email:
+    patch:
+      consumes:
+      - application/json
+      description: Mengganti email user. Dipakai utk menghubungkan akun dummy dengan
+        email asli murid.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Email baru
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user email
       tags:
       - Admin
   /admin/users/{id}/payment:

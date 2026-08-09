@@ -5,9 +5,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"slices"
+	"strings"
 	"time"
 
 	"bimbel2/backend/internal/models"
+
+	"gorm.io/gorm"
 )
 
 // sessionDuration dipakai untuk sliding expiration: diperpanjang tiap token dipakai.
@@ -207,6 +210,74 @@ func subjectInfos(subjects []models.Subject) []SubjectInfo {
 		res[i] = SubjectInfo{ID: s.ID, Name: s.Name}
 	}
 	return res
+}
+
+// AdminCreateStudentInput adalah body request utk membuat akun murid manual
+// (misal murid yang belum punya akun sendiri). ClassID = properti kelas murid.
+type AdminCreateStudentInput struct {
+	Name    string `json:"name"`
+	Email   string `json:"email"`
+	ClassID *uint  `json:"class_id,omitempty"`
+}
+
+// AdminCreateStudent membuat user ber-role student. Set properti kelas murid
+// (users.class_id) kalau dikirim — ini BUKAN akses kelas (student_classes).
+func (s *Service) AdminCreateStudent(input AdminCreateStudentInput) (*AdminUserResponse, error) {
+	name := strings.TrimSpace(input.Name)
+	email := strings.TrimSpace(input.Email)
+	if name == "" {
+		return nil, errors.New("nama wajib diisi")
+	}
+	if email == "" {
+		return nil, errors.New("email wajib diisi")
+	}
+	if _, err := s.userRepo.GetByEmail(email); err == nil {
+		return nil, errEmailExists
+	}
+
+	u := models.User{Name: name, Email: email, ClassID: input.ClassID}
+	err := s.userRepo.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&u).Error; err != nil {
+			return err
+		}
+		var studentRole models.Role
+		if err := tx.Where("name = ?", "student").First(&studentRole).Error; err != nil {
+			return err
+		}
+		return tx.Model(&u).Association("Roles").Append(&studentRole)
+	})
+	if err != nil {
+		return nil, errInternal
+	}
+	r := s.toAdminResponse(u)
+	return &r, nil
+}
+
+// UpdateUserEmail mengganti email user. Dipakai utk menghubungkan akun dummy
+// dengan email asli murid, sehingga login Google otomatis ter-link.
+func (s *Service) UpdateUserEmail(id uint, email string) error {
+	email = strings.TrimSpace(email)
+	if email == "" {
+		return errors.New("email wajib diisi")
+	}
+	if existing, err := s.userRepo.GetByEmail(email); err == nil && existing.ID != id {
+		return errEmailExists
+	}
+	return s.userRepo.UpdateEmail(id, email)
+}
+
+func (s *Service) toAdminResponse(u models.User) AdminUserResponse {
+	return AdminUserResponse{
+		ID:            u.ID,
+		Name:          u.Name,
+		Email:         u.Email,
+		Roles:         roleNames(u),
+		AvatarURL:     u.AvatarURL,
+		PaymentStatus: u.PaymentStatus,
+		ClassID:       u.ClassID,
+		CreatedAt:     u.CreatedAt.Format("2006-01-02"),
+		Subjects:      subjectInfos(u.Subjects),
+	}
 }
 
 // UpdateRoleRequest adalah body request untuk update role user

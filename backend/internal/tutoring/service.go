@@ -318,6 +318,10 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 		token = t
 	}
 
+	total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
+	if err != nil {
+		return nil, err
+	}
 	booking := models.Booking{
 		TeacherID:    input.TeacherID,
 		StudentID:    studentID,
@@ -327,7 +331,7 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 		EndTime:      input.EndTime,
 		Status:       "pending",
 		Mode:         input.Mode,
-		SessionCount: input.SessionCount,
+		SessionCount: total,
 		GroupToken:   token,
 		Note:         input.Note,
 		ClassID:      input.ClassID,
@@ -349,6 +353,10 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingInpu
 	if input.Mode == "semi_private" {
 		return nil, errors.New("semi-private butuh guru — pilih guru dari daftar")
 	}
+	total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
+	if err != nil {
+		return nil, err
+	}
 	booking := models.Booking{
 		TeacherID:    nil,
 		StudentID:    studentID,
@@ -358,7 +366,7 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingInpu
 		EndTime:      input.EndTime,
 		Status:       "pending",
 		Mode:         "private",
-		SessionCount: input.SessionCount,
+		SessionCount: total,
 		Note:         input.Note,
 		ClassID:      input.ClassID,
 	}
@@ -391,6 +399,7 @@ func (s *Service) validateSubjectProgram(subjectID, classID uint) error {
 
 // AdminCreateBooking daftarkan les privat manual atas nama murid.
 // Langsung status confirmed + generate sesi & invoice (admin tinggal tandai lunas).
+// Semua write (booking + sesi + invoice) dalam satu transaksi — atomicity.
 func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingResponse, error) {
 	if input.Mode == "" {
 		input.Mode = "private"
@@ -433,31 +442,59 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 		return nil, err
 	}
 
-	booking := models.Booking{
-		TeacherID:    &input.TeacherID,
-		StudentID:    input.StudentID,
-		SubjectID:    input.SubjectID,
-		Date:         input.Date,
-		StartTime:    input.StartTime,
-		EndTime:      input.EndTime,
-		Status:       "confirmed",
-		Mode:         input.Mode,
-		SessionCount: input.SessionCount,
-		Note:         input.Note,
-		ClassID:      input.ClassID,
-	}
-	if err := s.repo.CreateBooking(&booking); err != nil {
-		return nil, err
-	}
-	if err := s.createSessionsAndInvoice(booking); err != nil {
-		return nil, err
-	}
-	created, err := s.repo.GetBooking(booking.ID)
+	// input.SessionCount = jumlah minggu → total sesi = minggu × sesi-per-minggu
+	total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
 	if err != nil {
 		return nil, err
 	}
-	r := toBookingResponse(*created)
-	return &r, nil
+	input.SessionCount = total
+
+	var resp *BookingResponse
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		booking := models.Booking{
+			TeacherID:    &input.TeacherID,
+			StudentID:    input.StudentID,
+			SubjectID:    input.SubjectID,
+			Date:         input.Date,
+			StartTime:    input.StartTime,
+			EndTime:      input.EndTime,
+			Status:       "confirmed",
+			Mode:         input.Mode,
+			SessionCount: input.SessionCount,
+			Note:         input.Note,
+			ClassID:      input.ClassID,
+		}
+		if err := tx.Create(&booking).Error; err != nil {
+			return err
+		}
+
+		// sesi + invoice (dalam tx)
+		if err := s.createSessionsAndInvoice(tx, booking); err != nil {
+			return err
+		}
+
+		// baca via tx — s.repo.GetBooking (s.db) tidak terlihat row yg belum commit
+		created, err := s.repo.GetBookingWithDB(tx, booking.ID)
+		if err != nil {
+			return err
+		}
+		r := toBookingResponse(*created)
+		resp = &r
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// AdminDeleteBooking menghapus booking beserta sesi & invoice terkait (admin).
+// Dipakai utk koreksi booking manual yang salah input.
+func (s *Service) AdminDeleteBooking(id uint) error {
+	if _, err := s.repo.GetBooking(id); err != nil {
+		return errors.New("booking tidak ditemukan")
+	}
+	return s.repo.DeleteBookingCascade(id)
 }
 
 func (s *Service) joinGroup(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
@@ -577,6 +614,35 @@ func timeToMinutes(t string) (int, error) {
 	return parsed.Hour()*60 + parsed.Minute(), nil
 }
 
+// minutesToHHMM mengubah menit sejak tengah malam menjadi "HH:mm".
+func minutesToHHMM(min int) string {
+	return fmt.Sprintf("%02d:%02d", min/60, min%60)
+}
+
+// sessionDurationMinutes adalah durasi standar 1 sesi les.
+const sessionDurationMinutes = 90
+
+// sessionsPerWeekFor menghitung jumlah sesi 90-menit dalam satu blok (start..end).
+// Durasi harus kelipatan 90 — kalau tidak, tolak.
+func sessionsPerWeekFor(start, end string) (int, error) {
+	s, err := timeToMinutes(start)
+	if err != nil {
+		return 0, errors.New("format jam mulai tidak valid")
+	}
+	e, err := timeToMinutes(end)
+	if err != nil {
+		return 0, errors.New("format jam selesai tidak valid")
+	}
+	dur := e - s
+	if dur <= 0 {
+		return 0, errors.New("start_time harus sebelum end_time")
+	}
+	if dur%sessionDurationMinutes != 0 {
+		return 0, fmt.Errorf("durasi les harus kelipatan %d menit (%d jam)", sessionDurationMinutes, sessionDurationMinutes/60)
+	}
+	return dur / sessionDurationMinutes, nil
+}
+
 // hasOverlap mengembalikan true jika dua interval waktu saling tumpang tindih.
 func hasOverlap(start1, end1, start2, end2 int) bool {
 	return start1 < end2 && start2 < end1
@@ -626,7 +692,7 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Booki
 				if err := s.repo.UpdateBookingStatus(b.ID, "confirmed"); err != nil {
 					return nil, err
 				}
-				if err := s.createSessionsAndInvoice(b); err != nil {
+				if err := s.createSessionsAndInvoice(s.db, b); err != nil {
 					return nil, err
 				}
 			}
@@ -715,30 +781,47 @@ func (s *Service) perSessionPrice(classID *uint, mode string) float64 {
 }
 
 // createSessionsAndInvoice membuat sesi pertemuan mingguan + invoice pembayaran.
-func (s *Service) createSessionsAndInvoice(booking models.Booking) error {
+// db dipakai agar bisa dijalankan dalam transaksi (tx) atau langsung (s.db).
+func (s *Service) createSessionsAndInvoice(db *gorm.DB, booking models.Booking) error {
 	date, err := time.Parse("2006-01-02", booking.Date)
 	if err != nil {
 		return errors.New("tanggal booking tidak valid")
 	}
 
-	sessions := make([]models.TutoringSession, booking.SessionCount)
+	// booking.SessionCount = total sesi. Durasi blok (Start..End) dipecah jadi sesi
+	// 90-menit back-to-back per minggu; jumlah minggu = total / perWeek (harus bulat).
+	perWeek, err := sessionsPerWeekFor(booking.StartTime, booking.EndTime)
+	if err != nil {
+		return err
+	}
+	if booking.SessionCount%perWeek != 0 {
+		return fmt.Errorf("jumlah pertemuan harus kelipatan %d sesi/minggu", perWeek)
+	}
+	weeks := booking.SessionCount / perWeek
+	startMin, _ := timeToMinutes(booking.StartTime)
+
+	sessions := make([]models.TutoringSession, 0, booking.SessionCount)
 	startDate := date
 	endDate := date
-	for i := 0; i < booking.SessionCount; i++ {
-		d := date.AddDate(0, 0, 7*i)
-		if i == 0 {
+	for w := 0; w < weeks; w++ {
+		d := date.AddDate(0, 0, 7*w)
+		if w == 0 {
 			startDate = d
 		}
 		endDate = d
-		sessions[i] = models.TutoringSession{
-			BookingID: booking.ID,
-			Date:      d.Format("2006-01-02"),
-			StartTime: booking.StartTime,
-			EndTime:   booking.EndTime,
-			Status:    "scheduled",
+		for j := 0; j < perWeek; j++ {
+			ss := startMin + j*sessionDurationMinutes
+			se := ss + sessionDurationMinutes
+			sessions = append(sessions, models.TutoringSession{
+				BookingID: booking.ID,
+				Date:      d.Format("2006-01-02"),
+				StartTime: minutesToHHMM(ss),
+				EndTime:   minutesToHHMM(se),
+				Status:    "scheduled",
+			})
 		}
 	}
-	if err := s.repo.CreateSessions(sessions); err != nil {
+	if err := db.Create(&sessions).Error; err != nil {
 		return err
 	}
 
@@ -753,10 +836,20 @@ func (s *Service) createSessionsAndInvoice(booking models.Booking) error {
 		StartDate: startDate.Format("2006-01-02"),
 		EndDate:   endDate.Format("2006-01-02"),
 		Status:    "pending",
-		Note:      fmt.Sprintf("Les %s — %d pertemuan", modeLabel, booking.SessionCount),
+		Note:      fmt.Sprintf("Les %s — %d sesi", modeLabel, booking.SessionCount),
 		BookingID: &booking.ID,
 	}
-	return s.repo.CreateInvoice(&invoice)
+	return db.Create(&invoice).Error
+}
+
+// sessionCountForTotal menghitung total sesi = minggu × sesi-per-minggu, dan
+// memvalidasi durasi blok kelipatan durasi-sesi.
+func sessionCountForTotal(weeks int, start, end string) (int, error) {
+	perWeek, err := sessionsPerWeekFor(start, end)
+	if err != nil {
+		return 0, err
+	}
+	return weeks * perWeek, nil
 }
 
 func (s *Service) ListGroupInfo(token string) (*GroupInfoResponse, error) {

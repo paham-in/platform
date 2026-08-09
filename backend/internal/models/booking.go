@@ -8,7 +8,7 @@ type Booking struct {
 	Teacher      *User  `gorm:"foreignKey:TeacherID" json:"teacher,omitempty"`
 	StudentID    uint   `gorm:"not null;index" json:"student_id"`
 	Student      *User  `gorm:"foreignKey:StudentID" json:"student,omitempty"`
-	SubjectID    uint   `gorm:"not null;index" json:"subject_id"`           // mapel yang murid mau
+	SubjectID    uint   `gorm:"not null;default:0;index" json:"subject_id"`           // mapel yang murid mau
 	Subject      *Subject `gorm:"foreignKey:SubjectID" json:"subject,omitempty"`
 	Date         string `gorm:"size:10;not null" json:"date"`        // "YYYY-MM-DD"
 	StartTime    string `gorm:"size:5;not null" json:"start_time"`  // "HH:mm"

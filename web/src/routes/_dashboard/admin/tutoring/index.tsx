@@ -1,19 +1,26 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getAdminTutoringBookingsOptions, getAdminTutoringBookingsQueryKey, patchAdminTutoringBookingsByIdAssignMutation, patchTutoringBookingsByIdMutation, getTutoringTeachersOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminTutoringBookingsOptions, getAdminTutoringBookingsQueryKey, patchAdminTutoringBookingsByIdAssignMutation, patchTutoringBookingsByIdMutation, deleteAdminTutoringBookingsByIdMutation, getTutoringTeachersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringBookingResponse, TutoringTeacherResponse } from "@/lib/api/types.gen"
-import { Loader2, Plus, UserRound, Users } from "lucide-react"
+import { Loader2, Plus, Trash2, UserRound, Users } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
-import { CreateBookingDialog } from "@/components/admin/tutoring/create-booking-dialog"
 
 const adminTutoringSearchSchema = z.object({})
 
@@ -98,11 +105,45 @@ function AssignTeacherDialog({ booking, onClose }: { booking: TutoringBookingRes
   )
 }
 
+function DeleteBookingDialog({ booking, onClose }: { booking: TutoringBookingResponse; onClose: () => void }) {
+  const qc = useQueryClient()
+
+  const { mutate: deleteBooking, isPending } = useMutation({
+    ...deleteAdminTutoringBookingsByIdMutation(),
+    onSuccess: () => {
+      toast.success("Booking dihapus")
+      qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
+      onClose()
+    },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal menghapus booking"),
+  })
+
+  return (
+    <AlertDialog open onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Hapus Booking</AlertDialogTitle>
+          <AlertDialogDescription>
+            Yakin hapus booking {booking.student_name ?? "—"} · {booking.subject_name ?? "Mapel?"} · {booking.date} {booking.start_time}–{booking.end_time}? Sesi dan invoice terkait ikut terhapus.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button variant="outline" onClick={onClose}>Batal</Button>
+          <Button variant="destructive" onClick={() => booking.id && deleteBooking({ path: { id: booking.id } })} disabled={isPending}>
+            {isPending ? <Spinner /> : "Hapus"}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
 function AdminTutoring() {
   const qc = useQueryClient()
+  const navigate = useNavigate({ from: Route.fullPath })
   const { data: bookings = [], isLoading } = useQuery(getAdminTutoringBookingsOptions())
-  const [createOpen, setCreateOpen] = useState(false)
   const [assignBooking, setAssignBooking] = useState<TutoringBookingResponse | null>(null)
+  const [deleteBooking, setDeleteBooking] = useState<TutoringBookingResponse | null>(null)
 
   const { mutate: reject, isPending: rejecting } = useMutation({
     ...patchTutoringBookingsByIdMutation(),
@@ -122,7 +163,7 @@ function AdminTutoring() {
             Semua booking les privat dari seluruh murid dan guru.
           </p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}>
+        <Button onClick={() => navigate({ to: "/admin/tutoring/new" })}>
           <Plus className="mr-1 h-4 w-4" /> Tambah Booking Manual
         </Button>
       </div>
@@ -175,14 +216,17 @@ function AdminTutoring() {
                   <TableCell>{b.start_time} - {b.end_time}</TableCell>
                   <TableCell>{statusBadge(b.status!)}</TableCell>
                   <TableCell className="pr-6">
-                    {b.status === "pending" && !b.teacher_id ? (
-                      <div className="flex justify-end gap-2">
-                        <Button size="sm" onClick={() => setAssignBooking(b)}>Assign Guru</Button>
-                        <Button size="sm" variant="outline" disabled={rejecting} onClick={() => reject({ path: { id: b.id! }, body: { status: "rejected" } })}>Tolak</Button>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
+                    <div className="flex items-center justify-end gap-2">
+                      {b.status === "pending" && !b.teacher_id ? (
+                        <>
+                          <Button size="sm" onClick={() => setAssignBooking(b)}>Assign Guru</Button>
+                          <Button size="sm" variant="outline" disabled={rejecting} onClick={() => reject({ path: { id: b.id! }, body: { status: "rejected" } })}>Tolak</Button>
+                        </>
+                      ) : null}
+                      <Button size="sm" variant="outline" onClick={() => setDeleteBooking(b)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -191,13 +235,13 @@ function AdminTutoring() {
         </CardContent>
       </Card>
 
-      {createOpen && <CreateBookingDialog onClose={() => setCreateOpen(false)} />}
       {assignBooking && <AssignTeacherDialog booking={assignBooking} onClose={() => setAssignBooking(null)} />}
+      {deleteBooking && <DeleteBookingDialog booking={deleteBooking} onClose={() => setDeleteBooking(null)} />}
     </main>
   )
 }
 
-export const Route = createFileRoute("/_dashboard/admin/tutoring")({
+export const Route = createFileRoute("/_dashboard/admin/tutoring/")({
   component: AdminTutoring,
   validateSearch: adminTutoringSearchSchema,
 })

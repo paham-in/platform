@@ -587,6 +587,12 @@ export type UploadUploadResponse = {
     url?: string;
 };
 
+export type UserAdminCreateStudentInput = {
+    class_id?: number;
+    email?: string;
+    name?: string;
+};
+
 export type UserAdminUserResponse = {
     avatar_url?: string;
     class_id?: number;
@@ -2068,6 +2074,36 @@ export type PostAdminTutoringBookingsResponses = {
 
 export type PostAdminTutoringBookingsResponse = PostAdminTutoringBookingsResponses[keyof PostAdminTutoringBookingsResponses];
 
+export type DeleteAdminTutoringBookingsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Booking ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/tutoring/bookings/{id}';
+};
+
+export type DeleteAdminTutoringBookingsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type DeleteAdminTutoringBookingsByIdError = DeleteAdminTutoringBookingsByIdErrors[keyof DeleteAdminTutoringBookingsByIdErrors];
+
+export type DeleteAdminTutoringBookingsByIdResponses = {
+    /**
+     * OK
+     */
+    200: TutoringMessageResponse;
+};
+
+export type DeleteAdminTutoringBookingsByIdResponse = DeleteAdminTutoringBookingsByIdResponses[keyof DeleteAdminTutoringBookingsByIdResponses];
+
 export type PatchAdminTutoringBookingsByIdAssignData = {
     /**
      * Teacher ID
@@ -2251,6 +2287,38 @@ export type GetAdminUsersResponses = {
 
 export type GetAdminUsersResponse = GetAdminUsersResponses[keyof GetAdminUsersResponses];
 
+export type PostAdminUsersData = {
+    /**
+     * Nama & email murid
+     */
+    body: UserAdminCreateStudentInput;
+    path?: never;
+    query?: never;
+    url: '/admin/users';
+};
+
+export type PostAdminUsersErrors = {
+    /**
+     * Bad Request
+     */
+    400: UserErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: UserErrorResponse;
+};
+
+export type PostAdminUsersError = PostAdminUsersErrors[keyof PostAdminUsersErrors];
+
+export type PostAdminUsersResponses = {
+    /**
+     * Created
+     */
+    201: UserAdminUserResponse;
+};
+
+export type PostAdminUsersResponse = PostAdminUsersResponses[keyof PostAdminUsersResponses];
+
 export type DeleteAdminUsersByIdData = {
     body?: never;
     path: {
@@ -2284,6 +2352,45 @@ export type DeleteAdminUsersByIdResponses = {
 };
 
 export type DeleteAdminUsersByIdResponse = DeleteAdminUsersByIdResponses[keyof DeleteAdminUsersByIdResponses];
+
+export type PatchAdminUsersByIdEmailData = {
+    /**
+     * Email baru
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        /**
+         * User ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/users/{id}/email';
+};
+
+export type PatchAdminUsersByIdEmailErrors = {
+    /**
+     * Bad Request
+     */
+    400: UserErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: UserErrorResponse;
+};
+
+export type PatchAdminUsersByIdEmailError = PatchAdminUsersByIdEmailErrors[keyof PatchAdminUsersByIdEmailErrors];
+
+export type PatchAdminUsersByIdEmailResponses = {
+    /**
+     * OK
+     */
+    200: UserMessageResponse;
+};
+
+export type PatchAdminUsersByIdEmailResponse = PatchAdminUsersByIdEmailResponses[keyof PatchAdminUsersByIdEmailResponses];
 
 export type PatchAdminUsersByIdPaymentData = {
     /**

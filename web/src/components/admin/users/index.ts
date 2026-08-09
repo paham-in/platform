@@ -1,3 +1,5 @@
 export * from "./role-badge"
+export * from "./create-user-dialog"
 export * from "./edit-role-dialog"
+export * from "./edit-email-dialog"
 export * from "./delete-user-dialog"

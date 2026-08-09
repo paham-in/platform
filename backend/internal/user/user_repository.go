@@ -34,6 +34,12 @@ func (r *UserRepository) Create(user *models.User) error {
 	return r.db.Create(user).Error
 }
 
+// UpdateEmail mengganti email user (dipakai utk menghubungkan akun dummy
+// dengan email asli murid supaya login Google ter-link).
+func (r *UserRepository) UpdateEmail(id uint, email string) error {
+	return r.db.Model(&models.User{}).Where("id = ?", id).Update("email", email).Error
+}
+
 func (r *UserRepository) List(search string, role string) ([]models.User, error) {
 	query := r.db.Preload("Roles").Preload("Subjects").Order("created_at desc")
 

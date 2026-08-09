@@ -274,6 +274,28 @@ func (h *Handler) AdminCreateBooking(c *fiber.Ctx) error {
 	return c.Status(201).JSON(booking)
 }
 
+// AdminDeleteBooking menghapus booking les beserta sesi & invoice (admin)
+// @Summary      Delete booking
+// @Description  Menghapus booking beserta sesi dan invoice terkait. Dipakai utk koreksi booking manual yang salah input.
+// @Tags         Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Booking ID"
+// @Success      200 {object} MessageResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/tutoring/bookings/{id} [delete]
+func (h *Handler) AdminDeleteBooking(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	if err := h.svc.AdminDeleteBooking(uint(id)); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(MessageResponse{Message: "booking berhasil dihapus"})
+}
+
 // AssignTeacher assigns a teacher to a booking without one (admin only)
 // @Summary      Assign teacher to booking
 // @Description  Admin menetapkan guru ke booking tanpa guru. Status tetap pending, guru lalu approve sendiri.
@@ -730,6 +752,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClie
 
 	admin.Get("/tutoring/bookings", h.AdminListBookings)
 	admin.Post("/tutoring/bookings", h.AdminCreateBooking)
+	admin.Delete("/tutoring/bookings/:id", h.AdminDeleteBooking)
 	admin.Get("/tutoring/availability", h.AdminListAvailability)
 	admin.Patch("/tutoring/bookings/:id/assign", h.AssignTeacher)
 	admin.Get("/tutoring/evidence", h.AdminListEvidence)

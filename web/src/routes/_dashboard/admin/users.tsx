@@ -8,7 +8,7 @@ import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
-import { Search, SearchX, MoreVertical, Shield, Trash2, ChevronLeft, ChevronRight, Funnel, X } from "lucide-react"
+import { Search, SearchX, MoreVertical, Shield, Mail, Plus, Trash2, ChevronLeft, ChevronRight, Funnel, X } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -19,7 +19,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { RoleBadge, EditRoleDialog, DeleteUserDialog } from "@/components/admin/users"
+import { RoleBadge, CreateUserDialog, EditRoleDialog, EditEmailDialog, DeleteUserDialog } from "@/components/admin/users"
 
 const usersSearchSchema = z.object({
   role: z.enum(["student", "teacher", "admin"]).optional(),
@@ -54,7 +54,9 @@ function AdminUsers() {
   ]
   const activeFilterCount = roleFilter ? 1 : 0
   const hasActiveFilter = !!search || !!roleFilter
+  const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<UserAdminUserResponse | null>(null)
+  const [editingEmail, setEditingEmail] = useState<UserAdminUserResponse | null>(null)
   const [page, setPage] = useState(1)
   const perPage = 5
   const [deleteConfirm, setDeleteConfirm] = useState<UserAdminUserResponse | null>(null)
@@ -70,7 +72,12 @@ function AdminUsers() {
   return (
     <>
       <main className="p-6">
-        <h1 className="mb-4 text-2xl font-bold tracking-tight">Kelola User</h1>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-2xl font-bold tracking-tight">Kelola User</h1>
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="mr-1 h-4 w-4" /> Tambah User
+          </Button>
+        </div>
 
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <div className="relative w-full max-w-sm flex-1">
@@ -170,6 +177,9 @@ function AdminUsers() {
                           <DropdownMenuItem onClick={() => setEditing(u)}>
                             <Shield className="h-4 w-4" /> Ganti Role
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setEditingEmail(u)}>
+                            <Mail className="h-4 w-4" /> Ubah Email
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setDeleteConfirm(u)}>
                             <Trash2 className="h-4 w-4" /> Hapus
                           </DropdownMenuItem>
@@ -214,7 +224,9 @@ function AdminUsers() {
         </Card>
       </main>
 
+      {createOpen && <CreateUserDialog onClose={() => setCreateOpen(false)} />}
       {editing && <EditRoleDialog user={editing} onClose={() => setEditing(null)} />}
+      {editingEmail && <EditEmailDialog user={editingEmail} onClose={() => setEditingEmail(null)} />}
       {deleteConfirm && <DeleteUserDialog user={deleteConfirm} onClose={() => setDeleteConfirm(null)} />}
     </>
   )

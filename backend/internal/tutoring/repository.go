@@ -113,9 +113,28 @@ func (r *Repository) UpdateBookingTeacher(id, teacherID uint) error {
 	return r.db.Model(&models.Booking{}).Where("id = ?", id).Update("teacher_id", teacherID).Error
 }
 
+// DeleteBookingCascade menghapus booking + sesi + invoice terkait dalam satu transaksi.
+func (r *Repository) DeleteBookingCascade(id uint) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("booking_id = ?", id).Delete(&models.TutoringSession{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("booking_id = ?", id).Delete(&models.Invoice{}).Error; err != nil {
+			return err
+		}
+		return tx.Delete(&models.Booking{}, id).Error
+	})
+}
+
 func (r *Repository) GetBooking(id uint) (*models.Booking, error) {
+	return r.GetBookingWithDB(r.db, id)
+}
+
+// GetBookingWithDB membaca booking via koneksi tertentu (bisa tx). Dipakai saat
+// query harus melihat row yang baru ditulis di transaksi yang belum commit.
+func (r *Repository) GetBookingWithDB(db *gorm.DB, id uint) (*models.Booking, error) {
 	var b models.Booking
-	if err := r.db.Preload("Student").Preload("Teacher").Preload("Subject").First(&b, id).Error; err != nil {
+	if err := db.Preload("Student").Preload("Teacher").Preload("Subject").First(&b, id).Error; err != nil {
 		return nil, err
 	}
 	return &b, nil

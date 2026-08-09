@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"strconv"
 
 	"bimbel2/backend/internal/config"
@@ -137,6 +138,66 @@ func (h *Handler) AdminUpdateRole(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(MessageResponse{Message: "role berhasil diubah"})
+}
+
+// AdminCreateUser membuat akun dummy student (admin only)
+// @Summary      Create student (dummy)
+// @Description  Membuat user ber-role student tanpa password utk murid yang belum punya akun (misal SD)
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body body      AdminCreateStudentInput true "Nama & email murid"
+// @Success      201  {object}  AdminUserResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /admin/users [post]
+func (h *Handler) AdminCreateUser(c *fiber.Ctx) error {
+	var input AdminCreateStudentInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	user, err := h.svc.AdminCreateStudent(input)
+	if err != nil {
+		if errors.Is(err, errEmailExists) {
+			return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+		}
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal membuat user"})
+	}
+	return c.Status(201).JSON(user)
+}
+
+// AdminUpdateEmail mengganti email user (admin only)
+// @Summary      Update user email
+// @Description  Mengganti email user. Dipakai utk menghubungkan akun dummy dengan email asli murid.
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int    true "User ID"
+// @Param        body body      object true "Email baru"
+// @Success      200  {object}  MessageResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /admin/users/{id}/email [patch]
+func (h *Handler) AdminUpdateEmail(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input struct {
+		Email string `json:"email"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	if err := h.svc.UpdateUserEmail(uint(id), input.Email); err != nil {
+		if errors.Is(err, errEmailExists) {
+			return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+		}
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengubah email"})
+	}
+	return c.JSON(MessageResponse{Message: "email berhasil diubah"})
 }
 
 // AdminUpdateTeacherSubjects mengubah mata pelajaran yang diajarkan guru (admin only)
@@ -303,6 +364,8 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 
 	admin.Get("/users", h.AdminListUsers)
 	admin.Get("/students", h.AdminListStudents)
+	admin.Post("/users", h.AdminCreateUser)
+	admin.Patch("/users/:id/email", h.AdminUpdateEmail)
 	admin.Patch("/users/:id/role", h.AdminUpdateRole)
 	admin.Patch("/users/:id/subjects", h.AdminUpdateTeacherSubjects)
 	admin.Patch("/users/:id/payment", h.AdminTogglePayment)
