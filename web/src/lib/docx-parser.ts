@@ -20,6 +20,8 @@ export interface ParsedParagraph {
   html: string
   /** Jika paragraf adalah item auto-numbering Word → tipe list yang akan dirender */
   listType?: "ol" | "ul"
+  /** Jika paragraf memakai style Heading Word → tag blok yang akan dipakai */
+  blockTag?: "h1" | "h2" | "h3" | "p"
 }
 
 /** Hasil unzip .docx: document.xml + map numbering (numId → tipe list) */
@@ -429,6 +431,16 @@ function detectListType(pPr: Element, numbering: Map<number, "ol" | "ul">): "ol"
   return numbering.get(numId)
 }
 
+/** Deteksi heading Word dari <w:pPr><w:pStyle w:val="HeadingN"> */
+function detectBlockTag(pPr: Element): "h1" | "h2" | "h3" | "p" | undefined {
+  const pStyle = firstDescendant(pPr, "pStyle")
+  const val = pStyle?.getAttribute("w:val")
+  if (val === "Heading1") return "h1"
+  if (val === "Heading2") return "h2"
+  if (val === "Heading3") return "h3"
+  return undefined
+}
+
 /**
  * Parse satu elemen <w:p> → ParsedParagraph (atau null jika kosong).
  * Reusable untuk dokumen biasa maupun paragraf di dalam tabel.
@@ -437,6 +449,7 @@ function parseParagraphElement(p: Element, numbering: Map<number, "ol" | "ul">):
   let text = ""
   let html = ""
   let listType: "ol" | "ul" | undefined
+  let blockTag: "h1" | "h2" | "h3" | "p" | undefined
 
   for (const child of children(p)) {
     const localName = child.localName
@@ -464,6 +477,7 @@ function parseParagraphElement(p: Element, numbering: Map<number, "ol" | "ul">):
       }
     } else if (localName === "pPr") {
       listType = detectListType(child, numbering)
+      blockTag = detectBlockTag(child)
     } else if (localName === "bookmarkStart" || localName === "bookmarkEnd") {
       // structural — ignore
     } else {
@@ -480,10 +494,12 @@ function parseParagraphElement(p: Element, numbering: Map<number, "ol" | "ul">):
   const cleanHtml = html.trim()
   if (!cleanText) return null
 
+  const tag = blockTag ?? "p"
   return {
     text: cleanText,
-    html: listType ? (cleanHtml || escapeHtml(cleanText)) : (cleanHtml ? `<p>${cleanHtml}</p>` : ""),
+    html: listType ? (cleanHtml || escapeHtml(cleanText)) : (cleanHtml ? `<${tag}>${cleanHtml}</${tag}>` : ""),
     listType,
+    blockTag,
   }
 }
 
@@ -603,6 +619,17 @@ export function paragraphsToHtml(paras: ParsedParagraph[]): string {
     }
   }
   return out
+}
+
+/**
+ * Konversi satu file .docx → HTML (text-only) siap masuk editor Tiptap.
+ * Gambar di-skip otomatis: hanya text runs yang dibaca, paragraf tanpa teks di-drop.
+ * Heading Word (Heading1/2/3) jadi <h1>/<h2>/<h3>; rumus OMML jadi math LaTeX span.
+ */
+export async function docxToHtml(file: File): Promise<string> {
+  const { doc, numbering } = await unzipDocx(file)
+  const paras = parseDocumentXml(doc, numbering)
+  return paragraphsToHtml(paras)
 }
 
 function escapeHtml(s: string): string {

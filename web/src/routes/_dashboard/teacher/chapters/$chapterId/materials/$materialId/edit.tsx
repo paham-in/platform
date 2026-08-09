@@ -15,6 +15,7 @@ import {
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
+import { DocxImportDialog } from "@/components/ui/docx-import-dialog";
 import {
   getAdminMaterialsByIdOptions,
   getAdminMaterialsQueryKey,
@@ -22,7 +23,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Type, Video } from "lucide-react";
+import { ArrowLeft, FileText, Type, Video } from "lucide-react";
 import { toast } from "sonner";
 import { useDraft } from "@/lib/use-draft";
 import { extractYoutubeId, isValidYoutubeUrl } from "@/lib/youtube";
@@ -56,6 +57,7 @@ function EditMaterial() {
   const [content, setContent] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [isFree, setIsFree] = useState(true);
+  const [importOpen, setImportOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [initialLoad, setInitialLoad] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
@@ -214,7 +216,12 @@ function EditMaterial() {
 
               {type === "text" ? (
                 <div className="space-y-2">
-                  <Label>Konten</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Konten</Label>
+                    <Button variant="outline" size="sm" type="button" onClick={() => setImportOpen(true)}>
+                      <FileText className="mr-1 h-4 w-4" /> Import dari Word
+                    </Button>
+                  </div>
                   {loaded ? (
                     <TiptapEditor content={content} onChange={setContent} />
                   ) : (
@@ -268,6 +275,13 @@ function EditMaterial() {
           </Card>
         </div>
       </main>
+
+      {/* import docx dialog */}
+      <DocxImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImport={(html) => setContent(html)}
+      />
 
       {/* draft dialog */}
       <AlertDialog open={showDraftDialog && !restored} onOpenChange={(o) => { if (!o) { discard(); setShowDraftDialog(false) } }}>

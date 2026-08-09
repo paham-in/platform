@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { Loader2, ArrowLeft } from "lucide-react"
+import { RichContent } from "@/components/ui/rich-content"
 
 function extractYoutubeId(url: string): string {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
@@ -70,10 +71,7 @@ function MaterialDetail() {
           />
         </div>
       ) : material.content ? (
-        <article
-          className="prose prose-sm dark:prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: material.content }}
-        />
+        <RichContent html={material.content} className="prose-sm" />
       ) : null}
     </main>
   )
