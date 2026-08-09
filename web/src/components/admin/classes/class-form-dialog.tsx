@@ -25,8 +25,6 @@ interface ClassFormDialogProps {
 export function ClassFormDialog({ class: cls, programId, onClose }: ClassFormDialogProps) {
   const qc = useQueryClient()
   const [name, setName] = useState(cls?.name ?? "")
-  const [price, setPrice] = useState(cls?.price_per_session?.toString() ?? "")
-  const [semiPrice, setSemiPrice] = useState(cls?.semi_private_price?.toString() ?? "")
   const isEditing = Boolean(cls)
 
   const { mutate: assign, isPending: assigning } = useMutation({
@@ -68,12 +66,10 @@ export function ClassFormDialog({ class: cls, programId, onClose }: ClassFormDia
 
   const save = () => {
     if (!name.trim()) return
-    const priceNum = price === "" ? undefined : Number(price)
-    const semiNum = semiPrice === "" ? undefined : Number(semiPrice)
     if (isEditing && cls) {
-      updateClass({ path: { id: cls.id! }, body: { name: name.trim(), price_per_session: priceNum, semi_private_price: semiNum } })
+      updateClass({ path: { id: cls.id! }, body: { name: name.trim() } })
     } else {
-      createClass({ body: { name: name.trim(), price_per_session: priceNum, semi_private_price: semiNum } })
+      createClass({ body: { name: name.trim() } })
     }
   }
 
@@ -92,29 +88,9 @@ export function ClassFormDialog({ class: cls, programId, onClose }: ClassFormDia
               onChange={(e) => setName(e.target.value)}
               placeholder="Nama kelas (cth: Kelas 10 IPA)"
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="price">Harga Private (Rp / pertemuan)</Label>
-            <Input
-              id="price"
-              type="number"
-              min="0"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="cth: 50000"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="semiPrice">Harga Semi Private (Rp / pertemuan)</Label>
-            <Input
-              id="semiPrice"
-              type="number"
-              min="0"
-              value={semiPrice}
-              onChange={(e) => setSemiPrice(e.target.value)}
-              placeholder="cth: 35000"
-            />
-            <p className="text-xs text-muted-foreground">Kosongkan bila belum ditentukan.</p>
+            <p className="text-xs text-muted-foreground">
+              Harga kelas diatur di Pengaturan → Harga per Kelas.
+            </p>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="outline" onClick={onClose}>Batal</Button>

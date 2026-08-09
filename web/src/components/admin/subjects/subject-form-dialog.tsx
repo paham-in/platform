@@ -139,6 +139,9 @@ export function SubjectFormDialog({ subject, onClose }: SubjectFormDialogProps) 
               value={selected}
               onValueChange={(next) => setSelected(next ?? [])}
               itemToStringLabel={(c: ClassOption) => c.name ?? ""}
+              // items dibuat ulang tiap render (objek baru), jadi default Object.is
+              // menganggap item belum terpilih → duplikat. Bandingkan by id.
+              isItemEqualToValue={(a, b) => a?.id === b?.id}
               disabled={!programId}
             >
               <ComboboxChips ref={comboboxAnchor} className="w-full">

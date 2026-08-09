@@ -309,14 +309,13 @@ func (h *Handler) UpdateProfile(c *fiber.Ctx) error {
 	}
 
 	var input struct {
-		Name       *string `json:"name"`
-		SubjectIDs *[]uint `json:"subject_ids"`
+		Name *string `json:"name"`
 	}
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 
-	user, err := h.svc.UpdateProfile(userID, UpdateProfileInput{Name: input.Name, SubjectIDs: input.SubjectIDs})
+	user, err := h.svc.UpdateProfile(userID, UpdateProfileInput{Name: input.Name})
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}

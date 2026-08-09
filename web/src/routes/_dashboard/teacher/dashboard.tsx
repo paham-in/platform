@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery } from "@tanstack/react-query"
 import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { FileText, MessageSquare, HelpCircle, Users, Plus } from "lucide-react"
+import { FileText, MessageSquare, HelpCircle, Users, Plus, BookOpen } from "lucide-react"
 
 function TeacherDashboard() {
   const { data: user } = useQuery(getMeOptions())
@@ -28,6 +28,31 @@ function TeacherDashboard() {
             </CardContent></Card>
           ))}
         </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" /> Mata Pelajaran Saya
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(user?.subjects ?? []).length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Belum ada mata pelajaran yang diatur. Hubungi admin untuk menetapkan mata pelajaran yang Anda ampu.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {(user?.subjects ?? []).map((s) => (
+                  <span key={s.id} className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                    {s.name}
+                  </span>
+                ))}
+              </div>
+            )}
+            <p className="mt-3 text-xs text-muted-foreground">
+              Mata pelajaran diatur oleh admin.
+            </p>
+          </CardContent>
+        </Card>
         <div className="grid gap-6 lg:grid-cols-2">
           <Card><CardHeader><CardTitle>Materi Terbaru</CardTitle></CardHeader><CardContent>
             {[{ title: "Trigonometri Dasar", subject: "Matematika", status: "Published" }, { title: "Hukum Newton", subject: "Fisika", status: "Draft" }].map((m, i) => (

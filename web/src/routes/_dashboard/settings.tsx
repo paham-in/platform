@@ -6,25 +6,21 @@ import { Label } from "@/components/ui/label"
 import {
   getMeOptions,
   getMeQueryKey,
-  getSubjectsOptions,
   patchMeMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { getPushPublicKey, postPushSubscribe } from "@/lib/api/sdk.gen"
-import { BookOpen, Loader2, Save, Bell, BellOff } from "lucide-react"
+import { Loader2, Save, Bell, BellOff } from "lucide-react"
 import { toast } from "sonner"
 
 function SettingsPage() {
   const qc = useQueryClient()
   const { data: user, isLoading: userLoading } = useQuery(getMeOptions())
-  const { data: subjects = [] } = useQuery(getSubjectsOptions())
 
   const [name, setName] = useState("")
-  const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([])
   const [initialized, setInitialized] = useState(false)
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">(
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
@@ -32,12 +28,8 @@ function SettingsPage() {
   const [notifSubscribing, setNotifSubscribing] = useState(false)
   const [showNotifHelp, setShowNotifHelp] = useState(false)
 
-  const roles = user?.roles ?? []
-  const isTeacher = roles.includes("teacher")
-
   if (user && !initialized) {
     setName(user.name ?? "")
-    setSelectedSubjectIds((user.subjects ?? []).map((s) => s.id!).filter((id) => id !== undefined))
     setInitialized(true)
   }
 
@@ -60,20 +52,9 @@ function SettingsPage() {
     )
   }
 
-  const toggleSubject = (subjectId: number) => {
-    setSelectedSubjectIds((prev) =>
-      prev.includes(subjectId) ? prev.filter((id) => id !== subjectId) : [...prev, subjectId]
-    )
-  }
-
   const handleSave = () => {
     const body: Record<string, unknown> = {}
     if (name !== user?.name) body.name = name
-    if (isTeacher) {
-      const current = (user?.subjects ?? []).map((s) => s.id!).filter((id) => id !== undefined).sort()
-      const next = [...selectedSubjectIds].sort()
-      if (JSON.stringify(current) !== JSON.stringify(next)) body.subject_ids = selectedSubjectIds
-    }
     if (Object.keys(body).length === 0) return
     updateProfile.mutate({ body })
   }
@@ -180,35 +161,6 @@ function SettingsPage() {
           </div>
         </CardContent>
       </Card>
-
-      {isTeacher && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5" /> Mata Pelajaran Saya
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-3 text-sm text-muted-foreground">
-              Pilih mata pelajaran yang Anda ajarkan. Murid bisa menemukan Anda lewat subjek ini di halaman Les Privat.
-            </p>
-            <div className="max-h-[240px] space-y-2 overflow-y-auto rounded-md border p-3">
-              {subjects.map((s) => (
-                <label key={s.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted">
-                  <Checkbox
-                    checked={selectedSubjectIds.includes(s.id!)}
-                    onCheckedChange={() => toggleSubject(s.id!)}
-                  />
-                  {s.name}
-                </label>
-              ))}
-              {subjects.length === 0 && (
-                <p className="text-sm text-muted-foreground">Belum ada mata pelajaran.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <Card>
         <CardHeader>
