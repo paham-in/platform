@@ -40,6 +40,8 @@ type AdminUserResponse struct {
 	AvatarURL     string        `json:"avatar_url"`
 	PaymentStatus string        `json:"payment_status"`
 	ClassID       *uint         `json:"class_id"`
+	HasGoogle     bool          `json:"has_google"`
+	HasPassword   bool          `json:"has_password"`
 	CreatedAt     string        `json:"created_at"`
 	Subjects      []SubjectInfo `json:"subjects"`
 }
@@ -197,6 +199,7 @@ func (s *Service) ListUsers(search string, role string) ([]AdminUserResponse, er
 			AvatarURL:     u.AvatarURL,
 			PaymentStatus: u.PaymentStatus,
 			ClassID:       u.ClassID,
+			HasGoogle:     u.GoogleID != "",
 			CreatedAt:     u.CreatedAt.Format("2006-01-02"),
 			Subjects:      subjectInfos(u.Subjects),
 		}
@@ -255,6 +258,49 @@ func (s *Service) AdminCreateStudent(input AdminCreateStudentInput) (*AdminUserR
 
 // UpdateUserEmail mengganti email user. Dipakai utk menghubungkan akun dummy
 // dengan email asli murid, sehingga login Google otomatis ter-link.
+// MergeDummyUser menghubungkan akun dummy (tanpa google_id) ke akun Google yang
+// sudah ada: data dummy (booking, invoice, akses kelas, forum) dipindah ke akun
+// Google, lalu akun dummy dihapus. Admin melihat dua akun terpisah di Kelola
+// User karena murid login Google duluan sebelum email-nya di-set ke dummy.
+func (s *Service) MergeDummyUser(dummyID, targetID uint) (*AdminUserResponse, error) {
+	if dummyID == targetID {
+		return nil, errors.New("target harus akun Google yang berbeda")
+	}
+	dummy, err := s.userRepo.Get(dummyID)
+	if err != nil {
+		return nil, errors.New("akun dummy tidak ditemukan")
+	}
+	target, err := s.userRepo.Get(targetID)
+	if err != nil {
+		return nil, errors.New("akun Google tidak ditemukan")
+	}
+	if dummy.GoogleID != "" {
+		return nil, errors.New("akun yang dipilih sudah punya google_id")
+	}
+	if dummy.Password != nil {
+		return nil, errors.New("akun yang dipilih sudah punya password — bukan akun dummy")
+	}
+	if target.GoogleID == "" {
+		return nil, errors.New("target harus akun yang sudah login Google")
+	}
+	if !slices.Contains(roleNames(*dummy), "student") {
+		return nil, errors.New("hanya akun murid (student) yang bisa dihubungkan")
+	}
+	if !slices.Contains(roleNames(*target), "student") {
+		return nil, errors.New("target harus ber-role student")
+	}
+
+	if err := s.userRepo.Merge(dummyID, targetID); err != nil {
+		return nil, errInternal
+	}
+	merged, err := s.userRepo.Get(targetID)
+	if err != nil {
+		return nil, errNotFound
+	}
+	r := s.toAdminResponse(*merged)
+	return &r, nil
+}
+
 func (s *Service) UpdateUserEmail(id uint, email string) error {
 	email = strings.TrimSpace(email)
 	if email == "" {
@@ -275,6 +321,8 @@ func (s *Service) toAdminResponse(u models.User) AdminUserResponse {
 		AvatarURL:     u.AvatarURL,
 		PaymentStatus: u.PaymentStatus,
 		ClassID:       u.ClassID,
+		HasGoogle:     u.GoogleID != "",
+		HasPassword:   u.Password != nil,
 		CreatedAt:     u.CreatedAt.Format("2006-01-02"),
 		Subjects:      subjectInfos(u.Subjects),
 	}
@@ -305,6 +353,8 @@ func (s *Service) SetTeacherSubjects(id uint, input SetTeacherSubjectsInput) (*A
 		AvatarURL:     u.AvatarURL,
 		PaymentStatus: u.PaymentStatus,
 		ClassID:       u.ClassID,
+		HasGoogle:     u.GoogleID != "",
+		HasPassword:   u.Password != nil,
 		CreatedAt:     u.CreatedAt.Format("2006-01-02"),
 		Subjects:      subjectInfos(u.Subjects),
 	}, nil

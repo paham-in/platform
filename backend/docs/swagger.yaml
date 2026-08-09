@@ -923,6 +923,10 @@ definitions:
         type: string
       email:
         type: string
+      has_google:
+        type: boolean
+      has_password:
+        type: boolean
       id:
         type: integer
       name:
@@ -2726,6 +2730,44 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user email
+      tags:
+      - Admin
+  /admin/users/{id}/merge:
+    post:
+      consumes:
+      - application/json
+      description: Memindahkan data akun dummy (booking, invoice, akses kelas, forum)
+        ke akun Google tujuan, lalu menghapus akun dummy
+      parameters:
+      - description: Akun dummy user ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Akun Google tujuan
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.AdminUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Hubungkan akun dummy ke akun Google
       tags:
       - Admin
   /admin/users/{id}/payment:

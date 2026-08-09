@@ -107,6 +107,40 @@ func (h *Handler) AdminListStudents(c *fiber.Ctx) error {
 	return c.JSON(users)
 }
 
+// AdminMergeUser menghubungkan akun dummy ke akun Google yang sudah ada (admin only)
+// @Summary      Hubungkan akun dummy ke akun Google
+// @Description  Memindahkan data akun dummy (booking, invoice, akses kelas, forum) ke akun Google tujuan, lalu menghapus akun dummy
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id     path      int    true "Akun dummy user ID"
+// @Param        body   body      object true "Akun Google tujuan"
+// @Success      200  {object}  AdminUserResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /admin/users/{id}/merge [post]
+func (h *Handler) AdminMergeUser(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input struct {
+		TargetID uint `json:"target_id"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	if input.TargetID == 0 {
+		return c.Status(400).JSON(ErrorResponse{Error: "target_id wajib diisi"})
+	}
+	user, err := h.svc.MergeDummyUser(uint(id), input.TargetID)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(user)
+}
+
 // AdminUpdateRole mengubah role user (admin only)
 // @Summary      Update user role
 // @Description  Mengubah role user (admin only)
@@ -365,6 +399,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	admin.Get("/users", h.AdminListUsers)
 	admin.Get("/students", h.AdminListStudents)
 	admin.Post("/users", h.AdminCreateUser)
+	admin.Post("/users/:id/merge", h.AdminMergeUser)
 	admin.Patch("/users/:id/email", h.AdminUpdateEmail)
 	admin.Patch("/users/:id/role", h.AdminUpdateRole)
 	admin.Patch("/users/:id/subjects", h.AdminUpdateTeacherSubjects)

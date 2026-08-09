@@ -598,6 +598,8 @@ export type UserAdminUserResponse = {
     class_id?: number;
     created_at?: string;
     email?: string;
+    has_google?: boolean;
+    has_password?: boolean;
     id?: number;
     name?: string;
     payment_status?: string;
@@ -2391,6 +2393,45 @@ export type PatchAdminUsersByIdEmailResponses = {
 };
 
 export type PatchAdminUsersByIdEmailResponse = PatchAdminUsersByIdEmailResponses[keyof PatchAdminUsersByIdEmailResponses];
+
+export type PostAdminUsersByIdMergeData = {
+    /**
+     * Akun Google tujuan
+     */
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        /**
+         * Akun dummy user ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/users/{id}/merge';
+};
+
+export type PostAdminUsersByIdMergeErrors = {
+    /**
+     * Bad Request
+     */
+    400: UserErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: UserErrorResponse;
+};
+
+export type PostAdminUsersByIdMergeError = PostAdminUsersByIdMergeErrors[keyof PostAdminUsersByIdMergeErrors];
+
+export type PostAdminUsersByIdMergeResponses = {
+    /**
+     * OK
+     */
+    200: UserAdminUserResponse;
+};
+
+export type PostAdminUsersByIdMergeResponse = PostAdminUsersByIdMergeResponses[keyof PostAdminUsersByIdMergeResponses];
 
 export type PatchAdminUsersByIdPaymentData = {
     /**

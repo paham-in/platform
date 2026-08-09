@@ -47,7 +47,7 @@ export function EditEmailDialog({ user, onClose }: EditEmailDialogProps) {
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@contoh.com" />
           </div>
           <p className="text-xs text-muted-foreground">
-            Gunakan ini utk menghubungkan akun dummy dengan email asli murid — login Google murid akan ter-link ke akun ini.
+            Set email dummy = email Google murid supaya login berikutnya otomatis ter-link. Kalau murid sudah punya akun Google di sistem, gunakan "Hubungkan ke Akun Google" di menu aksi.
           </p>
         </div>
         <DialogFooter>

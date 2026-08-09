@@ -8,7 +8,7 @@ import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
-import { Search, SearchX, MoreVertical, Shield, Mail, Plus, Trash2, ChevronLeft, ChevronRight, Funnel, X } from "lucide-react"
+import { Search, SearchX, MoreVertical, Shield, Plus, Trash2, ChevronLeft, ChevronRight, Funnel, X, Link2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -19,7 +19,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { RoleBadge, CreateUserDialog, EditRoleDialog, EditEmailDialog, DeleteUserDialog } from "@/components/admin/users"
+import { RoleBadge, CreateUserDialog, EditRoleDialog, DeleteUserDialog, ConnectGoogleDialog } from "@/components/admin/users"
 
 const usersSearchSchema = z.object({
   role: z.enum(["student", "teacher", "admin"]).optional(),
@@ -56,10 +56,10 @@ function AdminUsers() {
   const hasActiveFilter = !!search || !!roleFilter
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<UserAdminUserResponse | null>(null)
-  const [editingEmail, setEditingEmail] = useState<UserAdminUserResponse | null>(null)
   const [page, setPage] = useState(1)
   const perPage = 5
   const [deleteConfirm, setDeleteConfirm] = useState<UserAdminUserResponse | null>(null)
+  const [connectGoogle, setConnectGoogle] = useState<UserAdminUserResponse | null>(null)
 
   const setRole = (v: string) => {
     navigate({ search: (prev) => ({ ...prev, role: v === "all" ? undefined : (v as "student" | "teacher" | "admin") }), replace: true })
@@ -158,7 +158,16 @@ function AdminUsers() {
                       ) : (
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
                       )}
-                      <span className="font-medium">{u.name}</span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="font-medium">{u.name}</span>
+                        {u.has_google ? (
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">Google</span>
+                        ) : u.has_password ? (
+                          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">Password</span>
+                        ) : (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Dummy</span>
+                        )}
+                      </span>
                     </div></TableCell>
                     <TableCell className="text-muted-foreground">{u.email}</TableCell>
                     <TableCell>
@@ -177,9 +186,11 @@ function AdminUsers() {
                           <DropdownMenuItem onClick={() => setEditing(u)}>
                             <Shield className="h-4 w-4" /> Ganti Role
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setEditingEmail(u)}>
-                            <Mail className="h-4 w-4" /> Ubah Email
-                          </DropdownMenuItem>
+                          {!u.has_google && !u.has_password && (u.roles ?? []).includes("student") && (
+                            <DropdownMenuItem onClick={() => setConnectGoogle(u)}>
+                              <Link2 className="h-4 w-4" /> Hubungkan ke Akun Google
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem onClick={() => setDeleteConfirm(u)}>
                             <Trash2 className="h-4 w-4" /> Hapus
                           </DropdownMenuItem>
@@ -226,8 +237,8 @@ function AdminUsers() {
 
       {createOpen && <CreateUserDialog onClose={() => setCreateOpen(false)} />}
       {editing && <EditRoleDialog user={editing} onClose={() => setEditing(null)} />}
-      {editingEmail && <EditEmailDialog user={editingEmail} onClose={() => setEditingEmail(null)} />}
       {deleteConfirm && <DeleteUserDialog user={deleteConfirm} onClose={() => setDeleteConfirm(null)} />}
+      {connectGoogle && <ConnectGoogleDialog user={connectGoogle} onClose={() => setConnectGoogle(null)} />}
     </>
   )
 }

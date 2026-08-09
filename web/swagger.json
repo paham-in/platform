@@ -2738,6 +2738,64 @@
                 }
             }
         },
+        "/admin/users/{id}/merge": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Memindahkan data akun dummy (booking, invoice, akses kelas, forum) ke akun Google tujuan, lalu menghapus akun dummy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Hubungkan akun dummy ke akun Google",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Akun dummy user ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Akun Google tujuan",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user.AdminUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/user.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/user.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/users/{id}/payment": {
             "patch": {
                 "security": [
@@ -5863,6 +5921,12 @@
                 },
                 "email": {
                     "type": "string"
+                },
+                "has_google": {
+                    "type": "boolean"
+                },
+                "has_password": {
+                    "type": "boolean"
                 },
                 "id": {
                     "type": "integer"
