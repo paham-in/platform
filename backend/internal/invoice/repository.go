@@ -52,10 +52,6 @@ func (r *Repository) Create(invoice *models.Invoice) error {
 	return r.db.Create(invoice).Error
 }
 
-func (r *Repository) UpdateStatus(id uint, status string) error {
-	return r.db.Model(&models.Invoice{}).Where("id = ?", id).Update("status", status).Error
-}
-
 func (r *Repository) Delete(id uint) error {
 	return r.db.Unscoped().Delete(&models.Invoice{}, id).Error
 }

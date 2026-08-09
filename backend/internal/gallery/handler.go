@@ -133,6 +133,8 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 		Title:        title,
 	}
 	if err := h.db.Create(&rec).Error; err != nil {
+		// file sudah terupload ke MinIO — hapus biar tidak jadi orphan.
+		h.minio.Delete(c.Context(), objectName)
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal menyimpan data"})
 	}
 
@@ -224,8 +226,14 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 		return c.Status(403).JSON(GalleryErrorResponse{Error: "bukan pemilik gambar"})
 	}
 
-	_ = h.minio.Delete(c.Context(), img.FileName)
-	h.db.Delete(&img)
+	// Hapus file dari MinIO. Gagal di sini → tolak, biar DB row tidak hilang
+	// tapi file masih nyangkut (inconsistency).
+	if err := h.minio.Delete(c.Context(), img.FileName); err != nil {
+		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal menghapus file: " + err.Error()})
+	}
+	if err := h.db.Delete(&img).Error; err != nil {
+		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal menghapus data: " + err.Error()})
+	}
 
 	return c.JSON(GalleryDeleteResponse{Message: "gambar berhasil dihapus"})
 }

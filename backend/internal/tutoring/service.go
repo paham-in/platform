@@ -24,20 +24,20 @@ type AvailabilityResponse struct {
 }
 
 type BookingResponse struct {
-	ID           uint   `json:"id"`
-	TeacherID    *uint  `json:"teacher_id,omitempty"`
-	Teacher      string `json:"teacher_name"`
-	StudentID    uint   `json:"student_id"`
-	Student      string `json:"student_name"`
-	SubjectID    uint   `json:"subject_id"`
-	Subject      string `json:"subject_name"`
-	Date         string `json:"date"`
-	StartTime    string `json:"start_time"`
-	EndTime      string `json:"end_time"`
-	Status       string `json:"status"`
-	Mode         string `json:"mode"`
-	SessionCount int    `json:"session_count"`
-	GroupToken   string `json:"group_token"`
+	ID            uint   `json:"id"`
+	TeacherID     *uint  `json:"teacher_id,omitempty"`
+	Teacher       string `json:"teacher_name"`
+	StudentID     uint   `json:"student_id"`
+	Student       string `json:"student_name"`
+	SubjectID     uint   `json:"subject_id"`
+	Subject       string `json:"subject_name"`
+	Date          string `json:"date"`
+	StartTime     string `json:"start_time"`
+	EndTime       string `json:"end_time"`
+	Status        string `json:"status"`
+	Mode          string `json:"mode"`
+	SessionCount  int    `json:"session_count"`
+	GroupToken    string `json:"group_token"`
 	Note          string `json:"note"`
 	ClassID       *uint  `json:"class_id,omitempty"`
 	CreatedAt     string `json:"created_at"`
@@ -695,15 +695,24 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Booki
 			}
 		}
 	} else {
-		for _, b := range targets {
-			if b.Status == "pending" {
-				if err := s.repo.UpdateBookingStatus(b.ID, "confirmed"); err != nil {
-					return nil, err
+		// status booking + sesi + invoice dalam satu transaksi — kalau satu
+		// member grup gagal, tidak ada yang ke-commit separuh.
+		err := s.db.Transaction(func(tx *gorm.DB) error {
+			for _, b := range targets {
+				if b.Status != "pending" {
+					continue
 				}
-				if err := s.createSessionsAndInvoice(s.db, b); err != nil {
-					return nil, err
+				if err := tx.Model(&models.Booking{}).Where("id = ?", b.ID).Update("status", "confirmed").Error; err != nil {
+					return err
+				}
+				if err := s.createSessionsAndInvoice(tx, b); err != nil {
+					return err
 				}
 			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
 		}
 	}
 

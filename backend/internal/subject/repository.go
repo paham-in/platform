@@ -53,12 +53,37 @@ func (r *Repository) HasClassOutsideProgram(programID uint, classIDs []uint) (bo
 	return n > 0, nil
 }
 
-func (r *Repository) Create(subject *models.Subject) error {
-	return r.db.Create(subject).Error
+// CreateWithClasses membuat subject + relasi class_subjects dalam satu
+// transaksi — kalau SetClasses gagal, subject ikut batal (bukan subject yatim).
+func (r *Repository) CreateWithClasses(subject *models.Subject, classIDs []uint) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(subject).Error; err != nil {
+			return err
+		}
+		return r.setClassesTx(tx, subject.ID, classIDs)
+	})
 }
 
-func (r *Repository) SetClasses(subjectID uint, classIDs []uint) error {
-	if err := r.db.Unscoped().Where("subject_id = ?", subjectID).Delete(&models.ClassSubject{}).Error; err != nil {
+// UpdateWithClasses mengubah subject + relasi class_subjects dalam satu
+// transaksi. replaceClasses=true → class_subjects diganti dengan classIDs.
+func (r *Repository) UpdateWithClasses(id uint, updates map[string]any, classIDs []uint, replaceClasses bool) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if len(updates) > 0 {
+			if err := tx.Model(&models.Subject{}).Where("id = ?", id).Updates(updates).Error; err != nil {
+				return err
+			}
+		}
+		if replaceClasses {
+			return r.setClassesTx(tx, id, classIDs)
+		}
+		return nil
+	})
+}
+
+// setClassesTx mengganti relasi subject↔kelas (hapus lama + insert baru) memakai
+// koneksi tertentu (bisa tx).
+func (r *Repository) setClassesTx(db *gorm.DB, subjectID uint, classIDs []uint) error {
+	if err := db.Unscoped().Where("subject_id = ?", subjectID).Delete(&models.ClassSubject{}).Error; err != nil {
 		return err
 	}
 	if len(classIDs) == 0 {
@@ -68,16 +93,17 @@ func (r *Repository) SetClasses(subjectID uint, classIDs []uint) error {
 	for i, cid := range classIDs {
 		pivots[i] = models.ClassSubject{ClassID: cid, SubjectID: subjectID}
 	}
-	return r.db.Create(&pivots).Error
+	return db.Create(&pivots).Error
 }
 
-func (r *Repository) Update(id uint, updates map[string]any) error {
-	return r.db.Model(&models.Subject{}).Where("id = ?", id).Updates(updates).Error
-}
-
+// Delete menghapus relasi class_subjects + subject dalam satu transaksi.
 func (r *Repository) Delete(id uint) error {
-	r.db.Unscoped().Where("subject_id = ?", id).Delete(&models.ClassSubject{})
-	return r.db.Unscoped().Delete(&models.Subject{}, id).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Unscoped().Where("subject_id = ?", id).Delete(&models.ClassSubject{}).Error; err != nil {
+			return err
+		}
+		return tx.Unscoped().Delete(&models.Subject{}, id).Error
+	})
 }
 
 func (r *Repository) MaterialCount(subjectID uint) (int64, error) {

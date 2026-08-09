@@ -52,16 +52,21 @@ func (r *Repository) Update(pkg *models.QuestionPackage) error {
 }
 
 func (r *Repository) Delete(id uint) error {
-	// Hapus jawaban semua soal dalam paket, lalu soal, lalu paket (hard delete).
-	var qids []uint
-	r.db.Model(&models.QuestionbankQuestion{}).Where("package_id = ?", id).Pluck("id", &qids)
-	if len(qids) > 0 {
-		if err := r.db.Unscoped().Where("question_id IN ?", qids).Delete(&models.QuestionbankAnswer{}).Error; err != nil {
+	// Hapus jawaban semua soal dalam paket, lalu soal, lalu paket (hard delete)
+	// dalam satu transaksi — kalau satu langkah gagal, semua batal.
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var qids []uint
+		if err := tx.Model(&models.QuestionbankQuestion{}).Where("package_id = ?", id).Pluck("id", &qids).Error; err != nil {
 			return err
 		}
-	}
-	if err := r.db.Unscoped().Where("package_id = ?", id).Delete(&models.QuestionbankQuestion{}).Error; err != nil {
-		return err
-	}
-	return r.db.Unscoped().Delete(&models.QuestionPackage{}, id).Error
+		if len(qids) > 0 {
+			if err := tx.Unscoped().Where("question_id IN ?", qids).Delete(&models.QuestionbankAnswer{}).Error; err != nil {
+				return err
+			}
+		}
+		if err := tx.Unscoped().Where("package_id = ?", id).Delete(&models.QuestionbankQuestion{}).Error; err != nil {
+			return err
+		}
+		return tx.Unscoped().Delete(&models.QuestionPackage{}, id).Error
+	})
 }

@@ -54,10 +54,10 @@ type QuestionbankAnswerInput struct {
 }
 
 type CreateInput struct {
-	UserID      uint                     `json:"user_id"`
-	Question    string                   `json:"question"`
+	UserID      uint                      `json:"user_id"`
+	Question    string                    `json:"question"`
 	Answers     []QuestionbankAnswerInput `json:"answers"`
-	Explanation string                   `json:"explanation"`
+	Explanation string                    `json:"explanation"`
 }
 
 func (s *Service) Create(packageID uint, input CreateInput) (*QuestionResponse, error) {
@@ -100,9 +100,9 @@ func (s *Service) Create(packageID uint, input CreateInput) (*QuestionResponse, 
 }
 
 type UpdateInput struct {
-	Question    *string                   `json:"question"`
+	Question    *string                    `json:"question"`
 	Answers     *[]QuestionbankAnswerInput `json:"answers"`
-	Explanation *string                   `json:"explanation"`
+	Explanation *string                    `json:"explanation"`
 }
 
 func (s *Service) Update(id uint, input UpdateInput) (*QuestionResponse, error) {
@@ -113,14 +113,13 @@ func (s *Service) Update(id uint, input UpdateInput) (*QuestionResponse, error) 
 	if input.Explanation != nil {
 		updates["explanation"] = *input.Explanation
 	}
-	if len(updates) > 0 {
-		if err := s.repo.Update(id, updates); err != nil {
+	if input.Answers != nil {
+		// update soal + replace jawaban dalam satu transaksi.
+		if err := s.repo.UpdateWithAnswers(id, updates, *input.Answers); err != nil {
 			return nil, err
 		}
-	}
-	// Update answers: replace seluruh relasi (hapus lama + insert baru).
-	if input.Answers != nil {
-		if err := s.repo.ReplaceAnswers(id, *input.Answers); err != nil {
+	} else if len(updates) > 0 {
+		if err := s.repo.Update(id, updates); err != nil {
 			return nil, err
 		}
 	}

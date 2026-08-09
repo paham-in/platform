@@ -21,9 +21,9 @@ func stripHTML(s string) string {
 }
 
 type Service struct {
-	repo      *Repository
+	repo         *Repository
 	questionRepo *QuestionRepository
-	pushSvc   *push.Service
+	pushSvc      *push.Service
 }
 
 func NewService(repo *Repository, questionRepo *QuestionRepository) *Service {
@@ -67,12 +67,15 @@ func (s *Service) Create(questionID, userID uint, content, videoURL string) (*mo
 		PlainContent: stripHTML(content),
 		VideoURL:     videoURL,
 	}
-	if err := s.repo.Create(&answer); err != nil {
-		return nil, err
-	}
 
-	// Pertanyaan sudah dijawab → ubah status dari "open" menjadi "answered".
-	if err := s.questionRepo.MarkAnswered(questionID); err != nil {
+	// Insert jawaban + update status pertanyaan dalam satu transaksi — kalau
+	// update status gagal, jawaban ikut batal (bukan jawaban yatim + status "open").
+	if err := s.repo.db.Transaction(func(tx *gorm.DB) error {
+		if err := s.repo.CreateWithDB(tx, &answer); err != nil {
+			return err
+		}
+		return s.questionRepo.MarkAnsweredWithDB(tx, questionID)
+	}); err != nil {
 		return nil, err
 	}
 
@@ -130,7 +133,13 @@ func (r *QuestionRepository) GetByID(id uint) (*models.Question, error) {
 
 // MarkAnswered mengubah status pertanyaan menjadi "answered" jika masih "open".
 func (r *QuestionRepository) MarkAnswered(id uint) error {
-	return r.db.Model(&models.Question{}).
+	return r.MarkAnsweredWithDB(r.db, id)
+}
+
+// MarkAnsweredWithDB sama dengan MarkAnswered tapi memakai koneksi tertentu
+// (bisa tx).
+func (r *QuestionRepository) MarkAnsweredWithDB(db *gorm.DB, id uint) error {
+	return db.Model(&models.Question{}).
 		Where("id = ? AND status = ?", id, "open").
 		Update("status", "answered").Error
 }

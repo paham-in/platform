@@ -22,8 +22,9 @@ func (r *Repository) ListByQuestion(questionID uint) ([]models.Answer, error) {
 	return answers, nil
 }
 
-func (r *Repository) Create(a *models.Answer) error {
-	return r.db.Create(a).Error
+// CreateWithDB menyimpan jawaban memakai koneksi tertentu (bisa tx).
+func (r *Repository) CreateWithDB(db *gorm.DB, a *models.Answer) error {
+	return db.Create(a).Error
 }
 
 func (r *Repository) ReloadWithUser(a *models.Answer) error {

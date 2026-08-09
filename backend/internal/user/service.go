@@ -96,28 +96,32 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 		return &AuthResponse{Token: token, User: toResponse(*user)}, nil
 	}
 
-	// create new user
+	// create new user + assign default role (student) + buat sesi login dalam
+	// satu transaksi — kalau satu langkah gagal, user tidak jadi tersimpan
+	// setengah (user tanpa role atau tanpa sesi).
 	user = &models.User{
 		Name:      name,
 		Email:     email,
 		GoogleID:  googleID,
 		AvatarURL: avatarURL,
 	}
-	if err := s.userRepo.Create(user); err != nil {
-		return nil, errInternal
-	}
-
-	// assign default role: semua pendaftar otomatis student (role "user" sudah dihapus)
-	var userRole models.Role
-	if err := s.userRepo.db.Where("name = ?", "student").First(&userRole).Error; err != nil {
-		return nil, errInternal
-	}
-	if err := s.userRepo.db.Model(user).Association("Roles").Append(&userRole); err != nil {
-		return nil, errInternal
-	}
-
-	token, err := s.createSessionForLogin(user)
-	if err != nil {
+	var token string
+	if err := s.userRepo.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(user).Error; err != nil {
+			return err
+		}
+		// assign default role: semua pendaftar otomatis student (role "user" sudah dihapus)
+		var userRole models.Role
+		if err := tx.Where("name = ?", "student").First(&userRole).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(user).Association("Roles").Append(&userRole); err != nil {
+			return err
+		}
+		var err error
+		token, err = s.createSessionTx(tx, user.ID)
+		return err
+	}); err != nil {
 		return nil, errInternal
 	}
 	return &AuthResponse{Token: token, User: toResponse(*user)}, nil
@@ -150,6 +154,11 @@ func (s *Service) ValidateSession(token string) (*models.User, error) {
 }
 
 func (s *Service) createSession(userID uint) (string, error) {
+	return s.createSessionTx(s.sessionRepo.db, userID)
+}
+
+// createSessionTx membuat sesi login memakai koneksi tertentu (bisa tx).
+func (s *Service) createSessionTx(db *gorm.DB, userID uint) (string, error) {
 	token, err := generateToken()
 	if err != nil {
 		return "", err
@@ -161,7 +170,7 @@ func (s *Service) createSession(userID uint) (string, error) {
 		ExpiresAt: time.Now().Add(sessionDuration).Unix(),
 	}
 
-	if err := s.sessionRepo.Create(&session); err != nil {
+	if err := db.Create(&session).Error; err != nil {
 		return "", err
 	}
 

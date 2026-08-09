@@ -66,13 +66,9 @@ func (s *Service) Create(input CreateInput) (*SubjectResponse, error) {
 		Slug:      slug,
 		ProgramID: input.ProgramID,
 	}
-	if err := s.repo.Create(&subject); err != nil {
+	// subject + relasi class_subjects dalam satu transaksi.
+	if err := s.repo.CreateWithClasses(&subject, input.ClassIDs); err != nil {
 		return nil, err
-	}
-	if len(input.ClassIDs) > 0 {
-		if err := s.repo.SetClasses(subject.ID, input.ClassIDs); err != nil {
-			return nil, err
-		}
 	}
 	return s.Get(subject.ID)
 }
@@ -115,15 +111,13 @@ func (s *Service) Update(id uint, input UpdateInput) (*SubjectResponse, error) {
 	if input.ProgramID != nil {
 		updates["program_id"] = *input.ProgramID
 	}
-	if len(updates) > 0 {
-		if err := s.repo.Update(id, updates); err != nil {
-			return nil, err
-		}
-	}
+	// update subject + relasi class_subjects dalam satu transaksi.
+	newClassIDs := []uint{}
 	if input.ClassIDs != nil {
-		if err := s.repo.SetClasses(id, *input.ClassIDs); err != nil {
-			return nil, err
-		}
+		newClassIDs = *input.ClassIDs
+	}
+	if err := s.repo.UpdateWithClasses(id, updates, newClassIDs, input.ClassIDs != nil); err != nil {
+		return nil, err
 	}
 	return s.Get(id)
 }

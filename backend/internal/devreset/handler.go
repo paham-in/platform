@@ -188,15 +188,23 @@ func (h *Handler) resetUsers(c *fiber.Ctx) error {
 	}
 	var deleted int64
 	err := h.withTriggersDisabled("users", func(db *gorm.DB) error {
-		db.Exec(`DELETE FROM user_roles WHERE user_id != ?`, admin.ID)
-		db.Exec(`DELETE FROM sessions WHERE user_id != ?`, admin.ID)
-		res := db.Exec(`DELETE FROM users WHERE id != ?`, admin.ID)
-		if res.Error != nil {
-			return res.Error
-		}
-		deleted = res.RowsAffected
-		db.Exec(`SELECT setval(pg_get_serial_sequence('users','id'), 1, false)`)
-		return nil
+		// hapus user_roles + sessions + users dalam satu transaksi — kalau satu
+		// langkah gagal, semua batal (bukan user tersisa separuh).
+		return db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Exec(`DELETE FROM user_roles WHERE user_id != ?`, admin.ID).Error; err != nil {
+				return err
+			}
+			if err := tx.Exec(`DELETE FROM sessions WHERE user_id != ?`, admin.ID).Error; err != nil {
+				return err
+			}
+			res := tx.Exec(`DELETE FROM users WHERE id != ?`, admin.ID)
+			if res.Error != nil {
+				return res.Error
+			}
+			deleted = res.RowsAffected
+			tx.Exec(`SELECT setval(pg_get_serial_sequence('users','id'), 1, false)`)
+			return nil
+		})
 	})
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus user: " + err.Error()})

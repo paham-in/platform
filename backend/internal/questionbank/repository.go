@@ -36,12 +36,25 @@ func (r *Repository) Get(id uint) (*models.QuestionbankQuestion, error) {
 }
 
 func (r *Repository) Create(q *models.QuestionbankQuestion) error {
+	// GORM default membungkus create has-many (soal + jawaban) dalam transaksi.
 	return r.db.Create(q).Error
 }
 
-// ReplaceAnswers menghapus semua jawaban lama soal ini lalu insert yang baru.
-func (r *Repository) ReplaceAnswers(questionID uint, answers []QuestionbankAnswerInput) error {
-	if err := r.db.Where("question_id = ?", questionID).Delete(&models.QuestionbankAnswer{}).Error; err != nil {
+// UpdateWithAnswers mengubah field soal + mengganti jawaban dalam satu
+// transaksi — kalau replace jawaban gagal, perubahan soal ikut batal.
+func (r *Repository) UpdateWithAnswers(questionID uint, updates map[string]any, answers []QuestionbankAnswerInput) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if len(updates) > 0 {
+			if err := tx.Model(&models.QuestionbankQuestion{}).Where("id = ?", questionID).Updates(updates).Error; err != nil {
+				return err
+			}
+		}
+		return r.replaceAnswersTx(tx, questionID, answers)
+	})
+}
+
+func (r *Repository) replaceAnswersTx(db *gorm.DB, questionID uint, answers []QuestionbankAnswerInput) error {
+	if err := db.Where("question_id = ?", questionID).Delete(&models.QuestionbankAnswer{}).Error; err != nil {
 		return err
 	}
 	for i, a := range answers {
@@ -54,7 +67,7 @@ func (r *Repository) ReplaceAnswers(questionID uint, answers []QuestionbankAnswe
 			IsCorrect:  a.IsCorrect,
 			SortOrder:  i,
 		}
-		if err := r.db.Create(&ans).Error; err != nil {
+		if err := db.Create(&ans).Error; err != nil {
 			return err
 		}
 	}

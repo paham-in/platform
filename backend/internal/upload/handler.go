@@ -150,6 +150,8 @@ func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 		FileName:   objectName,
 	}
 	if err := h.db.Create(&imgRecord).Error; err != nil {
+		// file sudah terupload ke MinIO — hapus biar tidak jadi orphan.
+		h.minio.Delete(c.Context(), objectName)
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan data"})
 	}
 
