@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"bimbel2/backend/internal/models"
@@ -225,16 +226,17 @@ func (s *Service) ListMyBookings(studentID uint) ([]BookingResponse, error) {
 }
 
 type CreateBookingInput struct {
-	TeacherID    *uint  `json:"teacher_id"` // nil = belum ada guru, ditangani admin
-	SubjectID    uint   `json:"subject_id"` // mapel yang murid mau (wajib)
-	Date         string `json:"date"`
-	StartTime    string `json:"start_time"`
-	EndTime      string `json:"end_time"`
-	Mode         string `json:"mode"`          // private/semi_private
-	SessionCount int    `json:"session_count"` // jumlah pertemuan (default 1)
-	GroupToken   string `json:"group_token"`   // isi utk join grup yang sudah ada
-	Note         string `json:"note"`
-	ClassID      *uint  `json:"class_id,omitempty"`
+	TeacherID    *uint    `json:"teacher_id"` // nil = belum ada guru, ditangani admin
+	SubjectID    uint     `json:"subject_id"` // mapel yang murid mau (wajib)
+	Date         string   `json:"date"`
+	StartTime    string   `json:"start_time"`
+	EndTime      string   `json:"end_time"`
+	Mode         string   `json:"mode"`          // private/semi_private
+	SessionCount int      `json:"session_count"` // jumlah pertemuan (default 1)
+	GroupToken   string   `json:"group_token"`   // isi utk join grup yang sudah ada
+	Note         string   `json:"note"`
+	ClassID      *uint    `json:"class_id,omitempty"`
+	MemberEmails []string `json:"member_emails"` // semi_private: email member (wajib ≥1)
 }
 
 type AssignTeacherInput struct {
@@ -242,16 +244,17 @@ type AssignTeacherInput struct {
 }
 
 type AdminCreateBookingInput struct {
-	StudentID    uint   `json:"student_id"`
-	TeacherID    uint   `json:"teacher_id"`
-	SubjectID    uint   `json:"subject_id"`
-	Date         string `json:"date"`
-	StartTime    string `json:"start_time"`
-	EndTime      string `json:"end_time"`
-	Mode         string `json:"mode"`          // private/semi_private
-	SessionCount int    `json:"session_count"` // jumlah pertemuan (default 1)
-	Note         string `json:"note"`
-	ClassID      *uint  `json:"class_id,omitempty"`
+	StudentID    uint     `json:"student_id"`
+	TeacherID    uint     `json:"teacher_id"`
+	SubjectID    uint     `json:"subject_id"`
+	Date         string   `json:"date"`
+	StartTime    string   `json:"start_time"`
+	EndTime      string   `json:"end_time"`
+	Mode         string   `json:"mode"`          // private/semi_private
+	SessionCount int      `json:"session_count"` // jumlah pertemuan (default 1)
+	Note         string   `json:"note"`
+	ClassID      *uint    `json:"class_id,omitempty"`
+	MemberEmails []string `json:"member_emails"` // semi_private: email member (wajib ≥1)
 }
 
 func (s *Service) CreateBooking(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
@@ -312,13 +315,59 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 		return nil, err
 	}
 
-	token := ""
+	// semi-private selalu grup: resolve member, semua booking ber-token sama.
 	if input.Mode == "semi_private" {
-		t, err := generateToken()
+		memberIDs, err := s.resolveGroupMembers(studentID, input.MemberEmails)
+		if err != nil {
+			return nil, err
+		}
+		token, err := generateToken()
 		if err != nil {
 			return nil, errors.New("gagal membuat token grup")
 		}
-		token = t
+		total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
+		if err != nil {
+			return nil, err
+		}
+		var resp *BookingResponse
+		err = s.db.Transaction(func(tx *gorm.DB) error {
+			base := models.Booking{
+				TeacherID:    input.TeacherID,
+				SubjectID:    input.SubjectID,
+				Date:         input.Date,
+				StartTime:    input.StartTime,
+				EndTime:      input.EndTime,
+				Status:       "pending",
+				Mode:         "semi_private",
+				SessionCount: total,
+				GroupToken:   token,
+				Note:         input.Note,
+				ClassID:      input.ClassID,
+			}
+			organizer := base
+			organizer.StudentID = studentID
+			if err := tx.Create(&organizer).Error; err != nil {
+				return err
+			}
+			for _, mID := range memberIDs {
+				m := base
+				m.StudentID = mID
+				if err := tx.Create(&m).Error; err != nil {
+					return err
+				}
+			}
+			created, err := s.repo.GetBookingWithDB(tx, organizer.ID)
+			if err != nil {
+				return err
+			}
+			r := toBookingResponse(*created)
+			resp = &r
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
 	}
 
 	total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
@@ -335,7 +384,7 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 		Status:       "pending",
 		Mode:         input.Mode,
 		SessionCount: total,
-		GroupToken:   token,
+		GroupToken:   "",
 		Note:         input.Note,
 		ClassID:      input.ClassID,
 	}
@@ -348,6 +397,53 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 	}
 	r := toBookingResponse(*created)
 	return &r, nil
+}
+
+// resolveGroupMembers memvalidasi & meresolve email member semi-private.
+// Email tanpa akun student → error (register-first: semua wajib daftar dulu).
+// Mengembalikan member user IDs, sudah dedupe dan tanpa organizer.
+func (s *Service) resolveGroupMembers(organizerID uint, emails []string) ([]uint, error) {
+	if len(emails) == 0 {
+		return nil, errors.New("daftarkan minimal 1 email teman")
+	}
+	seen := map[string]bool{}
+	unique := make([]string, 0, len(emails))
+	for _, e := range emails {
+		e = strings.TrimSpace(e)
+		if e == "" || seen[e] {
+			continue
+		}
+		seen[e] = true
+		unique = append(unique, e)
+	}
+
+	byEmail, err := s.repo.FindStudentIDsByEmails(unique)
+	if err != nil {
+		return nil, err
+	}
+	var missing []string
+	memberIDs := make([]uint, 0, len(unique))
+	for _, e := range unique {
+		id, ok := byEmail[e]
+		if !ok {
+			missing = append(missing, e)
+			continue
+		}
+		if id == organizerID {
+			continue // email organizer sendiri tidak dihitung member
+		}
+		memberIDs = append(memberIDs, id)
+	}
+	if len(missing) > 0 {
+		return nil, fmt.Errorf("email belum terdaftar: %s — minta daftar dulu", strings.Join(missing, ", "))
+	}
+	if len(memberIDs) == 0 {
+		return nil, errors.New("daftarkan minimal 1 email teman")
+	}
+	if len(memberIDs)+1 > maxGroupSlots {
+		return nil, fmt.Errorf("grup semi-private maksimal %d siswa termasuk kamu", maxGroupSlots)
+	}
+	return memberIDs, nil
 }
 
 // createNoTeacherBooking membuat booking tanpa guru untuk diproses admin.
@@ -443,6 +539,65 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 	}
 	if err := s.validateSubjectProgram(input.SubjectID, *input.ClassID); err != nil {
 		return nil, err
+	}
+
+	// semi-private: resolve member & buat semua booking + sesi + invoice ber-token sama.
+	if input.Mode == "semi_private" {
+		memberIDs, err := s.resolveGroupMembers(input.StudentID, input.MemberEmails)
+		if err != nil {
+			return nil, err
+		}
+		token, err := generateToken()
+		if err != nil {
+			return nil, errors.New("gagal membuat token grup")
+		}
+		total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
+		if err != nil {
+			return nil, err
+		}
+		var resp *BookingResponse
+		err = s.db.Transaction(func(tx *gorm.DB) error {
+			base := models.Booking{
+				TeacherID:    &input.TeacherID,
+				SubjectID:    input.SubjectID,
+				Date:         input.Date,
+				StartTime:    input.StartTime,
+				EndTime:      input.EndTime,
+				Status:       "confirmed",
+				Mode:         "semi_private",
+				SessionCount: total,
+				GroupToken:   token,
+				Note:         input.Note,
+				ClassID:      input.ClassID,
+			}
+			students := append([]uint{input.StudentID}, memberIDs...)
+			var firstID uint
+			for i, sid := range students {
+				b := base
+				b.StudentID = sid
+				if err := tx.Create(&b).Error; err != nil {
+					return err
+				}
+				if i == 0 {
+					firstID = b.ID
+				}
+				// sesi + invoice (dalam tx) utk tiap murid
+				if err := s.createSessionsAndInvoice(tx, b); err != nil {
+					return err
+				}
+			}
+			created, err := s.repo.GetBookingWithDB(tx, firstID)
+			if err != nil {
+				return err
+			}
+			r := toBookingResponse(*created)
+			resp = &r
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
 	}
 
 	// input.SessionCount = jumlah minggu → total sesi = minggu × sesi-per-minggu

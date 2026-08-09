@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useQuery } from "@tanstack/react-query"
 import { getTutoringBookingsOptions, getTutoringSessionsOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { Loader2, Plus, Share2, UserRound, Users } from "lucide-react"
-import { toast } from "sonner"
+import { Loader2, Plus, UserRound, Users } from "lucide-react"
 
 function statusBadge(s: string) {
   const styles: Record<string, string> = {
@@ -23,11 +22,6 @@ function modeBadge(mode?: string) {
     return <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Semi Private</span>
   }
   return <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
-}
-
-function copyJoinLink(token: string) {
-  const url = `${window.location.origin}/student/tutoring/join?token=${token}`
-  navigator.clipboard.writeText(url).then(() => toast.success("Link undangan disalin")).catch(() => toast.error("Gagal menyalin link"))
 }
 
 function StudentTutoringIndex() {
@@ -53,13 +47,12 @@ function StudentTutoringIndex() {
                   <TableHead>Pertemuan</TableHead>
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Jam</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="pr-6">Undangan</TableHead>
+                  <TableHead className="pr-6">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {bookings.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="p-8 text-center text-muted-foreground">Belum ada booking</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Belum ada booking</TableCell></TableRow>
                 ) : bookings.map((b) => (
                   <TableRow key={b.id}>
                     <TableCell className="pl-6 font-medium">{b.teacher_name}</TableCell>
@@ -67,14 +60,7 @@ function StudentTutoringIndex() {
                     <TableCell>{b.session_count ?? 1}×</TableCell>
                     <TableCell>{b.date}</TableCell>
                     <TableCell>{b.start_time} - {b.end_time}</TableCell>
-                    <TableCell>{statusBadge(b.status!)}</TableCell>
-                    <TableCell className="pr-6">
-                      {b.mode === "semi_private" && b.status === "pending" && b.group_token && (
-                        <Button variant="outline" size="sm" onClick={() => copyJoinLink(b.group_token!)}>
-                          <Share2 className="mr-1 h-3.5 w-3.5" /> Ajak Teman
-                        </Button>
-                      )}
-                    </TableCell>
+                    <TableCell className="pr-6">{statusBadge(b.status!)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

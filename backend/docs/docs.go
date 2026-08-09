@@ -5677,6 +5677,13 @@ const docTemplate = `{
                 "end_time": {
                     "type": "string"
                 },
+                "member_emails": {
+                    "description": "semi_private: email member (wajib ≥1)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "mode": {
                     "description": "private/semi_private",
                     "type": "string"
@@ -5818,6 +5825,13 @@ const docTemplate = `{
                 "group_token": {
                     "description": "isi utk join grup yang sudah ada",
                     "type": "string"
+                },
+                "member_emails": {
+                    "description": "semi_private: email member (wajib ≥1)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "mode": {
                     "description": "private/semi_private",

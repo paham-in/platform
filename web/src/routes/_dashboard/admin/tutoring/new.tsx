@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ArrowLeft, CalendarIcon, Loader2, CheckCircle2 } from "lucide-react"
+import { ArrowLeft, CalendarIcon, Loader2, CheckCircle2, UserRound, Users } from "lucide-react"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
 import {
@@ -66,6 +66,9 @@ function AdminTutoringNew() {
   const [endTime, setEndTime] = useState("")
   const [date, setDate] = useState("")
   const [note, setNote] = useState("")
+  const [mode, setMode] = useState<"private" | "semi_private">("private")
+  const [members, setMembers] = useState<UserAdminUserResponse[]>([])
+  const [memberPick, setMemberPick] = useState<UserAdminUserResponse | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   // guru difilter by mapel
@@ -94,10 +97,20 @@ function AdminTutoringNew() {
   const perWeek = timesValid ? perWeekFor(startTime, endTime) : null
   const totalSessions = perWeek ? sessionCount * perWeek : 0
   const canSubmit =
-    !!student && classId && subjectId && teacher && selectedSlot && timesValid && perWeek !== null && date && !submitting
+    !!student && classId && subjectId && teacher && selectedSlot && timesValid && perWeek !== null && date && !submitting &&
+    (mode === "private" || members.length > 0)
+
+  const memberEmails = mode === "semi_private"
+    ? Array.from(new Set(
+        members
+          .map((m) => m.email?.trim())
+          .filter((e): e is string => !!e && e !== student?.email?.trim())
+      ))
+    : undefined
 
   const save = async () => {
     if (!student || !teacher || !selectedSlot || !timesValid || !date || !classId || !subjectId) return
+    if (mode === "semi_private" && (memberEmails ?? []).length === 0) return
     setSubmitting(true)
     try {
       await createBooking({
@@ -108,10 +121,11 @@ function AdminTutoringNew() {
           date,
           start_time: startTime,
           end_time: endTime,
-          mode: "private",
+          mode,
           session_count: sessionCount,
           note,
           class_id: Number(classId),
+          member_emails: memberEmails,
         },
       })
       toast.success("Booking berhasil dibuat")
@@ -150,7 +164,11 @@ function AdminTutoringNew() {
               autoHighlight
               items={students}
               value={student}
-              onValueChange={(v) => setStudent(v ?? undefined)}
+              onValueChange={(v) => {
+                setStudent(v ?? undefined)
+                // ganti murid utama → buang member yang sama (id/email) biar tidak dobel
+                if (v) setMembers((prev) => prev.filter((m) => m.id !== v.id && m.email !== v.email))
+              }}
               itemToStringLabel={(u) => (u ? `${u.name} — ${u.email}` : "")}
             >
               <ComboboxInput placeholder={students.length ? "Pilih murid..." : "Tidak ada murid"} />
@@ -185,6 +203,73 @@ function AdminTutoringNew() {
               )}
             </div>
           </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Mode</Label>
+              <button
+                type="button"
+                onClick={() => { setMode(mode === "private" ? "semi_private" : "private"); setMembers([]) }}
+                className="rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted/50"
+              >
+                {mode === "private" ? "Ganti Semi Private" : "Ganti Private"}
+              </button>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {mode === "semi_private" ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Semi Private</span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
+              )}
+              <span>{mode === "semi_private" ? "Maksimal 5 siswa termasuk murid utama." : "Les sendiri berdua dengan guru."}</span>
+            </div>
+          </div>
+
+          {mode === "semi_private" && (
+            <div className="space-y-2">
+              <Label>Member</Label>
+              <Combobox
+                autoHighlight
+                items={students.filter((u) => u.id !== student?.id && !members.some((m) => m.id === u.id))}
+                value={memberPick}
+                onValueChange={(v) => {
+                  setMemberPick(v ?? null)
+                  if (v) {
+                    setMembers((prev) => (prev.length + 1 > 4 ? prev : [...prev, v]))
+                    setMemberPick(null)
+                  }
+                }}
+                itemToStringLabel={(u) => (u ? `${u.name} — ${u.email}` : "")}
+              >
+                <ComboboxInput placeholder="Pilih murid (max 4)..." />
+                <ComboboxContent>
+                  <ComboboxEmpty>Tidak ada murid ditemukan</ComboboxEmpty>
+                  <ComboboxList>
+                    {(u: UserAdminUserResponse) => (
+                      <ComboboxItem key={u.id} value={u}>
+                        <span className="flex min-w-0 flex-col">
+                          <span className="truncate">{u.name}</span>
+                          <span className="truncate text-xs text-muted-foreground">{u.email}</span>
+                        </span>
+                      </ComboboxItem>
+                    )}
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
+              <p className="text-xs text-muted-foreground">Semua member harus sudah punya akun. Booking ditolak kalau ada email belum terdaftar.</p>
+              {members.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {members.map((m) => (
+                    <span key={m.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs">
+                      {m.name}
+                      <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setMembers(members.filter((x) => x.id !== m.id))}>✕</button>
+                    </span>
+                  ))}
+                  <span className="text-xs text-muted-foreground">{members.length + 1}/5</span>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="admin-booking-subject">Mata Pelajaran</Label>

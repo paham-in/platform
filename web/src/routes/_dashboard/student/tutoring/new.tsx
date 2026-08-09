@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -18,7 +17,7 @@ import {
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringTeacherResponse } from "@/lib/api/types.gen"
-import { CalendarIcon, CheckCircle2, Copy, Loader2, UserRound, Users } from "lucide-react"
+import { CalendarIcon, CheckCircle2, Loader2, Plus, UserRound, Users, X } from "lucide-react"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
 import { useEffect, useState } from "react"
@@ -73,8 +72,8 @@ function NewBooking() {
   const [classId, setClassId] = useState("")
   const [date, setDate] = useState("")
   const [note, setNote] = useState("")
-  const [shareOpen, setShareOpen] = useState(false)
-  const [newToken, setNewToken] = useState("")
+  const [memberEmails, setMemberEmails] = useState<string[]>([])
+  const [emailInput, setEmailInput] = useState("")
 
   const myClass = classes.find((c) => c.id === Number(classId))
   const pricePerSession = mode === "semi_private" ? (myClass?.semi_private_price ?? 0) : (myClass?.price_per_session ?? 0)
@@ -123,21 +122,17 @@ function NewBooking() {
 
   const { mutate: createBooking, isPending } = useMutation({
     ...postTutoringBookingsMutation(),
-    onSuccess: (data) => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: getTutoringBookingsQueryKey() })
-      if (mode === "semi_private" && data?.group_token) {
-        setNewToken(data.group_token)
-        setShareOpen(true)
-        toast.success("Booking grup berhasil, ajak temanmu!")
-      } else {
-        toast.success(teacher ? "Booking berhasil dikirim, tunggu konfirmasi guru" : "Permintaan dikirim, admin akan carikan guru")
-        navigate({ to: "/student/tutoring" })
-      }
+      toast.success(teacher ? "Booking berhasil dikirim, tunggu konfirmasi guru" : "Permintaan dikirim, admin akan carikan guru")
+      navigate({ to: "/student/tutoring" })
     },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal booking"),
   })
 
-  const canSubmit = canSearch && !!date && !!classId && !isPending
+  const canSubmit =
+    canSearch && !!date && !!classId && !isPending &&
+    (mode === "private" || memberEmails.length > 0)
 
   const handleBook = () => {
     if (!canSearch || !date || !classId) return
@@ -152,11 +147,22 @@ function NewBooking() {
         session_count: sessionCount,
         note,
         class_id: Number(classId),
+        member_emails: mode === "semi_private" ? memberEmails : undefined,
       },
     })
   }
 
-  const joinLink = newToken ? `${window.location.origin}/student/tutoring/join?token=${newToken}` : ""
+  const addMemberEmail = () => {
+    const e = emailInput.trim()
+    if (!e) return
+    if (memberEmails.includes(e)) {
+      setEmailInput("")
+      return
+    }
+    if (memberEmails.length + 1 > 4) return // max 4 member + organizer = 5
+    setMemberEmails([...memberEmails, e])
+    setEmailInput("")
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-2">
@@ -331,6 +337,41 @@ function NewBooking() {
             </div>
           </div>
 
+          {mode === "semi_private" && (
+            <div className="space-y-1.5">
+              <Label>Email Teman</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addMemberEmail() } }}
+                  placeholder="email.teman@contoh.com"
+                  className="flex-1"
+                />
+                <Button type="button" variant="outline" size="sm" onClick={addMemberEmail} disabled={!emailInput.trim()}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Semua member wajib punya akun dulu. Email belum terdaftar → booking ditolak.
+              </p>
+              {memberEmails.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {memberEmails.map((e) => (
+                    <span key={e} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs">
+                      {e}
+                      <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setMemberEmails(memberEmails.filter((x) => x !== e))}>
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                  <span className="text-xs text-muted-foreground">{memberEmails.length + 1}/5</span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label>Jumlah Pertemuan</Label>
             <div className="flex flex-wrap gap-1.5">
@@ -393,25 +434,6 @@ function NewBooking() {
           </div>
         </CardContent>
       </Card>
-
-      <Dialog open={shareOpen} onOpenChange={(o) => { if (!o) setShareOpen(false) }}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Ajak Teman Bergabung</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">Bagikan link ini ke temanmu untuk bergabung ke grup semi-private. Maksimal 5 siswa termasuk kamu.</p>
-            <div className="flex items-center gap-2">
-              <Input readOnly value={joinLink} className="flex-1 text-xs" />
-              <Button variant="outline" size="icon" onClick={() => navigator.clipboard.writeText(joinLink).then(() => toast.success("Link disalin"))}>
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">Teman yang belum punya akun cukup daftar, lalu buka link ini.</p>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => navigate({ to: "/student/tutoring" })}>Selesai</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

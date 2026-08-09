@@ -454,6 +454,10 @@ export type TutoringAdminCreateBookingInput = {
     date?: string;
     end_time?: string;
     /**
+     * semi_private: email member (wajib ≥1)
+     */
+    member_emails?: Array<string>;
+    /**
      * private/semi_private
      */
     mode?: string;
@@ -515,6 +519,10 @@ export type TutoringCreateBookingInput = {
      * isi utk join grup yang sudah ada
      */
     group_token?: string;
+    /**
+     * semi_private: email member (wajib ≥1)
+     */
+    member_emails?: Array<string>;
     /**
      * private/semi_private
      */

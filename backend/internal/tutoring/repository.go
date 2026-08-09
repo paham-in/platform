@@ -89,6 +89,28 @@ func (r *Repository) ListBookingsByStudent(studentID uint) ([]models.Booking, er
 	return bookings, nil
 }
 
+// FindStudentIDsByEmails memetakan email → user ID untuk user ber-role student.
+// Email tanpa akun student tidak masuk ke map (bukan error).
+func (r *Repository) FindStudentIDsByEmails(emails []string) (map[string]uint, error) {
+	result := map[string]uint{}
+	if len(emails) == 0 {
+		return result, nil
+	}
+	var users []models.User
+	err := r.db.
+		Joins("JOIN user_roles ON user_roles.user_id = users.id").
+		Joins("JOIN roles ON roles.id = user_roles.role_id").
+		Where("roles.name = ? AND users.email IN ?", "student", emails).
+		Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, u := range users {
+		result[u.Email] = u.ID
+	}
+	return result, nil
+}
+
 func (r *Repository) CreateBooking(booking *models.Booking) error {
 	return r.db.Create(booking).Error
 }

@@ -708,6 +708,11 @@ definitions:
         type: string
       end_time:
         type: string
+      member_emails:
+        description: 'semi_private: email member (wajib ≥1)'
+        items:
+          type: string
+        type: array
       mode:
         description: private/semi_private
         type: string
@@ -802,6 +807,11 @@ definitions:
       group_token:
         description: isi utk join grup yang sudah ada
         type: string
+      member_emails:
+        description: 'semi_private: email member (wajib ≥1)'
+        items:
+          type: string
+        type: array
       mode:
         description: private/semi_private
         type: string
