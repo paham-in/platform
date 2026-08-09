@@ -1,29 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useQuery } from "@tanstack/react-query"
-import { getTutoringBookingsOptions, getTutoringSessionsOptions, getTutoringTeachersOptions, getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
-import type { TutoringSubjectInfo, TutoringTeacherResponse } from "@/lib/api/types.gen"
-import { Calendar, Loader2, Plus, Share2, UserRound, Users } from "lucide-react"
-import { useState } from "react"
+import { getTutoringBookingsOptions, getTutoringSessionsOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { Loader2, Plus, Share2, UserRound, Users } from "lucide-react"
 import { toast } from "sonner"
-
-function SubjectBadge({ subjects }: { subjects?: TutoringSubjectInfo[] }) {
-  if (!subjects || subjects.length === 0) return null
-  return (
-    <div className="mt-1 flex flex-wrap gap-1">
-      {subjects.map((s) => (
-        <span key={s.id} className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-          {s.name}
-        </span>
-      ))}
-    </div>
-  )
-}
 
 function statusBadge(s: string) {
   const styles: Record<string, string> = {
@@ -51,7 +33,6 @@ function copyJoinLink(token: string) {
 function StudentTutoringIndex() {
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getTutoringBookingsOptions())
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getTutoringSessionsOptions())
-  const [pickerOpen, setPickerOpen] = useState(false)
 
   if (bookingsLoading) return <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
 
@@ -60,7 +41,7 @@ function StudentTutoringIndex() {
       <div>
         <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-semibold">Booking Saya</h2>
-          <Button onClick={() => setPickerOpen(true)}><Plus className="mr-1 h-4 w-4" /> Tambah Booking</Button>
+          <Link to="/student/tutoring/new"><Button><Plus className="mr-1 h-4 w-4" /> Tambah Booking</Button></Link>
         </div>
         <Card className="pt-0 gap-0 pb-0">
           <CardContent className="p-0">
@@ -138,182 +119,7 @@ function StudentTutoringIndex() {
           </CardContent>
         </Card>
       </div>
-
-      <TeacherPickerDialog open={pickerOpen} onOpenChange={setPickerOpen} />
     </div>
-  )
-}
-
-const DAY_OPTIONS = [
-  { label: "Minggu", value: "0" },
-  { label: "Senin", value: "1" },
-  { label: "Selasa", value: "2" },
-  { label: "Rabu", value: "3" },
-  { label: "Kamis", value: "4" },
-  { label: "Jumat", value: "5" },
-  { label: "Sabtu", value: "6" },
-]
-
-const TIME_OPTIONS = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"]
-
-// cari slot guru yang contain (day, start..end) request — utk label di kartu guru.
-function matchingSlots(t: TutoringTeacherResponse, day: number, start: string, end: string) {
-  return (t.slots ?? []).filter((s) => s.day_of_week === day && (s.start_time ?? "") <= start && (s.end_time ?? "") >= end)
-}
-
-function TeacherPickerDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const navigate = useNavigate()
-  const { data: subjects = [] } = useQuery(getSubjectsOptions())
-  const [subjectId, setSubjectId] = useState("")
-  const [day, setDay] = useState("")
-  const [start, setStart] = useState("")
-  const [end, setEnd] = useState("")
-
-  const hasSlot = day !== "" && start !== "" && end !== ""
-  const canSearch = subjectId !== "" && hasSlot
-
-  const { data: teachers = [], isLoading: teachersLoading } = useQuery({
-    ...getTutoringTeachersOptions({
-      query: canSearch ? {
-        subject_id: Number(subjectId),
-        day_of_week: Number(day),
-        start_time: start,
-        end_time: end,
-      } : undefined,
-    }),
-    enabled: canSearch,
-  })
-
-  const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
-  const endOptions = TIME_OPTIONS.filter((t) => start === "" || t > start)
-  const dayNum = day === "" ? 0 : Number(day)
-
-  const goTeacher = (t: TutoringTeacherResponse) => {
-    onOpenChange(false)
-    navigate({
-      to: "/student/tutoring/$teacherId",
-      params: { teacherId: String(t.id) },
-      search: { subject_id: Number(subjectId), day: dayNum, start_time: start, end_time: end },
-    })
-  }
-
-  const goNoTeacher = () => {
-    onOpenChange(false)
-    navigate({
-      to: "/student/tutoring/no-teacher",
-      search: { subject_id: Number(subjectId), day: dayNum, start_time: start, end_time: end },
-    })
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Booking Les Privat</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="pick-subject">Mata Pelajaran</Label>
-              <Select items={subjectOptions} value={subjectId} onValueChange={(v) => setSubjectId(v ?? "")}>
-                <SelectTrigger id="pick-subject" className="w-full" size="sm">
-                  <SelectValue placeholder="Pilih mapel" />
-                </SelectTrigger>
-                <SelectContent>
-                  {subjectOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="pick-day">Hari</Label>
-              <Select items={DAY_OPTIONS} value={day} onValueChange={(v) => setDay(v ?? "")}>
-                <SelectTrigger id="pick-day" className="w-full" size="sm">
-                  <SelectValue placeholder="Pilih hari" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DAY_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="pick-start">Jam Mulai</Label>
-              <Select items={TIME_OPTIONS.map((t) => ({ label: t, value: t }))} value={start} onValueChange={(v) => { setStart(v ?? ""); setEnd("") }}>
-                <SelectTrigger id="pick-start" className="w-full" size="sm">
-                  <SelectValue placeholder="Pilih jam" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIME_OPTIONS.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="pick-end">Jam Selesai</Label>
-              <Select items={endOptions.map((t) => ({ label: t, value: t }))} value={end} onValueChange={(v) => setEnd(v ?? "")}>
-                <SelectTrigger id="pick-end" className="w-full" size="sm">
-                  <SelectValue placeholder="Pilih jam" />
-                </SelectTrigger>
-                <SelectContent>
-                  {endOptions.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {!canSearch ? (
-            <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-              Pilih mapel, hari, dan jam untuk menampilkan guru yang tersedia.
-            </p>
-          ) : teachersLoading ? (
-            <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-          ) : teachers.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed py-8 text-center">
-              <UserRound className="h-8 w-8 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">Tidak ada guru untuk mapel & jam ini.</p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => { setDay(""); setStart(""); setEnd("") }}>Cari Slot Lain</Button>
-                <Button size="sm" onClick={goNoTeacher}>Kirim Tanpa Guru</Button>
-              </div>
-              <p className="px-4 text-xs text-muted-foreground">Kirim tanpa guru: admin yang carikan guru buat kamu.</p>
-            </div>
-          ) : (
-            <div className="max-h-[300px] space-y-2 overflow-y-auto pr-1">
-              {teachers.map((t) => {
-                const match = matchingSlots(t, dayNum, start, end)
-                return (
-                  <button key={t.id} type="button" onClick={() => goTeacher(t)} className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/50">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-base font-bold text-primary">
-                      {t.avatar_url ? (
-                        <img src={t.avatar_url} alt={t.name} className="h-10 w-10 rounded-full object-cover" />
-                      ) : (
-                        t.name?.[0]
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{t.name}</p>
-                      <SubjectBadge subjects={t.subjects} />
-                      {match.length > 0 && (
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {DAY_OPTIONS[dayNum].label} {match.map((s) => `${s.start_time}–${s.end_time}`).join(", ")}
-                        </p>
-                      )}
-                    </div>
-                    <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
   )
 }
 
