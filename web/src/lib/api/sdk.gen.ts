@@ -710,7 +710,7 @@ export const patchAdminTutoringBookingsByIdAssign = <ThrowOnError extends boolea
 /**
  * List attendance evidence
  *
- * Mengembalikan sesi yang punya bukti kehadiran. Filter status opsional: review/done.
+ * Mengembalikan sesi yang punya bukti kehadiran + info fee guru & status invoice. Filter status opsional: review/done.
  */
 export const getAdminTutoringEvidence = <ThrowOnError extends boolean = false>(options?: Options<GetAdminTutoringEvidenceData, ThrowOnError>): RequestResult<GetAdminTutoringEvidenceResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminTutoringEvidenceResponses, unknown, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],

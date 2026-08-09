@@ -1101,7 +1101,7 @@ export const getAdminTutoringEvidenceQueryKey = (options?: Options<GetAdminTutor
 /**
  * List attendance evidence
  *
- * Mengembalikan sesi yang punya bukti kehadiran. Filter status opsional: review/done.
+ * Mengembalikan sesi yang punya bukti kehadiran + info fee guru & status invoice. Filter status opsional: review/done.
  */
 export const getAdminTutoringEvidenceOptions = (options?: Options<GetAdminTutoringEvidenceData>) => queryOptions<GetAdminTutoringEvidenceResponse, DefaultError, GetAdminTutoringEvidenceResponse, ReturnType<typeof getAdminTutoringEvidenceQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {

@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { getAdminTutoringEvidenceOptions, getAdminTutoringEvidenceQueryKey, patchAdminTutoringEvidenceByIdMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminTutoringEvidenceOptions, getAdminTutoringEvidenceQueryKey, patchAdminTutoringEvidenceByIdMutation, patchAdminTutoringFeesByIdMutation } from "@/lib/api/@tanstack/react-query.gen"
 import { Check, SearchX, X } from "lucide-react"
 import { toast } from "sonner"
 import { useState } from "react"
@@ -20,11 +20,18 @@ const statusFilters = [
   { key: "done", label: "Selesai" },
 ] as const
 
+const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
+
 function statusBadge(s?: string) {
   if (s === "review") return <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Menunggu Validasi</span>
   if (s === "done") return <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Selesai</span>
   if (s === "scheduled") return <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">Terjadwal</span>
   return <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">{s || "—"}</span>
+}
+
+function feeBadge(paid?: boolean) {
+  if (paid) return <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Sudah Dibayar</span>
+  return <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Belum Dibayar</span>
 }
 
 function AdminAttendance() {
@@ -54,6 +61,15 @@ function AdminAttendance() {
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal menolak bukti"),
   })
 
+  const toggleFee = useMutation({
+    ...patchAdminTutoringFeesByIdMutation(),
+    onSuccess: () => {
+      toast.success("Status fee guru diperbarui")
+      invalidate()
+    },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal mengubah status fee"),
+  })
+
   const setFilter = (s: "review" | "done" | undefined) => {
     navigate({ search: (prev) => ({ ...prev, status: s }), replace: true })
   }
@@ -62,9 +78,9 @@ function AdminAttendance() {
     <main className="p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Bukti Kehadiran</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Validasi & Fee Guru</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Validasi foto bukti kehadiran guru. Setujui untuk menandai sesi selesai, atau tolak untuk mengembalikannya ke terjadwal.
+            Setujui bukti kehadiran guru untuk menandai sesi selesai, lalu catat pembayaran fee per pertemuan.
           </p>
         </div>
       </div>
@@ -100,6 +116,7 @@ function AdminAttendance() {
                 <TableHead>Jam</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Bukti</TableHead>
+                <TableHead>Fee Guru</TableHead>
                 <TableHead className="pr-6">Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -113,14 +130,15 @@ function AdminAttendance() {
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-10 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell className="pr-6"><Skeleton className="h-8 w-24" /></TableCell>
                   </TableRow>
                 ))
               ) : sessions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="p-8 text-center">
+                  <TableCell colSpan={8} className="p-8 text-center">
                     <SearchX className="mx-auto mb-2 h-6 w-6 text-muted-foreground/40" />
-                    <p className="text-muted-foreground">Tidak ada bukti kehadiran.</p>
+                    <p className="text-muted-foreground">Tidak ada sesi dengan bukti kehadiran.</p>
                   </TableCell>
                 </TableRow>
               ) : sessions.map((s) => (
@@ -139,6 +157,16 @@ function AdminAttendance() {
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </TableCell>
+                  <TableCell>
+                    {s.status === "done" && s.invoice_paid ? (
+                      <div className="space-y-1">
+                        <div className="tabular-nums font-medium">{fmtRp(s.fee_amount)}</div>
+                        {feeBadge(s.fee_paid)}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell className="pr-6">
                     {s.status === "review" ? (
                       <div className="flex gap-2">
@@ -149,6 +177,15 @@ function AdminAttendance() {
                           <X className="h-4 w-4" /> Tolak
                         </Button>
                       </div>
+                    ) : s.status === "done" && s.invoice_paid ? (
+                      <Button
+                        size="sm"
+                        variant={s.fee_paid ? "outline" : "default"}
+                        onClick={() => toggleFee.mutate({ path: { id: s.id! } })}
+                        disabled={toggleFee.isPending}
+                      >
+                        {s.fee_paid ? "Tandai Belum" : "Tandai Sudah"}
+                      </Button>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}

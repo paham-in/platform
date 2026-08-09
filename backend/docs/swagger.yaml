@@ -920,6 +920,8 @@ definitions:
         type: boolean
       id:
         type: integer
+      invoice_paid:
+        type: boolean
       mode:
         type: string
       note:
@@ -2564,8 +2566,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: 'Mengembalikan sesi yang punya bukti kehadiran. Filter status opsional:
-        review/done.'
+      description: 'Mengembalikan sesi yang punya bukti kehadiran + info fee guru
+        & status invoice. Filter status opsional: review/done.'
       parameters:
       - description: 'Filter status: review atau done'
         in: query

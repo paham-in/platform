@@ -28,7 +28,6 @@ import {
   Shield,
   Sun,
   Users,
-  Wallet,
   X,
   Calendar,
 } from "lucide-react";
@@ -87,9 +86,8 @@ const sidebarGroups = [
       { label: "Mata Pelajaran Guru", icon: GraduationCap, to: "/admin/teacher-subjects" },
       { label: "Hak Akses Murid", icon: Shield, to: "/admin/student-classes" },
       { label: "Les Privat", icon: Calendar, to: "/admin/tutoring" },
-      { label: "Bukti Kehadiran", icon: Camera, to: "/admin/attendance" },
+      { label: "Validasi & Fee Guru", icon: Camera, to: "/admin/attendance" },
       { label: "Rekap Les", icon: ClipboardList, to: "/admin/tutoring-report" },
-      { label: "Fee Guru", icon: Wallet, to: "/admin/teacher-fees" },
       { label: "Pengaturan", icon: Settings, to: "/admin/settings" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
       { label: "Reset Data", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },

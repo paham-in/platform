@@ -234,6 +234,7 @@ func (r *Repository) ListAllBookingsWithSessions() ([]models.Booking, error) {
 		Preload("Teacher").
 		Preload("Student").
 		Preload("Sessions").
+		Preload("Invoice").
 		Order("created_at desc").
 		Find(&bookings).Error; err != nil {
 		return nil, err
@@ -274,7 +275,7 @@ func (r *Repository) ToggleSessionFeePaid(id uint) (bool, error) {
 // status opsional: "" = semua, atau "review"/"done".
 func (r *Repository) ListSessionsWithEvidence(status string) ([]models.TutoringSession, error) {
 	var sessions []models.TutoringSession
-	q := r.db.Where("evidence_url <> ''").Preload("Booking.Student").Preload("Booking.Teacher")
+	q := r.db.Where("evidence_url <> ''").Preload("Booking.Student").Preload("Booking.Teacher").Preload("Booking.Invoice")
 	if status != "" {
 		q = q.Where("status = ?", status)
 	}

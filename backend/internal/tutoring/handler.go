@@ -554,7 +554,7 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 
 // AdminListEvidence lists sessions with attendance evidence (admin only)
 // @Summary      List attendance evidence
-// @Description  Mengembalikan sesi yang punya bukti kehadiran. Filter status opsional: review/done.
+// @Description  Mengembalikan sesi yang punya bukti kehadiran + info fee guru & status invoice. Filter status opsional: review/done.
 // @Tags         Admin Tutoring
 // @Accept       json
 // @Produce      json

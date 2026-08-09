@@ -597,6 +597,7 @@ export type TutoringTutoringSessionResponse = {
     fee_amount?: number;
     fee_paid?: boolean;
     id?: number;
+    invoice_paid?: boolean;
     mode?: string;
     note?: string;
     start_time?: string;

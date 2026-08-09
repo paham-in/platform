@@ -58,6 +58,7 @@ type TutoringSessionResponse struct {
 	EvidenceURL string  `json:"evidence_url,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
+	InvoicePaid bool    `json:"invoice_paid,omitempty"`
 }
 
 type GroupInfoResponse struct {
@@ -1066,12 +1067,23 @@ func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (
 }
 
 // ListEvidence mengembalikan sesi yang punya bukti, difilter status ("" = semua).
+// Plus info fee & status invoice utk halaman admin gabungan validasi + fee guru.
 func (s *Service) ListEvidence(status string) ([]TutoringSessionResponse, error) {
 	sessions, err := s.repo.ListSessionsWithEvidence(status)
 	if err != nil {
 		return nil, err
 	}
-	return toSessionResponses(sessions), nil
+	res := toSessionResponses(sessions)
+	for i, v := range sessions {
+		paid := v.Booking != nil && v.Booking.Invoice != nil && v.Booking.Invoice.Status == "paid"
+		res[i].InvoicePaid = paid
+		// fee_amount cuma relevan utk sesi selesai yg muridnya sudah lunas
+		if v.Status == "done" && paid {
+			perSession := s.perSessionPrice(v.Booking.ClassID, v.Booking.Mode)
+			res[i].FeeAmount = s.sessionFee(perSession)
+		}
+	}
+	return res, nil
 }
 
 // ApproveEvidence menyetujui bukti → sesi selesai.

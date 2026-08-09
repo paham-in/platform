@@ -2422,7 +2422,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan sesi yang punya bukti kehadiran. Filter status opsional: review/done.",
+                "description": "Mengembalikan sesi yang punya bukti kehadiran + info fee guru \u0026 status invoice. Filter status opsional: review/done.",
                 "consumes": [
                     "application/json"
                 ],
@@ -5997,6 +5997,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "invoice_paid": {
+                    "type": "boolean"
                 },
                 "mode": {
                     "type": "string"
