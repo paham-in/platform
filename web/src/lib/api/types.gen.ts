@@ -630,6 +630,8 @@ export type UserAdminCreateStudentInput = {
 
 export type UserAdminUserResponse = {
     avatar_url?: string;
+    can_manage_materials?: boolean;
+    can_manage_question_packages?: boolean;
     class_id?: number;
     created_at?: string;
     email?: string;
@@ -650,6 +652,11 @@ export type UserMessageResponse = {
     message?: string;
 };
 
+export type UserSetTeacherPermissionsInput = {
+    can_manage_materials?: boolean;
+    can_manage_question_packages?: boolean;
+};
+
 export type UserSubjectInfo = {
     id?: number;
     name?: string;
@@ -661,6 +668,8 @@ export type UserUpdateRoleRequest = {
 
 export type UserUserResponse = {
     avatar_url?: string;
+    can_manage_materials?: boolean;
+    can_manage_question_packages?: boolean;
     class_id?: number;
     email?: string;
     id?: number;
@@ -2556,6 +2565,43 @@ export type PatchAdminUsersByIdPaymentResponses = {
 };
 
 export type PatchAdminUsersByIdPaymentResponse = PatchAdminUsersByIdPaymentResponses[keyof PatchAdminUsersByIdPaymentResponses];
+
+export type PatchAdminUsersByIdPermissionsData = {
+    /**
+     * Izin kelola konten
+     */
+    body: UserSetTeacherPermissionsInput;
+    path: {
+        /**
+         * User ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/users/{id}/permissions';
+};
+
+export type PatchAdminUsersByIdPermissionsErrors = {
+    /**
+     * Bad Request
+     */
+    400: UserErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: UserErrorResponse;
+};
+
+export type PatchAdminUsersByIdPermissionsError = PatchAdminUsersByIdPermissionsErrors[keyof PatchAdminUsersByIdPermissionsErrors];
+
+export type PatchAdminUsersByIdPermissionsResponses = {
+    /**
+     * OK
+     */
+    200: UserMessageResponse;
+};
+
+export type PatchAdminUsersByIdPermissionsResponse = PatchAdminUsersByIdPermissionsResponses[keyof PatchAdminUsersByIdPermissionsResponses];
 
 export type PatchAdminUsersByIdRoleData = {
     /**

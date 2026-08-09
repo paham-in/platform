@@ -22,28 +22,32 @@ type AuthResponse struct {
 }
 
 type UserResponse struct {
-	ID            uint          `json:"id"`
-	Name          string        `json:"name"`
-	Email         string        `json:"email"`
-	Roles         []string      `json:"roles"`
-	AvatarURL     string        `json:"avatar_url"`
-	PaymentStatus string        `json:"payment_status"`
-	ClassID       *uint         `json:"class_id"`
-	Subjects      []SubjectInfo `json:"subjects"`
+	ID                        uint          `json:"id"`
+	Name                      string        `json:"name"`
+	Email                     string        `json:"email"`
+	Roles                     []string      `json:"roles"`
+	AvatarURL                 string        `json:"avatar_url"`
+	PaymentStatus             string        `json:"payment_status"`
+	ClassID                   *uint         `json:"class_id"`
+	Subjects                  []SubjectInfo `json:"subjects"`
+	CanManageMaterials        bool          `json:"can_manage_materials"`
+	CanManageQuestionPackages bool          `json:"can_manage_question_packages"`
 }
 
 type AdminUserResponse struct {
-	ID            uint          `json:"id"`
-	Name          string        `json:"name"`
-	Email         string        `json:"email"`
-	Roles         []string      `json:"roles"`
-	AvatarURL     string        `json:"avatar_url"`
-	PaymentStatus string        `json:"payment_status"`
-	ClassID       *uint         `json:"class_id"`
-	HasGoogle     bool          `json:"has_google"`
-	HasPassword   bool          `json:"has_password"`
-	CreatedAt     string        `json:"created_at"`
-	Subjects      []SubjectInfo `json:"subjects"`
+	ID                        uint          `json:"id"`
+	Name                      string        `json:"name"`
+	Email                     string        `json:"email"`
+	Roles                     []string      `json:"roles"`
+	AvatarURL                 string        `json:"avatar_url"`
+	PaymentStatus             string        `json:"payment_status"`
+	ClassID                   *uint         `json:"class_id"`
+	HasGoogle                 bool          `json:"has_google"`
+	HasPassword               bool          `json:"has_password"`
+	CreatedAt                 string        `json:"created_at"`
+	Subjects                  []SubjectInfo `json:"subjects"`
+	CanManageMaterials        bool          `json:"can_manage_materials"`
+	CanManageQuestionPackages bool          `json:"can_manage_question_packages"`
 }
 
 type SubjectInfo struct {
@@ -201,16 +205,18 @@ func (s *Service) ListUsers(search string, role string) ([]AdminUserResponse, er
 	result := make([]AdminUserResponse, len(users))
 	for i, u := range users {
 		result[i] = AdminUserResponse{
-			ID:            u.ID,
-			Name:          u.Name,
-			Email:         u.Email,
-			Roles:         roleNames(u),
-			AvatarURL:     u.AvatarURL,
-			PaymentStatus: u.PaymentStatus,
-			ClassID:       u.ClassID,
-			HasGoogle:     u.GoogleID != "",
-			CreatedAt:     u.CreatedAt.Format("2006-01-02"),
-			Subjects:      subjectInfos(u.Subjects),
+			ID:                        u.ID,
+			Name:                      u.Name,
+			Email:                     u.Email,
+			Roles:                     roleNames(u),
+			AvatarURL:                 u.AvatarURL,
+			PaymentStatus:             u.PaymentStatus,
+			ClassID:                   u.ClassID,
+			HasGoogle:                 u.GoogleID != "",
+			CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
+			Subjects:                  subjectInfos(u.Subjects),
+			CanManageMaterials:        u.CanManageMaterials,
+			CanManageQuestionPackages: u.CanManageQuestionPackages,
 		}
 	}
 	return result, nil
@@ -323,17 +329,19 @@ func (s *Service) UpdateUserEmail(id uint, email string) error {
 
 func (s *Service) toAdminResponse(u models.User) AdminUserResponse {
 	return AdminUserResponse{
-		ID:            u.ID,
-		Name:          u.Name,
-		Email:         u.Email,
-		Roles:         roleNames(u),
-		AvatarURL:     u.AvatarURL,
-		PaymentStatus: u.PaymentStatus,
-		ClassID:       u.ClassID,
-		HasGoogle:     u.GoogleID != "",
-		HasPassword:   u.Password != nil,
-		CreatedAt:     u.CreatedAt.Format("2006-01-02"),
-		Subjects:      subjectInfos(u.Subjects),
+		ID:                        u.ID,
+		Name:                      u.Name,
+		Email:                     u.Email,
+		Roles:                     roleNames(u),
+		AvatarURL:                 u.AvatarURL,
+		PaymentStatus:             u.PaymentStatus,
+		ClassID:                   u.ClassID,
+		HasGoogle:                 u.GoogleID != "",
+		HasPassword:               u.Password != nil,
+		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
+		Subjects:                  subjectInfos(u.Subjects),
+		CanManageMaterials:        u.CanManageMaterials,
+		CanManageQuestionPackages: u.CanManageQuestionPackages,
 	}
 }
 
@@ -346,6 +354,30 @@ type SetTeacherSubjectsInput struct {
 	SubjectIDs []uint `json:"subject_ids"`
 }
 
+type SetTeacherPermissionsInput struct {
+	CanManageMaterials        *bool `json:"can_manage_materials"`
+	CanManageQuestionPackages *bool `json:"can_manage_question_packages"`
+}
+
+// SetTeacherPermissions mengubah izin kelola konten guru (materi / paket soal).
+// Hanya field non-nil yang di-update (PATCH semantics).
+func (s *Service) SetTeacherPermissions(id uint, input SetTeacherPermissionsInput) error {
+	if _, err := s.userRepo.Get(id); err != nil {
+		return errNotFound
+	}
+	updates := map[string]any{}
+	if input.CanManageMaterials != nil {
+		updates["can_manage_materials"] = *input.CanManageMaterials
+	}
+	if input.CanManageQuestionPackages != nil {
+		updates["can_manage_question_packages"] = *input.CanManageQuestionPackages
+	}
+	if len(updates) == 0 {
+		return errors.New("tidak ada field yang diubah")
+	}
+	return s.userRepo.UpdatePermissions(id, updates)
+}
+
 func (s *Service) SetTeacherSubjects(id uint, input SetTeacherSubjectsInput) (*AdminUserResponse, error) {
 	if err := s.userRepo.SetTeacherSubjects(id, input.SubjectIDs); err != nil {
 		return nil, err
@@ -355,17 +387,19 @@ func (s *Service) SetTeacherSubjects(id uint, input SetTeacherSubjectsInput) (*A
 		return nil, err
 	}
 	return &AdminUserResponse{
-		ID:            u.ID,
-		Name:          u.Name,
-		Email:         u.Email,
-		Roles:         roleNames(*u),
-		AvatarURL:     u.AvatarURL,
-		PaymentStatus: u.PaymentStatus,
-		ClassID:       u.ClassID,
-		HasGoogle:     u.GoogleID != "",
-		HasPassword:   u.Password != nil,
-		CreatedAt:     u.CreatedAt.Format("2006-01-02"),
-		Subjects:      subjectInfos(u.Subjects),
+		ID:                        u.ID,
+		Name:                      u.Name,
+		Email:                     u.Email,
+		Roles:                     roleNames(*u),
+		AvatarURL:                 u.AvatarURL,
+		PaymentStatus:             u.PaymentStatus,
+		ClassID:                   u.ClassID,
+		HasGoogle:                 u.GoogleID != "",
+		HasPassword:               u.Password != nil,
+		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
+		Subjects:                  subjectInfos(u.Subjects),
+		CanManageMaterials:        u.CanManageMaterials,
+		CanManageQuestionPackages: u.CanManageQuestionPackages,
 	}, nil
 }
 
@@ -423,13 +457,15 @@ func (s *Service) DeleteUser(id uint) error {
 
 func toResponse(u models.User) UserResponse {
 	return UserResponse{
-		ID:            u.ID,
-		Name:          u.Name,
-		Email:         u.Email,
-		Roles:         roleNames(u),
-		AvatarURL:     u.AvatarURL,
-		PaymentStatus: u.PaymentStatus,
-		ClassID:       u.ClassID,
-		Subjects:      subjectInfos(u.Subjects),
+		ID:                        u.ID,
+		Name:                      u.Name,
+		Email:                     u.Email,
+		Roles:                     roleNames(u),
+		AvatarURL:                 u.AvatarURL,
+		PaymentStatus:             u.PaymentStatus,
+		ClassID:                   u.ClassID,
+		Subjects:                  subjectInfos(u.Subjects),
+		CanManageMaterials:        u.CanManageMaterials,
+		CanManageQuestionPackages: u.CanManageQuestionPackages,
 	}
 }

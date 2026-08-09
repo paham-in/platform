@@ -38,6 +38,7 @@ import {
   getAdminChaptersOptions,
   getAdminChaptersQueryKey,
   getAdminClassesOptions,
+  getMeOptions,
   getSubjectsOptions,
   patchAdminChaptersByIdMutation,
   postAdminChaptersMutation,
@@ -85,6 +86,8 @@ function AdminChapters() {
   const qc = useQueryClient();
   const navigate = useNavigate({ from: Route.fullPath });
   const { search, classId } = Route.useSearch();
+  const { data: user } = useQuery(getMeOptions());
+  const canManage = user?.roles?.includes("admin") || !!user?.can_manage_materials;
   const { data: chapters = [], isLoading, isError } = useQuery(getAdminChaptersOptions());
   const { data: subjects = [] } = useQuery(getSubjectsOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
@@ -350,11 +353,12 @@ function AdminChapters() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <Button onClick={openAdd}>
-              <Plus className="mr-1 h-4 w-4" /> Tambah
-            </Button>
-            <DialogContent className="sm:max-w-[500px]">
+          {canManage && (
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <Button onClick={openAdd}>
+                <Plus className="mr-1 h-4 w-4" /> Tambah
+              </Button>
+              <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>{editing ? "Ubah Chapter" : "Tambah Chapter"}</DialogTitle>
                 <DialogDescription className="sr-only">
@@ -482,7 +486,8 @@ function AdminChapters() {
                 </div>
               </div>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          )}
         </div>
         <Card className="pt-0 gap-0">
           <CardContent className="p-0">
@@ -552,12 +557,16 @@ function AdminChapters() {
                                 <BookOpen className="h-4 w-4" /> Materi
                               </DropdownMenuItem>
                             </Link>
-                            <DropdownMenuItem onClick={() => openEdit(c)}>
-                              <Pencil className="h-4 w-4" /> Ubah
-                            </DropdownMenuItem>
-                            <DropdownMenuItem variant="destructive" onClick={() => setDeleteConfirm(c)}>
-                              <Trash2 className="h-4 w-4" /> Hapus
-                            </DropdownMenuItem>
+                            {canManage && (
+                              <>
+                                <DropdownMenuItem onClick={() => openEdit(c)}>
+                                  <Pencil className="h-4 w-4" /> Ubah
+                                </DropdownMenuItem>
+                                <DropdownMenuItem variant="destructive" onClick={() => setDeleteConfirm(c)}>
+                                  <Trash2 className="h-4 w-4" /> Hapus
+                                </DropdownMenuItem>
+                              </>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>

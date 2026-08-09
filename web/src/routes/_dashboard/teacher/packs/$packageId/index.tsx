@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { PreviewQuestionDialog, DeleteQuestionDialog, EditPackageDialog } from "@/components/teacher/packs"
 import { useQuery } from "@tanstack/react-query"
-import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesByIdQuestionsOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesByIdQuestionsOptions, getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { QuestionbankQuestionResponse, QuestionpackagePackageResponse } from "@/lib/api/types.gen"
 import { ArrowLeft, ChevronLeft, ChevronRight, Eye, MoreVertical, Pencil, Plus, Search, SearchX, Trash2, UploadCloud, X } from "lucide-react"
 
@@ -26,6 +26,8 @@ function PackageQuestions() {
   const { packageId } = useParams({ from: "/_dashboard/teacher/packs/$packageId/" })
   const navigate = useNavigate({ from: Route.fullPath })
   const { search } = Route.useSearch()
+  const { data: user } = useQuery(getMeOptions())
+  const canManage = user?.roles?.includes("admin") || !!user?.can_manage_question_packages
   const { data: pkg } = useQuery(getAdminQuestionPackagesByIdOptions({ path: { id: Number(packageId) } }))
   const { data: questions = [], isLoading } = useQuery(getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) } }))
   const [searchInput, setSearchInput] = useState(search ?? "")
@@ -73,15 +75,17 @@ function PackageQuestions() {
               <p className="text-sm text-muted-foreground">{pkg.description || "Tidak ada deskripsi"} · {pkg.questions?.length ?? 0} soal</p>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setEditTarget(pkg ?? null)}><Pencil className="mr-1 h-4 w-4" /> Edit Paket</Button>
-            <Link to="/teacher/packs/$packageId/import" params={{ packageId }}>
-              <Button variant="outline"><UploadCloud className="mr-1 h-4 w-4" /> Import dari Word</Button>
-            </Link>
-            <Link to="/teacher/packs/$packageId/questions/new" params={{ packageId }}>
-              <Button><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
-            </Link>
-          </div>
+          {canManage && (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setEditTarget(pkg ?? null)}><Pencil className="mr-1 h-4 w-4" /> Edit Paket</Button>
+              <Link to="/teacher/packs/$packageId/import" params={{ packageId }}>
+                <Button variant="outline"><UploadCloud className="mr-1 h-4 w-4" /> Import dari Word</Button>
+              </Link>
+              <Link to="/teacher/packs/$packageId/questions/new" params={{ packageId }}>
+                <Button><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         <div className="mb-4">
@@ -161,14 +165,18 @@ function PackageQuestions() {
                           <DropdownMenuItem onClick={() => setPreviewTarget(q)}>
                             <Eye className="h-4 w-4" /> Preview
                           </DropdownMenuItem>
-                          <Link to="/teacher/packs/$packageId/questions/$questionId/edit" params={{ packageId, questionId: String(q.id!) }}>
-                            <DropdownMenuItem>
-                              <Pencil className="h-4 w-4" /> Edit
-                            </DropdownMenuItem>
-                          </Link>
-                          <DropdownMenuItem onClick={() => setDeleteConfirm(q)}>
-                            <Trash2 className="h-4 w-4" /> Hapus
-                          </DropdownMenuItem>
+                          {canManage && (
+                            <>
+                              <Link to="/teacher/packs/$packageId/questions/$questionId/edit" params={{ packageId, questionId: String(q.id!) }}>
+                                <DropdownMenuItem>
+                                  <Pencil className="h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                              </Link>
+                              <DropdownMenuItem onClick={() => setDeleteConfirm(q)}>
+                                <Trash2 className="h-4 w-4" /> Hapus
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

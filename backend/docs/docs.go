@@ -2928,6 +2928,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/users/{id}/permissions": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengatur izin guru utk kelola materi \u0026 paket soal (admin only)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Update teacher permissions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Izin kelola konten",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.SetTeacherPermissionsInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/user.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/user.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/users/{id}/role": {
             "patch": {
                 "security": [
@@ -6075,6 +6133,12 @@ const docTemplate = `{
                 "avatar_url": {
                     "type": "string"
                 },
+                "can_manage_materials": {
+                    "type": "boolean"
+                },
+                "can_manage_question_packages": {
+                    "type": "boolean"
+                },
                 "class_id": {
                     "type": "integer"
                 },
@@ -6131,6 +6195,17 @@ const docTemplate = `{
                 }
             }
         },
+        "user.SetTeacherPermissionsInput": {
+            "type": "object",
+            "properties": {
+                "can_manage_materials": {
+                    "type": "boolean"
+                },
+                "can_manage_question_packages": {
+                    "type": "boolean"
+                }
+            }
+        },
         "user.SubjectInfo": {
             "type": "object",
             "properties": {
@@ -6162,6 +6237,12 @@ const docTemplate = `{
             "properties": {
                 "avatar_url": {
                     "type": "string"
+                },
+                "can_manage_materials": {
+                    "type": "boolean"
+                },
+                "can_manage_question_packages": {
+                    "type": "boolean"
                 },
                 "class_id": {
                     "type": "integer"

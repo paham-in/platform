@@ -107,16 +107,25 @@ func main() {
 
 	// Teacher + admin shared resources (register first so teacher can pass)
 	staff := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin", "teacher"))
-	material.AdminRoutes(staff, db)
-	chapter.AdminRoutes(staff, db, minioClient)
+	// Resource non-konten — tetap terbuka utk semua teacher.
 	class.AdminRoutes(staff, db)
-	questionbank.Routes(staff, db)
-	questionpackage.Routes(staff, db)
 	subject.AdminRoutes(staff, db)
 	if minioClient != nil {
 		gallery.Routes(staff, db, minioClient)
-		chapter.CoverRoutes(staff, db, minioClient)
 	}
+
+	// Kelola materi (materi + chapter + cover) — admin selalu, teacher butuh izin.
+	content := staff.Group("", middleware.ContentManager("materials"))
+	material.AdminRoutes(content, db)
+	chapter.AdminRoutes(content, db, minioClient)
+	if minioClient != nil {
+		chapter.CoverRoutes(content, db, minioClient)
+	}
+
+	// Kelola paket soal (paket + soal) — admin selalu, teacher butuh izin.
+	packs := staff.Group("", middleware.ContentManager("question_packages"))
+	questionpackage.Routes(packs, db)
+	questionbank.Routes(packs, db)
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)

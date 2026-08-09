@@ -253,6 +253,12 @@ func (r *UserRepository) UpdateName(id uint, name string) error {
 	return r.db.Model(&models.User{}).Where("id = ?", id).Update("name", name).Error
 }
 
+// UpdatePermissions mengubah izin kelola konten (materi / paket soal) user.
+// updates dipakai map field yang diset saja (nilai dari request).
+func (r *UserRepository) UpdatePermissions(id uint, updates map[string]any) error {
+	return r.db.Model(&models.User{}).Where("id = ?", id).Updates(updates).Error
+}
+
 func (r *UserRepository) SetTeacherSubjects(userID uint, subjectIDs []uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Unscoped().Where("user_id = ?", userID).Delete(&models.TeacherSubject{}).Error; err != nil {

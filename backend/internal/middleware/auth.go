@@ -96,3 +96,39 @@ func RoleAllowed(allowedRoles ...string) fiber.Handler {
 		return c.Status(403).JSON(fiber.Map{"error": "Forbidden"})
 	}
 }
+
+// ContentManager membatasi akses kelola konten (materi / paket soal) per-user.
+// Admin selalu bypass. Teacher butuh kolom izin yang sesuai utk operasi TULIS
+// (POST/PATCH/DELETE); operasi baca (GET/HEAD) selalu diizinkan — guru perlu
+// membuka materi/paket soal saat mengajar walau tanpa izin kelola.
+func ContentManager(resource string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		roles, ok := c.Locals("roles").([]string)
+		if ok {
+			for _, r := range roles {
+				if r == "admin" {
+					return c.Next()
+				}
+			}
+		}
+		// baca selalu diizinkan utk teacher (group ini hanya berisi admin/teacher).
+		if c.Method() == fiber.MethodGet || c.Method() == fiber.MethodHead {
+			return c.Next()
+		}
+		u, ok := c.Locals("user").(*models.User)
+		if !ok || u == nil {
+			return c.Status(403).JSON(fiber.Map{"error": "Forbidden"})
+		}
+		switch resource {
+		case "materials":
+			if u.CanManageMaterials {
+				return c.Next()
+			}
+		case "question_packages":
+			if u.CanManageQuestionPackages {
+				return c.Next()
+			}
+		}
+		return c.Status(403).JSON(fiber.Map{"error": "Forbidden"})
+	}
+}

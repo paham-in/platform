@@ -122,6 +122,7 @@ const sidebarGroups: SidebarGroup[] = [
         items: [
           { label: "Kelola User", to: "/admin/users" },
           { label: "Hak Akses Murid", to: "/admin/student-classes" },
+          { label: "Hak Akses Guru", to: "/admin/teacher-permissions" },
         ],
       },
       {

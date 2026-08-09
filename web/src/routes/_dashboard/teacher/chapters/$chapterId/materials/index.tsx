@@ -15,6 +15,7 @@ import {
   getAdminChaptersOptions,
   getAdminMaterialsOptions,
   getAdminMaterialsQueryKey,
+  getMeOptions,
   patchAdminMaterialsByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -105,6 +106,8 @@ function ChapterMaterials() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { search, access, type, status } = Route.useSearch();
   const [searchInput, setSearchInput] = useState(search ?? "");
+  const { data: user } = useQuery(getMeOptions());
+  const canManage = user?.roles?.includes("admin") || !!user?.can_manage_materials;
   const { data: materials = [], isLoading, isError } = useQuery(
     getAdminMaterialsOptions({ query: { chapter_id: Number(chapterId) } })
   );
@@ -319,11 +322,13 @@ function ChapterMaterials() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <Link to="/teacher/chapters/$chapterId/materials/new" params={{ chapterId }}>
-            <Button>
-              <Plus className="mr-1 h-4 w-4" /> Tambah Materi
-            </Button>
-          </Link>
+          {canManage && (
+            <Link to="/teacher/chapters/$chapterId/materials/new" params={{ chapterId }}>
+              <Button>
+                <Plus className="mr-1 h-4 w-4" /> Tambah Materi
+              </Button>
+            </Link>
+          )}
         </div>
         <Card className="pt-0 gap-0 pb-0">
           <CardContent className="p-0">
@@ -367,20 +372,29 @@ function ChapterMaterials() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => {
-                            setPendingStatus({ id: m.id!, status: m.status === "published" ? "draft" : "published", name: m.title! });
-                            setConfirmOpen(true);
-                          }}>
-                            {m.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {m.status === "published" ? "Jadikan Draft" : "Publikasikan"}
-                          </DropdownMenuItem>
-                          <Link to="/teacher/chapters/$chapterId/materials/$materialId/edit" params={{ chapterId, materialId: String(m.id!) }}>
+                          <Link to="/user/materials/$materialId" params={{ materialId: String(m.id!) }}>
                             <DropdownMenuItem>
-                              <Pencil className="h-4 w-4" /> Edit
+                              <Eye className="h-4 w-4" /> Lihat
                             </DropdownMenuItem>
                           </Link>
-                          <DropdownMenuItem onClick={() => setDeleteConfirm({ id: m.id!, name: m.title! })}>
-                            <Trash2 className="h-4 w-4" /> Hapus
-                          </DropdownMenuItem>
+                          {canManage && (
+                            <>
+                              <DropdownMenuItem onClick={() => {
+                                setPendingStatus({ id: m.id!, status: m.status === "published" ? "draft" : "published", name: m.title! });
+                                setConfirmOpen(true);
+                              }}>
+                                {m.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {m.status === "published" ? "Jadikan Draft" : "Publikasikan"}
+                              </DropdownMenuItem>
+                              <Link to="/teacher/chapters/$chapterId/materials/$materialId/edit" params={{ chapterId, materialId: String(m.id!) }}>
+                                <DropdownMenuItem>
+                                  <Pencil className="h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                              </Link>
+                              <DropdownMenuItem onClick={() => setDeleteConfirm({ id: m.id!, name: m.title! })}>
+                                <Trash2 className="h-4 w-4" /> Hapus
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -414,14 +428,18 @@ function ChapterMaterials() {
                         ) : (
                           <>
                             <p className="font-medium">Belum ada materi</p>
-                            <p className="mb-2 max-w-xs text-sm text-muted-foreground">
-                              Buat materi pertama untuk chapter ini agar murid bisa mulai belajar.
-                            </p>
-                            <Link to="/teacher/chapters/$chapterId/materials/new" params={{ chapterId }}>
-                              <Button size="sm">
-                                <Plus className="mr-1 h-4 w-4" /> Tambah materi pertama
-                              </Button>
-                            </Link>
+                            {canManage && (
+                              <>
+                                <p className="mb-2 max-w-xs text-sm text-muted-foreground">
+                                  Buat materi pertama untuk chapter ini agar murid bisa mulai belajar.
+                                </p>
+                                <Link to="/teacher/chapters/$chapterId/materials/new" params={{ chapterId }}>
+                                  <Button size="sm">
+                                    <Plus className="mr-1 h-4 w-4" /> Tambah materi pertama
+                                  </Button>
+                                </Link>
+                              </>
+                            )}
                           </>
                         )}
                       </div>

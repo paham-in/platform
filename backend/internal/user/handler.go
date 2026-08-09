@@ -266,6 +266,37 @@ func (h *Handler) AdminUpdateTeacherSubjects(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
+// AdminUpdateTeacherPermissions mengubah izin kelola konten guru (admin only)
+// @Summary      Update teacher permissions
+// @Description  Mengatur izin guru utk kelola materi & paket soal (admin only)
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int                       true "User ID"
+// @Param        body body      SetTeacherPermissionsInput true "Izin kelola konten"
+// @Success      200  {object}  MessageResponse
+// @Failure      400  {object}  ErrorResponse
+// @Failure      500  {object}  ErrorResponse
+// @Router       /admin/users/{id}/permissions [patch]
+func (h *Handler) AdminUpdateTeacherPermissions(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+
+	var input SetTeacherPermissionsInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+
+	if err := h.svc.SetTeacherPermissions(uint(id), input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+
+	return c.JSON(MessageResponse{Message: "izin berhasil diubah"})
+}
+
 // AdminDeleteUser menghapus user (admin only)
 // @Summary      Delete user
 // @Description  Menghapus user berdasarkan ID (admin only)
@@ -402,6 +433,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	admin.Patch("/users/:id/email", h.AdminUpdateEmail)
 	admin.Patch("/users/:id/role", h.AdminUpdateRole)
 	admin.Patch("/users/:id/subjects", h.AdminUpdateTeacherSubjects)
+	admin.Patch("/users/:id/permissions", h.AdminUpdateTeacherPermissions)
 	admin.Patch("/users/:id/payment", h.AdminTogglePayment)
 	admin.Delete("/users/:id", h.AdminDeleteUser)
 }

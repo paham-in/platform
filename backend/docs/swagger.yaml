@@ -971,6 +971,10 @@ definitions:
     properties:
       avatar_url:
         type: string
+      can_manage_materials:
+        type: boolean
+      can_manage_question_packages:
+        type: boolean
       class_id:
         type: integer
       created_at:
@@ -1008,6 +1012,13 @@ definitions:
         example: berhasil
         type: string
     type: object
+  user.SetTeacherPermissionsInput:
+    properties:
+      can_manage_materials:
+        type: boolean
+      can_manage_question_packages:
+        type: boolean
+    type: object
   user.SubjectInfo:
     properties:
       id:
@@ -1029,6 +1040,10 @@ definitions:
     properties:
       avatar_url:
         type: string
+      can_manage_materials:
+        type: boolean
+      can_manage_question_packages:
+        type: boolean
       class_id:
         type: integer
       email:
@@ -2904,6 +2919,43 @@ paths:
       security:
       - BearerAuth: []
       summary: Toggle payment status
+      tags:
+      - Admin
+  /admin/users/{id}/permissions:
+    patch:
+      consumes:
+      - application/json
+      description: Mengatur izin guru utk kelola materi & paket soal (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Izin kelola konten
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/user.SetTeacherPermissionsInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update teacher permissions
       tags:
       - Admin
   /admin/users/{id}/role:
