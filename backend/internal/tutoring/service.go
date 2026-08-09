@@ -38,9 +38,10 @@ type BookingResponse struct {
 	Mode         string `json:"mode"`
 	SessionCount int    `json:"session_count"`
 	GroupToken   string `json:"group_token"`
-	Note         string `json:"note"`
-	ClassID      *uint  `json:"class_id,omitempty"`
-	CreatedAt    string `json:"created_at"`
+	Note          string `json:"note"`
+	ClassID       *uint  `json:"class_id,omitempty"`
+	CreatedAt     string `json:"created_at"`
+	InvoiceStatus string `json:"invoice_status,omitempty"`
 }
 
 type TutoringSessionResponse struct {
@@ -489,10 +490,15 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 }
 
 // AdminDeleteBooking menghapus booking beserta sesi & invoice terkait (admin).
-// Dipakai utk koreksi booking manual yang salah input.
+// Dipakai utk koreksi booking manual yang salah input. Booking yang invoice-nya
+// sudah lunas ditolak — riwayat pembayaran tidak boleh hilang.
 func (s *Service) AdminDeleteBooking(id uint) error {
 	if _, err := s.repo.GetBooking(id); err != nil {
 		return errors.New("booking tidak ditemukan")
+	}
+	var paid models.Invoice
+	if err := s.repo.db.Where("booking_id = ? AND status = ?", id, "paid").First(&paid).Error; err == nil {
+		return errors.New("booking sudah punya invoice lunas — tidak bisa dihapus")
 	}
 	return s.repo.DeleteBookingCascade(id)
 }
@@ -1264,24 +1270,29 @@ func toBookingResponse(b models.Booking) BookingResponse {
 	if b.Subject != nil {
 		subjectName = b.Subject.Name
 	}
+	invoiceStatus := ""
+	if b.Invoice != nil {
+		invoiceStatus = b.Invoice.Status
+	}
 	return BookingResponse{
-		ID:           b.ID,
-		TeacherID:    b.TeacherID,
-		Teacher:      teacherName,
-		StudentID:    b.StudentID,
-		Student:      studentName,
-		SubjectID:    b.SubjectID,
-		Subject:      subjectName,
-		Date:         b.Date,
-		StartTime:    b.StartTime,
-		EndTime:      b.EndTime,
-		Status:       b.Status,
-		Mode:         b.Mode,
-		SessionCount: b.SessionCount,
-		GroupToken:   b.GroupToken,
-		Note:         b.Note,
-		ClassID:      b.ClassID,
-		CreatedAt:    b.CreatedAt.Format("2006-01-02"),
+		ID:            b.ID,
+		TeacherID:     b.TeacherID,
+		Teacher:       teacherName,
+		StudentID:     b.StudentID,
+		Student:       studentName,
+		SubjectID:     b.SubjectID,
+		Subject:       subjectName,
+		Date:          b.Date,
+		StartTime:     b.StartTime,
+		EndTime:       b.EndTime,
+		Status:        b.Status,
+		Mode:          b.Mode,
+		SessionCount:  b.SessionCount,
+		GroupToken:    b.GroupToken,
+		Note:          b.Note,
+		ClassID:       b.ClassID,
+		CreatedAt:     b.CreatedAt.Format("2006-01-02"),
+		InvoiceStatus: invoiceStatus,
 	}
 }
 

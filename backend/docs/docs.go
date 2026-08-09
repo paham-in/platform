@@ -5615,6 +5615,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "invoice_status": {
+                    "type": "string"
+                },
                 "mode": {
                     "type": "string"
                 },

@@ -223,9 +223,11 @@ function AdminTutoring() {
                           <Button size="sm" variant="outline" disabled={rejecting} onClick={() => reject({ path: { id: b.id! }, body: { status: "rejected" } })}>Tolak</Button>
                         </>
                       ) : null}
-                      <Button size="sm" variant="outline" onClick={() => setDeleteBooking(b)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {b.invoice_status !== "paid" && (
+                        <Button size="sm" variant="outline" onClick={() => setDeleteBooking(b)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

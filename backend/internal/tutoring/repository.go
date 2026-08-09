@@ -75,7 +75,7 @@ func (r *Repository) ListBookingsByTeacher(teacherID uint) ([]models.Booking, er
 
 func (r *Repository) ListAllBookings() ([]models.Booking, error) {
 	var bookings []models.Booking
-	if err := r.db.Preload("Student").Preload("Teacher").Order("date desc, start_time").Find(&bookings).Error; err != nil {
+	if err := r.db.Preload("Student").Preload("Teacher").Preload("Invoice").Order("date desc, start_time").Find(&bookings).Error; err != nil {
 		return nil, err
 	}
 	return bookings, nil

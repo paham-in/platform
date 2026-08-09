@@ -463,6 +463,7 @@ export type TutoringBookingResponse = {
     end_time?: string;
     group_token?: string;
     id?: number;
+    invoice_status?: string;
     mode?: string;
     note?: string;
     session_count?: number;
