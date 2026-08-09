@@ -834,10 +834,11 @@ func (s *Service) createSessionsAndInvoice(db *gorm.DB, booking models.Booking) 
 		UserID:    booking.StudentID,
 		Amount:    perSession * float64(booking.SessionCount),
 		StartDate: startDate.Format("2006-01-02"),
-		EndDate:   endDate.Format("2006-01-02"),
+		EndDate:   endDate.AddDate(0, 0, 7).Format("2006-01-02"), // sesi terakhir + 7 hari akses
 		Status:    "pending",
 		Note:      fmt.Sprintf("Les %s — %d sesi", modeLabel, booking.SessionCount),
 		BookingID: &booking.ID,
+		ClassID:   booking.ClassID, // grant StudentClass saat invoice lunas
 	}
 	return db.Create(&invoice).Error
 }
