@@ -124,6 +124,42 @@ definitions:
       message:
         type: string
     type: object
+  devreset.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  devreset.ListTablesResponse:
+    properties:
+      enabled:
+        type: boolean
+      tables:
+        items:
+          $ref: '#/definitions/devreset.TableInfo'
+        type: array
+    type: object
+  devreset.ResetResponse:
+    properties:
+      deleted:
+        type: integer
+      message:
+        type: string
+      table:
+        type: string
+    type: object
+  devreset.TableInfo:
+    properties:
+      description:
+        type: string
+      label:
+        type: string
+      name:
+        type: string
+      protected:
+        type: boolean
+      rows:
+        type: integer
+    type: object
   forum.AnswerPreview:
     properties:
       created_at:
@@ -1247,6 +1283,55 @@ paths:
       summary: Update class
       tags:
       - Admin
+  /admin/dev/tables:
+    get:
+      description: Status fitur reset + daftar tabel aplikasi beserta jumlah row (development)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/devreset.ListTablesResponse'
+      security:
+      - BearerAuth: []
+      summary: List dev reset tables
+      tags:
+      - Dev
+  /admin/dev/tables/{table}:
+    delete:
+      description: Hapus semua row di tabel yang dipilih (development). Tabel dilindungi
+        ditolak.
+      parameters:
+      - description: Nama tabel
+        in: path
+        name: table
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/devreset.ResetResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/devreset.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/devreset.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/devreset.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reset table
+      tags:
+      - Dev
   /admin/invoices:
     get:
       consumes:

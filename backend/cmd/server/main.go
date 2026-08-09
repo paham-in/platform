@@ -8,6 +8,7 @@ import (
 	"bimbel2/backend/internal/answer"
 	"bimbel2/backend/internal/config"
 	"bimbel2/backend/internal/database"
+	"bimbel2/backend/internal/devreset"
 	"bimbel2/backend/internal/middleware"
 	"bimbel2/backend/internal/models"
 	"bimbel2/backend/internal/chapter"
@@ -125,6 +126,7 @@ func main() {
 	studentclass.AdminRoutes(admin, db)
 	setting.AdminRoutes(admin, db, cfg.TeacherFeePercent)
 	tutoring.AdminRoutes(admin, db, minioClient, settingSvc)
+	devreset.AdminRoutes(admin, db, cfg)
 
 	// background job: hapus sesi yang sudah kedaluwarsa setiap 1 jam
 	startSessionCleanup(db)

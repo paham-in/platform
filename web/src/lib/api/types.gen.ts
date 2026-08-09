@@ -84,6 +84,29 @@ export type ClassMessageResponse = {
     message?: string;
 };
 
+export type DevresetErrorResponse = {
+    error?: string;
+};
+
+export type DevresetListTablesResponse = {
+    enabled?: boolean;
+    tables?: Array<DevresetTableInfo>;
+};
+
+export type DevresetResetResponse = {
+    deleted?: number;
+    message?: string;
+    table?: string;
+};
+
+export type DevresetTableInfo = {
+    description?: string;
+    label?: string;
+    name?: string;
+    protected?: boolean;
+    rows?: number;
+};
+
 export type ForumAnswerPreview = {
     created_at?: string;
     plain_content?: string;
@@ -879,6 +902,60 @@ export type PatchAdminClassesByIdResponses = {
 };
 
 export type PatchAdminClassesByIdResponse = PatchAdminClassesByIdResponses[keyof PatchAdminClassesByIdResponses];
+
+export type GetAdminDevTablesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/dev/tables';
+};
+
+export type GetAdminDevTablesResponses = {
+    /**
+     * OK
+     */
+    200: DevresetListTablesResponse;
+};
+
+export type GetAdminDevTablesResponse = GetAdminDevTablesResponses[keyof GetAdminDevTablesResponses];
+
+export type DeleteAdminDevTablesByTableData = {
+    body?: never;
+    path: {
+        /**
+         * Nama tabel
+         */
+        table: string;
+    };
+    query?: never;
+    url: '/admin/dev/tables/{table}';
+};
+
+export type DeleteAdminDevTablesByTableErrors = {
+    /**
+     * Bad Request
+     */
+    400: DevresetErrorResponse;
+    /**
+     * Not Found
+     */
+    404: DevresetErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: DevresetErrorResponse;
+};
+
+export type DeleteAdminDevTablesByTableError = DeleteAdminDevTablesByTableErrors[keyof DeleteAdminDevTablesByTableErrors];
+
+export type DeleteAdminDevTablesByTableResponses = {
+    /**
+     * OK
+     */
+    200: DevresetResetResponse;
+};
+
+export type DeleteAdminDevTablesByTableResponse = DeleteAdminDevTablesByTableResponses[keyof DeleteAdminDevTablesByTableResponses];
 
 export type GetAdminInvoicesData = {
     body?: never;

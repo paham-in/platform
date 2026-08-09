@@ -31,6 +31,7 @@ import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard/
 import { Route as DashboardAdminStudentClassesRouteImport } from './routes/_dashboard/admin/student-classes'
 import { Route as DashboardAdminSettingsRouteImport } from './routes/_dashboard/admin/settings'
 import { Route as DashboardAdminProgramsRouteImport } from './routes/_dashboard/admin/programs'
+import { Route as DashboardAdminDevResetRouteImport } from './routes/_dashboard/admin/dev-reset'
 import { Route as DashboardAdminDashboardRouteImport } from './routes/_dashboard/admin/dashboard'
 import { Route as DashboardAdminAttendanceRouteImport } from './routes/_dashboard/admin/attendance'
 import { Route as DashboardTeacherPacksIndexRouteImport } from './routes/_dashboard/teacher/packs/index'
@@ -179,6 +180,11 @@ const DashboardAdminSettingsRoute = DashboardAdminSettingsRouteImport.update({
 const DashboardAdminProgramsRoute = DashboardAdminProgramsRouteImport.update({
   id: '/admin/programs',
   path: '/admin/programs',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAdminDevResetRoute = DashboardAdminDevResetRouteImport.update({
+  id: '/admin/dev-reset',
+  path: '/admin/dev-reset',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAdminDashboardRoute = DashboardAdminDashboardRouteImport.update({
@@ -365,6 +371,7 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/attendance': typeof DashboardAdminAttendanceRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
+  '/admin/dev-reset': typeof DashboardAdminDevResetRoute
   '/admin/programs': typeof DashboardAdminProgramsRoute
   '/admin/settings': typeof DashboardAdminSettingsRoute
   '/admin/student-classes': typeof DashboardAdminStudentClassesRoute
@@ -418,6 +425,7 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/attendance': typeof DashboardAdminAttendanceRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
+  '/admin/dev-reset': typeof DashboardAdminDevResetRoute
   '/admin/programs': typeof DashboardAdminProgramsRoute
   '/admin/settings': typeof DashboardAdminSettingsRoute
   '/admin/student-classes': typeof DashboardAdminStudentClassesRoute
@@ -472,6 +480,7 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/_dashboard/admin/attendance': typeof DashboardAdminAttendanceRoute
   '/_dashboard/admin/dashboard': typeof DashboardAdminDashboardRoute
+  '/_dashboard/admin/dev-reset': typeof DashboardAdminDevResetRoute
   '/_dashboard/admin/programs': typeof DashboardAdminProgramsRoute
   '/_dashboard/admin/settings': typeof DashboardAdminSettingsRoute
   '/_dashboard/admin/student-classes': typeof DashboardAdminStudentClassesRoute
@@ -527,6 +536,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/admin/attendance'
     | '/admin/dashboard'
+    | '/admin/dev-reset'
     | '/admin/programs'
     | '/admin/settings'
     | '/admin/student-classes'
@@ -580,6 +590,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/admin/attendance'
     | '/admin/dashboard'
+    | '/admin/dev-reset'
     | '/admin/programs'
     | '/admin/settings'
     | '/admin/student-classes'
@@ -633,6 +644,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/_dashboard/admin/attendance'
     | '/_dashboard/admin/dashboard'
+    | '/_dashboard/admin/dev-reset'
     | '/_dashboard/admin/programs'
     | '/_dashboard/admin/settings'
     | '/_dashboard/admin/student-classes'
@@ -841,6 +853,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/programs'
       fullPath: '/admin/programs'
       preLoaderRoute: typeof DashboardAdminProgramsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/dev-reset': {
+      id: '/_dashboard/admin/dev-reset'
+      path: '/admin/dev-reset'
+      fullPath: '/admin/dev-reset'
+      preLoaderRoute: typeof DashboardAdminDevResetRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/admin/dashboard': {
@@ -1093,6 +1112,7 @@ interface DashboardRouteChildren {
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardAdminAttendanceRoute: typeof DashboardAdminAttendanceRoute
   DashboardAdminDashboardRoute: typeof DashboardAdminDashboardRoute
+  DashboardAdminDevResetRoute: typeof DashboardAdminDevResetRoute
   DashboardAdminProgramsRoute: typeof DashboardAdminProgramsRoute
   DashboardAdminSettingsRoute: typeof DashboardAdminSettingsRoute
   DashboardAdminStudentClassesRoute: typeof DashboardAdminStudentClassesRoute
@@ -1140,6 +1160,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardAdminAttendanceRoute: DashboardAdminAttendanceRoute,
   DashboardAdminDashboardRoute: DashboardAdminDashboardRoute,
+  DashboardAdminDevResetRoute: DashboardAdminDevResetRoute,
   DashboardAdminProgramsRoute: DashboardAdminProgramsRoute,
   DashboardAdminSettingsRoute: DashboardAdminSettingsRoute,
   DashboardAdminStudentClassesRoute: DashboardAdminStudentClassesRoute,

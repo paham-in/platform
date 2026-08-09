@@ -401,6 +401,83 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/dev/tables": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Status fitur reset + daftar tabel aplikasi beserta jumlah row (development)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dev"
+                ],
+                "summary": "List dev reset tables",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ListTablesResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/dev/tables/{table}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Hapus semua row di tabel yang dipilih (development). Tabel dilindungi ditolak.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dev"
+                ],
+                "summary": "Reset table",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nama tabel",
+                        "name": "table",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ResetResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/invoices": {
             "get": {
                 "security": [
@@ -4694,6 +4771,62 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "devreset.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "devreset.ListTablesResponse": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "tables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/devreset.TableInfo"
+                    }
+                }
+            }
+        },
+        "devreset.ResetResponse": {
+            "type": "object",
+            "properties": {
+                "deleted": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "table": {
+                    "type": "string"
+                }
+            }
+        },
+        "devreset.TableInfo": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "protected": {
+                    "type": "boolean"
+                },
+                "rows": {
+                    "type": "integer"
                 }
             }
         },

@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -31,6 +32,7 @@ type Config struct {
 	MinioUseSSL        bool
 	TeacherFeePercent  float64
 	EvidenceRetentionDays int
+	DevResetEnabled    bool
 }
 
 func Load() *Config {
@@ -60,7 +62,15 @@ func Load() *Config {
 		MinioUseSSL:        false,
 		TeacherFeePercent:  getEnvFloat("TEACHER_FEE_PERCENT", 70),
 		EvidenceRetentionDays: getEnvInt("EVIDENCE_RETENTION_DAYS", 7),
+		DevResetEnabled:    getEnvEnabled("DEV_RESET_ENABLED"),
 	}
+}
+
+// getEnvEnabled true kalau var ADA dan nilainya bukan "false"/"0"/"no".
+// Var tidak ada → false (disable). Dev-only fitur default mati.
+func getEnvEnabled(key string) bool {
+	v := strings.ToLower(strings.TrimSpace(os.Getenv(key)))
+	return v != "" && v != "false" && v != "0" && v != "no"
 }
 
 func getEnvFloat(key string, fallback float64) float64 {

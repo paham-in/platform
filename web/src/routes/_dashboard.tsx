@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { getMeOptions, getMeQueryKey, postLogoutMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { getMeOptions, getMeQueryKey, postLogoutMutation, getAdminDevTablesOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
@@ -15,6 +15,7 @@ import {
   Camera,
   ClipboardList,
   CreditCard,
+  DatabaseZap,
   Home,
   LayoutDashboard,
   ListChecks,
@@ -89,6 +90,7 @@ const sidebarGroups = [
       { label: "Fee Guru", icon: Wallet, to: "/admin/teacher-fees" },
       { label: "Pengaturan", icon: Settings, to: "/admin/settings" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
+      { label: "Reset Data", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },
     ],
   },
 ];
@@ -118,6 +120,14 @@ function DashboardLayout() {
 
   const userRoles = (user?.roles as string[]) ?? [];
   const hasAccessRole = ["student", "teacher", "admin"].some((r) => userRoles.includes(r));
+  const isAdmin = userRoles.includes("admin");
+  // cek flag fitur reset dari backend; hanya dipanggil kalau admin,
+  // dipakai buat nyembunyiin menu "Reset Data" kalau fitur mati.
+  const { data: devReset } = useQuery({
+    ...getAdminDevTablesOptions(),
+    enabled: isAdmin,
+  });
+  const devResetEnabled = devReset?.enabled ?? false;
 
   // semua pendaftar otomatis student → semua yang login punya akses ke dashboard.
   // (role "user" sudah dihapus; tidak ada pembedaan gratis vs berbayar di routing.)
@@ -147,7 +157,9 @@ function DashboardLayout() {
   const filteredGroups = sidebarGroups
     .map((g) => ({
       ...g,
-      links: g.roles.some((r) => userRoles.includes(r)) ? g.links : [],
+      links: g.roles.some((r) => userRoles.includes(r))
+        ? g.links.filter((l) => !("devOnly" in l && l.devOnly && !devResetEnabled))
+        : [],
     }))
     .filter((g) => g.links.length > 0);
 
