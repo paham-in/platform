@@ -5654,6 +5654,9 @@ const docTemplate = `{
                 "session_count": {
                     "type": "integer"
                 },
+                "student_id": {
+                    "type": "integer"
+                },
                 "student_name": {
                     "type": "string"
                 },
@@ -6012,6 +6015,9 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
                 },
                 "student_name": {
                     "type": "string"

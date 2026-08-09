@@ -51,6 +51,7 @@ type TutoringSessionResponse struct {
 	StartTime   string  `json:"start_time"`
 	EndTime     string  `json:"end_time"`
 	Status      string  `json:"status"`
+	StudentID   uint    `json:"student_id"`
 	Teacher     string  `json:"teacher_name"`
 	Student     string  `json:"student_name"`
 	Mode        string  `json:"mode"`
@@ -923,6 +924,7 @@ func toSessionResponses(sessions []models.TutoringSession) []TutoringSessionResp
 			StartTime:   v.StartTime,
 			EndTime:     v.EndTime,
 			Status:      v.Status,
+			StudentID:   v.Booking.StudentID,
 			Teacher:     teacherName,
 			Student:     studentName,
 			Mode:        mode,
@@ -1133,6 +1135,7 @@ func (s *Service) RejectEvidence(sessionID uint) (*TutoringSessionResponse, stri
 
 type AdminBookingReport struct {
 	BookingID       uint    `json:"booking_id"`
+	StudentID       uint    `json:"student_id"`
 	Teacher         string  `json:"teacher_name"`
 	Student         string  `json:"student_name"`
 	Mode            string  `json:"mode"`
@@ -1158,6 +1161,7 @@ func (s *Service) ListAdminSessionReport() ([]AdminBookingReport, error) {
 		perSession := s.perSessionPrice(b.ClassID, b.Mode)
 		rep := AdminBookingReport{
 			BookingID:       b.ID,
+			StudentID:       b.StudentID,
 			Mode:            b.Mode,
 			SessionCount:    b.SessionCount,
 			PricePerSession: perSession,

@@ -444,6 +444,7 @@ export type TutoringAdminBookingReport = {
     refund_amount?: number;
     scheduled_count?: number;
     session_count?: number;
+    student_id?: number;
     student_name?: string;
     teacher_name?: string;
 };
@@ -602,6 +603,7 @@ export type TutoringTutoringSessionResponse = {
     note?: string;
     start_time?: string;
     status?: string;
+    student_id?: number;
     student_name?: string;
     teacher_name?: string;
 };
