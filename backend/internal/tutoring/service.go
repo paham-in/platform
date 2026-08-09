@@ -44,19 +44,19 @@ type BookingResponse struct {
 }
 
 type TutoringSessionResponse struct {
-	ID           uint    `json:"id"`
-	BookingID    uint    `json:"booking_id"`
-	Date         string  `json:"date"`
-	StartTime    string  `json:"start_time"`
-	EndTime      string  `json:"end_time"`
-	Status       string  `json:"status"`
-	Teacher      string  `json:"teacher_name"`
-	Student      string  `json:"student_name"`
-	Mode         string  `json:"mode"`
-	Note         string  `json:"note"`
-	EvidenceURL  string  `json:"evidence_url,omitempty"`
-	FeePaid      bool    `json:"fee_paid,omitempty"`
-	FeeAmount    float64 `json:"fee_amount,omitempty"`
+	ID          uint    `json:"id"`
+	BookingID   uint    `json:"booking_id"`
+	Date        string  `json:"date"`
+	StartTime   string  `json:"start_time"`
+	EndTime     string  `json:"end_time"`
+	Status      string  `json:"status"`
+	Teacher     string  `json:"teacher_name"`
+	Student     string  `json:"student_name"`
+	Mode        string  `json:"mode"`
+	Note        string  `json:"note"`
+	EvidenceURL string  `json:"evidence_url,omitempty"`
+	FeePaid     bool    `json:"fee_paid,omitempty"`
+	FeeAmount   float64 `json:"fee_amount,omitempty"`
 }
 
 type GroupInfoResponse struct {
@@ -72,11 +72,11 @@ type GroupInfoResponse struct {
 }
 
 type TeacherResponse struct {
-	ID        uint                  `json:"id"`
-	Name      string                `json:"name"`
-	Email     string                `json:"email"`
-	AvatarURL string                `json:"avatar_url"`
-	Subjects  []SubjectInfo         `json:"subjects"`
+	ID        uint                   `json:"id"`
+	Name      string                 `json:"name"`
+	Email     string                 `json:"email"`
+	AvatarURL string                 `json:"avatar_url"`
+	Subjects  []SubjectInfo          `json:"subjects"`
 	Slots     []AvailabilityResponse `json:"slots,omitempty"`
 }
 
@@ -222,8 +222,8 @@ func (s *Service) ListMyBookings(studentID uint) ([]BookingResponse, error) {
 }
 
 type CreateBookingInput struct {
-	TeacherID    *uint  `json:"teacher_id"`    // nil = belum ada guru, ditangani admin
-	SubjectID    uint   `json:"subject_id"`    // mapel yang murid mau (wajib)
+	TeacherID    *uint  `json:"teacher_id"` // nil = belum ada guru, ditangani admin
+	SubjectID    uint   `json:"subject_id"` // mapel yang murid mau (wajib)
 	Date         string `json:"date"`
 	StartTime    string `json:"start_time"`
 	EndTime      string `json:"end_time"`
@@ -927,7 +927,7 @@ func toSessionResponses(sessions []models.TutoringSession) []TutoringSessionResp
 }
 
 func (s *Service) ListMySessions(studentID uint) ([]TutoringSessionResponse, error) {
-	sessions, err := s.repo.ListSessionsByUserPaid(studentID)
+	sessions, err := s.repo.ListSessionsByUser(studentID)
 	if err != nil {
 		return nil, err
 	}
