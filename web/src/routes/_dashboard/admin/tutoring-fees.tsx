@@ -111,7 +111,7 @@ function AdminSettings() {
 
   return (
     <main className="p-6">
-      <h1 className="mb-1 text-2xl font-bold tracking-tight">Pengaturan</h1>
+      <h1 className="mb-1 text-2xl font-bold tracking-tight">Tarif & Fee Guru</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Konfigurasi biaya les privat. Isi harga untuk tiap kelas — dipakai saat murid booking les.
       </p>
@@ -255,6 +255,6 @@ function AdminSettings() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/admin/settings")({
+export const Route = createFileRoute("/_dashboard/admin/tutoring-fees")({
   component: AdminSettings,
 })

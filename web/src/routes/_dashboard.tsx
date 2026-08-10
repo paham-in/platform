@@ -129,6 +129,7 @@ const sidebarGroups: SidebarGroup[] = [
         label: "Keuangan",
         icon: CreditCard,
         items: [
+          { label: "Tarif & Fee Guru", to: "/admin/tutoring-fees" },
           { label: "Pembayaran Murid", to: "/admin/payments" },
           { label: "Validasi & Fee Guru", to: "/admin/attendance" },
         ],
@@ -143,7 +144,6 @@ const sidebarGroups: SidebarGroup[] = [
         ],
       },
       { label: "Les Privat", icon: Calendar, to: "/admin/tutoring" },
-      { label: "Pengaturan", icon: Settings, to: "/admin/settings" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
       { label: "Reset Data", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },
     ],
