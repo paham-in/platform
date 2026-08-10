@@ -2,8 +2,9 @@ import { useEffect, useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { SearchX } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -17,7 +18,19 @@ import {
   getAdminClassesQueryKey,
   patchAdminClassesByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
+
 const fmtRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`
+// 0 = belum ditentukan → tampil kosong
+const priceStr = (n?: number) => (n ? n.toString() : "")
+// "" → 0 (reset), angka valid → number, selainnya → null (invalid)
+const priceNum = (s: string): number | null => {
+  const t = s.trim()
+  if (t === "") return 0
+  const n = Number(t)
+  return Number.isFinite(n) && n >= 0 ? n : null
+}
+// 0 (atau kosong) = belum ditentukan → kanonik "". Buat "0" setara server 0.
+const priceNorm = (s: string) => (priceNum(s) === 0 ? "" : s)
 
 function AdminSettings() {
   const qc = useQueryClient()
@@ -43,8 +56,8 @@ function AdminSettings() {
       for (const c of classes) {
         if (c.id !== undefined && !(c.id in next)) {
           next[c.id] = {
-            private: c.price_per_session?.toString() ?? "",
-            semi: c.semi_private_price?.toString() ?? "",
+            private: priceStr(c.price_per_session),
+            semi: priceStr(c.semi_private_price),
           }
         }
       }
@@ -55,10 +68,10 @@ function AdminSettings() {
   const saveSettings = useMutation({
     ...patchAdminSettingsMutation(),
     onSuccess: () => {
-      toast.success("Pengaturan disimpan")
+      toast.success("Fee guru disimpan")
       qc.invalidateQueries({ queryKey: getAdminSettingsQueryKey() })
     },
-    onError: (err: any) => toast.error(err?.error || "Gagal menyimpan pengaturan"),
+    onError: (err: any) => toast.error(err?.error || "Gagal menyimpan fee guru"),
   })
 
   const saveClass = useMutation({
@@ -69,10 +82,12 @@ function AdminSettings() {
   const dirtyClasses = classes.filter((c) => {
     const row = classPrices[c.id!]
     if (!row) return false
-    return (
-      row.private !== (c.price_per_session?.toString() ?? "") ||
-      row.semi !== (c.semi_private_price?.toString() ?? "")
-    )
+    return priceNorm(row.private) !== priceStr(c.price_per_session) || priceNorm(row.semi) !== priceStr(c.semi_private_price)
+  })
+
+  const hasInvalidPrice = dirtyClasses.some((c) => {
+    const row = classPrices[c.id!]
+    return priceNum(row?.private ?? "") === null || priceNum(row?.semi ?? "") === null
   })
 
   const handleSaveAll = async () => {
@@ -85,8 +100,8 @@ function AdminSettings() {
             path: { id: cls.id! },
             body: {
               name: cls.name,
-              price_per_session: row.private === "" ? undefined : Number(row.private),
-              semi_private_price: row.semi === "" ? undefined : Number(row.semi),
+              price_per_session: priceNum(row.private)!,
+              semi_private_price: priceNum(row.semi)!,
             },
           })
         })
@@ -100,13 +115,15 @@ function AdminSettings() {
 
   const isLoading = settingsLoading
 
+  const feeNum = Number(fee)
+  const feeInvalid = fee.trim() === "" || !Number.isFinite(feeNum) || feeNum < 0 || feeNum > 100
+
   // fee guru utk 1 pertemuan: harga × persentase fee. Live dari state input
   // harga & persentase, jadi admin lihat preview sebelum simpan.
-  const feePct = Number(fee) || 0
   const teacherFee = (price: string) => {
     const p = Number(price)
-    if (!p || !feePct) return 0
-    return Math.round((p * feePct) / 100)
+    if (!p || !feeNum) return 0
+    return Math.round((p * feeNum) / 100)
   }
 
   return (
@@ -121,35 +138,39 @@ function AdminSettings() {
         <Card>
           <CardHeader>
             <CardTitle>Fee Guru</CardTitle>
+            <CardDescription>Persentase dari harga kelas yang menjadi fee guru per pertemuan.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             {isLoading ? (
               <Skeleton className="h-9 w-32" />
             ) : (
-              <div className="flex items-end gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="fee">Persentase fee guru per sesi</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="fee"
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={fee}
-                      onChange={(e) => setFee(e.target.value)}
-                      className="w-28"
-                    />
-                    <span className="text-sm text-muted-foreground">%</span>
-                  </div>
+              <div className="max-w-xs space-y-2">
+                <Label htmlFor="fee">Persentase fee guru per sesi</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="fee"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={fee}
+                    onChange={(e) => setFee(e.target.value)}
+                    className="w-28"
+                    aria-invalid={feeInvalid}
+                  />
+                  <span className="text-sm text-muted-foreground">%</span>
                 </div>
+                {feeInvalid && <p className="text-xs text-destructive">Masukkan angka 0–100.</p>}
               </div>
             )}
           </CardContent>
           <CardFooter>
             <div className="flex w-full items-center justify-end">
-              <Button onClick={() => saveSettings.mutate({ body: { teacher_fee_percent: fee } })} disabled={saveSettings.isPending}>
+              <Button
+                onClick={() => saveSettings.mutate({ body: { teacher_fee_percent: fee } })}
+                disabled={feeInvalid || saveSettings.isPending}
+              >
                 {saveSettings.isPending && <Spinner />}
-                Simpan
+                Simpan Fee
               </Button>
             </div>
           </CardFooter>
@@ -180,13 +201,20 @@ function AdminSettings() {
                   ))
                 ) : classes.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="py-8 text-center text-muted-foreground">
-                      Belum ada kelas.
+                    <TableCell colSpan={3} className="p-8 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <SearchX className="h-6 w-6 text-muted-foreground" />
+                        <p className="text-muted-foreground">Belum ada kelas. Tambahkan kelas di menu Kelas.</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   classes.map((cls) => {
                     const row = classPrices[cls.id!]
+                    const pv = row?.private ?? ""
+                    const sv = row?.semi ?? ""
+                    const pvValid = priceNum(pv) !== null
+                    const svValid = priceNum(sv) !== null
                     return (
                       <TableRow key={cls.id}>
                         <TableCell className="font-medium pl-(--card-spacing)">{cls.name}</TableCell>
@@ -196,7 +224,9 @@ function AdminSettings() {
                               type="number"
                               min="0"
                               className="h-8 w-32"
-                              value={row?.private ?? ""}
+                              value={pv}
+                              aria-label={`Harga les privat ${cls.name}`}
+                              aria-invalid={!pvValid}
                               onChange={(e) =>
                                 setClassPrices((prev) => ({
                                   ...prev,
@@ -204,9 +234,11 @@ function AdminSettings() {
                                 }))
                               }
                             />
-                            <p className="text-xs text-muted-foreground">
-                              Fee guru: {fmtRp(teacherFee(row?.private ?? ""))}
-                            </p>
+                            {pvValid && Number(pv) > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                Fee guru: {fmtRp(teacherFee(pv))}
+                              </p>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -215,7 +247,9 @@ function AdminSettings() {
                               type="number"
                               min="0"
                               className="h-8 w-32"
-                              value={row?.semi ?? ""}
+                              value={sv}
+                              aria-label={`Harga semi privat ${cls.name}`}
+                              aria-invalid={!svValid}
                               onChange={(e) =>
                                 setClassPrices((prev) => ({
                                   ...prev,
@@ -223,9 +257,11 @@ function AdminSettings() {
                                 }))
                               }
                             />
-                            <p className="text-xs text-muted-foreground">
-                              Fee guru: {fmtRp(teacherFee(row?.semi ?? ""))}
-                            </p>
+                            {svValid && Number(sv) > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                Fee guru: {fmtRp(teacherFee(sv))}
+                              </p>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -238,14 +274,14 @@ function AdminSettings() {
           <CardFooter>
             <div className="flex w-full items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
-                Kosongkan bila belum ditentukan.
+                Kosongkan untuk harga yang belum ditentukan.
               </p>
               <Button
                 onClick={handleSaveAll}
-                disabled={saveClass.isPending || dirtyClasses.length === 0}
+                disabled={saveClass.isPending || dirtyClasses.length === 0 || hasInvalidPrice}
               >
                 {saveClass.isPending && <Spinner />}
-                Simpan
+                Simpan{dirtyClasses.length > 0 ? ` (${dirtyClasses.length})` : ""}
               </Button>
             </div>
           </CardFooter>
