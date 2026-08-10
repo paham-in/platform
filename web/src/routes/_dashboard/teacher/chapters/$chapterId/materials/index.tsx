@@ -1,5 +1,6 @@
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -144,11 +145,12 @@ function ChapterMaterials() {
   const [pendingStatus, setPendingStatus] = useState<{ id: number; status: string; name: string } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
 
-  const { mutate: deleteMaterial } = useMutation({
+  const { mutate: deleteMaterial, isPending: deletingMaterial } = useMutation({
     ...deleteAdminMaterialsByIdMutation(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
       toast.success("Materi berhasil dihapus");
+      setDeleteConfirm(null);
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal menghapus materi");
@@ -491,10 +493,10 @@ function ChapterMaterials() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
-            <Button variant="destructive" onClick={() => {
-              deleteMaterial({ path: { id: deleteConfirm.id } })
-              setDeleteConfirm(null)
-            }}>Hapus</Button>
+            <Button variant="destructive" onClick={() => deleteMaterial({ path: { id: deleteConfirm.id } })} disabled={deletingMaterial}>
+              {deletingMaterial && <Spinner className="h-3 w-3" />}
+              Hapus
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>}

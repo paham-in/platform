@@ -4,6 +4,7 @@ import { toast } from "sonner"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { format, addDays, addMonths } from "date-fns"
 import { postSubscribeMutation } from "@/lib/api/@tanstack/react-query.gen"
 import { Check, Sparkles } from "lucide-react"
@@ -84,7 +85,7 @@ function UserSubscribe() {
       </Card>
 
       <Button onClick={handleSubscribe} disabled={isPending} className="mt-6 w-full">
-        {isPending ? "Mengirim..." : "Kirim Permintaan Berlangganan"}
+        {isPending ? <Spinner /> : "Kirim Permintaan Berlangganan"}
       </Button>
     </main>
   )

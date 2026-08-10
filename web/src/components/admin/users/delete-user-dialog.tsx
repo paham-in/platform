@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import {
   AlertDialog,
   AlertDialogContent,
@@ -42,6 +43,7 @@ export function DeleteUserDialog({ user, onClose }: DeleteUserDialogProps) {
         <AlertDialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
           <Button variant="destructive" onClick={() => deleteUser({ path: { id: user.id! } })} disabled={isPending}>
+            {isPending && <Spinner className="h-3 w-3" />}
             Hapus
           </Button>
         </AlertDialogFooter>

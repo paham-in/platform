@@ -43,7 +43,8 @@ export function DeleteSubjectDialog({ subject, onClose }: DeleteSubjectDialogPro
         <AlertDialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
           <Button variant="destructive" onClick={() => deleteSubject({ path: { id: subject.id! } })} disabled={isPending}>
-            {isPending ? <Spinner /> : "Hapus"}
+            {isPending && <Spinner className="h-3 w-3" />}
+            Hapus
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

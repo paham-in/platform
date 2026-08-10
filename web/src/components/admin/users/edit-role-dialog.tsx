@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { patchAdminUsersByIdRoleMutation, getAdminUsersQueryKey } from "@/lib/api/@tanstack/react-query.gen"
@@ -81,7 +82,10 @@ export function EditRoleDialog({ user, onClose }: EditRoleDialogProps) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button onClick={save} disabled={selectedRoles.length === 0 || isPending}>Simpan</Button>
+          <Button onClick={save} disabled={selectedRoles.length === 0 || isPending}>
+            {isPending && <Spinner />}
+            Simpan
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

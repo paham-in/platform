@@ -148,7 +148,8 @@ function AdminSettings() {
           <CardFooter>
             <div className="flex w-full items-center justify-end">
               <Button onClick={() => saveSettings.mutate({ body: { teacher_fee_percent: fee } })} disabled={saveSettings.isPending}>
-                {saveSettings.isPending ? <Spinner /> : "Simpan"}
+                {saveSettings.isPending && <Spinner />}
+                Simpan
               </Button>
             </div>
           </CardFooter>
@@ -243,7 +244,8 @@ function AdminSettings() {
                 onClick={handleSaveAll}
                 disabled={saveClass.isPending || dirtyClasses.length === 0}
               >
-                {saveClass.isPending ? <Spinner /> : "Simpan"}
+                {saveClass.isPending && <Spinner />}
+                Simpan
               </Button>
             </div>
           </CardFooter>

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -51,7 +52,7 @@ function groupBookings(bookings: TutoringBookingResponse[]): TutoringBookingResp
 export function BookingRequests() {
   const qc = useQueryClient()
   const { data: bookings = [], isLoading } = useQuery(getTutoringBookingsOptions())
-  const { mutate: updateStatus } = useMutation({
+  const { mutate: updateStatus, isPending } = useMutation({
     ...patchTutoringBookingsByIdMutation(),
     onSuccess: () => qc.invalidateQueries({ queryKey: getTutoringBookingsQueryKey() }),
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal mengubah status"),
@@ -96,10 +97,12 @@ export function BookingRequests() {
                       <TableCell className="max-w-[160px] truncate text-muted-foreground">{primary.note || "-"}</TableCell>
                       <TableCell className="pr-6 text-right">
                         <div className="flex justify-end gap-2">
-                          <Button size="sm" onClick={() => updateStatus({ path: { id: primary.id! }, body: { status: "confirmed" } })}>
+                          <Button size="sm" onClick={() => updateStatus({ path: { id: primary.id! }, body: { status: "confirmed" } })} disabled={isPending}>
+                            {isPending && <Spinner className="h-3 w-3" />}
                             <CheckCircle2 className="h-4 w-4" /> Setuju
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => updateStatus({ path: { id: primary.id! }, body: { status: "rejected" } })}>
+                          <Button size="sm" variant="outline" onClick={() => updateStatus({ path: { id: primary.id! }, body: { status: "rejected" } })} disabled={isPending}>
+                            {isPending && <Spinner className="h-3 w-3" />}
                             <XCircle className="h-4 w-4" /> Tolak
                           </Button>
                         </div>

@@ -43,7 +43,8 @@ export function DeleteProgramDialog({ program, onClose }: DeleteProgramDialogPro
         <AlertDialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
           <Button variant="destructive" onClick={() => deleteProgram({ path: { id: program.id! } })} disabled={isPending}>
-            {isPending ? <Spinner /> : "Hapus"}
+            {isPending && <Spinner className="h-3 w-3" />}
+            Hapus
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

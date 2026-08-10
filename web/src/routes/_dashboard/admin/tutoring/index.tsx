@@ -130,7 +130,8 @@ function DeleteBookingDialog({ booking, onClose }: { booking: TutoringBookingRes
         <AlertDialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
           <Button variant="destructive" onClick={() => booking.id && deleteBooking({ path: { id: booking.id } })} disabled={isPending}>
-            {isPending ? <Spinner /> : "Hapus"}
+            {isPending && <Spinner className="h-3 w-3" />}
+            Hapus
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -220,7 +221,10 @@ function AdminTutoring() {
                       {b.status === "pending" && !b.teacher_id ? (
                         <>
                           <Button size="sm" onClick={() => setAssignBooking(b)}>Assign Guru</Button>
-                          <Button size="sm" variant="outline" disabled={rejecting} onClick={() => reject({ path: { id: b.id! }, body: { status: "rejected" } })}>Tolak</Button>
+                          <Button size="sm" variant="outline" disabled={rejecting} onClick={() => reject({ path: { id: b.id! }, body: { status: "rejected" } })}>
+                            {rejecting && <Spinner className="h-3 w-3" />}
+                            Tolak
+                          </Button>
                         </>
                       ) : null}
                       {b.invoice_status !== "paid" && (

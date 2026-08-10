@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { patchAdminUsersByIdEmailMutation, getAdminUsersQueryKey } from "@/lib/api/@tanstack/react-query.gen"
@@ -52,7 +53,10 @@ export function EditEmailDialog({ user, onClose }: EditEmailDialogProps) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button onClick={save} disabled={!email.trim() || email === user.email || isPending}>Simpan</Button>
+          <Button onClick={save} disabled={!email.trim() || email === user.email || isPending}>
+            {isPending && <Spinner />}
+            Simpan
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

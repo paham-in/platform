@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Spinner } from "@/components/ui/spinner"
 import {
   deleteQuestionsByQuestionIdAnswersByIdMutation,
   getQuestionsByQuestionIdAnswersQueryKey,
@@ -55,6 +56,7 @@ export function DeleteAnswerDialog({ answer, questionId, onClose }: DeleteAnswer
             disabled={isPending}
             onClick={() => deleteAnswer({ path: { question_id: questionId, id: answer.id! } })}
           >
+            {isPending && <Spinner className="h-3 w-3" />}
             Hapus
           </AlertDialogAction>
         </AlertDialogFooter>

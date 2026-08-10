@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -204,9 +205,11 @@ function AttendanceDetail() {
                     {s.status === "review" ? (
                       <div className="flex gap-2">
                         <Button size="sm" className="bg-green-600 text-white hover:bg-green-700" onClick={() => approve.mutate({ path: { id: s.id! }, body: { action: "approve" } })} disabled={approve.isPending}>
+                          {approve.isPending && <Spinner className="h-3 w-3" />}
                           <Check className="h-4 w-4" /> Setujui
                         </Button>
                         <Button size="sm" variant="outline" className="text-red-600 hover:text-red-600" onClick={() => setRejectTarget(s.id!)} disabled={reject.isPending}>
+                          {reject.isPending && <Spinner className="h-3 w-3" />}
                           <X className="h-4 w-4" /> Tolak
                         </Button>
                       </div>
@@ -217,6 +220,7 @@ function AttendanceDetail() {
                         onClick={() => toggleFee.mutate({ path: { id: s.id! } })}
                         disabled={toggleFee.isPending}
                       >
+                        {toggleFee.isPending && <Spinner className="h-3 w-3" />}
                         {s.fee_paid ? "Tandai Belum" : "Tandai Sudah"}
                       </Button>
                     ) : (
@@ -247,6 +251,7 @@ function AttendanceDetail() {
                 setRejectTarget(null)
               }}
             >
+              {reject.isPending && <Spinner className="h-3 w-3" />}
               Ya, tolak
             </AlertDialogAction>
           </AlertDialogFooter>

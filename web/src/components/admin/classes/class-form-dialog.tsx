@@ -95,7 +95,8 @@ export function ClassFormDialog({ class: cls, programId, onClose }: ClassFormDia
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="outline" onClick={onClose}>Batal</Button>
             <Button onClick={save} disabled={isPending || !name.trim()}>
-              {isPending ? <Spinner /> : (isEditing ? "Simpan" : "Tambah")}
+              {isPending && <Spinner />}
+              {isEditing ? "Simpan" : "Tambah"}
             </Button>
           </div>
         </div>

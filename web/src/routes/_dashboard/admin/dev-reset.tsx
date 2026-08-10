@@ -129,7 +129,8 @@ function DevReset() {
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => setConfirmTable(null)}>Batal</Button>
             <Button variant="destructive" onClick={handleReset} disabled={reset.isPending}>
-              {reset.isPending ? <Spinner /> : "Hapus Semua"}
+              {reset.isPending && <Spinner />}
+              Hapus Semua
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
@@ -67,6 +68,7 @@ export function TeacherSubjectsDialog({ user, onClose }: TeacherSubjectsDialogPr
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
           <Button onClick={() => saveSubjects({ path: { id: user.id! }, body: { subject_ids: selectedSubjectIds } })} disabled={isPending}>
+            {isPending && <Spinner />}
             Simpan
           </Button>
         </DialogFooter>

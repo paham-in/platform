@@ -42,7 +42,8 @@ export function DeleteQuestionDialog({ question, onClose }: DeleteQuestionDialog
         <AlertDialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
           <Button variant="destructive" onClick={() => deleteQuestion({ path: { id: question.id } })} disabled={isPending}>
-            {isPending ? <Spinner /> : "Hapus"}
+            {isPending && <Spinner className="h-3 w-3" />}
+            Hapus
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

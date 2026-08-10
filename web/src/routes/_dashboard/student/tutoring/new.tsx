@@ -430,7 +430,10 @@ function NewBooking() {
 
           <div className="flex justify-end gap-2 border-t pt-4">
             <Link to="/student/tutoring"><Button variant="outline">Batal</Button></Link>
-            <Button onClick={handleBook} disabled={!canSubmit}>{isPending ? <Spinner /> : "Kirim Booking"}</Button>
+            <Button onClick={handleBook} disabled={!canSubmit}>
+              {isPending && <Spinner />}
+              Kirim Booking
+            </Button>
           </div>
         </CardContent>
       </Card>

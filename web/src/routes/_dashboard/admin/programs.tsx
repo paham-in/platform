@@ -313,7 +313,8 @@ function AdminPrograms() {
                   setUnassignTarget(null)
                 }}
               >
-                {unassignMut.isPending ? <Spinner /> : "Lepas"}
+                {unassignMut.isPending && <Spinner className="h-3 w-3" />}
+                Lepas
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -42,7 +42,7 @@ export function AvailabilitySchedule() {
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal menambah slot"),
   })
 
-  const { mutate: deleteSlot } = useMutation({
+  const { mutate: deleteSlot, isPending: deletingSlot } = useMutation({
     ...deleteTutoringAvailabilityByIdMutation(),
     onSuccess: () => { qc.invalidateQueries({ queryKey: getTutoringAvailabilityQueryKey() }); setDeleteId(null); toast.success("Slot berhasil dihapus") },
   })
@@ -107,7 +107,8 @@ export function AvailabilitySchedule() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>Batal</Button>
             <Button onClick={() => createSlot({ body: { day_of_week: Number(dayOfWeek), start_time: startTime, end_time: endTime } })} disabled={!dayOfWeek || !startTime || !endTime || isPending}>
-              {isPending ? <Spinner /> : "Simpan"}
+              {isPending && <Spinner />}
+              Simpan
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -119,7 +120,10 @@ export function AvailabilitySchedule() {
             <AlertDialogHeader><AlertDialogTitle>Hapus Slot</AlertDialogTitle><AlertDialogDescription>Yakin hapus slot ini?</AlertDialogDescription></AlertDialogHeader>
             <AlertDialogFooter>
               <Button variant="outline" onClick={() => setDeleteId(null)}>Batal</Button>
-              <Button variant="destructive" onClick={() => deleteSlot({ path: { id: deleteId } })}>Hapus</Button>
+              <Button variant="destructive" onClick={() => deleteSlot({ path: { id: deleteId } })} disabled={deletingSlot}>
+                {deletingSlot && <Spinner className="h-3 w-3" />}
+                Hapus
+              </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

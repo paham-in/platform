@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -167,7 +168,8 @@ function RevokeDialog({ access, onClose }: {
         <AlertDialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
           <Button variant="destructive" onClick={() => revoke({ path: { id: access.id! } })} disabled={isPending}>
-            {isPending ? "Mencabut..." : "Cabut"}
+            {isPending && <Spinner className="h-3 w-3" />}
+            Cabut
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

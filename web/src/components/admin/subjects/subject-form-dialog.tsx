@@ -173,7 +173,8 @@ export function SubjectFormDialog({ subject, onClose }: SubjectFormDialogProps) 
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="outline" onClick={onClose}>Batal</Button>
             <Button onClick={save} disabled={isPending || !name.trim() || !programId}>
-              {isPending ? <Spinner /> : (isEditing ? "Simpan" : "Tambah")}
+              {isPending && <Spinner />}
+              {isEditing ? "Simpan" : "Tambah"}
             </Button>
           </div>
         </div>
