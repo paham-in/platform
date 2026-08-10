@@ -18,7 +18,6 @@ import {
   DatabaseZap,
   Home,
   LayoutDashboard,
-  ListChecks,
   LogOut,
   MessageSquare,
   Settings,
@@ -96,8 +95,14 @@ const sidebarGroups: SidebarGroup[] = [
     roles: ["teacher"],
     items: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/teacher/dashboard" },
-      { label: "Materi", icon: BookOpen, to: "/teacher/chapters" },
-      { label: "Paket Soal", icon: ListChecks, to: "/teacher/packs" },
+      {
+        label: "Kurikulum",
+        icon: BookOpen,
+        items: [
+          { label: "Materi", to: "/teacher/chapters" },
+          { label: "Paket Soal", to: "/teacher/packs" },
+        ],
+      },
       { label: "Kalender", icon: Calendar, to: "/teacher/calendar" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/teacher/forum" },
       {
