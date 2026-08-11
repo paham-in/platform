@@ -2144,6 +2144,49 @@
                 }
             }
         },
+        "/admin/subjects/{subject_id}/images/usage": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deteksi di materi mana tiap gambar gallery dipakai (berdasarkan objectName di content)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Gallery"
+                ],
+                "summary": "Subject images usage",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Subject ID",
+                        "name": "subject_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/gallery.GalleryUsageResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gallery.GalleryErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/subjects/{subject_id}/images/{id}": {
             "delete": {
                 "security": [
@@ -4998,6 +5041,9 @@
                 "is_owner": {
                     "type": "boolean"
                 },
+                "object_name": {
+                    "type": "string"
+                },
                 "original_name": {
                     "type": "string"
                 },
@@ -5005,6 +5051,46 @@
                     "type": "string"
                 },
                 "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "gallery.GalleryUsageResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "is_owner": {
+                    "type": "boolean"
+                },
+                "object_name": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "usage_count": {
+                    "type": "integer"
+                },
+                "used_in": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/gallery.MaterialRef"
+                    }
+                }
+            }
+        },
+        "gallery.MaterialRef": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
                     "type": "string"
                 }
             }

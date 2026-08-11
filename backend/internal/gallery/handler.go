@@ -5,6 +5,7 @@ import (
 	"image/jpeg"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 
 	"bimbel2/backend/internal/models"
@@ -27,6 +28,7 @@ func NewHandler(db *gorm.DB, store *storage.ObjectStorage) *Handler {
 type GalleryImageResponse struct {
 	ID           uint   `json:"id"`
 	URL          string `json:"url"`
+	ObjectName   string `json:"object_name"`
 	OriginalName string `json:"original_name"`
 	Title        string `json:"title"`
 	IsOwner      bool   `json:"is_owner"`
@@ -141,6 +143,7 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 	return c.Status(201).JSON(GalleryImageResponse{
 		ID:           rec.ID,
 		URL:          objectName,
+		ObjectName:   objectName,
 		OriginalName: file.Filename,
 		Title:        title,
 		IsOwner:      true,
@@ -185,10 +188,82 @@ func (h *Handler) List(c *fiber.Ctx) error {
 		result[i] = GalleryImageResponse{
 			ID:           img.ID,
 			URL:          url,
+			ObjectName:   img.FileName,
 			OriginalName: img.OriginalName,
 			Title:        img.Title,
 			IsOwner:      img.UserID == currentUser,
 			CreatedAt:    img.CreatedAt.Format("2006-01-02 15:04"),
+		}
+	}
+	return c.JSON(result)
+}
+
+type MaterialRef struct {
+	ID    uint   `json:"id"`
+	Title string `json:"title"`
+}
+
+// GalleryUsageResponse: satu gambar + di materi mana ia dipakai.
+type GalleryUsageResponse struct {
+	ID           uint          `json:"id"`
+	URL          string        `json:"url"`
+	ObjectName   string        `json:"object_name"`
+	Title        string        `json:"title"`
+	IsOwner      bool          `json:"is_owner"`
+	UsedIn       []MaterialRef `json:"used_in"`
+	UsageCount   int           `json:"usage_count"`
+}
+
+// UsageSubjectImages mengembalikan pemakaian tiap gambar gallery di materi.
+// @Summary      Subject images usage
+// @Description  Deteksi di materi mana tiap gambar gallery dipakai (berdasarkan objectName di content)
+// @Tags         Admin Gallery
+// @Produce      json
+// @Security     BearerAuth
+// @Param        subject_id path int true "Subject ID"
+// @Success      200 {array} GalleryUsageResponse
+// @Failure      400 {object} GalleryErrorResponse
+// @Router       /admin/subjects/{subject_id}/images/usage [get]
+func (h *Handler) Usage(c *fiber.Ctx) error {
+	subjectID, err := strconv.ParseUint(c.Params("subject_id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(GalleryErrorResponse{Error: "id tidak valid"})
+	}
+
+	var images []models.SubjectImage
+	if err := h.db.Where("subject_id = ?", subjectID).Order("created_at desc").Find(&images).Error; err != nil {
+		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengambil data"})
+	}
+
+	// Muat semua content materi sekali, scan in-memory. Skala dev OK;
+	// upgrade path: tabel material_images kalau materi sudah ribuan.
+	var materials []models.Material
+	if err := h.db.Select("id", "title", "content").Find(&materials).Error; err != nil {
+		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengambil materi"})
+	}
+
+	currentUser := userIDFrom(c)
+	result := make([]GalleryUsageResponse, len(images))
+	for i, img := range images {
+		presignedURL, err := h.storage.PresignedURL(c.Context(), img.FileName, 24*time.Hour)
+		url := img.FileName
+		if err == nil {
+			url = presignedURL
+		}
+		used := make([]MaterialRef, 0, 1)
+		for _, m := range materials {
+			if m.Content != "" && strings.Contains(m.Content, img.FileName) {
+				used = append(used, MaterialRef{ID: m.ID, Title: m.Title})
+			}
+		}
+		result[i] = GalleryUsageResponse{
+			ID:         img.ID,
+			URL:        url,
+			ObjectName: img.FileName,
+			Title:      img.Title,
+			IsOwner:    img.UserID == currentUser,
+			UsedIn:     used,
+			UsageCount: len(used),
 		}
 	}
 	return c.JSON(result)
@@ -242,5 +317,6 @@ func Routes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	h := NewHandler(db, store)
 	admin.Get("/subjects/:subject_id/images", h.List)
 	admin.Post("/subjects/:subject_id/images", h.Upload)
+	admin.Get("/subjects/:subject_id/images/usage", h.Usage)
 	admin.Delete("/subjects/:subject_id/images/:id", h.Delete)
 }

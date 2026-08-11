@@ -14,6 +14,7 @@ import { Route as DashboardRouteImport } from './routes/_dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard/settings'
+import { Route as DashboardGalleryRouteImport } from './routes/_dashboard/gallery'
 import { Route as DashboardUserSubscribeRouteImport } from './routes/_dashboard/user/subscribe'
 import { Route as DashboardUserMaterialsRouteImport } from './routes/_dashboard/user/materials'
 import { Route as DashboardUserDashboardRouteImport } from './routes/_dashboard/user/dashboard'
@@ -89,6 +90,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardGalleryRoute = DashboardGalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardUserSubscribeRoute = DashboardUserSubscribeRouteImport.update({
@@ -396,6 +402,7 @@ const DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/gallery': typeof DashboardGalleryRoute
   '/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
@@ -454,6 +461,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/gallery': typeof DashboardGalleryRoute
   '/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
@@ -513,6 +521,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
+  '/_dashboard/gallery': typeof DashboardGalleryRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_dashboard/admin/dashboard': typeof DashboardAdminDashboardRoute
@@ -573,6 +582,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/gallery'
     | '/settings'
     | '/auth/callback'
     | '/admin/dashboard'
@@ -631,6 +641,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/gallery'
     | '/settings'
     | '/auth/callback'
     | '/admin/dashboard'
@@ -689,6 +700,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_dashboard'
     | '/login'
+    | '/_dashboard/gallery'
     | '/_dashboard/settings'
     | '/auth/callback'
     | '/_dashboard/admin/dashboard'
@@ -787,6 +799,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/gallery': {
+      id: '/_dashboard/gallery'
+      path: '/gallery'
+      fullPath: '/gallery'
+      preLoaderRoute: typeof DashboardGalleryRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/user/subscribe': {
@@ -1190,6 +1209,7 @@ const DashboardUserMaterialsRouteWithChildren =
   )
 
 interface DashboardRouteChildren {
+  DashboardGalleryRoute: typeof DashboardGalleryRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardAdminDashboardRoute: typeof DashboardAdminDashboardRoute
   DashboardAdminDevResetRoute: typeof DashboardAdminDevResetRoute
@@ -1242,6 +1262,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardGalleryRoute: DashboardGalleryRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardAdminDashboardRoute: DashboardAdminDashboardRoute,
   DashboardAdminDevResetRoute: DashboardAdminDevResetRoute,

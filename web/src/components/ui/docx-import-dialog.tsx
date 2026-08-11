@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { RichContent } from "@/components/ui/rich-content"
@@ -11,29 +12,61 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { FileText, UploadCloud, XCircle } from "lucide-react"
-import { docxToHtml } from "@/lib/docx-parser"
+import { toast } from "sonner"
+import { docxToHtml, type DocxImage } from "@/lib/docx-parser"
+import {
+  getAdminChaptersOptions,
+  getAdminSubjectsBySubjectIdImagesQueryKey,
+} from "@/lib/api/@tanstack/react-query.gen"
+import { postAdminSubjectsBySubjectIdImages } from "@/lib/api/sdk.gen"
+
+// Content materi menyimpan objectName storage (`forum/<uuid>.jpg`) — bukan URL.
+// Backend rewrite objectName → presigned URL saat serve, jadi tidak perlu
+// base URL publik di frontend.
+const ALLOWED_MIME = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+const SKIP_NOTE = "[Gambar dilewati — sisipkan manual]"
+
+/** Gambar siap di-upload: blob sudah pasti ada (null disaring) + blobUrl untuk preview */
+type PendingImage = Omit<DocxImage, "blob"> & { blob: Blob; blobUrl: string }
 
 export function DocxImportDialog({
   open,
   onOpenChange,
   onImport,
+  chapterId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onImport: (html: string) => void;
+  chapterId: string;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const qc = useQueryClient()
+  const { data: chapters = [] } = useQuery(getAdminChaptersOptions())
+  const subjectId = chapters?.find((c) => c.id === Number(chapterId))?.subject_id
+
   const [parsing, setParsing] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [fileName, setFileName] = useState("")
-  const [html, setHtml] = useState("")
+  const [html, setHtml] = useState("") // preview (pakai blob URL)
+  const [baseHtml, setBaseHtml] = useState("") // HTML dengan placeholder %%DOCX_IMG_n%%
+  const [images, setImages] = useState<PendingImage[]>([])
   const [error, setError] = useState("")
 
-  // reset state setiap dialog dibuka
+  const releaseBlobs = () => {
+    for (const img of images) URL.revokeObjectURL(img.blobUrl)
+  }
+
+  // reset state setiap dialog dibuka (blob sudah di-release saat close)
   useEffect(() => {
     if (open) {
       setParsing(false)
+      setUploading(false)
       setFileName("")
       setHtml("")
+      setBaseHtml("")
+      setImages([])
       setError("")
     }
   }, [open])
@@ -42,14 +75,31 @@ export function DocxImportDialog({
     setParsing(true)
     setError("")
     setHtml("")
+    setBaseHtml("")
+    setImages([])
     setFileName(file.name)
     try {
-      const converted = await docxToHtml(file)
-      if (!converted.trim()) {
+      const { html: parsedHtml, images: parsedImages } = await docxToHtml(file)
+      if (!parsedHtml.trim()) {
         setError("Tidak ada teks yang terdeteksi. Pastikan file .docx berisi teks.")
-      } else {
-        setHtml(converted)
+        return
       }
+      // Preview: ganti placeholder → blob URL. Upload ditunda sampai commit
+      // biar tidak ada gambar orphan kalau guru batal.
+      const pending: PendingImage[] = []
+      let preview = parsedHtml
+      for (const img of parsedImages) {
+        if (img.blob) {
+          const blobUrl = URL.createObjectURL(img.blob)
+          pending.push({ ...img, blobUrl, blob: img.blob })
+          preview = preview.replace(img.placeholder, blobUrl)
+        } else {
+          preview = preview.replace(img.placeholder, SKIP_NOTE)
+        }
+      }
+      setBaseHtml(parsedHtml)
+      setImages(pending)
+      setHtml(preview)
     } catch (err: any) {
       setError(err?.message || "Gagal membaca file. Pastikan file .docx valid.")
     } finally {
@@ -57,13 +107,88 @@ export function DocxImportDialog({
     }
   }
 
+  // Upload semua gambar ke gallery subject, rewrite src, lalu onImport.
+  // Dipanggil pas "Gunakan Konten Ini" — kalau dibatalkan, tidak ada upload.
+  const commitImport = async () => {
+    if (!baseHtml || uploading) return
+    setUploading(true)
+    let finalHtml = baseHtml
+    let uploaded = 0
+    let skipped = 0
+
+    const note = (img: PendingImage) => (finalHtml = finalHtml.replace(img.placeholder, SKIP_NOTE))
+
+    if (images.length > 0) {
+      if (!subjectId) {
+        skipped = images.length
+        for (const img of images) note(img)
+      } else {
+        for (const img of images) {
+          const okMime = ALLOWED_MIME.includes(img.mime)
+          const tooBig = img.blob.size > MAX_IMAGE_BYTES
+          if (!okMime || tooBig) {
+            note(img)
+            skipped++
+            continue
+          }
+          try {
+            const { data } = await postAdminSubjectsBySubjectIdImages({
+              path: { subject_id: subjectId },
+              body: {
+                image: new File([img.blob], img.originalName, { type: img.mime }),
+                title: img.originalName,
+              } as any,
+            })
+            const url = data?.url
+            if (!url) {
+              note(img)
+              skipped++
+              continue
+            }
+            finalHtml = finalHtml.replace(img.placeholder, url)
+            uploaded++
+          } catch {
+            note(img)
+            skipped++
+          }
+        }
+        qc.invalidateQueries({ queryKey: getAdminSubjectsBySubjectIdImagesQueryKey({ path: { subject_id: subjectId } }) })
+      }
+    }
+
+    setUploading(false)
+    releaseBlobs()
+    setImages([])
+    setBaseHtml("")
+    setHtml("")
+    if (uploaded + skipped > 0) {
+      toast.info(`${uploaded} gambar diimport${skipped ? `, ${skipped} dilewati` : ""}`)
+    }
+    onImport(finalHtml)
+    onOpenChange(false)
+  }
+
+  // Tutup dialog → lepas blob URL. Selama upload berjalan, close diabaikan.
+  const handleOpenChange = (v: boolean) => {
+    if (v) {
+      onOpenChange(v)
+      return
+    }
+    if (uploading) return
+    releaseBlobs()
+    setImages([])
+    setBaseHtml("")
+    setHtml("")
+    onOpenChange(false)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Import Materi dari Word</DialogTitle>
           <DialogDescription>
-            Konten diambil dari file .docx dan masuk ke editor. Gambar dilewati — sisipkan manual setelah import.
+            Gambar dalam dokumen ikut diimport ke galeri materi saat memakai konten ini.
           </DialogDescription>
         </DialogHeader>
 
@@ -81,7 +206,7 @@ export function DocxImportDialog({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          disabled={parsing}
+          disabled={parsing || uploading}
           className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-50"
         >
           <UploadCloud className="h-8 w-8" />
@@ -94,7 +219,12 @@ export function DocxImportDialog({
             <Spinner /> Memproses dokumen...
           </div>
         )}
-        {fileName && !parsing && !error && (
+        {uploading && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Spinner /> Mengunggah gambar ke galeri...
+          </div>
+        )}
+        {fileName && !parsing && !uploading && !error && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <FileText className="h-4 w-4" /> {fileName}
           </div>
@@ -112,16 +242,16 @@ export function DocxImportDialog({
         )}
 
         <DialogFooter>
-          <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => handleOpenChange(false)}
+            disabled={uploading}
+          >
             Batal
           </Button>
-          <Button
-            onClick={() => {
-              onImport(html)
-              onOpenChange(false)
-            }}
-            disabled={!html}
-          >
+          <Button onClick={commitImport} disabled={!html || parsing || uploading}>
+            {uploading && <Spinner />}
             Gunakan Konten Ini
           </Button>
         </DialogFooter>

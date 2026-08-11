@@ -1,11 +1,27 @@
 package material
 
 import (
+	"context"
+	"regexp"
 	"strings"
+	"time"
 
 	"bimbel2/backend/internal/models"
 	"bimbel2/backend/internal/storage"
 )
+
+// objectNameRe mencocokkan referensi gambar storage di dalam HTML content.
+// Bentuk tersimpan: `forum/<uuid>.<ext>` (objectName). Bisa juga berawalan
+// URL presigned (konten lama) — prefix URL ikut di-capture untuk dinormalisasi.
+var objectNameRe = regexp.MustCompile(`(?:https?://[^"'\s]+/)?(forum/[0-9a-fA-F-]+\.(?:jpg|jpeg|png|gif|webp))`)
+
+// sanitizeContentImages menormalkan presigned URL → objectName (group 1).
+// Dipakai pas simpan: content dari editor bisa kebawa presigned URL fresh
+// (karena serve selalu rewrite), harus dikembalikan ke objectName biar
+// stabil & tidak expire.
+func sanitizeContentImages(content string) string {
+	return objectNameRe.ReplaceAllString(content, "$1")
+}
 
 type Service struct {
 	repo    *Repository
@@ -37,7 +53,7 @@ func (s *Service) List() ([]MaterialResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	return toResponses(materials), nil
+	return s.toResponses(materials), nil
 }
 
 func (s *Service) ListByChapter(chapterID uint) ([]MaterialResponse, error) {
@@ -45,7 +61,7 @@ func (s *Service) ListByChapter(chapterID uint) ([]MaterialResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	return toResponses(materials), nil
+	return s.toResponses(materials), nil
 }
 
 // ListPublished untuk akses murid/user — hanya materi published.
@@ -56,7 +72,7 @@ func (s *Service) ListPublished(includePremium bool, classIDs []uint) ([]Materia
 	if err != nil {
 		return nil, err
 	}
-	return toResponses(materials), nil
+	return s.toResponses(materials), nil
 }
 
 func (s *Service) ListPublishedByChapter(chapterID uint, includePremium bool, classIDs []uint) ([]MaterialResponse, error) {
@@ -64,7 +80,7 @@ func (s *Service) ListPublishedByChapter(chapterID uint, includePremium bool, cl
 	if err != nil {
 		return nil, err
 	}
-	return toResponses(materials), nil
+	return s.toResponses(materials), nil
 }
 
 func (s *Service) Get(id uint) (*MaterialResponse, error) {
@@ -72,7 +88,7 @@ func (s *Service) Get(id uint) (*MaterialResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	r := toResponse(*material)
+	r := s.toResponse(*material)
 	return &r, nil
 }
 
@@ -96,7 +112,7 @@ func (s *Service) Create(input CreateInput) (*MaterialResponse, error) {
 		Slug:        slug,
 		Description: input.Description,
 		Type:        input.Type,
-		Content:     input.Content,
+		Content:     sanitizeContentImages(input.Content),
 		VideoURL:    input.VideoURL,
 		Status:      input.Status,
 		IsFree:      input.IsFree,
@@ -115,7 +131,7 @@ func (s *Service) Create(input CreateInput) (*MaterialResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	r := toResponse(*created)
+	r := s.toResponse(*created)
 	return &r, nil
 }
 
@@ -141,7 +157,7 @@ func (s *Service) Update(id uint, input UpdateInput) (*MaterialResponse, error) 
 		updates["description"] = *input.Description
 	}
 	if input.Content != nil {
-		updates["content"] = *input.Content
+		updates["content"] = sanitizeContentImages(*input.Content)
 	}
 	if input.Type != nil {
 		updates["type"] = *input.Type
@@ -171,7 +187,7 @@ func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-func toResponse(m models.Material) MaterialResponse {
+func (s *Service) toResponse(m models.Material) MaterialResponse {
 	chapterName := ""
 	if m.Chapter.ID != 0 {
 		chapterName = m.Chapter.Title
@@ -185,7 +201,7 @@ func toResponse(m models.Material) MaterialResponse {
 		Slug:        m.Slug,
 		Description: m.Description,
 		Type:        m.Type,
-		Content:     m.Content,
+		Content:     s.rewriteContentImages(m.Content),
 		VideoURL:    m.VideoURL,
 		Status:      m.Status,
 		IsFree:      m.IsFree,
@@ -193,10 +209,26 @@ func toResponse(m models.Material) MaterialResponse {
 	}
 }
 
-func toResponses(materials []models.Material) []MaterialResponse {
+func (s *Service) toResponses(materials []models.Material) []MaterialResponse {
 	result := make([]MaterialResponse, len(materials))
 	for i, m := range materials {
-		result[i] = toResponse(m)
+		result[i] = s.toResponse(m)
 	}
 	return result
+}
+
+// rewriteContentImages mengganti objectName (dan presigned URL lama) di HTML
+// content → presigned URL fresh. Content di DB selalu objectName (lihat
+// sanitizeContentImages); URL expire 24 jam, jadi di-rewrite tiap serve.
+func (s *Service) rewriteContentImages(content string) string {
+	if s.storage == nil {
+		return content
+	}
+	return objectNameRe.ReplaceAllStringFunc(content, func(m string) string {
+		obj := objectNameRe.FindStringSubmatch(m)[1]
+		if url, err := s.storage.PresignedURL(context.Background(), obj, 24*time.Hour); err == nil {
+			return url
+		}
+		return obj
+	})
 }

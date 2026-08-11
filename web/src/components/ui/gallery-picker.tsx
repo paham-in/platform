@@ -38,7 +38,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { getAdminSubjectsBySubjectIdImages } from "@/lib/api/sdk.gen"
 import { toast } from "sonner"
 import { Loader2, SearchIcon, Trash2, Upload, X } from "lucide-react"
-type GalleryImage = { id: number; url: string; title: string; is_owner?: boolean }
+type GalleryImage = { id: number; url: string; object_name?: string; title: string; is_owner?: boolean }
 
 export function GalleryPicker({
   open,
@@ -150,7 +150,7 @@ export function GalleryPicker({
                   <button
                     type="button"
                     className="w-full text-left"
-                    onClick={() => { onInsert(img.url); onOpenChange(false) }}
+                    onClick={() => { onInsert(img.object_name ?? img.url); onOpenChange(false) }}
                   >
                     <img src={img.url} alt={img.title} className="h-24 w-full object-cover" />
                     <p className="truncate px-2 py-1.5 text-xs text-muted-foreground">{img.title}</p>

@@ -28,6 +28,26 @@ export interface ParsedParagraph {
 export interface DocxContext {
   doc: Document
   numbering: Map<number, "ol" | "ul">
+  /** rId → target rel (e.g. "media/image1.png", relatif ke folder word/) */
+  rels: Map<string, string>
+  /** extension lowercase → mime type, dari [Content_Types].xml */
+  contentTypes: Map<string, string>
+  zip: JSZip
+}
+
+/** Satu gambar yang diekstrak dari .docx, diidentifikasi lewat placeholder di HTML */
+export interface DocxImage {
+  /** Token pengganti sementara di HTML: "%%DOCX_IMG_0%%" */
+  placeholder: string
+  rId: string
+  originalName: string
+  mime: string
+  blob: Blob | null
+}
+
+export interface DocxToHtmlResult {
+  html: string
+  images: DocxImage[]
 }
 
 export interface ImportQuestion {
@@ -377,7 +397,42 @@ export async function unzipDocx(file: File): Promise<DocxContext> {
     numberingFromXml(numDoc, numbering)
   }
 
-  return { doc, numbering }
+  return { doc, numbering, rels: await parseRels(zip), contentTypes: await parseContentTypes(zip), zip }
+}
+
+/** Parse word/_rels/document.xml.rels → map rId → target media (misal "media/image1.png"). */
+async function parseRels(zip: JSZip): Promise<Map<string, string>> {
+  const rels = new Map<string, string>()
+  const relFile = zip.file("word/_rels/document.xml.rels")
+  if (!relFile) return rels
+  const relXml = await relFile.async("string")
+  const relDoc = new DOMParser().parseFromString(relXml, "application/xml")
+  for (const rel of descendants(relDoc.documentElement, "Relationship")) {
+    if (rel.getAttribute("TargetMode") === "External") continue
+    const type = rel.getAttribute("Type") ?? ""
+    if (!type.includes("/image")) continue
+    const id = rel.getAttribute("Id")
+    let target = rel.getAttribute("Target")
+    if (!id || !target) continue
+    if (target.startsWith("/")) target = target.slice(1) // absolute → relatif ke root zip
+    rels.set(id, target)
+  }
+  return rels
+}
+
+/** Parse [Content_Types].xml → map extension lowercase → mime type. */
+async function parseContentTypes(zip: JSZip): Promise<Map<string, string>> {
+  const map = new Map<string, string>()
+  const ctFile = zip.file("[Content_Types].xml")
+  if (!ctFile) return map
+  const ctXml = await ctFile.async("string")
+  const ctDoc = new DOMParser().parseFromString(ctXml, "application/xml")
+  for (const def of descendants(ctDoc.documentElement, "Default")) {
+    const ext = def.getAttribute("Extension")
+    const ct = def.getAttribute("ContentType")
+    if (ext && ct) map.set(ext.toLowerCase(), ct)
+  }
+  return map
 }
 
 /**
@@ -441,11 +496,38 @@ function detectBlockTag(pPr: Element): "h1" | "h2" | "h3" | "p" | undefined {
   return undefined
 }
 
+/** Ambil rId embed dari <a:blip r:embed="..."/> atau <v:imagedata r:id="..."/>. */
+function embedRid(el: Element): string | null {
+  for (const a of Array.from(el.attributes)) {
+    if (a.localName === "embed" || a.localName === "id") return a.value
+  }
+  return null
+}
+
+/**
+ * Buat HTML <img> placeholder untuk <w:drawing>/<w:pict> dan catat ke sink.
+ * Tanpa sink → return "" (gambar tetap di-skip, alur soal bank).
+ */
+function extractImageHtml(el: Element, sink?: DocxImage[]): string {
+  if (!sink) return ""
+  const blip = firstDescendant(el, "blip")
+  let rId = blip ? embedRid(blip) : null
+  if (!rId) {
+    // <w:pict><v:imagedata r:id="..."/> — format lama
+    const imagedata = firstDescendant(el, "imagedata")
+    rId = imagedata ? embedRid(imagedata) : null
+  }
+  if (!rId) return ""
+  const idx = sink.length
+  sink.push({ placeholder: `%%DOCX_IMG_${idx}%%`, rId, originalName: "", mime: "", blob: null })
+  return `<img src="%%DOCX_IMG_${idx}%%" alt="" />`
+}
+
 /**
  * Parse satu elemen <w:p> → ParsedParagraph (atau null jika kosong).
  * Reusable untuk dokumen biasa maupun paragraf di dalam tabel.
  */
-function parseParagraphElement(p: Element, numbering: Map<number, "ol" | "ul">): ParsedParagraph | null {
+function parseParagraphElement(p: Element, numbering: Map<number, "ol" | "ul">, imageSink?: DocxImage[]): ParsedParagraph | null {
   let text = ""
   let html = ""
   let listType: "ol" | "ul" | undefined
@@ -460,6 +542,11 @@ function parseParagraphElement(p: Element, numbering: Map<number, "ol" | "ul">):
       if (runText) {
         text += runText
         html += runHtml || runText
+      }
+      // Gambar inline di tengah run (Word menaruh <w:drawing> di dalam <w:r>)
+      if (imageSink) {
+        for (const d of descendants(child, "drawing")) html += extractImageHtml(d, imageSink)
+        for (const d of descendants(child, "pict")) html += extractImageHtml(d, imageSink)
       }
     } else if (localName === "hyperlink" || localName === "sdt" || localName === "ins" || localName === "del") {
       const runText = collectText(child)
@@ -480,6 +567,8 @@ function parseParagraphElement(p: Element, numbering: Map<number, "ol" | "ul">):
       blockTag = detectBlockTag(child)
     } else if (localName === "bookmarkStart" || localName === "bookmarkEnd") {
       // structural — ignore
+    } else if (localName === "drawing" || localName === "pict") {
+      html += extractImageHtml(child, imageSink)
     } else {
       // Fallback: text inside
       const runText = collectText(child)
@@ -492,7 +581,7 @@ function parseParagraphElement(p: Element, numbering: Map<number, "ol" | "ul">):
 
   const cleanText = text.trim()
   const cleanHtml = html.trim()
-  if (!cleanText) return null
+  if (!cleanText && !cleanHtml) return null
 
   const tag = blockTag ?? "p"
   return {
@@ -509,12 +598,12 @@ function parseParagraphElement(p: Element, numbering: Map<number, "ol" | "ul">):
  * Paragraf auto-numbering Word (punya <w:numPr>) diberi `listType` dan html-nya
  * tidak dibungkus `<p>` (akan dibungkus `<li>` oleh `paragraphsToHtml`).
  */
-export function parseDocumentXml(doc: Document, numbering?: Map<number, "ol" | "ul">): ParsedParagraph[] {
+export function parseDocumentXml(doc: Document, numbering?: Map<number, "ol" | "ul">, imageSink?: DocxImage[]): ParsedParagraph[] {
   const numMap = numbering ?? new Map<number, "ol" | "ul">()
   const paragraphs = descendants(doc.documentElement, "p")
   const result: ParsedParagraph[] = []
   for (const p of paragraphs) {
-    const parsed = parseParagraphElement(p, numMap)
+    const parsed = parseParagraphElement(p, numMap, imageSink)
     if (parsed) result.push(parsed)
   }
   return result
@@ -605,14 +694,14 @@ export function paragraphsToHtml(paras: ParsedParagraph[]): string {
       const items: string[] = []
       while (i < paras.length && paras[i].listType === type) {
         const item = paras[i]
-        if (item.text.trim() !== "") {
+        if (item.text.trim() !== "" || item.html.trim() !== "") {
           items.push(`<li>${item.html || escapeHtml(item.text)}</li>`)
         }
         i++
       }
       if (items.length > 0) out += `<${type}>${items.join("")}</${type}>`
     } else {
-      if (p.text.trim() !== "") {
+      if (p.text.trim() !== "" || p.html.trim() !== "") {
         out += p.html || `<p>${escapeHtml(p.text)}</p>`
       }
       i++
@@ -622,14 +711,33 @@ export function paragraphsToHtml(paras: ParsedParagraph[]): string {
 }
 
 /**
- * Konversi satu file .docx → HTML (text-only) siap masuk editor Tiptap.
- * Gambar di-skip otomatis: hanya text runs yang dibaca, paragraf tanpa teks di-drop.
+ * Konversi satu file .docx → HTML siap masuk editor Tiptap + daftar gambar ter-ekstrak.
  * Heading Word (Heading1/2/3) jadi <h1>/<h2>/<h3>; rumus OMML jadi math LaTeX span.
+ * Gambar (inline/standalone) jadi <img src="%%DOCX_IMG_n%%"> — blob di-resolve di sini,
+ * upload ke storage dilakukan pemanggil (browser tidak bisa langsung baca isi zip).
  */
-export async function docxToHtml(file: File): Promise<string> {
-  const { doc, numbering } = await unzipDocx(file)
-  const paras = parseDocumentXml(doc, numbering)
-  return paragraphsToHtml(paras)
+export async function docxToHtml(file: File): Promise<DocxToHtmlResult> {
+  const { doc, numbering, rels, contentTypes, zip } = await unzipDocx(file)
+  const images: DocxImage[] = []
+  const paras = parseDocumentXml(doc, numbering, images)
+  let html = paragraphsToHtml(paras)
+
+  const kept: DocxImage[] = []
+  for (const img of images) {
+    const target = rels.get(img.rId)
+    const entry = target ? zip.file("word/" + target) : null
+    if (!entry) continue
+    img.originalName = target!.split("/").pop() ?? "image"
+    const ext = img.originalName.includes(".") ? img.originalName.split(".").pop()!.toLowerCase() : ""
+    img.mime = contentTypes.get(ext) ?? "application/octet-stream"
+    img.blob = await entry.async("blob")
+    kept.push(img)
+  }
+  // Placeholder yang media-nya tidak bisa di-resolve → hapus (jangan tinggal token).
+  const resolved = new Set(kept.map((i) => i.placeholder))
+  html = html.replace(/%%DOCX_IMG_\d+%%/g, (m) => (resolved.has(m) ? m : ""))
+
+  return { html, images: kept }
 }
 
 function escapeHtml(s: string): string {

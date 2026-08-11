@@ -228,6 +228,7 @@ function NewMaterial() {
         open={importOpen}
         onOpenChange={setImportOpen}
         onImport={(html) => setContent(html)}
+        chapterId={chapterId}
       />
 
       {/* draft dialog */}
