@@ -215,7 +215,11 @@ function AdminChapters() {
     if (!coverFile) return true;
     setUploadingCover(true);
     try {
-      await postAdminChaptersByIdCover({ path: { id: chapterId }, body: { image: coverFile } });
+      await postAdminChaptersByIdCover({
+        path: { id: chapterId },
+        body: { image: coverFile },
+        throwOnError: true,
+      });
       return true;
     } catch {
       return false;

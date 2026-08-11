@@ -68,6 +68,11 @@ func (h *CoverHandler) UploadCover(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengunggah gambar"})
 	}
 
+	// Simpan cover lama SEBELUM update DB. GORM Update dengan Model menulis
+	// nilai baru ke struct in-memory (`chapter.CoverURL` ikut berubah), jadi
+	// membaca chapter.CoverURL setelah update justru memegang objectName baru.
+	oldCoverURL := chapter.CoverURL
+
 	// update DB dulu; kalau gagal, hapus file baru biar tidak orphan
 	if err := h.db.Model(&chapter).Update("cover_url", objectName).Error; err != nil {
 		_ = h.storage.Delete(c.Context(), objectName)
@@ -77,8 +82,8 @@ func (h *CoverHandler) UploadCover(c *fiber.Ctx) error {
 	// hapus cover lama — di sini DB sudah menunjuk file baru, jadi kalau
 	// hapus file lama gagal, cover lama cuma jadi orphan (tidak merusak state).
 	// PREFIX: `covers/` (legacy) maupun `public/covers/` (baru).
-	if chapter.CoverURL != "" && (strings.HasPrefix(chapter.CoverURL, "covers/") || strings.HasPrefix(chapter.CoverURL, "public/covers/")) {
-		_ = h.storage.Delete(c.Context(), chapter.CoverURL)
+	if oldCoverURL != "" && (strings.HasPrefix(oldCoverURL, "covers/") || strings.HasPrefix(oldCoverURL, "public/covers/")) {
+		_ = h.storage.Delete(c.Context(), oldCoverURL)
 	}
 
 	return c.JSON(MessageResponse{Message: "cover berhasil diupload"})
