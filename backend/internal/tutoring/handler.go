@@ -24,12 +24,12 @@ type MessageResponse struct {
 }
 
 type Handler struct {
-	svc   *Service
-	minio *storage.MinioClient
+	svc     *Service
+	storage *storage.ObjectStorage
 }
 
-func NewHandler(svc *Service, minio *storage.MinioClient) *Handler {
-	return &Handler{svc: svc, minio: minio}
+func NewHandler(svc *Service, store *storage.ObjectStorage) *Handler {
+	return &Handler{svc: svc, storage: store}
 }
 
 func hasRole(c *fiber.Ctx, role string) bool {
@@ -410,12 +410,12 @@ func (h *Handler) ListSessions(c *fiber.Ctx) error {
 		}
 	}
 
-	// ganti objectName bukti jadi presigned URL (kalau MinIO tersedia)
+	// ganti objectName bukti jadi presigned URL (kalau storage tersedia)
 	for i := range sessions {
-		if sessions[i].EvidenceURL == "" || h.minio == nil {
+		if sessions[i].EvidenceURL == "" || h.storage == nil {
 			continue
 		}
-		if url, err := h.minio.PresignedURL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
+		if url, err := h.storage.PresignedURL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
 			sessions[i].EvidenceURL = url
 		}
 	}
@@ -497,7 +497,7 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
 		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
 	}
-	if h.minio == nil {
+	if h.storage == nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "penyimpanan file tidak tersedia"})
 	}
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
@@ -506,7 +506,7 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 	}
 	userID := c.Locals("user_id").(uint)
 
-	// validasi ownership/status/jendela upload SEBELUM upload file ke MinIO —
+	// validasi ownership/status/jendela upload SEBELUM upload file ke storage —
 	// hindari file orphan kalau sesi bukan milik guru / belum waktunya.
 	if err := h.svc.ValidateEvidenceUpload(uint(id), userID); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
@@ -546,15 +546,15 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengompres gambar"})
 	}
 
-	objectName := h.minio.GenerateObjectNameIn("attendance", file.Filename)
-	if err := h.minio.UploadReader(c.Context(), objectName, "image/jpeg", bytes.NewReader(buf.Bytes()), int64(buf.Len())); err != nil {
+	objectName := h.storage.GenerateObjectNameIn("attendance", file.Filename)
+	if err := h.storage.UploadReader(c.Context(), objectName, "image/jpeg", bytes.NewReader(buf.Bytes()), int64(buf.Len())); err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengunggah file"})
 	}
 
 	session, err := h.svc.UploadEvidence(uint(id), userID, objectName)
 	if err != nil {
 		// file sudah ter-upload tapi simpan DB gagal — hapus biar tidak orphan.
-		_ = h.minio.Delete(c.Context(), objectName)
+		_ = h.storage.Delete(c.Context(), objectName)
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(session)
@@ -580,10 +580,10 @@ func (h *Handler) AdminListEvidence(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
 	for i := range sessions {
-		if sessions[i].EvidenceURL == "" || h.minio == nil {
+		if sessions[i].EvidenceURL == "" || h.storage == nil {
 			continue
 		}
-		if url, err := h.minio.PresignedURL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
+		if url, err := h.storage.PresignedURL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
 			sessions[i].EvidenceURL = url
 		}
 	}
@@ -619,14 +619,14 @@ func (h *Handler) AdminReviewEvidence(c *fiber.Ctx) error {
 		}
 		return c.JSON(session)
 	case "reject":
-		// hapus file MinIO DULU — kalau gagal, DB tidak diubah (sesi tetap
+		// hapus file storage DULU — kalau gagal, DB tidak diubah (sesi tetap
 		// review, bukti masih ada) sehingga konsisten dan bisa di-retry.
 		oldObject, err := h.svc.ValidateEvidenceReject(uint(id))
 		if err != nil {
 			return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 		}
-		if h.minio != nil && oldObject != "" {
-			if err := h.minio.Delete(c.Context(), oldObject); err != nil {
+		if h.storage != nil && oldObject != "" {
+			if err := h.storage.Delete(c.Context(), oldObject); err != nil {
 				return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus bukti: " + err.Error()})
 			}
 		}
@@ -728,10 +728,10 @@ func (h *Handler) AdminListFees(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
 	for i := range sessions {
-		if sessions[i].EvidenceURL == "" || h.minio == nil {
+		if sessions[i].EvidenceURL == "" || h.storage == nil {
 			continue
 		}
-		if url, err := h.minio.PresignedURL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
+		if url, err := h.storage.PresignedURL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
 			sessions[i].EvidenceURL = url
 		}
 	}
@@ -761,10 +761,10 @@ func (h *Handler) AdminToggleFeePaid(c *fiber.Ctx) error {
 	return c.JSON(session)
 }
 
-func AdminRoutes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClient, settings *setting.Service) {
+func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settings *setting.Service) {
 	repo := NewRepository(db)
 	svc := NewService(repo, db, settings)
-	h := NewHandler(svc, minioClient)
+	h := NewHandler(svc, store)
 
 	admin.Get("/tutoring/bookings", h.AdminListBookings)
 	admin.Post("/tutoring/bookings", h.AdminCreateBooking)
@@ -778,10 +778,10 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClie
 	admin.Patch("/tutoring/fees/:id", h.AdminToggleFeePaid)
 }
 
-func Routes(auth fiber.Router, db *gorm.DB, minioClient *storage.MinioClient, settings *setting.Service) {
+func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settings *setting.Service) {
 	repo := NewRepository(db)
 	svc := NewService(repo, db, settings)
-	h := NewHandler(svc, minioClient)
+	h := NewHandler(svc, store)
 
 	auth.Get("/tutoring/teachers", h.ListTeachers)
 	auth.Get("/tutoring/availability", h.ListAvailability)

@@ -59,9 +59,9 @@ func main() {
 	settingSvc := setting.NewService(setting.NewRepository(db), cfg.TeacherFeePercent)
 	settingSvc.EnsureDefaults()
 
-	minioClient, err := storage.NewMinioClient(cfg)
+	objectStorage, err := storage.NewObjectStorage(cfg)
 	if err != nil {
-		log.Printf("Warning: MinIO not available: %v", err)
+		log.Printf("Warning: storage (rustfs) not available: %v", err)
 	}
 
 	app := fiber.New(fiber.Config{
@@ -84,25 +84,25 @@ func main() {
 	forum.Routes(app, db)
 	answer.PublicRoutes(app, db)
 	push.PublicRoutes(app, db, cfg.VapidPublicKey)
-	if minioClient != nil {
-		upload.PublicRoutes(app, db, minioClient)
+	if objectStorage != nil {
+		upload.PublicRoutes(app, db, objectStorage)
 	}
 
 	// Authenticated routes (any role with valid session)
 	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))
 	user.AuthRoutes(auth, db)
 	class.PublicRoutes(auth, db)
-	chapter.PublicRoutes(auth, db, minioClient)
-	material.PublicRoutes(auth, db)
+	chapter.PublicRoutes(auth, db, objectStorage)
+	material.PublicRoutes(auth, db, objectStorage)
 	questionpackage.AuthRoutes(auth, db)
 	studentclass.AuthRoutes(auth, db)
-		tutoring.Routes(auth, db, minioClient, settingSvc)
+		tutoring.Routes(auth, db, objectStorage, settingSvc)
 	pushSvc := push.NewService(db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
 	push.Routes(auth, db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
 	answer.AuthRoutes(auth, db, pushSvc)
 	invoice.AuthRoutes(auth, db)
-	if minioClient != nil {
-		upload.AuthRoutes(auth, db, minioClient)
+	if objectStorage != nil {
+		upload.AuthRoutes(auth, db, objectStorage)
 	}
 
 	// Teacher + admin shared resources (register first so teacher can pass)
@@ -110,16 +110,16 @@ func main() {
 	// Resource non-konten — tetap terbuka utk semua teacher.
 	class.AdminRoutes(staff, db)
 	subject.AdminRoutes(staff, db)
-	if minioClient != nil {
-		gallery.Routes(staff, db, minioClient)
+	if objectStorage != nil {
+		gallery.Routes(staff, db, objectStorage)
 	}
 
 	// Kelola materi (materi + chapter + cover) — admin selalu, teacher butuh izin.
 	content := staff.Group("", middleware.ContentManager("materials"))
-	material.AdminRoutes(content, db)
-	chapter.AdminRoutes(content, db, minioClient)
-	if minioClient != nil {
-		chapter.CoverRoutes(content, db, minioClient)
+	material.AdminRoutes(content, db, objectStorage)
+	chapter.AdminRoutes(content, db, objectStorage)
+	if objectStorage != nil {
+		chapter.CoverRoutes(content, db, objectStorage)
 	}
 
 	// Kelola paket soal (paket + soal) — admin selalu, teacher butuh izin.
@@ -134,14 +134,14 @@ func main() {
 	program.AdminRoutes(admin, db)
 	studentclass.AdminRoutes(admin, db)
 	setting.AdminRoutes(admin, db, cfg.TeacherFeePercent)
-	tutoring.AdminRoutes(admin, db, minioClient, settingSvc)
+	tutoring.AdminRoutes(admin, db, objectStorage, settingSvc)
 	devreset.AdminRoutes(admin, db, cfg)
 
 	// background job: hapus sesi yang sudah kedaluwarsa setiap 1 jam
 	startSessionCleanup(db)
 
 	// background job: hapus bukti kehadiran approved yang melewati masa simpan
-	startEvidenceCleanup(db, minioClient, cfg.EvidenceRetentionDays)
+	startEvidenceCleanup(db, objectStorage, cfg.EvidenceRetentionDays)
 
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)
@@ -173,11 +173,11 @@ func cleanupExpiredSessions(repo *user.SessionRepository) {
 }
 
 // startEvidenceCleanup menghapus bukti kehadiran approved yang melewati
-// masa simpan (retentionDays) dari MinIO. Fire pertama saat tengah malam
+// masa simpan (retentionDays) dari storage. Fire pertama saat tengah malam
 // berikutnya, lalu tiap 24 jam.
-func startEvidenceCleanup(db *gorm.DB, minioClient *storage.MinioClient, retentionDays int) {
-	if minioClient == nil {
-		log.Println("[evidence-cleanup] MinIO tidak tersedia — cleanup dilewati")
+func startEvidenceCleanup(db *gorm.DB, objectStorage *storage.ObjectStorage, retentionDays int) {
+	if objectStorage == nil {
+		log.Println("[evidence-cleanup] storage tidak tersedia — cleanup dilewati")
 		return
 	}
 	repo := tutoring.NewRepository(db)
@@ -186,13 +186,13 @@ func startEvidenceCleanup(db *gorm.DB, minioClient *storage.MinioClient, retenti
 		next := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, 1)
 		time.Sleep(time.Until(next))
 		for {
-			cleanupApprovedEvidence(repo, minioClient, retentionDays)
+			cleanupApprovedEvidence(repo, objectStorage, retentionDays)
 			time.Sleep(24 * time.Hour)
 		}
 	}()
 }
 
-func cleanupApprovedEvidence(repo *tutoring.Repository, minioClient *storage.MinioClient, retentionDays int) {
+func cleanupApprovedEvidence(repo *tutoring.Repository, objectStorage *storage.ObjectStorage, retentionDays int) {
 	cutoff := time.Now().AddDate(0, 0, -retentionDays)
 	sessions, err := repo.ListApprovedEvidenceOlderThan(cutoff)
 	if err != nil {
@@ -200,7 +200,7 @@ func cleanupApprovedEvidence(repo *tutoring.Repository, minioClient *storage.Min
 		return
 	}
 	for _, s := range sessions {
-		if err := minioClient.Delete(context.Background(), s.EvidenceURL); err != nil {
+		if err := objectStorage.Delete(context.Background(), s.EvidenceURL); err != nil {
 			log.Printf("[evidence-cleanup] gagal hapus %s: %v", s.EvidenceURL, err)
 			continue
 		}

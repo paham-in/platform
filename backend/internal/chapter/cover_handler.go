@@ -12,12 +12,12 @@ import (
 )
 
 type CoverHandler struct {
-	db    *gorm.DB
-	minio *storage.MinioClient
+	db      *gorm.DB
+	storage *storage.ObjectStorage
 }
 
-func NewCoverHandler(db *gorm.DB, minio *storage.MinioClient) *CoverHandler {
-	return &CoverHandler{db: db, minio: minio}
+func NewCoverHandler(db *gorm.DB, store *storage.ObjectStorage) *CoverHandler {
+	return &CoverHandler{db: db, storage: store}
 }
 
 // UploadCover mengunggah gambar cover chapter
@@ -63,27 +63,27 @@ func (h *CoverHandler) UploadCover(c *fiber.Ctx) error {
 	}
 	defer f.Close()
 
-	objectName := h.minio.GenerateObjectNameIn("covers", file.Filename)
-	if err := h.minio.UploadReader(c.Context(), objectName, ct, f, file.Size); err != nil {
+	objectName := h.storage.GenerateObjectNameIn("covers", file.Filename)
+	if err := h.storage.UploadReader(c.Context(), objectName, ct, f, file.Size); err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengunggah gambar"})
 	}
 
 	// update DB dulu; kalau gagal, hapus file baru biar tidak orphan
 	if err := h.db.Model(&chapter).Update("cover_url", objectName).Error; err != nil {
-		_ = h.minio.Delete(c.Context(), objectName)
+		_ = h.storage.Delete(c.Context(), objectName)
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menyimpan cover"})
 	}
 
 	// hapus cover lama — di sini DB sudah menunjuk file baru, jadi kalau
 	// hapus file lama gagal, cover lama cuma jadi orphan (tidak merusak state).
 	if chapter.CoverURL != "" && strings.HasPrefix(chapter.CoverURL, "covers/") {
-		_ = h.minio.Delete(c.Context(), chapter.CoverURL)
+		_ = h.storage.Delete(c.Context(), chapter.CoverURL)
 	}
 
 	return c.JSON(MessageResponse{Message: "cover berhasil diupload"})
 }
 
-func CoverRoutes(admin fiber.Router, db *gorm.DB, minio *storage.MinioClient) {
-	h := NewCoverHandler(db, minio)
+func CoverRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
+	h := NewCoverHandler(db, store)
 	admin.Post("/chapters/:id/cover", h.UploadCover)
 }

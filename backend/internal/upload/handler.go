@@ -17,12 +17,12 @@ import (
 )
 
 type Handler struct {
-	db    *gorm.DB
-	minio *storage.MinioClient
+	db      *gorm.DB
+	storage *storage.ObjectStorage
 }
 
-func NewHandler(db *gorm.DB, minio *storage.MinioClient) *Handler {
-	return &Handler{db: db, minio: minio}
+func NewHandler(db *gorm.DB, store *storage.ObjectStorage) *Handler {
+	return &Handler{db: db, storage: store}
 }
 
 type UploadResponse struct {
@@ -138,9 +138,9 @@ func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 		ext = ".png"
 	}
 
-	objectName := h.minio.GenerateObjectName("img" + ext)
+	objectName := h.storage.GenerateObjectName("img" + ext)
 
-	err = h.minio.UploadReader(c.Context(), objectName, "image/jpeg", bytes.NewReader(compressed), int64(len(compressed)))
+	err = h.storage.UploadReader(c.Context(), objectName, "image/jpeg", bytes.NewReader(compressed), int64(len(compressed)))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "gagal mengunggah file"})
 	}
@@ -150,8 +150,8 @@ func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 		FileName:   objectName,
 	}
 	if err := h.db.Create(&imgRecord).Error; err != nil {
-		// file sudah terupload ke MinIO — hapus biar tidak jadi orphan.
-		h.minio.Delete(c.Context(), objectName)
+		// file sudah terupload ke storage — hapus biar tidak jadi orphan.
+		h.storage.Delete(c.Context(), objectName)
 		return c.Status(500).JSON(fiber.Map{"error": "gagal menyimpan data"})
 	}
 
@@ -184,7 +184,7 @@ func (h *Handler) ListQuestionImages(c *fiber.Ctx) error {
 
 	result := make([]UploadResponse, len(images))
 	for i, img := range images {
-		presignedURL, err := h.minio.PresignedURL(c.Context(), img.FileName, 24*time.Hour)
+		presignedURL, err := h.storage.PresignedURL(c.Context(), img.FileName, 24*time.Hour)
 		url := img.FileName
 		if err == nil {
 			url = presignedURL
@@ -198,12 +198,12 @@ func (h *Handler) ListQuestionImages(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
-func PublicRoutes(app fiber.Router, db *gorm.DB, minioClient *storage.MinioClient) {
-	h := NewHandler(db, minioClient)
+func PublicRoutes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
+	h := NewHandler(db, store)
 	app.Get("/questions/:question_id/images", h.ListQuestionImages)
 }
 
-func AuthRoutes(app fiber.Router, db *gorm.DB, minioClient *storage.MinioClient) {
-	h := NewHandler(db, minioClient)
+func AuthRoutes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
+	h := NewHandler(db, store)
 	app.Post("/questions/:question_id/images", h.UploadQuestionImage)
 }

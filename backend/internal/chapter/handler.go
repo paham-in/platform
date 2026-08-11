@@ -150,9 +150,9 @@ func (h *Handler) AdminDeleteChapter(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "berhasil dihapus"})
 }
 
-func AdminRoutes(admin fiber.Router, db *gorm.DB, minio *storage.MinioClient) {
+func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	repo := NewRepository(db)
-	svc := NewService(repo, minio)
+	svc := NewService(repo, store)
 	h := NewHandler(svc, db)
 
 	admin.Get("/chapters", h.AdminListChapters)
@@ -211,9 +211,9 @@ func (h *Handler) ListChapters(c *fiber.Ctx) error {
 	return c.JSON(chapters)
 }
 
-func PublicRoutes(app fiber.Router, db *gorm.DB, minio *storage.MinioClient) {
+func PublicRoutes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	repo := NewRepository(db)
-	svc := NewService(repo, minio)
+	svc := NewService(repo, store)
 	h := NewHandler(svc, db)
 
 	app.Get("/chapters", h.ListChapters)

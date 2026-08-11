@@ -1221,7 +1221,7 @@ func (s *Service) checkEvidenceEligible(sessionID, teacherID uint) (*models.Tuto
 	return session, nil
 }
 
-// ValidateEvidenceUpload dipanggil handler SEBELUM upload file ke MinIO —
+// ValidateEvidenceUpload dipanggil handler SEBELUM upload file ke storage —
 // supaya file tidak ter-upload percuma (lalu jadi orphan) kalau sesi bukan
 // milik guru / bukan scheduled / di luar jendela waktu.
 func (s *Service) ValidateEvidenceUpload(sessionID, teacherID uint) error {
@@ -1291,7 +1291,7 @@ func (s *Service) ApproveEvidence(sessionID uint) (*TutoringSessionResponse, err
 
 // ValidateEvidenceReject memvalidasi sesi punya bukti yang menunggu validasi
 // dan mengembalikan objectName-nya. Dipanggil handler SEBELUM menghapus file
-// MinIO — kalau hapus file gagal, DB tidak diubah (tetap konsisten, bisa retry).
+// storage — kalau hapus file gagal, DB tidak diubah (tetap konsisten, bisa retry).
 func (s *Service) ValidateEvidenceReject(sessionID uint) (string, error) {
 	session, err := s.repo.GetSession(sessionID)
 	if err != nil {
@@ -1304,7 +1304,7 @@ func (s *Service) ValidateEvidenceReject(sessionID uint) (string, error) {
 }
 
 // RejectEvidence menolak bukti → sesi kembali terjadwal, bukti dihapus.
-// Mengembalikan objectName bukti lama supaya handler bisa menghapus file MinIO.
+// Mengembalikan objectName bukti lama supaya handler bisa menghapus file storage.
 func (s *Service) RejectEvidence(sessionID uint) (*TutoringSessionResponse, string, error) {
 	session, err := s.repo.GetSession(sessionID)
 	if err != nil {

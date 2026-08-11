@@ -25,11 +25,11 @@ type Config struct {
 	VapidPublicKey     string
 	VapidPrivateKey    string
 	VapidSubject       string
-	MinioEndpoint      string
-	MinioAccessKey     string
-	MinioSecretKey     string
-	MinioBucket        string
-	MinioUseSSL        bool
+	RustfsEndpoint     string
+	RustfsAccessKey    string
+	RustfsSecretKey    string
+	RustfsBucket       string
+	RustfsUseSSL       bool
 	TeacherFeePercent  float64
 	EvidenceRetentionDays int
 	DevResetEnabled    bool
@@ -55,11 +55,11 @@ func Load() *Config {
 		VapidPublicKey:     getEnv("VAPID_PUBLIC_KEY", ""),
 		VapidPrivateKey:    getEnv("VAPID_PRIVATE_KEY", ""),
 		VapidSubject:       getEnv("VAPID_SUBJECT", "mailto:admin@paham.in"),
-		MinioEndpoint:      getEnv("MINIO_ENDPOINT", "stb:9000"),
-		MinioAccessKey:     getEnv("MINIO_ACCESS_KEY", "minioadmin"),
-		MinioSecretKey:     getEnv("MINIO_SECRET_KEY", "minioadmin"),
-		MinioBucket:        getEnv("MINIO_BUCKET", "bimbel"),
-		MinioUseSSL:        false,
+		RustfsEndpoint:     getEnv("RUSTFS_ENDPOINT", "stb:9000"),
+		RustfsAccessKey:    getEnv("RUSTFS_ACCESS_KEY", "rustfsadmin"),
+		RustfsSecretKey:    getEnv("RUSTFS_SECRET_KEY", "rustfsadmin"),
+		RustfsBucket:       getEnv("RUSTFS_BUCKET", "bimbel"),
+		RustfsUseSSL:       getEnvEnabled("RUSTFS_USE_SSL"),
 		TeacherFeePercent:  getEnvFloat("TEACHER_FEE_PERCENT", 70),
 		EvidenceRetentionDays: getEnvInt("EVIDENCE_RETENTION_DAYS", 7),
 		DevResetEnabled:    getEnvEnabled("DEV_RESET_ENABLED"),

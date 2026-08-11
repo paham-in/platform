@@ -265,7 +265,7 @@ func (r *Repository) ListAllBookingsWithSessions() ([]models.Booking, error) {
 }
 
 // ListApprovedEvidenceOlderThan mengembalikan sesi done dengan bukti yg
-// terakhir diupdate sebelum cutoff (utk dihapus dari MinIO).
+// terakhir diupdate sebelum cutoff (utk dihapus dari storage).
 func (r *Repository) ListApprovedEvidenceOlderThan(cutoff time.Time) ([]models.TutoringSession, error) {
 	var sessions []models.TutoringSession
 	if err := r.db.

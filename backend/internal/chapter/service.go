@@ -10,12 +10,12 @@ import (
 )
 
 type Service struct {
-	repo  *Repository
-	minio *storage.MinioClient
+	repo    *Repository
+	storage *storage.ObjectStorage
 }
 
-func NewService(repo *Repository, minio *storage.MinioClient) *Service {
-	return &Service{repo: repo, minio: minio}
+func NewService(repo *Repository, store *storage.ObjectStorage) *Service {
+	return &Service{repo: repo, storage: store}
 }
 
 type ChapterResponse struct {
@@ -161,8 +161,8 @@ func (s *Service) toResponse(c models.Chapter) ChapterResponse {
 	}
 	count, _ := s.repo.MaterialCount(c.ID)
 	coverURL := c.CoverURL
-	if coverURL != "" && s.minio != nil {
-		if presigned, err := s.minio.PresignedURL(context.Background(), coverURL, 24*time.Hour); err == nil {
+	if coverURL != "" && s.storage != nil {
+		if presigned, err := s.storage.PresignedURL(context.Background(), coverURL, 24*time.Hour); err == nil {
 			coverURL = presigned
 		}
 	}

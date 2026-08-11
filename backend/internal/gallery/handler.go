@@ -16,12 +16,12 @@ import (
 )
 
 type Handler struct {
-	db    *gorm.DB
-	minio *storage.MinioClient
+	db      *gorm.DB
+	storage *storage.ObjectStorage
 }
 
-func NewHandler(db *gorm.DB, minio *storage.MinioClient) *Handler {
-	return &Handler{db: db, minio: minio}
+func NewHandler(db *gorm.DB, store *storage.ObjectStorage) *Handler {
+	return &Handler{db: db, storage: store}
 }
 
 type GalleryImageResponse struct {
@@ -117,8 +117,8 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengompres gambar"})
 	}
 
-	objectName := h.minio.GenerateObjectName("gallery.jpg")
-	err = h.minio.UploadReader(c.Context(), objectName, "image/jpeg", bytes.NewReader(buf.Bytes()), int64(buf.Len()))
+	objectName := h.storage.GenerateObjectName("gallery.jpg")
+	err = h.storage.UploadReader(c.Context(), objectName, "image/jpeg", bytes.NewReader(buf.Bytes()), int64(buf.Len()))
 	if err != nil {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengunggah file"})
 	}
@@ -133,8 +133,8 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 		Title:        title,
 	}
 	if err := h.db.Create(&rec).Error; err != nil {
-		// file sudah terupload ke MinIO — hapus biar tidak jadi orphan.
-		h.minio.Delete(c.Context(), objectName)
+		// file sudah terupload ke storage — hapus biar tidak jadi orphan.
+		h.storage.Delete(c.Context(), objectName)
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal menyimpan data"})
 	}
 
@@ -177,7 +177,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 	currentUser := userIDFrom(c)
 	result := make([]GalleryImageResponse, len(images))
 	for i, img := range images {
-		presignedURL, err := h.minio.PresignedURL(c.Context(), img.FileName, 24*time.Hour)
+		presignedURL, err := h.storage.PresignedURL(c.Context(), img.FileName, 24*time.Hour)
 		url := img.FileName
 		if err == nil {
 			url = presignedURL
@@ -226,9 +226,9 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 		return c.Status(403).JSON(GalleryErrorResponse{Error: "bukan pemilik gambar"})
 	}
 
-	// Hapus file dari MinIO. Gagal di sini → tolak, biar DB row tidak hilang
+	// Hapus file dari storage. Gagal di sini → tolak, biar DB row tidak hilang
 	// tapi file masih nyangkut (inconsistency).
-	if err := h.minio.Delete(c.Context(), img.FileName); err != nil {
+	if err := h.storage.Delete(c.Context(), img.FileName); err != nil {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal menghapus file: " + err.Error()})
 	}
 	if err := h.db.Delete(&img).Error; err != nil {
@@ -238,8 +238,8 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	return c.JSON(GalleryDeleteResponse{Message: "gambar berhasil dihapus"})
 }
 
-func Routes(admin fiber.Router, db *gorm.DB, minioClient *storage.MinioClient) {
-	h := NewHandler(db, minioClient)
+func Routes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
+	h := NewHandler(db, store)
 	admin.Get("/subjects/:subject_id/images", h.List)
 	admin.Post("/subjects/:subject_id/images", h.Upload)
 	admin.Delete("/subjects/:subject_id/images/:id", h.Delete)

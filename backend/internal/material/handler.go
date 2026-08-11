@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"bimbel2/backend/internal/middleware"
+	"bimbel2/backend/internal/storage"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -176,9 +177,9 @@ func (h *Handler) AdminDeleteMaterial(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "berhasil dihapus"})
 }
 
-func AdminRoutes(admin fiber.Router, db *gorm.DB) {
+func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	repo := NewRepository(db)
-	svc := NewService(repo)
+	svc := NewService(repo, store)
 	h := NewHandler(svc, db)
 
 	admin.Get("/materials", h.AdminListMaterials)
@@ -256,9 +257,9 @@ func (h *Handler) GetMaterial(c *fiber.Ctx) error {
 	return c.JSON(material)
 }
 
-func PublicRoutes(app fiber.Router, db *gorm.DB) {
+func PublicRoutes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	repo := NewRepository(db)
-	svc := NewService(repo)
+	svc := NewService(repo, store)
 	h := NewHandler(svc, db)
 
 	app.Get("/materials", h.ListMaterials)
