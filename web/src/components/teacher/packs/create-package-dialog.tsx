@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { getAdminQuestionPackagesQueryKey, postAdminQuestionPackagesMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminQuestionPackagesQueryKey, getSubjectsOptions, postAdminQuestionPackagesMutation } from "@/lib/api/@tanstack/react-query.gen"
 
 interface CreatePackageDialogProps {
   onClose: () => void
@@ -16,9 +17,13 @@ interface CreatePackageDialogProps {
 
 export function CreatePackageDialog({ onClose }: CreatePackageDialogProps) {
   const qc = useQueryClient()
+  const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
+  const [subjectId, setSubjectId] = useState("")
   const [isFree, setIsFree] = useState(true)
+
+  const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
   const { mutate: createPackage, isPending } = useMutation({
     ...postAdminQuestionPackagesMutation(),
@@ -31,8 +36,8 @@ export function CreatePackageDialog({ onClose }: CreatePackageDialogProps) {
   })
 
   const save = () => {
-    if (!name.trim()) return
-    createPackage({ body: { name, description, is_free: isFree } })
+    if (!name.trim() || !subjectId) return
+    createPackage({ body: { name, description, subject_id: Number(subjectId), is_free: isFree } })
   }
 
   return (
@@ -52,6 +57,20 @@ export function CreatePackageDialog({ onClose }: CreatePackageDialogProps) {
               placeholder="Nama paket soal"
               autoFocus
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="subject">Mata Pelajaran</Label>
+            <Select items={subjectOptions} value={subjectId} onValueChange={(v) => setSubjectId(v ?? "")}>
+              <SelectTrigger id="subject" className="w-full">
+                <SelectValue placeholder="Pilih mata pelajaran" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjectOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -78,7 +97,7 @@ export function CreatePackageDialog({ onClose }: CreatePackageDialogProps) {
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button onClick={save} disabled={!name.trim() || isPending}>
+          <Button onClick={save} disabled={!name.trim() || !subjectId || isPending}>
             {isPending && <Spinner />}
             Simpan
           </Button>

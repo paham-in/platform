@@ -61,11 +61,13 @@ export function TiptapEditor({
   onChange,
   editable = true,
   allowImages = true,
+  subjectId,
 }: {
   content: string;
   onChange: (html: string) => void;
   editable?: boolean;
   allowImages?: boolean;
+  subjectId?: number;
 }) {
   const [mathOpen, setMathOpen] = useState(false)
   const [editLatex, setEditLatex] = useState<string | null>(null)
@@ -171,6 +173,7 @@ export function TiptapEditor({
           open={galleryOpen}
           onOpenChange={setGalleryOpen}
           onInsert={(url) => editor.chain().focus().setImage({ src: url }).run()}
+          subjectId={subjectId}
         />
       )}
 

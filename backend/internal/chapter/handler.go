@@ -65,6 +65,29 @@ func (h *Handler) AdminListChapters(c *fiber.Ctx) error {
 	return c.JSON(chapters)
 }
 
+// AdminGetChapter mengembalikan detail satu chapter (untuk resolve subject)
+// @Summary      Get chapter
+// @Description  Mengembalikan detail chapter berdasarkan ID
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Chapter ID"
+// @Success      200 {object} ChapterResponse
+// @Failure      404 {object} ErrorResponse
+// @Router       /admin/chapters/{id} [get]
+func (h *Handler) AdminGetChapter(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	chapter, err := h.svc.Get(uint(id))
+	if err != nil {
+		return c.Status(404).JSON(ErrorResponse{Error: "chapter tidak ditemukan"})
+	}
+	return c.JSON(chapter)
+}
+
 // AdminCreateChapter menambah chapter baru (admin only)
 // @Summary      Create chapter
 // @Description  Menambah chapter baru
@@ -156,6 +179,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) 
 	h := NewHandler(svc, db)
 
 	admin.Get("/chapters", h.AdminListChapters)
+	admin.Get("/chapters/:id", h.AdminGetChapter)
 	admin.Post("/chapters", h.AdminCreateChapter)
 	admin.Patch("/chapters/:id", h.AdminUpdateChapter)
 	admin.Delete("/chapters/:id", h.AdminDeleteChapter)

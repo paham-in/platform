@@ -35,6 +35,7 @@ function TeacherQuestionPackages() {
               <TableHeader>
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Nama Paket</TableHead>
+                  <TableHead>Mata Pelajaran</TableHead>
                   <TableHead>Deskripsi</TableHead>
                   <TableHead>Jumlah Soal</TableHead>
                   <TableHead>Tanggal</TableHead>
@@ -46,6 +47,7 @@ function TeacherQuestionPackages() {
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={`skeleton-${i}`}>
                       <TableCell className="pl-6"><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
@@ -53,7 +55,7 @@ function TeacherQuestionPackages() {
                     </TableRow>
                   ))
                 ) : packages.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada paket soal</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Belum ada paket soal</TableCell></TableRow>
                 ) : packages.map((pkg) => (
                   <TableRow key={pkg.id}>
                     <TableCell className="pl-6 font-medium">
@@ -61,6 +63,7 @@ function TeacherQuestionPackages() {
                         {pkg.name}
                       </Link>
                     </TableCell>
+                    <TableCell className="text-muted-foreground">{pkg.subject_name || "-"}</TableCell>
                     <TableCell className="max-w-[300px] truncate text-muted-foreground">{pkg.description || "-"}</TableCell>
                     <TableCell className="text-muted-foreground">{pkg.questions?.length ?? 0}</TableCell>
                     <TableCell className="text-muted-foreground">{pkg.created_at}</TableCell>

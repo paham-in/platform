@@ -104,6 +104,47 @@ const docTemplate = `{
             }
         },
         "/admin/chapters/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan detail chapter berdasarkan ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Get chapter",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Chapter ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/chapter.ChapterResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/chapter.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
@@ -5524,6 +5565,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "subject_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -5577,6 +5621,12 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/questionpackage.PackageQuestionResponse"
                     }
+                },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "subject_name": {
+                    "type": "string"
                 }
             }
         },
@@ -5591,6 +5641,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "subject_id": {
+                    "type": "integer"
                 }
             }
         },

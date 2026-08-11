@@ -1,21 +1,26 @@
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
-import { Loader2, Shield, Trash2 } from "lucide-react"
+import { Loader2, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 import {
-  getMeOptions,
-  getSubjectsOptions,
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+} from "@/components/ui/alert-dialog"
+import {
   getAdminSubjectsBySubjectIdImagesUsageQueryKey,
   getAdminSubjectsBySubjectIdImagesUsageOptions,
   deleteAdminSubjectsBySubjectIdImagesByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { Link } from "@tanstack/react-router"
-import { homeForRoles } from "@/lib/role"
+
+type SubjectOption = { id?: number; name?: string }
 
 type UsageImage = {
   id?: number
@@ -27,15 +32,22 @@ type UsageImage = {
   is_owner?: boolean
 }
 
-function GalleryPage() {
+// GalleryBrowser: grid pemakaian gambar per subject. Dipakai halaman admin
+// (semua subject) dan teacher (cuma subject yang dia ajar). Pemanggil yang
+// menentukan scope subject-nya; component tinggal render.
+export function GalleryBrowser({
+  subjects,
+  heading = "Galeri Gambar",
+  description = "Pantau pemakaian gambar di materi. Gambar yang dipakai tidak bisa dihapus.",
+}: {
+  subjects: SubjectOption[]
+  heading?: string
+  description?: string
+}) {
   const qc = useQueryClient()
-  const { data: user, isLoading: loadingUser } = useQuery(getMeOptions())
-  const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [subjectId, setSubjectId] = useState("")
   const [expanded, setExpanded] = useState<number | null>(null)
-
-  const userRoles = (user?.roles as string[]) ?? []
-  const isStaff = userRoles.includes("admin") || userRoles.includes("teacher")
+  const [deleteTarget, setDeleteTarget] = useState<UsageImage | null>(null)
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
@@ -47,7 +59,7 @@ function GalleryPage() {
     ...getAdminSubjectsBySubjectIdImagesUsageOptions({
       path: { subject_id: Number(subjectId) },
     }),
-    enabled: !!subjectId && isStaff,
+    enabled: !!subjectId,
   } as any)
   const usageImages = images as unknown as UsageImage[]
 
@@ -60,57 +72,33 @@ function GalleryPage() {
     onError: () => toast.error("Gagal menghapus gambar"),
   })
 
-  if (loadingUser) {
-    return (
-      <main className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </main>
-    )
-  }
-
-  if (!isStaff) {
-    return (
-      <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-          <Shield className="h-6 w-6" />
-        </div>
-        <div>
-          <h2 className="text-xl font-bold tracking-tight">Akses Ditolak</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Halaman ini khusus untuk Admin dan Guru.
-          </p>
-        </div>
-        <Link to={homeForRoles(userRoles)}>
-          <Button>Kembali ke Dashboard</Button>
-        </Link>
-      </main>
-    )
-  }
-
-  const handleDelete = (img: UsageImage) => {
-    if (!img.id || !subjectId) return
+  const requestDelete = (img: UsageImage) => {
     if ((img.usage_count ?? 0) > 0) {
       toast.error(`Gambar dipakai di ${img.usage_count} materi — hapus dulu referensinya.`)
       return
     }
-    deleteImage({ path: { subject_id: Number(subjectId), id: img.id } })
+    setDeleteTarget(img)
+  }
+
+  const confirmDelete = () => {
+    if (!deleteTarget?.id || !subjectId) return
+    deleteImage({ path: { subject_id: Number(subjectId), id: deleteTarget.id } })
+    setDeleteTarget(null)
   }
 
   return (
     <main className="p-6">
       <div className="mx-auto max-w-4xl space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Galeri Gambar</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Pantau pemakaian gambar di materi. Gambar yang dipakai tidak bisa dihapus.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">{heading}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
 
         <div className="space-y-2">
           <Label>Mata Pelajaran</Label>
           <Select items={subjectOptions} value={subjectId} onValueChange={(v) => { setSubjectId(v ?? ""); setExpanded(null) }}>
             <SelectTrigger className="w-full sm:max-w-xs">
-              <SelectValue placeholder="Pilih subjek" />
+              <SelectValue placeholder={subjectOptions.length ? "Pilih subjek" : "Tidak ada subjek"} />
             </SelectTrigger>
             <SelectContent>
               {subjectOptions.map((opt) => (
@@ -132,19 +120,34 @@ function GalleryPage() {
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 {usageImages.map((img) => (
                   <div key={img.id} className="overflow-hidden rounded-2xl border">
-                    <button
-                      type="button"
-                      className="block w-full text-left"
-                      onClick={() => setExpanded(expanded === img.id ? null : (img.id ?? null))}
-                    >
-                      <img src={img.url} alt={img.title} className="h-32 w-full object-cover" />
-                      <div className="space-y-1 p-3">
-                        <p className="truncate text-sm font-medium">{img.title || "Tanpa judul"}</p>
-                        <p className={`text-xs ${(img.usage_count ?? 0) > 0 ? "text-primary" : "text-muted-foreground"}`}>
-                          Dipakai di {img.usage_count ?? 0} materi
-                        </p>
-                      </div>
-                    </button>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        className="block w-full text-left"
+                        onClick={() => setExpanded(expanded === img.id ? null : (img.id ?? null))}
+                      >
+                        <img src={img.url} alt={img.title} className="h-32 w-full object-cover" />
+                      </button>
+                      {img.is_owner && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title={(img.usage_count ?? 0) > 0 ? `Dipakai di ${img.usage_count} materi` : "Hapus gambar"}
+                          className="absolute right-2 top-2 h-7 w-7 bg-background/80 p-0 text-destructive hover:bg-background"
+                          disabled={deleting || (img.usage_count ?? 0) > 0}
+                          onClick={() => requestDelete(img)}
+                        >
+                          {deleting && <Spinner className="h-3 w-3" />}
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                    <div className="space-y-1 p-3">
+                      <p className="truncate text-sm font-medium">{img.title || "Tanpa judul"}</p>
+                      <p className={`text-xs ${(img.usage_count ?? 0) > 0 ? "text-primary" : "text-muted-foreground"}`}>
+                        Dipakai di {img.usage_count ?? 0} materi
+                      </p>
+                    </div>
 
                     {expanded === img.id && (
                       <div className="border-t bg-muted/30 px-3 py-2">
@@ -157,19 +160,6 @@ function GalleryPage() {
                         ) : (
                           <p className="text-xs text-muted-foreground">Tidak dipakai di materi mana pun.</p>
                         )}
-                        <div className="mt-2 flex justify-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-destructive"
-                            disabled={deleting || (img.usage_count ?? 0) > 0}
-                            onClick={() => handleDelete(img)}
-                          >
-                            {deleting && <Spinner className="h-3 w-3" />}
-                            <Trash2 className="mr-1 h-3.5 w-3.5" />
-                            Hapus
-                          </Button>
-                        </div>
                       </div>
                     )}
                   </div>
@@ -179,10 +169,26 @@ function GalleryPage() {
           </>
         )}
       </div>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Gambar</AlertDialogTitle>
+            <AlertDialogDescription>
+              Yakin ingin menghapus gambar{deleteTarget?.title ? ` “${deleteTarget.title}”` : " ini"}? Aksi ini tidak bisa dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+              Batal
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleting}>
+              {deleting && <Spinner className="h-3 w-3" />}
+              Hapus
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   )
 }
-
-export const Route = createFileRoute("/_dashboard/gallery")({
-  component: GalleryPage,
-})

@@ -4,8 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAdminQuestionPackagesQueryKey, postAdminQuestionPackagesByIdQuestionsMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesQueryKey, postAdminQuestionPackagesByIdQuestionsMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -21,6 +21,10 @@ function NewQuestion() {
   const { packageId } = useParams({ from: "/_dashboard/teacher/packs/$packageId/questions/new" })
   const qc = useQueryClient()
   const navigate = useNavigate()
+
+  // subject gallery = subject dari paket ini (buat GalleryPicker di editor).
+  const { data: pkg } = useQuery(getAdminQuestionPackagesByIdOptions({ path: { id: Number(packageId) } }))
+  const subjectId = pkg?.subject_id
 
   const [question, setQuestion] = useState("")
   const [answers, setAnswers] = useState<{ content: string; is_correct: boolean }[]>([
@@ -74,7 +78,7 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Pertanyaan</Label>
-          <TiptapEditor content={question} onChange={setQuestion} />
+          <TiptapEditor content={question} onChange={setQuestion} subjectId={subjectId} />
         </div>
 
         <div className="space-y-3">
@@ -90,6 +94,7 @@ function NewQuestion() {
                     next[i] = { ...next[i], content: html }
                     setAnswers(next)
                   }}
+                  subjectId={subjectId}
                 />
               </div>
               <label className="mt-1 flex items-center gap-1.5 text-sm">
@@ -116,7 +121,7 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Pembahasan (opsional)</Label>
-          <TiptapEditor content={explanation} onChange={setExplanation} />
+          <TiptapEditor content={explanation} onChange={setExplanation} subjectId={subjectId} />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">

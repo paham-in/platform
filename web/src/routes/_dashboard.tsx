@@ -106,7 +106,6 @@ const sidebarGroups: SidebarGroup[] = [
       },
       { label: "Kalender", icon: Calendar, to: "/teacher/calendar" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/teacher/forum" },
-      { label: "Galeri", icon: ImageIcon, to: "/gallery" },
       {
         label: "Les Privat",
         icon: Calendar,
@@ -152,7 +151,7 @@ const sidebarGroups: SidebarGroup[] = [
       },
       { label: "Les Privat", icon: Calendar, to: "/admin/tutoring" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
-      { label: "Galeri", icon: ImageIcon, to: "/gallery" },
+      { label: "Galeri", icon: ImageIcon, to: "/admin/gallery" },
       { label: "Reset Data", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },
     ],
   },

@@ -544,6 +544,8 @@ definitions:
         type: boolean
       name:
         type: string
+      subject_id:
+        type: integer
     type: object
   questionpackage.ErrorResponse:
     properties:
@@ -578,6 +580,10 @@ definitions:
         items:
           $ref: '#/definitions/questionpackage.PackageQuestionResponse'
         type: array
+      subject_id:
+        type: integer
+      subject_name:
+        type: string
     type: object
   questionpackage.UpdateInput:
     properties:
@@ -587,6 +593,8 @@ definitions:
         type: boolean
       name:
         type: string
+      subject_id:
+        type: integer
     type: object
   setting.ErrorResponse:
     properties:
@@ -1175,6 +1183,32 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete chapter
+      tags:
+      - Admin
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan detail chapter berdasarkan ID
+      parameters:
+      - description: Chapter ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chapter.ChapterResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/chapter.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get chapter
       tags:
       - Admin
     patch:

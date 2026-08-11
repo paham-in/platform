@@ -17,6 +17,8 @@ type PackageResponse struct {
 	ID          uint                     `json:"id"`
 	Name        string                   `json:"name"`
 	Description string                   `json:"description"`
+	SubjectID   uint                     `json:"subject_id"`
+	SubjectName string                   `json:"subject_name"`
 	IsFree      bool                     `json:"is_free"`
 	Questions   []PackageQuestionResponse `json:"questions"`
 	CreatedAt   string                   `json:"created_at"`
@@ -33,6 +35,7 @@ func NewService(repo *Repository) *Service {
 type CreateInput struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	SubjectID   uint   `json:"subject_id"`
 	IsFree      bool   `json:"is_free"`
 }
 
@@ -40,10 +43,14 @@ func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
 	if input.Name == "" {
 		return nil, errors.New("nama paket wajib diisi")
 	}
+	if input.SubjectID == 0 {
+		return nil, errors.New("mata pelajaran wajib diisi")
+	}
 
 	pkg := models.QuestionPackage{
 		Name:        input.Name,
 		Description: input.Description,
+		SubjectID:   input.SubjectID,
 		IsFree:      input.IsFree,
 	}
 	if err := s.repo.Create(&pkg); err != nil {
@@ -60,6 +67,7 @@ func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
 type UpdateInput struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`
+	SubjectID   *uint   `json:"subject_id"`
 	IsFree      *bool   `json:"is_free"`
 }
 
@@ -73,6 +81,9 @@ func (s *Service) Update(id uint, input UpdateInput) (*PackageResponse, error) {
 	}
 	if input.Description != nil {
 		pkg.Description = *input.Description
+	}
+	if input.SubjectID != nil {
+		pkg.SubjectID = *input.SubjectID
 	}
 	if input.IsFree != nil {
 		pkg.IsFree = *input.IsFree
@@ -138,6 +149,8 @@ func (s *Service) toResponse(pkg models.QuestionPackage) PackageResponse {
 		ID:          pkg.ID,
 		Name:        pkg.Name,
 		Description: pkg.Description,
+		SubjectID:   pkg.SubjectID,
+		SubjectName: pkg.Subject.Name,
 		IsFree:      pkg.IsFree,
 		Questions:   questions,
 		CreatedAt:   pkg.CreatedAt.Format("2006-01-02 15:04"),

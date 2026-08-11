@@ -14,7 +14,6 @@ import { Route as DashboardRouteImport } from './routes/_dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard/settings'
-import { Route as DashboardGalleryRouteImport } from './routes/_dashboard/gallery'
 import { Route as DashboardUserSubscribeRouteImport } from './routes/_dashboard/user/subscribe'
 import { Route as DashboardUserMaterialsRouteImport } from './routes/_dashboard/user/materials'
 import { Route as DashboardUserDashboardRouteImport } from './routes/_dashboard/user/dashboard'
@@ -31,6 +30,7 @@ import { Route as DashboardAdminTeacherPermissionsRouteImport } from './routes/_
 import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard/admin/subjects'
 import { Route as DashboardAdminStudentClassesRouteImport } from './routes/_dashboard/admin/student-classes'
 import { Route as DashboardAdminProgramsRouteImport } from './routes/_dashboard/admin/programs'
+import { Route as DashboardAdminGalleryRouteImport } from './routes/_dashboard/admin/gallery'
 import { Route as DashboardAdminDevResetRouteImport } from './routes/_dashboard/admin/dev-reset'
 import { Route as DashboardAdminDashboardRouteImport } from './routes/_dashboard/admin/dashboard'
 import { Route as DashboardTeacherTutoringIndexRouteImport } from './routes/_dashboard/teacher/tutoring/index'
@@ -90,11 +90,6 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardGalleryRoute = DashboardGalleryRouteImport.update({
-  id: '/gallery',
-  path: '/gallery',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardUserSubscribeRoute = DashboardUserSubscribeRouteImport.update({
@@ -185,6 +180,11 @@ const DashboardAdminStudentClassesRoute =
 const DashboardAdminProgramsRoute = DashboardAdminProgramsRouteImport.update({
   id: '/admin/programs',
   path: '/admin/programs',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAdminGalleryRoute = DashboardAdminGalleryRouteImport.update({
+  id: '/admin/gallery',
+  path: '/admin/gallery',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAdminDevResetRoute = DashboardAdminDevResetRouteImport.update({
@@ -402,11 +402,11 @@ const DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/gallery': typeof DashboardGalleryRoute
   '/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/admin/dev-reset': typeof DashboardAdminDevResetRoute
+  '/admin/gallery': typeof DashboardAdminGalleryRoute
   '/admin/programs': typeof DashboardAdminProgramsRoute
   '/admin/student-classes': typeof DashboardAdminStudentClassesRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
@@ -461,11 +461,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/gallery': typeof DashboardGalleryRoute
   '/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/admin/dev-reset': typeof DashboardAdminDevResetRoute
+  '/admin/gallery': typeof DashboardAdminGalleryRoute
   '/admin/programs': typeof DashboardAdminProgramsRoute
   '/admin/student-classes': typeof DashboardAdminStudentClassesRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
@@ -521,11 +521,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
-  '/_dashboard/gallery': typeof DashboardGalleryRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_dashboard/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/_dashboard/admin/dev-reset': typeof DashboardAdminDevResetRoute
+  '/_dashboard/admin/gallery': typeof DashboardAdminGalleryRoute
   '/_dashboard/admin/programs': typeof DashboardAdminProgramsRoute
   '/_dashboard/admin/student-classes': typeof DashboardAdminStudentClassesRoute
   '/_dashboard/admin/subjects': typeof DashboardAdminSubjectsRoute
@@ -582,11 +582,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/gallery'
     | '/settings'
     | '/auth/callback'
     | '/admin/dashboard'
     | '/admin/dev-reset'
+    | '/admin/gallery'
     | '/admin/programs'
     | '/admin/student-classes'
     | '/admin/subjects'
@@ -641,11 +641,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
-    | '/gallery'
     | '/settings'
     | '/auth/callback'
     | '/admin/dashboard'
     | '/admin/dev-reset'
+    | '/admin/gallery'
     | '/admin/programs'
     | '/admin/student-classes'
     | '/admin/subjects'
@@ -700,11 +700,11 @@ export interface FileRouteTypes {
     | '/'
     | '/_dashboard'
     | '/login'
-    | '/_dashboard/gallery'
     | '/_dashboard/settings'
     | '/auth/callback'
     | '/_dashboard/admin/dashboard'
     | '/_dashboard/admin/dev-reset'
+    | '/_dashboard/admin/gallery'
     | '/_dashboard/admin/programs'
     | '/_dashboard/admin/student-classes'
     | '/_dashboard/admin/subjects'
@@ -799,13 +799,6 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof DashboardSettingsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/gallery': {
-      id: '/_dashboard/gallery'
-      path: '/gallery'
-      fullPath: '/gallery'
-      preLoaderRoute: typeof DashboardGalleryRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/user/subscribe': {
@@ -918,6 +911,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/programs'
       fullPath: '/admin/programs'
       preLoaderRoute: typeof DashboardAdminProgramsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/gallery': {
+      id: '/_dashboard/admin/gallery'
+      path: '/admin/gallery'
+      fullPath: '/admin/gallery'
+      preLoaderRoute: typeof DashboardAdminGalleryRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/admin/dev-reset': {
@@ -1209,10 +1209,10 @@ const DashboardUserMaterialsRouteWithChildren =
   )
 
 interface DashboardRouteChildren {
-  DashboardGalleryRoute: typeof DashboardGalleryRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardAdminDashboardRoute: typeof DashboardAdminDashboardRoute
   DashboardAdminDevResetRoute: typeof DashboardAdminDevResetRoute
+  DashboardAdminGalleryRoute: typeof DashboardAdminGalleryRoute
   DashboardAdminProgramsRoute: typeof DashboardAdminProgramsRoute
   DashboardAdminStudentClassesRoute: typeof DashboardAdminStudentClassesRoute
   DashboardAdminSubjectsRoute: typeof DashboardAdminSubjectsRoute
@@ -1262,10 +1262,10 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardGalleryRoute: DashboardGalleryRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardAdminDashboardRoute: DashboardAdminDashboardRoute,
   DashboardAdminDevResetRoute: DashboardAdminDevResetRoute,
+  DashboardAdminGalleryRoute: DashboardAdminGalleryRoute,
   DashboardAdminProgramsRoute: DashboardAdminProgramsRoute,
   DashboardAdminStudentClassesRoute: DashboardAdminStudentClassesRoute,
   DashboardAdminSubjectsRoute: DashboardAdminSubjectsRoute,

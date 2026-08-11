@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { getAdminQuestionPackagesQueryKey, patchAdminQuestionPackagesByIdMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminQuestionPackagesQueryKey, getSubjectsOptions, patchAdminQuestionPackagesByIdMutation } from "@/lib/api/@tanstack/react-query.gen"
 import type { QuestionpackagePackageResponse } from "@/lib/api/types.gen"
 
 interface EditPackageDialogProps {
@@ -18,9 +19,13 @@ interface EditPackageDialogProps {
 
 export function EditPackageDialog({ pkg, onClose }: EditPackageDialogProps) {
   const qc = useQueryClient()
+  const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [name, setName] = useState(pkg.name ?? "")
   const [description, setDescription] = useState(pkg.description ?? "")
+  const [subjectId, setSubjectId] = useState(pkg.subject_id ? String(pkg.subject_id) : "")
   const [isFree, setIsFree] = useState(pkg.is_free ?? true)
+
+  const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
   const { mutate: updatePackage, isPending } = useMutation({
     ...patchAdminQuestionPackagesByIdMutation(),
@@ -33,10 +38,10 @@ export function EditPackageDialog({ pkg, onClose }: EditPackageDialogProps) {
   })
 
   const save = () => {
-    if (!name.trim()) return
+    if (!name.trim() || !subjectId) return
     updatePackage({
       path: { id: pkg.id! },
-      body: { name, description, is_free: isFree },
+      body: { name, description, subject_id: Number(subjectId), is_free: isFree },
     })
   }
 
@@ -57,6 +62,20 @@ export function EditPackageDialog({ pkg, onClose }: EditPackageDialogProps) {
               placeholder="Nama paket soal"
               autoFocus
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="subject">Mata Pelajaran</Label>
+            <Select items={subjectOptions} value={subjectId} onValueChange={(v) => setSubjectId(v ?? "")}>
+              <SelectTrigger id="subject" className="w-full">
+                <SelectValue placeholder="Pilih mata pelajaran" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjectOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -83,7 +102,7 @@ export function EditPackageDialog({ pkg, onClose }: EditPackageDialogProps) {
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button onClick={save} disabled={!name.trim() || isPending}>
+          <Button onClick={save} disabled={!name.trim() || !subjectId || isPending}>
             {isPending && <Spinner />}
             Simpan
           </Button>

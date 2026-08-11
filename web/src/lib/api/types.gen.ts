@@ -347,6 +347,7 @@ export type QuestionpackageCreateInput = {
     description?: string;
     is_free?: boolean;
     name?: string;
+    subject_id?: number;
 };
 
 export type QuestionpackageErrorResponse = {
@@ -369,12 +370,15 @@ export type QuestionpackagePackageResponse = {
     is_free?: boolean;
     name?: string;
     questions?: Array<QuestionpackagePackageQuestionResponse>;
+    subject_id?: number;
+    subject_name?: string;
 };
 
 export type QuestionpackageUpdateInput = {
     description?: string;
     is_free?: boolean;
     name?: string;
+    subject_id?: number;
 };
 
 export type SettingErrorResponse = {
@@ -768,6 +772,36 @@ export type DeleteAdminChaptersByIdResponses = {
 };
 
 export type DeleteAdminChaptersByIdResponse = DeleteAdminChaptersByIdResponses[keyof DeleteAdminChaptersByIdResponses];
+
+export type GetAdminChaptersByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Chapter ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/chapters/{id}';
+};
+
+export type GetAdminChaptersByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: ChapterErrorResponse;
+};
+
+export type GetAdminChaptersByIdError = GetAdminChaptersByIdErrors[keyof GetAdminChaptersByIdErrors];
+
+export type GetAdminChaptersByIdResponses = {
+    /**
+     * OK
+     */
+    200: ChapterChapterResponse;
+};
+
+export type GetAdminChaptersByIdResponse = GetAdminChaptersByIdResponses[keyof GetAdminChaptersByIdResponses];
 
 export type PatchAdminChaptersByIdData = {
     /**

@@ -51,6 +51,37 @@ func userIDFrom(c *fiber.Ctx) uint {
 	return u.ID
 }
 
+func (h *Handler) isAdmin(c *fiber.Ctx) bool {
+	roles, _ := c.Locals("roles").([]string)
+	for _, r := range roles {
+		if r == "admin" {
+			return true
+		}
+	}
+	return false
+}
+
+// canAccessSubject memastikan user boleh menyentuh subject ini: admin selalu,
+// teacher hanya yang dia ajar (tabel teacher_subjects). Tutup IDOR gallery.
+func (h *Handler) canAccessSubject(c *fiber.Ctx, subjectID uint) error {
+	if h.isAdmin(c) {
+		return nil
+	}
+	userID := userIDFrom(c)
+	if userID == 0 {
+		return c.Status(401).JSON(GalleryErrorResponse{Error: "unauthorized"})
+	}
+	var n int64
+	if err := h.db.Model(&models.TeacherSubject{}).
+		Where("user_id = ? AND subject_id = ?", userID, subjectID).Count(&n).Error; err != nil {
+		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal memeriksa akses"})
+	}
+	if n == 0 {
+		return c.Status(403).JSON(GalleryErrorResponse{Error: "bukan subject yang kamu ajar"})
+	}
+	return nil
+}
+
 // UploadSubjectImage mengunggah gambar ke gallery subject
 // @Summary      Upload subject image
 // @Description  Mengunggah gambar ke gallery subject
@@ -78,6 +109,9 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 	var sub models.Subject
 	if err := h.db.First(&sub, subjectID).Error; err != nil {
 		return c.Status(404).JSON(GalleryErrorResponse{Error: "subject tidak ditemukan"})
+	}
+	if err := h.canAccessSubject(c, uint(subjectID)); err != nil {
+		return err
 	}
 
 	file, err := c.FormFile("image")
@@ -166,10 +200,17 @@ func (h *Handler) List(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(GalleryErrorResponse{Error: "id tidak valid"})
 	}
+	if err := h.canAccessSubject(c, uint(subjectID)); err != nil {
+		return err
+	}
 
 	q := c.Query("q", "")
 	var images []models.SubjectImage
 	query := h.db.Where("subject_id = ?", subjectID)
+	// teacher cuma lihat upload-an sendiri; admin semua.
+	if !h.isAdmin(c) {
+		query = query.Where("user_id = ?", userIDFrom(c))
+	}
 	if q != "" {
 		query = query.Where("title ILIKE ?", "%"+q+"%")
 	}
@@ -229,9 +270,17 @@ func (h *Handler) Usage(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(GalleryErrorResponse{Error: "id tidak valid"})
 	}
+	if err := h.canAccessSubject(c, uint(subjectID)); err != nil {
+		return err
+	}
 
 	var images []models.SubjectImage
-	if err := h.db.Where("subject_id = ?", subjectID).Order("created_at desc").Find(&images).Error; err != nil {
+	query := h.db.Where("subject_id = ?", subjectID)
+	// teacher cuma lihat upload-an sendiri; admin semua.
+	if !h.isAdmin(c) {
+		query = query.Where("user_id = ?", userIDFrom(c))
+	}
+	if err := query.Order("created_at desc").Find(&images).Error; err != nil {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengambil data"})
 	}
 
@@ -296,8 +345,12 @@ func (h *Handler) Delete(c *fiber.Ctx) error {
 	if err := h.db.First(&img, imageID).Error; err != nil {
 		return c.Status(404).JSON(GalleryErrorResponse{Error: "gambar tidak ditemukan"})
 	}
+	if err := h.canAccessSubject(c, img.SubjectID); err != nil {
+		return err
+	}
 
-	if img.UserID != userID {
+	// admin boleh hapus gambar siapa pun; teacher cuma punya sendiri.
+	if !h.isAdmin(c) && img.UserID != userID {
 		return c.Status(403).JSON(GalleryErrorResponse{Error: "bukan pemilik gambar"})
 	}
 

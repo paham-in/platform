@@ -16,7 +16,7 @@ func NewRepository(db *gorm.DB) *Repository {
 
 func (r *Repository) List() ([]models.QuestionPackage, error) {
 	var packages []models.QuestionPackage
-	if err := r.db.Preload("Questions").Order("created_at desc").Find(&packages).Error; err != nil {
+	if err := r.db.Preload("Questions").Preload("Subject").Order("created_at desc").Find(&packages).Error; err != nil {
 		return nil, err
 	}
 	return packages, nil
@@ -24,7 +24,7 @@ func (r *Repository) List() ([]models.QuestionPackage, error) {
 
 func (r *Repository) Get(id uint) (*models.QuestionPackage, error) {
 	var pkg models.QuestionPackage
-	if err := r.db.Preload("Questions").First(&pkg, id).Error; err != nil {
+	if err := r.db.Preload("Questions").Preload("Subject").First(&pkg, id).Error; err != nil {
 		return nil, err
 	}
 	return &pkg, nil
@@ -33,7 +33,7 @@ func (r *Repository) Get(id uint) (*models.QuestionPackage, error) {
 // ListVisible untuk akses murid/user. includePremium=false membatasi ke paket free.
 func (r *Repository) ListVisible(includePremium bool) ([]models.QuestionPackage, error) {
 	var packages []models.QuestionPackage
-	q := r.db.Preload("Questions")
+	q := r.db.Preload("Questions").Preload("Subject")
 	if !includePremium {
 		q = q.Where("is_free = ?", true)
 	}

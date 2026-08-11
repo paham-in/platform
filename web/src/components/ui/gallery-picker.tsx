@@ -2,13 +2,6 @@ import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -29,7 +22,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import {
-  getSubjectsOptions,
   getAdminSubjectsBySubjectIdImagesQueryKey,
   deleteAdminSubjectsBySubjectIdImagesByIdMutation,
   postAdminSubjectsBySubjectIdImagesMutation,
@@ -40,31 +32,31 @@ import { toast } from "sonner"
 import { Loader2, SearchIcon, Trash2, Upload, X } from "lucide-react"
 type GalleryImage = { id: number; url: string; object_name?: string; title: string; is_owner?: boolean }
 
+// GalleryPicker: galeri gambar per-subject. Subject sudah ditentukan pemanggil
+// (materi → chapter, soal → paket) — tanpa dropdown. subjectId wajib.
 export function GalleryPicker({
   open,
   onOpenChange,
   onInsert,
+  subjectId,
 }: {
   open: boolean
   onOpenChange: (v: boolean) => void
   onInsert: (url: string) => void
+  subjectId: number | undefined
 }) {
   const qc = useQueryClient()
-  const { data: subjects = [] } = useQuery(getSubjectsOptions())
-  const [subjectId, setSubjectId] = useState("")
   const [search, setSearch] = useState("")
 
-  const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
-
   const queryKey = subjectId
-    ? getAdminSubjectsBySubjectIdImagesQueryKey({ path: { subject_id: Number(subjectId) }, query: { q: search || undefined } })
+    ? getAdminSubjectsBySubjectIdImagesQueryKey({ path: { subject_id: subjectId }, query: { q: search || undefined } })
     : [] as any
 
   const { data: rawImages = [], isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
       if (!subjectId) return []
-      const res = await getAdminSubjectsBySubjectIdImages({ path: { subject_id: Number(subjectId) }, query: { q: search || undefined } })
+      const res = await getAdminSubjectsBySubjectIdImages({ path: { subject_id: subjectId }, query: { q: search || undefined } })
       return res.data ?? []
     },
     enabled: !!subjectId,
@@ -82,11 +74,6 @@ export function GalleryPicker({
 
   useEffect(() => { if (!open) setSearch("") }, [open])
 
-  const handleSubjectChange = (v: string) => {
-    setSubjectId(v ?? "")
-    setSearch("")
-  }
-
   return (
     <>
       {open && <div className="fixed inset-0 z-50 bg-black/40" />}
@@ -103,20 +90,6 @@ export function GalleryPicker({
         </div>
 
         <div className="space-y-4">
-          <div>
-            <Label>Mata Pelajaran</Label>
-            <Select items={subjectOptions} value={subjectId} onValueChange={(v) => handleSubjectChange(v ?? "")}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Pilih subjek" />
-              </SelectTrigger>
-              <SelectContent>
-                {subjectOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           {subjectId && (
             <>
               <div className="flex gap-2">
@@ -140,9 +113,7 @@ export function GalleryPicker({
           {isLoading ? (
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
           ) : images.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">
-              {subjectId ? "Tidak ada gambar" : "Pilih subjek dulu"}
-            </p>
+            <p className="py-8 text-center text-muted-foreground">Tidak ada gambar</p>
           ) : (
             <div className="grid grid-cols-2 gap-3 overflow-y-auto" style={{ maxHeight: "calc(100vh - 340px)" }}>
               {images.map((img) => (
@@ -175,7 +146,7 @@ export function GalleryPicker({
                           <AlertDialogAction
                             variant="destructive"
                             disabled={deleting}
-                            onClick={() => deleteImage({ path: { subject_id: Number(subjectId), id: img.id! } })}
+                            onClick={() => deleteImage({ path: { subject_id: subjectId!, id: img.id! } })}
                           >
                             {deleting && <Spinner className="h-3 w-3" />}
                             Hapus
@@ -194,7 +165,7 @@ export function GalleryPicker({
   )
 }
 
-function UploadDialog({ subjectId, onDone }: { subjectId: string; onDone: () => void }) {
+function UploadDialog({ subjectId, onDone }: { subjectId: number; onDone: () => void }) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [files, setFiles] = useState<FileList | null>(null)
@@ -209,7 +180,7 @@ function UploadDialog({ subjectId, onDone }: { subjectId: string; onDone: () => 
     if (!files?.length) return
     const t = title.trim() || files[0].name
     for (const file of files) {
-      doUpload({ body: { image: file, title: t } as any, path: { subject_id: Number(subjectId) } })
+      doUpload({ body: { image: file, title: t } as any, path: { subject_id: subjectId } })
     }
   }
 
