@@ -99,6 +99,12 @@ export type DevresetResetResponse = {
     table?: string;
 };
 
+export type DevresetRunJobResponse = {
+    deleted?: number;
+    job?: string;
+    message?: string;
+};
+
 export type DevresetTableInfo = {
     description?: string;
     label?: string;
@@ -973,6 +979,56 @@ export type PatchAdminClassesByIdResponses = {
 };
 
 export type PatchAdminClassesByIdResponse = PatchAdminClassesByIdResponses[keyof PatchAdminClassesByIdResponses];
+
+export type PostAdminDevCronEvidenceCleanupData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/dev/cron/evidence-cleanup';
+};
+
+export type PostAdminDevCronEvidenceCleanupErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: DevresetErrorResponse;
+};
+
+export type PostAdminDevCronEvidenceCleanupError = PostAdminDevCronEvidenceCleanupErrors[keyof PostAdminDevCronEvidenceCleanupErrors];
+
+export type PostAdminDevCronEvidenceCleanupResponses = {
+    /**
+     * OK
+     */
+    200: DevresetRunJobResponse;
+};
+
+export type PostAdminDevCronEvidenceCleanupResponse = PostAdminDevCronEvidenceCleanupResponses[keyof PostAdminDevCronEvidenceCleanupResponses];
+
+export type PostAdminDevCronSessionCleanupData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/dev/cron/session-cleanup';
+};
+
+export type PostAdminDevCronSessionCleanupErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: DevresetErrorResponse;
+};
+
+export type PostAdminDevCronSessionCleanupError = PostAdminDevCronSessionCleanupErrors[keyof PostAdminDevCronSessionCleanupErrors];
+
+export type PostAdminDevCronSessionCleanupResponses = {
+    /**
+     * OK
+     */
+    200: DevresetRunJobResponse;
+};
+
+export type PostAdminDevCronSessionCleanupResponse = PostAdminDevCronSessionCleanupResponses[keyof PostAdminDevCronSessionCleanupResponses];
 
 export type GetAdminDevTablesData = {
     body?: never;

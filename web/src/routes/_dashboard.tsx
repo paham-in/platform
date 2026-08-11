@@ -152,7 +152,7 @@ const sidebarGroups: SidebarGroup[] = [
       { label: "Les Privat", icon: Calendar, to: "/admin/tutoring" },
       { label: "Tanya Jawab", icon: MessageSquare, to: "/admin/forum" },
       { label: "Galeri", icon: ImageIcon, to: "/admin/gallery" },
-      { label: "Reset Data", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },
+      { label: "Dev Tools", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },
     ],
   },
 ];

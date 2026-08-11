@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"log"
-	"time"
 
 	"bimbel2/backend/internal/answer"
 	"bimbel2/backend/internal/config"
@@ -16,6 +14,7 @@ import (
 	"bimbel2/backend/internal/forum"
 	"bimbel2/backend/internal/gallery"
 	"bimbel2/backend/internal/invoice"
+	"bimbel2/backend/internal/jobs"
 	"bimbel2/backend/internal/tutoring"
 	"bimbel2/backend/internal/material"
 	"bimbel2/backend/internal/push"
@@ -63,6 +62,9 @@ func main() {
 	if err != nil {
 		log.Printf("Warning: storage (rustfs) not available: %v", err)
 	}
+
+	// runner untuk background job (cron) — bisa juga dipanggil manual lewat devreset.
+	jobRunner := jobs.New(db, objectStorage, cfg.EvidenceRetentionDays)
 
 	app := fiber.New(fiber.Config{
 		BodyLimit: 6 * 1024 * 1024,
@@ -135,81 +137,15 @@ func main() {
 	studentclass.AdminRoutes(admin, db)
 	setting.AdminRoutes(admin, db, cfg.TeacherFeePercent)
 	tutoring.AdminRoutes(admin, db, objectStorage, settingSvc)
-	devreset.AdminRoutes(admin, db, cfg)
+	devreset.AdminRoutes(admin, db, cfg, jobRunner)
 
-	// background job: hapus sesi yang sudah kedaluwarsa setiap 1 jam
-	startSessionCleanup(db)
-
-	// background job: hapus bukti kehadiran approved yang melewati masa simpan
-	startEvidenceCleanup(db, objectStorage, cfg.EvidenceRetentionDays)
+	// background job: hapus sesi kedaluwarsa tiap jam & bukti kehadiran lewat masa simpan
+	jobRunner.StartSessionCleanup()
+	jobRunner.StartEvidenceCleanup()
 
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)
 	log.Fatal(app.Listen(":" + port))
-}
-
-func startSessionCleanup(db *gorm.DB) {
-	sessionRepo := user.NewSessionRepository(db)
-	go func() {
-		// jalankan sekali saat boot, lalu berkala
-		cleanupExpiredSessions(sessionRepo)
-		ticker := time.NewTicker(time.Hour)
-		defer ticker.Stop()
-		for range ticker.C {
-			cleanupExpiredSessions(sessionRepo)
-		}
-	}()
-}
-
-func cleanupExpiredSessions(repo *user.SessionRepository) {
-	deleted, err := repo.DeleteExpired(time.Now())
-	if err != nil {
-		log.Printf("[session-cleanup] gagal hapus sesi expired: %v", err)
-		return
-	}
-	if deleted > 0 {
-		log.Printf("[session-cleanup] %d sesi kedaluwarsa dihapus", deleted)
-	}
-}
-
-// startEvidenceCleanup menghapus bukti kehadiran approved yang melewati
-// masa simpan (retentionDays) dari storage. Fire pertama saat tengah malam
-// berikutnya, lalu tiap 24 jam.
-func startEvidenceCleanup(db *gorm.DB, objectStorage *storage.ObjectStorage, retentionDays int) {
-	if objectStorage == nil {
-		log.Println("[evidence-cleanup] storage tidak tersedia — cleanup dilewati")
-		return
-	}
-	repo := tutoring.NewRepository(db)
-	go func() {
-		now := time.Now()
-		next := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, 1)
-		time.Sleep(time.Until(next))
-		for {
-			cleanupApprovedEvidence(repo, objectStorage, retentionDays)
-			time.Sleep(24 * time.Hour)
-		}
-	}()
-}
-
-func cleanupApprovedEvidence(repo *tutoring.Repository, objectStorage *storage.ObjectStorage, retentionDays int) {
-	cutoff := time.Now().AddDate(0, 0, -retentionDays)
-	sessions, err := repo.ListApprovedEvidenceOlderThan(cutoff)
-	if err != nil {
-		log.Printf("[evidence-cleanup] gagal query: %v", err)
-		return
-	}
-	for _, s := range sessions {
-		if err := objectStorage.Delete(context.Background(), s.EvidenceURL); err != nil {
-			log.Printf("[evidence-cleanup] gagal hapus %s: %v", s.EvidenceURL, err)
-			continue
-		}
-		if err := repo.ClearSessionEvidence(s.ID); err != nil {
-			log.Printf("[evidence-cleanup] gagal kosongkan evidence sesi %d: %v", s.ID, err)
-			continue
-		}
-		log.Printf("[evidence-cleanup] bukti sesi %d dihapus", s.ID)
-	}
 }
 
 func ensureAdminRole(db *gorm.DB, user *models.User) {

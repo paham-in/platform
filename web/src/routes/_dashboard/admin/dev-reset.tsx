@@ -20,6 +20,8 @@ import {
   deleteAdminDevTablesByTableMutation,
   getAdminDevTablesOptions,
   getAdminDevTablesQueryKey,
+  postAdminDevCronEvidenceCleanupMutation,
+  postAdminDevCronSessionCleanupMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { DevresetTableInfo } from "@/lib/api/types.gen"
 
@@ -45,12 +47,32 @@ function DevReset() {
     reset.mutate({ path: { table: confirmTable.name } })
   }
 
+  const runSessionCleanup = useMutation({
+    ...postAdminDevCronSessionCleanupMutation(),
+    onSuccess: (data) => {
+      toast.success(data.message || "Pembersihan sesi selesai")
+      qc.invalidateQueries({ queryKey: getAdminDevTablesQueryKey() })
+    },
+    onError: (err: any) => toast.error(err?.error || "Gagal menjalankan job"),
+  })
+
+  const runEvidenceCleanup = useMutation({
+    ...postAdminDevCronEvidenceCleanupMutation(),
+    onSuccess: (data) => {
+      toast.success(data.message || "Pembersihan bukti selesai")
+      qc.invalidateQueries({ queryKey: getAdminDevTablesQueryKey() })
+    },
+    onError: (err: any) => toast.error(err?.error || "Gagal menjalankan job"),
+  })
+
   return (
-    <main className="p-6">
-      <h1 className="mb-1 text-2xl font-bold tracking-tight">Reset Data</h1>
-      <p className="mb-6 text-sm text-muted-foreground">
-        Hapus semua row per tabel untuk pengujian E2E dari data bersih. Hanya untuk development.
-      </p>
+    <main className="flex flex-col gap-4 p-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Dev Tools</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Utilitas development: trigger cron manual dan hapus data per tabel untuk pengujian E2E.
+        </p>
+      </div>
 
       {!isLoading && !enabled && (
         <Card className="max-w-3xl border-destructive/50">
@@ -59,6 +81,52 @@ function DevReset() {
             <code>backend/.env</code> lalu restart backend untuk mengaktifkannya.
           </CardContent>
         </Card>
+      )}
+
+      {enabled && (
+      <Card className="max-w-3xl">
+        <CardHeader>
+          <CardTitle>Cron / Pekerjaan Background</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="divide-y">
+            <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+              <div>
+                <p className="font-medium">Bersihkan Sesi Kedaluwarsa</p>
+                <p className="text-xs text-muted-foreground">
+                  Hapus sesi login yang sudah lewat masa berlaku. Berjalan otomatis tiap 1 jam.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => runSessionCleanup.mutate({})}
+                disabled={runSessionCleanup.isPending}
+              >
+                {runSessionCleanup.isPending && <Spinner />}
+                Jalankan Sekarang
+              </Button>
+            </div>
+            <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+              <div>
+                <p className="font-medium">Bersihkan Bukti Kehadiran Lama</p>
+                <p className="text-xs text-muted-foreground">
+                  Hapus bukti kehadiran approved yang melewati masa simpan dari storage. Berjalan otomatis tiap 24 jam.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => runEvidenceCleanup.mutate({})}
+                disabled={runEvidenceCleanup.isPending}
+              >
+                {runEvidenceCleanup.isPending && <Spinner />}
+                Jalankan Sekarang
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       )}
 
       {enabled && (

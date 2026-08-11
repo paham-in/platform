@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"bimbel2/backend/internal/config"
+	"bimbel2/backend/internal/jobs"
 	"bimbel2/backend/internal/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,12 +14,13 @@ import (
 // Handler khusus utility development: hapus data per tabel untuk pengujian E2E.
 // Tidak ada repository/service — langsung akses *gorm.DB.
 type Handler struct {
-	db  *gorm.DB
-	cfg *config.Config
+	db   *gorm.DB
+	cfg  *config.Config
+	jobs *jobs.Runner
 }
 
-func NewHandler(db *gorm.DB, cfg *config.Config) *Handler {
-	return &Handler{db: db, cfg: cfg}
+func NewHandler(db *gorm.DB, cfg *config.Config, jobRunner *jobs.Runner) *Handler {
+	return &Handler{db: db, cfg: cfg, jobs: jobRunner}
 }
 
 type ErrorResponse struct {
@@ -40,6 +42,12 @@ type ListTablesResponse struct {
 
 type ResetResponse struct {
 	Table   string `json:"table"`
+	Deleted int64  `json:"deleted"`
+	Message string `json:"message"`
+}
+
+type RunJobResponse struct {
+	Job     string `json:"job"`
 	Deleted int64  `json:"deleted"`
 	Message string `json:"message"`
 }
@@ -221,12 +229,56 @@ func (h *Handler) resetSessions(c *fiber.Ctx) error {
 	return c.JSON(ResetResponse{Table: "sessions", Deleted: res.RowsAffected, Message: "Semua sesi lain dihapus"})
 }
 
-func AdminRoutes(admin fiber.Router, db *gorm.DB, cfg *config.Config) {
-	h := NewHandler(db, cfg)
+// RunSessionCleanup menjalankan job pembersihan sesi kedaluwarsa secara manual
+// @Summary      Run session cleanup job
+// @Description  Jalankan manual job hapus sesi kedaluwarsa (development)
+// @Tags         Dev
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} RunJobResponse
+// @Failure      500 {object} ErrorResponse
+// @Router       /admin/dev/cron/session-cleanup [post]
+func (h *Handler) RunSessionCleanup(c *fiber.Ctx) error {
+	deleted, err := h.jobs.SessionCleanup()
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal bersihkan sesi: " + err.Error()})
+	}
+	return c.JSON(RunJobResponse{
+		Job:     "session-cleanup",
+		Deleted: deleted,
+		Message: fmt.Sprintf("%d sesi kedaluwarsa dihapus", deleted),
+	})
+}
+
+// RunEvidenceCleanup menjalankan job pembersihan bukti kehadiran lama secara manual
+// @Summary      Run evidence cleanup job
+// @Description  Jalankan manual job hapus bukti kehadiran approved yang lewat masa simpan (development)
+// @Tags         Dev
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} RunJobResponse
+// @Failure      500 {object} ErrorResponse
+// @Router       /admin/dev/cron/evidence-cleanup [post]
+func (h *Handler) RunEvidenceCleanup(c *fiber.Ctx) error {
+	deleted, err := h.jobs.EvidenceCleanup()
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal bersihkan bukti: " + err.Error()})
+	}
+	return c.JSON(RunJobResponse{
+		Job:     "evidence-cleanup",
+		Deleted: int64(deleted),
+		Message: fmt.Sprintf("%d bukti kehadiran dihapus", deleted),
+	})
+}
+
+func AdminRoutes(admin fiber.Router, db *gorm.DB, cfg *config.Config, jobRunner *jobs.Runner) {
+	h := NewHandler(db, cfg, jobRunner)
 	// GET selalu diregistrasi (FE butuh flag enabled buat hide menu).
-	// DELETE (yang menghapus data) cuma ada kalau fitur dinyalakan.
+	// DELETE/POST (yang menghapus/menjalankan) cuma ada kalau fitur dinyalakan.
 	admin.Get("/dev/tables", h.ListTables)
 	if cfg.DevResetEnabled {
 		admin.Delete("/dev/tables/:table", h.ResetTable)
+		admin.Post("/dev/cron/session-cleanup", h.RunSessionCleanup)
+		admin.Post("/dev/cron/evidence-cleanup", h.RunEvidenceCleanup)
 	}
 }

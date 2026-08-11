@@ -442,6 +442,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/dev/cron/evidence-cleanup": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Jalankan manual job hapus bukti kehadiran approved yang lewat masa simpan (development)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dev"
+                ],
+                "summary": "Run evidence cleanup job",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.RunJobResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/dev/cron/session-cleanup": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Jalankan manual job hapus sesi kedaluwarsa (development)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dev"
+                ],
+                "summary": "Run session cleanup job",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.RunJobResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/dev/tables": {
             "get": {
                 "security": [
@@ -4960,6 +5022,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "table": {
+                    "type": "string"
+                }
+            }
+        },
+        "devreset.RunJobResponse": {
+            "type": "object",
+            "properties": {
+                "deleted": {
+                    "type": "integer"
+                },
+                "job": {
+                    "type": "string"
+                },
+                "message": {
                     "type": "string"
                 }
             }

@@ -147,6 +147,15 @@ definitions:
       table:
         type: string
     type: object
+  devreset.RunJobResponse:
+    properties:
+      deleted:
+        type: integer
+      job:
+        type: string
+      message:
+        type: string
+    type: object
   devreset.TableInfo:
     properties:
       description:
@@ -1378,6 +1387,45 @@ paths:
       summary: Update class
       tags:
       - Admin
+  /admin/dev/cron/evidence-cleanup:
+    post:
+      description: Jalankan manual job hapus bukti kehadiran approved yang lewat masa
+        simpan (development)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/devreset.RunJobResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/devreset.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Run evidence cleanup job
+      tags:
+      - Dev
+  /admin/dev/cron/session-cleanup:
+    post:
+      description: Jalankan manual job hapus sesi kedaluwarsa (development)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/devreset.RunJobResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/devreset.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Run session cleanup job
+      tags:
+      - Dev
   /admin/dev/tables:
     get:
       description: Status fitur reset + daftar tabel aplikasi beserta jumlah row (development)
