@@ -28,8 +28,17 @@ type UsageImage = {
   object_name?: string
   title?: string
   usage_count?: number
-  used_in?: { id?: number; title?: string }[]
+  used_in?: { id?: number; title?: string; type?: string }[]
   is_owner?: boolean
+}
+
+function refLabel(ref: { title?: string; type?: string }): string {
+  switch (ref.type) {
+    case "materi": return `Materi: ${ref.title ?? ""}`
+    case "soal": return `Soal: ${ref.title ?? ""}`
+    case "jawaban": return `Jawaban: ${ref.title ?? ""}`
+    default: return ref.title ?? ""
+  }
 }
 
 // GalleryBrowser: grid pemakaian gambar per subject. Dipakai halaman admin
@@ -38,7 +47,7 @@ type UsageImage = {
 export function GalleryBrowser({
   subjects,
   heading = "Galeri Gambar",
-  description = "Pantau pemakaian gambar di materi. Gambar yang dipakai tidak bisa dihapus.",
+  description = "Pantau pemakaian gambar di materi & paket soal. Gambar yang dipakai tidak bisa dihapus.",
 }: {
   subjects: SubjectOption[]
   heading?: string
@@ -74,7 +83,7 @@ export function GalleryBrowser({
 
   const requestDelete = (img: UsageImage) => {
     if ((img.usage_count ?? 0) > 0) {
-      toast.error(`Gambar dipakai di ${img.usage_count} materi — hapus dulu referensinya.`)
+      toast.error(`Gambar dipakai di ${img.usage_count} konten — hapus dulu referensinya.`)
       return
     }
     setDeleteTarget(img)
@@ -132,7 +141,7 @@ export function GalleryBrowser({
                         <Button
                           variant="outline"
                           size="sm"
-                          title={(img.usage_count ?? 0) > 0 ? `Dipakai di ${img.usage_count} materi` : "Hapus gambar"}
+                          title={(img.usage_count ?? 0) > 0 ? `Dipakai di ${img.usage_count} konten` : "Hapus gambar"}
                           className="absolute right-2 top-2 h-7 w-7 bg-background/80 p-0 text-destructive hover:bg-background"
                           disabled={deleting || (img.usage_count ?? 0) > 0}
                           onClick={() => requestDelete(img)}
@@ -145,7 +154,7 @@ export function GalleryBrowser({
                     <div className="space-y-1 p-3">
                       <p className="truncate text-sm font-medium">{img.title || "Tanpa judul"}</p>
                       <p className={`text-xs ${(img.usage_count ?? 0) > 0 ? "text-primary" : "text-muted-foreground"}`}>
-                        Dipakai di {img.usage_count ?? 0} materi
+                        Dipakai di {img.usage_count ?? 0} konten
                       </p>
                     </div>
 
@@ -154,11 +163,11 @@ export function GalleryBrowser({
                         {(img.used_in ?? []).length > 0 ? (
                           <ul className="list-inside list-disc space-y-1 text-xs text-muted-foreground">
                             {(img.used_in ?? []).map((m) => (
-                              <li key={m.id}>{m.title}</li>
+                              <li key={m.id}>{refLabel(m)}</li>
                             ))}
                           </ul>
                         ) : (
-                          <p className="text-xs text-muted-foreground">Tidak dipakai di materi mana pun.</p>
+                          <p className="text-xs text-muted-foreground">Tidak dipakai di konten mana pun.</p>
                         )}
                       </div>
                     )}

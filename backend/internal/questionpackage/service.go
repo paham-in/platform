@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/storage"
 )
 
 // PackageQuestionResponse
@@ -25,11 +26,12 @@ type PackageResponse struct {
 }
 
 type Service struct {
-	repo *Repository
+	repo    *Repository
+	storage *storage.ObjectStorage
 }
 
-func NewService(repo *Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo *Repository, store *storage.ObjectStorage) *Service {
+	return &Service{repo: repo, storage: store}
 }
 
 type CreateInput struct {
@@ -142,7 +144,7 @@ func (s *Service) toResponse(pkg models.QuestionPackage) PackageResponse {
 	for i, q := range pkg.Questions {
 		questions[i] = PackageQuestionResponse{
 			ID:       q.ID,
-			Question: q.Question,
+			Question: s.storage.RewriteContentImages(q.Question),
 		}
 	}
 	return PackageResponse{

@@ -39,24 +39,26 @@ export function GalleryPicker({
   onOpenChange,
   onInsert,
   subjectId,
+  folder = "materials",
 }: {
   open: boolean
   onOpenChange: (v: boolean) => void
   onInsert: (url: string) => void
   subjectId: number | undefined
+  folder?: string
 }) {
   const qc = useQueryClient()
   const [search, setSearch] = useState("")
 
   const queryKey = subjectId
-    ? getAdminSubjectsBySubjectIdImagesQueryKey({ path: { subject_id: subjectId }, query: { q: search || undefined } })
+    ? getAdminSubjectsBySubjectIdImagesQueryKey({ path: { subject_id: subjectId }, query: { q: search || undefined, folder } })
     : [] as any
 
   const { data: rawImages = [], isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
       if (!subjectId) return []
-      const res = await getAdminSubjectsBySubjectIdImages({ path: { subject_id: subjectId }, query: { q: search || undefined } })
+      const res = await getAdminSubjectsBySubjectIdImages({ path: { subject_id: subjectId }, query: { q: search || undefined, folder } })
       return res.data ?? []
     },
     enabled: !!subjectId,
@@ -106,7 +108,7 @@ export function GalleryPicker({
                 <Button variant="outline" size="sm" onClick={() => qc.invalidateQueries({ queryKey })}>Cari</Button>
               </div>
 
-              <UploadDialog subjectId={subjectId} onDone={() => qc.invalidateQueries({ queryKey })} />
+              <UploadDialog subjectId={subjectId} folder={folder} onDone={() => qc.invalidateQueries({ queryKey })} />
             </>
           )}
 
@@ -165,7 +167,7 @@ export function GalleryPicker({
   )
 }
 
-function UploadDialog({ subjectId, onDone }: { subjectId: number; onDone: () => void }) {
+function UploadDialog({ subjectId, folder, onDone }: { subjectId: number; folder: string; onDone: () => void }) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [files, setFiles] = useState<FileList | null>(null)
@@ -180,7 +182,7 @@ function UploadDialog({ subjectId, onDone }: { subjectId: number; onDone: () => 
     if (!files?.length) return
     const t = title.trim() || files[0].name
     for (const file of files) {
-      doUpload({ body: { image: file, title: t } as any, path: { subject_id: subjectId } })
+      doUpload({ body: { image: file, title: t, folder } as any, path: { subject_id: subjectId } })
     }
   }
 

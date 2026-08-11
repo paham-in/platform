@@ -3,6 +3,8 @@ package questionbank
 import (
 	"strconv"
 
+	"bimbel2/backend/internal/storage"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -144,9 +146,9 @@ func (h *Handler) DeleteQuestion(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "soal berhasil dihapus"})
 }
 
-func Routes(admin fiber.Router, db *gorm.DB) {
+func Routes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	repo := NewRepository(db)
-	svc := NewService(repo)
+	svc := NewService(repo, store)
 	h := NewHandler(svc)
 
 	admin.Get("/question-packages/:id/questions", h.ListQuestions)

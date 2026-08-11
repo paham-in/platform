@@ -78,7 +78,7 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Pertanyaan</Label>
-          <TiptapEditor content={question} onChange={setQuestion} subjectId={subjectId} />
+          <TiptapEditor content={question} onChange={setQuestion} subjectId={subjectId} galleryFolder="questions" />
         </div>
 
         <div className="space-y-3">
@@ -95,6 +95,7 @@ function NewQuestion() {
                     setAnswers(next)
                   }}
                   subjectId={subjectId}
+                  galleryFolder="questions"
                 />
               </div>
               <label className="mt-1 flex items-center gap-1.5 text-sm">
@@ -121,7 +122,7 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Pembahasan (opsional)</Label>
-          <TiptapEditor content={explanation} onChange={setExplanation} subjectId={subjectId} />
+          <TiptapEditor content={explanation} onChange={setExplanation} subjectId={subjectId} galleryFolder="questions" />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">

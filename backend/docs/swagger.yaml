@@ -267,6 +267,8 @@ definitions:
         type: integer
       title:
         type: string
+      type:
+        type: string
     type: object
   invoice.CreateInput:
     properties:
@@ -2431,6 +2433,10 @@ paths:
         in: query
         name: q
         type: string
+      - description: 'Filter folder: materials atau questions'
+        in: query
+        name: folder
+        type: string
       produces:
       - application/json
       responses:
@@ -2463,6 +2469,10 @@ paths:
       - description: Judul gambar
         in: formData
         name: title
+        type: string
+      - description: 'Folder penyimpanan: materials (default) atau questions'
+        in: formData
+        name: folder
         type: string
       produces:
       - application/json

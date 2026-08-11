@@ -2,6 +2,7 @@ package gallery
 
 import (
 	"bytes"
+	"fmt"
 	"image/jpeg"
 	"io"
 	"strconv"
@@ -92,6 +93,7 @@ func (h *Handler) canAccessSubject(c *fiber.Ctx, subjectID uint) error {
 // @Param        subject_id path int true "Subject ID"
 // @Param        image formData file true "File gambar"
 // @Param        title formData string false "Judul gambar"
+// @Param        folder formData string false "Folder penyimpanan: materials (default) atau questions"
 // @Success      201 {object} GalleryImageResponse
 // @Failure      400 {object} GalleryErrorResponse
 // @Router       /admin/subjects/{subject_id}/images [post]
@@ -153,7 +155,16 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengompres gambar"})
 	}
 
-	objectName := h.storage.GenerateObjectName("gallery.jpg")
+	// Folder ditentukan saat upload (materials untuk editor materi, questions
+	// untuk editor paket soal). Gallery shared per subject — gambar bisa
+	// disisipkan di materi maupun soal, jadi content-image regex di storage
+	// menerima kedua prefix.
+	folder := c.FormValue("folder", "materials")
+	if folder != "materials" && folder != "questions" {
+		return c.Status(400).JSON(GalleryErrorResponse{Error: "folder tidak valid"})
+	}
+
+	objectName := h.storage.GenerateObjectNameIn(folder, "gallery.jpg")
 	err = h.storage.UploadReader(c.Context(), objectName, "image/jpeg", bytes.NewReader(buf.Bytes()), int64(buf.Len()))
 	if err != nil {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengunggah file"})
@@ -193,6 +204,7 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Param        subject_id path int true "Subject ID"
 // @Param        q query string false "Filter by title"
+// @Param        folder query string false "Filter folder: materials atau questions"
 // @Success      200 {array} GalleryImageResponse
 // @Router       /admin/subjects/{subject_id}/images [get]
 func (h *Handler) List(c *fiber.Ctx) error {
@@ -205,6 +217,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 	}
 
 	q := c.Query("q", "")
+	folder := c.Query("folder", "")
 	var images []models.SubjectImage
 	query := h.db.Where("subject_id = ?", subjectID)
 	// teacher cuma lihat upload-an sendiri; admin semua.
@@ -213,6 +226,14 @@ func (h *Handler) List(c *fiber.Ctx) error {
 	}
 	if q != "" {
 		query = query.Where("title ILIKE ?", "%"+q+"%")
+	}
+	// Filter isi galeri per folder: editor materi cuma lihat public/materials/,
+	// editor soal cuma public/questions/. Kosong = semua (backward compatible).
+	if folder != "" {
+		if folder != "materials" && folder != "questions" {
+			return c.Status(400).JSON(GalleryErrorResponse{Error: "folder tidak valid"})
+		}
+		query = query.Where("file_name LIKE ?", "public/"+folder+"/%")
 	}
 	if err := query.Order("created_at desc").Find(&images).Error; err != nil {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengambil data"})
@@ -242,6 +263,7 @@ func (h *Handler) List(c *fiber.Ctx) error {
 type MaterialRef struct {
 	ID    uint   `json:"id"`
 	Title string `json:"title"`
+	Type  string `json:"type"`
 }
 
 // GalleryUsageResponse: satu gambar + di materi mana ia dipakai.
@@ -284,11 +306,19 @@ func (h *Handler) Usage(c *fiber.Ctx) error {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengambil data"})
 	}
 
-	// Muat semua content materi sekali, scan in-memory. Skala dev OK;
-	// upgrade path: tabel material_images kalau materi sudah ribuan.
+	// Muat semua content materi + soal + jawaban sekali, scan in-memory.
+	// Skala dev OK; upgrade path: tabel content_images kalau konten sudah ribuan.
 	var materials []models.Material
 	if err := h.db.Select("id", "title", "content").Find(&materials).Error; err != nil {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengambil materi"})
+	}
+	var questions []models.QuestionbankQuestion
+	if err := h.db.Preload("Package").Select("id", "question", "explanation", "package_id").Find(&questions).Error; err != nil {
+		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengambil soal"})
+	}
+	var answers []models.QuestionbankAnswer
+	if err := h.db.Select("id", "question_id", "content").Find(&answers).Error; err != nil {
+		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengambil jawaban"})
 	}
 
 	currentUser := userIDFrom(c)
@@ -299,10 +329,25 @@ func (h *Handler) Usage(c *fiber.Ctx) error {
 		if err == nil {
 			url = resolvedURL
 		}
-		used := make([]MaterialRef, 0, 1)
+		used := make([]MaterialRef, 0, 2)
 		for _, m := range materials {
 			if m.Content != "" && strings.Contains(m.Content, img.FileName) {
-				used = append(used, MaterialRef{ID: m.ID, Title: m.Title})
+				used = append(used, MaterialRef{ID: m.ID, Title: m.Title, Type: "materi"})
+			}
+		}
+		for _, q := range questions {
+			if (q.Question != "" && strings.Contains(q.Question, img.FileName)) ||
+				(q.Explanation != "" && strings.Contains(q.Explanation, img.FileName)) {
+				title := q.Package.Name
+				if title == "" {
+					title = "Paket"
+				}
+				used = append(used, MaterialRef{ID: q.ID, Title: title + " · Soal", Type: "soal"})
+			}
+		}
+		for _, a := range answers {
+			if a.Content != "" && strings.Contains(a.Content, img.FileName) {
+				used = append(used, MaterialRef{ID: a.ID, Title: fmt.Sprintf("Jawaban soal #%d", a.QuestionID), Type: "jawaban"})
 			}
 		}
 		result[i] = GalleryUsageResponse{

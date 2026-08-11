@@ -2119,6 +2119,12 @@ const docTemplate = `{
                         "description": "Filter by title",
                         "name": "q",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter folder: materials atau questions",
+                        "name": "folder",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2169,6 +2175,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Judul gambar",
                         "name": "title",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Folder penyimpanan: materials (default) atau questions",
+                        "name": "folder",
                         "in": "formData"
                     }
                 ],
@@ -5135,6 +5147,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "title": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }

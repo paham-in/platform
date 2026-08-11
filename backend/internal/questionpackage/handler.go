@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"bimbel2/backend/internal/middleware"
+	"bimbel2/backend/internal/storage"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -183,9 +184,9 @@ func (h *Handler) MyPackage(c *fiber.Ctx) error {
 	return c.JSON(pkg)
 }
 
-func Routes(admin fiber.Router, db *gorm.DB) {
+func Routes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	repo := NewRepository(db)
-	svc := NewService(repo)
+	svc := NewService(repo, store)
 	h := NewHandler(svc, db)
 
 	admin.Get("/question-packages", h.ListPackages)
@@ -195,9 +196,9 @@ func Routes(admin fiber.Router, db *gorm.DB) {
 	admin.Delete("/question-packages/:id", h.DeletePackage)
 }
 
-func AuthRoutes(auth fiber.Router, db *gorm.DB) {
+func AuthRoutes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	repo := NewRepository(db)
-	svc := NewService(repo)
+	svc := NewService(repo, store)
 	h := NewHandler(svc, db)
 
 	auth.Get("/question-packages", h.MyPackages)

@@ -94,7 +94,7 @@ func main() {
 	class.PublicRoutes(auth, db)
 	chapter.PublicRoutes(auth, db, objectStorage)
 	material.PublicRoutes(auth, db, objectStorage)
-	questionpackage.AuthRoutes(auth, db)
+	questionpackage.AuthRoutes(auth, db, objectStorage)
 	studentclass.AuthRoutes(auth, db)
 		tutoring.Routes(auth, db, objectStorage, settingSvc)
 	pushSvc := push.NewService(db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
@@ -124,8 +124,8 @@ func main() {
 
 	// Kelola paket soal (paket + soal) — admin selalu, teacher butuh izin.
 	packs := staff.Group("", middleware.ContentManager("question_packages"))
-	questionpackage.Routes(packs, db)
-	questionbank.Routes(packs, db)
+	questionpackage.Routes(packs, db, objectStorage)
+	questionbank.Routes(packs, db, objectStorage)
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)

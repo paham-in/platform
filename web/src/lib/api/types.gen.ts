@@ -173,6 +173,7 @@ export type GalleryGalleryUsageResponse = {
 export type GalleryMaterialRef = {
     id?: number;
     title?: string;
+    type?: string;
 };
 
 export type InvoiceCreateInput = {
@@ -2060,6 +2061,10 @@ export type GetAdminSubjectsBySubjectIdImagesData = {
          * Filter by title
          */
         q?: string;
+        /**
+         * Filter folder: materials atau questions
+         */
+        folder?: string;
     };
     url: '/admin/subjects/{subject_id}/images';
 };
@@ -2083,6 +2088,10 @@ export type PostAdminSubjectsBySubjectIdImagesData = {
          * Judul gambar
          */
         title?: string;
+        /**
+         * Folder penyimpanan: materials (default) atau questions
+         */
+        folder?: string;
     };
     path: {
         /**

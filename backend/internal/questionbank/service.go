@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/storage"
 )
 
 type AnswerResponse struct {
@@ -24,11 +25,12 @@ type QuestionResponse struct {
 }
 
 type Service struct {
-	repo *Repository
+	repo    *Repository
+	storage *storage.ObjectStorage
 }
 
-func NewService(repo *Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo *Repository, store *storage.ObjectStorage) *Service {
+	return &Service{repo: repo, storage: store}
 }
 
 func (s *Service) ListByPackage(packageID uint) ([]QuestionResponse, error) {
@@ -74,8 +76,8 @@ func (s *Service) Create(packageID uint, input CreateInput) (*QuestionResponse, 
 	q := models.QuestionbankQuestion{
 		UserID:      input.UserID,
 		PackageID:   packageID,
-		Question:    input.Question,
-		Explanation: input.Explanation,
+		Question:    storage.SanitizeContentImages(input.Question),
+		Explanation: storage.SanitizeContentImages(input.Explanation),
 	}
 	// Build answers dengan sort_order sesuai urutan input.
 	for i, a := range input.Answers {
@@ -83,7 +85,7 @@ func (s *Service) Create(packageID uint, input CreateInput) (*QuestionResponse, 
 			continue
 		}
 		q.Answers = append(q.Answers, models.QuestionbankAnswer{
-			Content:   a.Content,
+			Content:   storage.SanitizeContentImages(a.Content),
 			IsCorrect: a.IsCorrect,
 			SortOrder: i,
 		})
@@ -108,14 +110,22 @@ type UpdateInput struct {
 func (s *Service) Update(id uint, input UpdateInput) (*QuestionResponse, error) {
 	updates := map[string]any{}
 	if input.Question != nil {
-		updates["question"] = *input.Question
+		updates["question"] = storage.SanitizeContentImages(*input.Question)
 	}
 	if input.Explanation != nil {
-		updates["explanation"] = *input.Explanation
+		updates["explanation"] = storage.SanitizeContentImages(*input.Explanation)
 	}
 	if input.Answers != nil {
-		// update soal + replace jawaban dalam satu transaksi.
-		if err := s.repo.UpdateWithAnswers(id, updates, *input.Answers); err != nil {
+		// sanitize content jawaban sebelum disimpan, lalu update soal + replace
+		// jawaban dalam satu transaksi.
+		answers := make([]QuestionbankAnswerInput, len(*input.Answers))
+		for i, a := range *input.Answers {
+			answers[i] = QuestionbankAnswerInput{
+				Content:   storage.SanitizeContentImages(a.Content),
+				IsCorrect: a.IsCorrect,
+			}
+		}
+		if err := s.repo.UpdateWithAnswers(id, updates, answers); err != nil {
 			return nil, err
 		}
 	} else if len(updates) > 0 {
@@ -139,7 +149,7 @@ func (s *Service) toResponse(q models.QuestionbankQuestion) QuestionResponse {
 	for i, a := range q.Answers {
 		answers[i] = AnswerResponse{
 			ID:        a.ID,
-			Content:   a.Content,
+			Content:   s.storage.RewriteContentImages(a.Content),
 			IsCorrect: a.IsCorrect,
 		}
 	}
@@ -148,9 +158,9 @@ func (s *Service) toResponse(q models.QuestionbankQuestion) QuestionResponse {
 		UserID:      q.UserID,
 		UserName:    userName,
 		PackageID:   q.PackageID,
-		Question:    q.Question,
+		Question:    s.storage.RewriteContentImages(q.Question),
 		Answers:     answers,
-		Explanation: q.Explanation,
+		Explanation: s.storage.RewriteContentImages(q.Explanation),
 		CreatedAt:   q.CreatedAt.Format("2006-01-02 15:04"),
 	}
 }
