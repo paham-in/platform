@@ -180,10 +180,10 @@ func (h *Handler) List(c *fiber.Ctx) error {
 	currentUser := userIDFrom(c)
 	result := make([]GalleryImageResponse, len(images))
 	for i, img := range images {
-		presignedURL, err := h.storage.PresignedURL(c.Context(), img.FileName, 24*time.Hour)
+		resolvedURL, err := h.storage.URL(c.Context(), img.FileName, 24*time.Hour)
 		url := img.FileName
 		if err == nil {
-			url = presignedURL
+			url = resolvedURL
 		}
 		result[i] = GalleryImageResponse{
 			ID:           img.ID,
@@ -245,10 +245,10 @@ func (h *Handler) Usage(c *fiber.Ctx) error {
 	currentUser := userIDFrom(c)
 	result := make([]GalleryUsageResponse, len(images))
 	for i, img := range images {
-		presignedURL, err := h.storage.PresignedURL(c.Context(), img.FileName, 24*time.Hour)
+		resolvedURL, err := h.storage.URL(c.Context(), img.FileName, 24*time.Hour)
 		url := img.FileName
 		if err == nil {
-			url = presignedURL
+			url = resolvedURL
 		}
 		used := make([]MaterialRef, 0, 1)
 		for _, m := range materials {

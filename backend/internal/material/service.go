@@ -11,9 +11,11 @@ import (
 )
 
 // objectNameRe mencocokkan referensi gambar storage di dalam HTML content.
-// Bentuk tersimpan: `forum/<uuid>.<ext>` (objectName). Bisa juga berawalan
-// URL presigned (konten lama) — prefix URL ikut di-capture untuk dinormalisasi.
-var objectNameRe = regexp.MustCompile(`(?:https?://[^"'\s]+/)?(forum/[0-9a-fA-F-]+\.(?:jpg|jpeg|png|gif|webp))`)
+// Bentuk tersimpan: `public/materials/<uuid>.<ext>` (baru) atau
+// `forum/<uuid>.<ext>` (legacy). Bisa juga berawalan URL (presigned lama /
+// public base) — prefix URL ikut di-capture untuk dinormalisasi. Query string
+// presigned (X-Amz-*) ikut dikonsumsi supaya tidak tersisa saat strip.
+var objectNameRe = regexp.MustCompile(`(?:https?://[^"'\s]+/)?((?:public/materials|forum)/[0-9a-fA-F-]+\.(?:jpg|jpeg|png|gif|webp))(?:\?[^"'\s]*)?`)
 
 // sanitizeContentImages menormalkan presigned URL → objectName (group 1).
 // Dipakai pas simpan: content dari editor bisa kebawa presigned URL fresh
@@ -217,16 +219,17 @@ func (s *Service) toResponses(materials []models.Material) []MaterialResponse {
 	return result
 }
 
-// rewriteContentImages mengganti objectName (dan presigned URL lama) di HTML
-// content → presigned URL fresh. Content di DB selalu objectName (lihat
-// sanitizeContentImages); URL expire 24 jam, jadi di-rewrite tiap serve.
+// rewriteContentImages mengganti objectName di HTML content → URL akses.
+// Content di DB selalu objectName (lihat sanitizeContentImages). `public/materials/`
+// → URL publik langsung; legacy `forum/` & `private/` → presigned URL. Di-rewrite
+// tiap serve biar stabil (presigned expire).
 func (s *Service) rewriteContentImages(content string) string {
 	if s.storage == nil {
 		return content
 	}
 	return objectNameRe.ReplaceAllStringFunc(content, func(m string) string {
 		obj := objectNameRe.FindStringSubmatch(m)[1]
-		if url, err := s.storage.PresignedURL(context.Background(), obj, 24*time.Hour); err == nil {
+		if url, err := s.storage.URL(context.Background(), obj, 24*time.Hour); err == nil {
 			return url
 		}
 		return obj

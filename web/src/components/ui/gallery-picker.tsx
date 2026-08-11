@@ -150,7 +150,7 @@ export function GalleryPicker({
                   <button
                     type="button"
                     className="w-full text-left"
-                    onClick={() => { onInsert(img.object_name ?? img.url); onOpenChange(false) }}
+                    onClick={() => { onInsert(img.url); onOpenChange(false) }}
                   >
                     <img src={img.url} alt={img.title} className="h-24 w-full object-cover" />
                     <p className="truncate px-2 py-1.5 text-xs text-muted-foreground">{img.title}</p>

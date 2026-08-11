@@ -162,8 +162,8 @@ func (s *Service) toResponse(c models.Chapter) ChapterResponse {
 	count, _ := s.repo.MaterialCount(c.ID)
 	coverURL := c.CoverURL
 	if coverURL != "" && s.storage != nil {
-		if presigned, err := s.storage.PresignedURL(context.Background(), coverURL, 24*time.Hour); err == nil {
-			coverURL = presigned
+		if resolved, err := s.storage.URL(context.Background(), coverURL, 24*time.Hour); err == nil {
+			coverURL = resolved
 		}
 	}
 	return ChapterResponse{

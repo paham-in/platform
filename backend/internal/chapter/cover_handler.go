@@ -76,7 +76,8 @@ func (h *CoverHandler) UploadCover(c *fiber.Ctx) error {
 
 	// hapus cover lama — di sini DB sudah menunjuk file baru, jadi kalau
 	// hapus file lama gagal, cover lama cuma jadi orphan (tidak merusak state).
-	if chapter.CoverURL != "" && strings.HasPrefix(chapter.CoverURL, "covers/") {
+	// PREFIX: `covers/` (legacy) maupun `public/covers/` (baru).
+	if chapter.CoverURL != "" && (strings.HasPrefix(chapter.CoverURL, "covers/") || strings.HasPrefix(chapter.CoverURL, "public/covers/")) {
 		_ = h.storage.Delete(c.Context(), chapter.CoverURL)
 	}
 

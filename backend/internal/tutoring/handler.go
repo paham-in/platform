@@ -415,7 +415,7 @@ func (h *Handler) ListSessions(c *fiber.Ctx) error {
 		if sessions[i].EvidenceURL == "" || h.storage == nil {
 			continue
 		}
-		if url, err := h.storage.PresignedURL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
+		if url, err := h.storage.URL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
 			sessions[i].EvidenceURL = url
 		}
 	}
@@ -546,7 +546,7 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengompres gambar"})
 	}
 
-	objectName := h.storage.GenerateObjectNameIn("attendance", file.Filename)
+	objectName := h.storage.GenerateObjectNamePrivateIn("attendance", file.Filename)
 	if err := h.storage.UploadReader(c.Context(), objectName, "image/jpeg", bytes.NewReader(buf.Bytes()), int64(buf.Len())); err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengunggah file"})
 	}
@@ -583,7 +583,7 @@ func (h *Handler) AdminListEvidence(c *fiber.Ctx) error {
 		if sessions[i].EvidenceURL == "" || h.storage == nil {
 			continue
 		}
-		if url, err := h.storage.PresignedURL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
+		if url, err := h.storage.URL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
 			sessions[i].EvidenceURL = url
 		}
 	}
@@ -731,7 +731,7 @@ func (h *Handler) AdminListFees(c *fiber.Ctx) error {
 		if sessions[i].EvidenceURL == "" || h.storage == nil {
 			continue
 		}
-		if url, err := h.storage.PresignedURL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
+		if url, err := h.storage.URL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
 			sessions[i].EvidenceURL = url
 		}
 	}
