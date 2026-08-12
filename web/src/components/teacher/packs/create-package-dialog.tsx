@@ -5,25 +5,30 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { getAdminQuestionPackagesQueryKey, getSubjectsOptions, postAdminQuestionPackagesMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminQuestionPackageGroupsOptions, getAdminQuestionPackagesQueryKey, getSubjectsOptions, postAdminQuestionPackagesMutation } from "@/lib/api/@tanstack/react-query.gen"
 
 interface CreatePackageDialogProps {
   onClose: () => void
+  defaultGroupId?: number
 }
 
-export function CreatePackageDialog({ onClose }: CreatePackageDialogProps) {
+export function CreatePackageDialog({ onClose, defaultGroupId }: CreatePackageDialogProps) {
   const qc = useQueryClient()
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
+  const { data: groups = [] } = useQuery(getAdminQuestionPackageGroupsOptions())
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [subjectId, setSubjectId] = useState("")
-  const [isFree, setIsFree] = useState(true)
+  const [groupId, setGroupId] = useState(defaultGroupId ? String(defaultGroupId) : "")
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
+  const groupOptions = groups.map((g) => ({
+    label: `${g.name ?? ""} — ${g.class_name ?? "?"}`,
+    value: String(g.id),
+  }))
 
   const { mutate: createPackage, isPending } = useMutation({
     ...postAdminQuestionPackagesMutation(),
@@ -36,8 +41,8 @@ export function CreatePackageDialog({ onClose }: CreatePackageDialogProps) {
   })
 
   const save = () => {
-    if (!name.trim() || !subjectId) return
-    createPackage({ body: { name, description, subject_id: Number(subjectId), is_free: isFree } })
+    if (!name.trim() || !subjectId || !groupId) return
+    createPackage({ body: { name, description, subject_id: Number(subjectId), group_id: Number(groupId) } })
   }
 
   return (
@@ -57,6 +62,20 @@ export function CreatePackageDialog({ onClose }: CreatePackageDialogProps) {
               placeholder="Nama paket soal"
               autoFocus
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="group">Grup Paket Soal</Label>
+            <Select items={groupOptions} value={groupId} onValueChange={(v) => setGroupId(v ?? "")}>
+              <SelectTrigger id="group" className="w-full">
+                <SelectValue placeholder="Pilih grup (kelas)" />
+              </SelectTrigger>
+              <SelectContent>
+                {groupOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -83,21 +102,11 @@ export function CreatePackageDialog({ onClose }: CreatePackageDialogProps) {
               className="min-h-[80px]"
             />
           </div>
-
-          <label className="flex items-center gap-3 rounded-lg border p-4">
-            <Checkbox checked={isFree} onCheckedChange={(v) => setIsFree(v === true)} />
-            <div>
-              <p className="font-medium">Paket gratis</p>
-              <p className="text-xs text-muted-foreground">
-                {isFree ? "Bisa diakses semua user tanpa berlangganan" : "Hanya untuk murid yang berlangganan"}
-              </p>
-            </div>
-          </label>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button onClick={save} disabled={!name.trim() || !subjectId || isPending}>
+          <Button onClick={save} disabled={!name.trim() || !subjectId || !groupId || isPending}>
             {isPending && <Spinner />}
             Simpan
           </Button>

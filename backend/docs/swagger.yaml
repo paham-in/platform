@@ -551,8 +551,8 @@ definitions:
     properties:
       description:
         type: string
-      is_free:
-        type: boolean
+      group_id:
+        type: integer
       name:
         type: string
       subject_id:
@@ -561,6 +561,51 @@ definitions:
   questionpackage.ErrorResponse:
     properties:
       error:
+        type: string
+    type: object
+  questionpackage.GroupCreateInput:
+    properties:
+      class_id:
+        type: integer
+      description:
+        type: string
+      is_free:
+        type: boolean
+      name:
+        type: string
+    type: object
+  questionpackage.GroupResponse:
+    properties:
+      class_id:
+        type: integer
+      class_name:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      is_free:
+        type: boolean
+      name:
+        type: string
+      package_count:
+        type: integer
+      packages:
+        items:
+          $ref: '#/definitions/questionpackage.PackageResponse'
+        type: array
+    type: object
+  questionpackage.GroupUpdateInput:
+    properties:
+      class_id:
+        type: integer
+      description:
+        type: string
+      is_free:
+        type: boolean
+      name:
         type: string
     type: object
   questionpackage.MessageResponse:
@@ -581,6 +626,10 @@ definitions:
         type: string
       description:
         type: string
+      group_id:
+        type: integer
+      group_name:
+        type: string
       id:
         type: integer
       is_free:
@@ -600,8 +649,8 @@ definitions:
     properties:
       description:
         type: string
-      is_free:
-        type: boolean
+      group_id:
+        type: integer
       name:
         type: string
       subject_id:
@@ -1910,6 +1959,112 @@ paths:
       summary: Unassign class from program
       tags:
       - Program
+  /admin/question-package-groups:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar grup paket soal
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/questionpackage.GroupResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List question package groups
+      tags:
+      - QuestionPackage
+    post:
+      consumes:
+      - application/json
+      description: Membuat grup paket soal baru (bundel per kelas)
+      parameters:
+      - description: Data grup
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/questionpackage.GroupCreateInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/questionpackage.GroupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/questionpackage.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create question package group
+      tags:
+      - QuestionPackage
+  /admin/question-package-groups/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus grup paket soal; paket di dalamnya tetap ada tapi lepas
+        dari grup
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionpackage.MessageResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/questionpackage.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete question package group
+      tags:
+      - QuestionPackage
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah grup paket soal
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/questionpackage.GroupUpdateInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionpackage.GroupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/questionpackage.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update question package group
+      tags:
+      - QuestionPackage
   /admin/question-packages:
     get:
       consumes:
@@ -3432,12 +3587,62 @@ paths:
       summary: Subscribe push
       tags:
       - Push
+  /question-package-groups:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan daftar grup paket soal. Grup premium hanya untuk
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/questionpackage.GroupResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List visible question package groups
+      tags:
+      - QuestionPackage
+  /question-package-groups/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil detail grup paket soal beserta paket di dalamnya
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/questionpackage.GroupResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/questionpackage.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/questionpackage.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get visible question package group
+      tags:
+      - QuestionPackage
   /question-packages:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar paket soal. User non-premium hanya melihat
-        paket free.
+      description: Mengembalikan daftar paket soal. User hanya melihat paket dalam
+        grup
       produces:
       - application/json
       responses:
@@ -3456,7 +3661,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengambil detail paket soal. Paket premium hanya untuk role berbayar.
+      description: Mengambil detail paket soal. Paket premium hanya untuk yang punya
       parameters:
       - description: Package ID
         in: path

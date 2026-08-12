@@ -19,6 +19,7 @@ import {
   Home,
   ImageIcon,
   LayoutDashboard,
+  ListChecks,
   LogOut,
   MessageSquare,
   Settings,
@@ -85,6 +86,7 @@ const sidebarGroups: SidebarGroup[] = [
     items: [
       { label: "Dashboard", icon: LayoutDashboard, to: "/student/dashboard" },
       { label: "Materi", icon: BookMarked, to: "/student/materials" },
+      { label: "Paket Soal", icon: ListChecks, to: "/student/packages" },
       { label: "Kalender", icon: Calendar, to: "/student/calendar" },
       { label: "Tanya Jawab", icon: Home, to: "/student/forum" },
       { label: "Les Privat", icon: Calendar, to: "/student/tutoring" },

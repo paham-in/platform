@@ -23,7 +23,7 @@ const packageQuestionsSearchSchema = z.object({
 })
 
 function PackageQuestions() {
-  const { packageId } = useParams({ from: "/_dashboard/teacher/packs/$packageId/" })
+  const { groupId, packageId } = useParams({ from: "/_dashboard/teacher/packs/$groupId/$packageId/" })
   const navigate = useNavigate({ from: Route.fullPath })
   const { search } = Route.useSearch()
   const { data: user } = useQuery(getMeOptions())
@@ -58,7 +58,7 @@ function PackageQuestions() {
     <>
       <main className="p-6">
         <div className="mb-4 flex items-center gap-2">
-          <Link to="/teacher/packs" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <Link to="/teacher/packs/$groupId" params={{ groupId }} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Paket Soal
           </Link>
           {pkg && (
@@ -78,10 +78,10 @@ function PackageQuestions() {
           {canManage && (
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setEditTarget(pkg ?? null)}><Pencil className="mr-1 h-4 w-4" /> Edit Paket</Button>
-              <Link to="/teacher/packs/$packageId/import" params={{ packageId }}>
+              <Link to="/teacher/packs/$groupId/$packageId/import" params={{ groupId, packageId }}>
                 <Button variant="outline"><UploadCloud className="mr-1 h-4 w-4" /> Import dari Word</Button>
               </Link>
-              <Link to="/teacher/packs/$packageId/questions/new" params={{ packageId }}>
+              <Link to="/teacher/packs/$groupId/$packageId/questions/new" params={{ groupId, packageId }}>
                 <Button><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
               </Link>
             </div>
@@ -167,7 +167,7 @@ function PackageQuestions() {
                           </DropdownMenuItem>
                           {canManage && (
                             <>
-                              <Link to="/teacher/packs/$packageId/questions/$questionId/edit" params={{ packageId, questionId: String(q.id!) }}>
+                              <Link to="/teacher/packs/$groupId/$packageId/questions/$questionId/edit" params={{ groupId, packageId, questionId: String(q.id!) }}>
                                 <DropdownMenuItem>
                                   <Pencil className="h-4 w-4" /> Edit
                                 </DropdownMenuItem>
@@ -216,7 +216,7 @@ function PackageQuestions() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/packs/$packageId/")({
+export const Route = createFileRoute("/_dashboard/teacher/packs/$groupId/$packageId/")({
   component: PackageQuestions,
   validateSearch: packageQuestionsSearchSchema,
 })

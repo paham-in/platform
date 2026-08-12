@@ -352,13 +352,39 @@ export type QuestionbankUpdateInput = {
 
 export type QuestionpackageCreateInput = {
     description?: string;
-    is_free?: boolean;
+    group_id?: number;
     name?: string;
     subject_id?: number;
 };
 
 export type QuestionpackageErrorResponse = {
     error?: string;
+};
+
+export type QuestionpackageGroupCreateInput = {
+    class_id?: number;
+    description?: string;
+    is_free?: boolean;
+    name?: string;
+};
+
+export type QuestionpackageGroupResponse = {
+    class_id?: number;
+    class_name?: string;
+    created_at?: string;
+    description?: string;
+    id?: number;
+    is_free?: boolean;
+    name?: string;
+    package_count?: number;
+    packages?: Array<QuestionpackagePackageResponse>;
+};
+
+export type QuestionpackageGroupUpdateInput = {
+    class_id?: number;
+    description?: string;
+    is_free?: boolean;
+    name?: string;
 };
 
 export type QuestionpackageMessageResponse = {
@@ -373,6 +399,8 @@ export type QuestionpackagePackageQuestionResponse = {
 export type QuestionpackagePackageResponse = {
     created_at?: string;
     description?: string;
+    group_id?: number;
+    group_name?: string;
     id?: number;
     is_free?: boolean;
     name?: string;
@@ -383,7 +411,7 @@ export type QuestionpackagePackageResponse = {
 
 export type QuestionpackageUpdateInput = {
     description?: string;
-    is_free?: boolean;
+    group_id?: number;
     name?: string;
     subject_id?: number;
 };
@@ -1537,6 +1565,113 @@ export type PostAdminProgramsByIdClassesResponses = {
 };
 
 export type PostAdminProgramsByIdClassesResponse = PostAdminProgramsByIdClassesResponses[keyof PostAdminProgramsByIdClassesResponses];
+
+export type GetAdminQuestionPackageGroupsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/question-package-groups';
+};
+
+export type GetAdminQuestionPackageGroupsResponses = {
+    /**
+     * OK
+     */
+    200: Array<QuestionpackageGroupResponse>;
+};
+
+export type GetAdminQuestionPackageGroupsResponse = GetAdminQuestionPackageGroupsResponses[keyof GetAdminQuestionPackageGroupsResponses];
+
+export type PostAdminQuestionPackageGroupsData = {
+    /**
+     * Data grup
+     */
+    body: QuestionpackageGroupCreateInput;
+    path?: never;
+    query?: never;
+    url: '/admin/question-package-groups';
+};
+
+export type PostAdminQuestionPackageGroupsErrors = {
+    /**
+     * Bad Request
+     */
+    400: QuestionpackageErrorResponse;
+};
+
+export type PostAdminQuestionPackageGroupsError = PostAdminQuestionPackageGroupsErrors[keyof PostAdminQuestionPackageGroupsErrors];
+
+export type PostAdminQuestionPackageGroupsResponses = {
+    /**
+     * Created
+     */
+    201: QuestionpackageGroupResponse;
+};
+
+export type PostAdminQuestionPackageGroupsResponse = PostAdminQuestionPackageGroupsResponses[keyof PostAdminQuestionPackageGroupsResponses];
+
+export type DeleteAdminQuestionPackageGroupsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Group ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/question-package-groups/{id}';
+};
+
+export type DeleteAdminQuestionPackageGroupsByIdErrors = {
+    /**
+     * Not Found
+     */
+    404: QuestionpackageErrorResponse;
+};
+
+export type DeleteAdminQuestionPackageGroupsByIdError = DeleteAdminQuestionPackageGroupsByIdErrors[keyof DeleteAdminQuestionPackageGroupsByIdErrors];
+
+export type DeleteAdminQuestionPackageGroupsByIdResponses = {
+    /**
+     * OK
+     */
+    200: QuestionpackageMessageResponse;
+};
+
+export type DeleteAdminQuestionPackageGroupsByIdResponse = DeleteAdminQuestionPackageGroupsByIdResponses[keyof DeleteAdminQuestionPackageGroupsByIdResponses];
+
+export type PatchAdminQuestionPackageGroupsByIdData = {
+    /**
+     * Data update
+     */
+    body: QuestionpackageGroupUpdateInput;
+    path: {
+        /**
+         * Group ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/question-package-groups/{id}';
+};
+
+export type PatchAdminQuestionPackageGroupsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: QuestionpackageErrorResponse;
+};
+
+export type PatchAdminQuestionPackageGroupsByIdError = PatchAdminQuestionPackageGroupsByIdErrors[keyof PatchAdminQuestionPackageGroupsByIdErrors];
+
+export type PatchAdminQuestionPackageGroupsByIdResponses = {
+    /**
+     * OK
+     */
+    200: QuestionpackageGroupResponse;
+};
+
+export type PatchAdminQuestionPackageGroupsByIdResponse = PatchAdminQuestionPackageGroupsByIdResponses[keyof PatchAdminQuestionPackageGroupsByIdResponses];
 
 export type GetAdminQuestionPackagesData = {
     body?: never;
@@ -3075,6 +3210,56 @@ export type PostPushSubscribeResponses = {
 };
 
 export type PostPushSubscribeResponse = PostPushSubscribeResponses[keyof PostPushSubscribeResponses];
+
+export type GetQuestionPackageGroupsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/question-package-groups';
+};
+
+export type GetQuestionPackageGroupsResponses = {
+    /**
+     * OK
+     */
+    200: Array<QuestionpackageGroupResponse>;
+};
+
+export type GetQuestionPackageGroupsResponse = GetQuestionPackageGroupsResponses[keyof GetQuestionPackageGroupsResponses];
+
+export type GetQuestionPackageGroupsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Group ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/question-package-groups/{id}';
+};
+
+export type GetQuestionPackageGroupsByIdErrors = {
+    /**
+     * Forbidden
+     */
+    403: QuestionpackageErrorResponse;
+    /**
+     * Not Found
+     */
+    404: QuestionpackageErrorResponse;
+};
+
+export type GetQuestionPackageGroupsByIdError = GetQuestionPackageGroupsByIdErrors[keyof GetQuestionPackageGroupsByIdErrors];
+
+export type GetQuestionPackageGroupsByIdResponses = {
+    /**
+     * OK
+     */
+    200: QuestionpackageGroupResponse;
+};
+
+export type GetQuestionPackageGroupsByIdResponse = GetQuestionPackageGroupsByIdResponses[keyof GetQuestionPackageGroupsByIdResponses];
 
 export type GetQuestionPackagesData = {
     body?: never;

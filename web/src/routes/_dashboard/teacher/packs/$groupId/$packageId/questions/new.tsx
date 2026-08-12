@@ -2,11 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesByIdQuestionsOptions, getAdminQuestionPackagesQueryKey, patchAdminQuestionPackagesByIdQuestionsByQidMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesQueryKey, postAdminQuestionPackagesByIdQuestionsMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -18,62 +17,40 @@ function stripHtml(html: string): string {
   return (doc.body.textContent || "").trim()
 }
 
-function EditQuestion() {
-  const { packageId, questionId } = useParams({ from: "/_dashboard/teacher/packs/$packageId/questions/$questionId/edit" })
+function NewQuestion() {
+  const { groupId, packageId } = useParams({ from: "/_dashboard/teacher/packs/$groupId/$packageId/questions/new" })
   const qc = useQueryClient()
   const navigate = useNavigate()
-  const { data: questions = [], isLoading } = useQuery(getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) } }))
+
+  // subject gallery = subject dari paket ini (buat GalleryPicker di editor).
   const { data: pkg } = useQuery(getAdminQuestionPackagesByIdOptions({ path: { id: Number(packageId) } }))
-
-  const question = questions.find((q) => q.id === Number(questionId))
   const subjectId = pkg?.subject_id
-  const [questionText, setQuestionText] = useState(question?.question ?? "")
-  const [answers, setAnswers] = useState<{ content: string; is_correct: boolean }[]>(
-    [...(question?.answers ?? []).map((a) => ({ content: a.content ?? "", is_correct: a.is_correct ?? false })), { content: "", is_correct: false }, { content: "", is_correct: false }, { content: "", is_correct: false }, { content: "", is_correct: false }].slice(0, 4)
-  )
-  const [explanation, setExplanation] = useState(question?.explanation ?? "")
 
-  const { mutate: updateQuestion, isPending } = useMutation({
-    ...patchAdminQuestionPackagesByIdQuestionsByQidMutation(),
+  const [question, setQuestion] = useState("")
+  const [answers, setAnswers] = useState<{ content: string; is_correct: boolean }[]>([
+    { content: "", is_correct: false },
+    { content: "", is_correct: false },
+    { content: "", is_correct: false },
+    { content: "", is_correct: false },
+  ])
+  const [explanation, setExplanation] = useState("")
+
+  const { mutate: createQuestion, isPending } = useMutation({
+    ...postAdminQuestionPackagesByIdQuestionsMutation(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getAdminQuestionPackagesQueryKey() })
-      toast.success("Soal berhasil diubah")
-      navigate({ to: "/teacher/packs/$packageId", params: { packageId } })
+      toast.success("Soal berhasil ditambahkan")
+      navigate({ to: "/teacher/packs/$groupId/$packageId", params: { groupId, packageId } })
     },
-    onError: (err: any) => toast.error(err?.error || "Gagal mengubah soal"),
+    onError: (err: any) => toast.error(err?.error || "Gagal menambah soal"),
   })
-
-  if (isLoading) {
-    return (
-      <main className="p-6">
-        <div className="mx-auto max-w-3xl space-y-4">
-          <Skeleton className="h-8 w-40" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-32 w-full" />
-        </div>
-      </main>
-    )
-  }
-
-  if (!question) {
-    return (
-      <main className="p-6">
-        <div className="flex flex-col items-center gap-4 py-12">
-          <p className="text-muted-foreground">Soal tidak ditemukan</p>
-          <Link to="/teacher/packs/$packageId" params={{ packageId }}>
-            <Button variant="outline">Kembali</Button>
-          </Link>
-        </div>
-      </main>
-    )
-  }
 
   const save = () => {
     const validAnswers = answers.filter((a) => stripHtml(a.content) !== "")
-    updateQuestion({
-      path: { id: Number(packageId), qid: Number(questionId) },
+    createQuestion({
+      path: { id: Number(packageId) },
       body: {
-        question: questionText,
+        question,
         answers: validAnswers,
         explanation,
       },
@@ -93,15 +70,15 @@ function EditQuestion() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-3xl space-y-6">
-        <Link to="/teacher/packs/$packageId" params={{ packageId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link to="/teacher/packs/$groupId/$packageId" params={{ groupId, packageId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Link>
 
-        <h1 className="text-2xl font-bold tracking-tight">Edit Soal</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Tambah Soal</h1>
 
         <div className="space-y-2">
           <Label>Pertanyaan</Label>
-          <TiptapEditor content={questionText} onChange={setQuestionText} subjectId={subjectId} galleryFolder="questions" />
+          <TiptapEditor content={question} onChange={setQuestion} subjectId={subjectId} galleryFolder="questions" />
         </div>
 
         <div className="space-y-3">
@@ -149,10 +126,10 @@ function EditQuestion() {
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Link to="/teacher/packs/$packageId" params={{ packageId }}><Button variant="outline">Batal</Button></Link>
+          <Link to="/teacher/packs/$groupId/$packageId" params={{ groupId, packageId }}><Button variant="outline">Batal</Button></Link>
           <Button
             onClick={save}
-            disabled={!questionText || validCount < 2 || isPending}
+            disabled={!question || validCount < 2 || isPending}
           >
             {isPending && <Spinner />}
             Simpan
@@ -163,6 +140,6 @@ function EditQuestion() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/packs/$packageId/questions/$questionId/edit")({
-  component: EditQuestion,
+export const Route = createFileRoute("/_dashboard/teacher/packs/$groupId/$packageId/questions/new")({
+  component: NewQuestion,
 })

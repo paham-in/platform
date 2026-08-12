@@ -1273,6 +1273,173 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/question-package-groups": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar grup paket soal",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionPackage"
+                ],
+                "summary": "List question package groups",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/questionpackage.GroupResponse"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Membuat grup paket soal baru (bundel per kelas)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionPackage"
+                ],
+                "summary": "Create question package group",
+                "parameters": [
+                    {
+                        "description": "Data grup",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.GroupCreateInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.GroupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/question-package-groups/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus grup paket soal; paket di dalamnya tetap ada tapi lepas dari grup",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionPackage"
+                ],
+                "summary": "Delete question package group",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.MessageResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengubah grup paket soal",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionPackage"
+                ],
+                "summary": "Update question package group",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Data update",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.GroupUpdateInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.GroupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/question-packages": {
             "get": {
                 "security": [
@@ -3662,6 +3829,86 @@ const docTemplate = `{
                 }
             }
         },
+        "/question-package-groups": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan daftar grup paket soal. Grup premium hanya untuk",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionPackage"
+                ],
+                "summary": "List visible question package groups",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/questionpackage.GroupResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/question-package-groups/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil detail grup paket soal beserta paket di dalamnya",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionPackage"
+                ],
+                "summary": "Get visible question package group",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Group ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.GroupResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/question-packages": {
             "get": {
                 "security": [
@@ -3669,7 +3916,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan daftar paket soal. User non-premium hanya melihat paket free.",
+                "description": "Mengembalikan daftar paket soal. User hanya melihat paket dalam grup",
                 "consumes": [
                     "application/json"
                 ],
@@ -3700,7 +3947,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengambil detail paket soal. Paket premium hanya untuk role berbayar.",
+                "description": "Mengambil detail paket soal. Paket premium hanya untuk yang punya",
                 "consumes": [
                     "application/json"
                 ],
@@ -5651,8 +5898,8 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "is_free": {
-                    "type": "boolean"
+                "group_id": {
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
@@ -5666,6 +5913,75 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "questionpackage.GroupCreateInput": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_free": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "questionpackage.GroupResponse": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "class_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_free": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "package_count": {
+                    "type": "integer"
+                },
+                "packages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/questionpackage.PackageResponse"
+                    }
+                }
+            }
+        },
+        "questionpackage.GroupUpdateInput": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "is_free": {
+                    "type": "boolean"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -5698,6 +6014,12 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "group_id": {
+                    "type": "integer"
+                },
+                "group_name": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -5727,8 +6049,8 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "is_free": {
-                    "type": "boolean"
+                "group_id": {
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"

@@ -22,7 +22,7 @@ function normalizeQuestion(html: string): string {
 }
 
 function ImportQuestions() {
-  const { packageId } = useParams({ from: "/_dashboard/teacher/packs/$packageId/import" })
+  const { groupId, packageId } = useParams({ from: "/_dashboard/teacher/packs/$groupId/$packageId/import" })
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { data: existingQuestions = [] } = useQuery(getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) } }))
@@ -99,7 +99,7 @@ function ImportQuestions() {
       })
     })
     toast.success(`${toImport.length} soal berhasil diimport`)
-    navigate({ to: "/teacher/packs/$packageId", params: { packageId } })
+    navigate({ to: "/teacher/packs/$groupId/$packageId", params: { groupId, packageId } })
   }
 
   const downloadTemplate = async () => {
@@ -121,7 +121,7 @@ function ImportQuestions() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-4xl space-y-6">
-        <Link to="/teacher/packs/$packageId" params={{ packageId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link to="/teacher/packs/$groupId/$packageId" params={{ groupId, packageId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Link>
 
@@ -282,6 +282,6 @@ function ImportQuestions() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/packs/$packageId/import")({
+export const Route = createFileRoute("/_dashboard/teacher/packs/$groupId/$packageId/import")({
   component: ImportQuestions,
 })

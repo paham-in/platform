@@ -38,6 +38,7 @@ import { Route as DashboardTeacherPacksIndexRouteImport } from './routes/_dashbo
 import { Route as DashboardTeacherForumIndexRouteImport } from './routes/_dashboard/teacher/forum/index'
 import { Route as DashboardTeacherChaptersIndexRouteImport } from './routes/_dashboard/teacher/chapters/index'
 import { Route as DashboardStudentTutoringIndexRouteImport } from './routes/_dashboard/student/tutoring/index'
+import { Route as DashboardStudentPackagesIndexRouteImport } from './routes/_dashboard/student/packages/index'
 import { Route as DashboardStudentMaterialsIndexRouteImport } from './routes/_dashboard/student/materials/index'
 import { Route as DashboardStudentForumIndexRouteImport } from './routes/_dashboard/student/forum/index'
 import { Route as DashboardAdminTutoringIndexRouteImport } from './routes/_dashboard/admin/tutoring/index'
@@ -51,6 +52,7 @@ import { Route as DashboardTeacherTutoringEarningsRouteImport } from './routes/_
 import { Route as DashboardTeacherForumIdRouteImport } from './routes/_dashboard/teacher/forum/$id'
 import { Route as DashboardStudentTutoringNewRouteImport } from './routes/_dashboard/student/tutoring/new'
 import { Route as DashboardStudentTutoringJoinRouteImport } from './routes/_dashboard/student/tutoring/join'
+import { Route as DashboardStudentPackagesGroupIdRouteImport } from './routes/_dashboard/student/packages/$groupId'
 import { Route as DashboardStudentForumNewRouteImport } from './routes/_dashboard/student/forum/new'
 import { Route as DashboardStudentForumMineRouteImport } from './routes/_dashboard/student/forum/mine'
 import { Route as DashboardStudentForumIdRouteImport } from './routes/_dashboard/student/forum/$id'
@@ -58,15 +60,17 @@ import { Route as DashboardAdminTutoringNewRouteImport } from './routes/_dashboa
 import { Route as DashboardAdminPaymentsUserIdRouteImport } from './routes/_dashboard/admin/payments/$userId'
 import { Route as DashboardAdminForumIdRouteImport } from './routes/_dashboard/admin/forum/$id'
 import { Route as DashboardAdminAttendanceUserIdRouteImport } from './routes/_dashboard/admin/attendance/$userId'
-import { Route as DashboardTeacherPacksPackageIdIndexRouteImport } from './routes/_dashboard/teacher/packs/$packageId/index'
-import { Route as DashboardTeacherPacksPackageIdImportRouteImport } from './routes/_dashboard/teacher/packs/$packageId/import'
+import { Route as DashboardTeacherPacksGroupIdIndexRouteImport } from './routes/_dashboard/teacher/packs/$groupId/index'
+import { Route as DashboardStudentPackagesGroupIdPackageIdRouteImport } from './routes/_dashboard/student/packages/$groupId/$packageId'
 import { Route as DashboardStudentMaterialsChaptersIdRouteImport } from './routes/_dashboard/student/materials/chapters/$id'
+import { Route as DashboardTeacherPacksGroupIdPackageIdIndexRouteImport } from './routes/_dashboard/teacher/packs/$groupId/$packageId/index'
 import { Route as DashboardTeacherChaptersChapterIdMaterialsIndexRouteImport } from './routes/_dashboard/teacher/chapters/$chapterId/materials/index'
-import { Route as DashboardTeacherPacksPackageIdQuestionsNewRouteImport } from './routes/_dashboard/teacher/packs/$packageId/questions/new'
+import { Route as DashboardTeacherPacksGroupIdPackageIdImportRouteImport } from './routes/_dashboard/teacher/packs/$groupId/$packageId/import'
 import { Route as DashboardTeacherChaptersChapterIdMaterialsNewRouteImport } from './routes/_dashboard/teacher/chapters/$chapterId/materials/new'
 import { Route as DashboardStudentMaterialsChaptersChapterIdMaterialIdRouteImport } from './routes/_dashboard/student/materials/chapters/$chapterId/$materialId'
-import { Route as DashboardTeacherPacksPackageIdQuestionsQuestionIdEditRouteImport } from './routes/_dashboard/teacher/packs/$packageId/questions/$questionId/edit'
+import { Route as DashboardTeacherPacksGroupIdPackageIdQuestionsNewRouteImport } from './routes/_dashboard/teacher/packs/$groupId/$packageId/questions/new'
 import { Route as DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRouteImport } from './routes/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit'
+import { Route as DashboardTeacherPacksGroupIdPackageIdQuestionsQuestionIdEditRouteImport } from './routes/_dashboard/teacher/packs/$groupId/$packageId/questions/$questionId/edit'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -227,6 +231,12 @@ const DashboardStudentTutoringIndexRoute =
     path: '/',
     getParentRoute: () => DashboardStudentTutoringRoute,
   } as any)
+const DashboardStudentPackagesIndexRoute =
+  DashboardStudentPackagesIndexRouteImport.update({
+    id: '/student/packages/',
+    path: '/student/packages/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardStudentMaterialsIndexRoute =
   DashboardStudentMaterialsIndexRouteImport.update({
     id: '/student/materials/',
@@ -304,6 +314,12 @@ const DashboardStudentTutoringJoinRoute =
     path: '/join',
     getParentRoute: () => DashboardStudentTutoringRoute,
   } as any)
+const DashboardStudentPackagesGroupIdRoute =
+  DashboardStudentPackagesGroupIdRouteImport.update({
+    id: '/student/packages/$groupId',
+    path: '/student/packages/$groupId',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardStudentForumNewRoute =
   DashboardStudentForumNewRouteImport.update({
     id: '/student/forum/new',
@@ -344,22 +360,28 @@ const DashboardAdminAttendanceUserIdRoute =
     path: '/admin/attendance/$userId',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardTeacherPacksPackageIdIndexRoute =
-  DashboardTeacherPacksPackageIdIndexRouteImport.update({
-    id: '/teacher/packs/$packageId/',
-    path: '/teacher/packs/$packageId/',
+const DashboardTeacherPacksGroupIdIndexRoute =
+  DashboardTeacherPacksGroupIdIndexRouteImport.update({
+    id: '/teacher/packs/$groupId/',
+    path: '/teacher/packs/$groupId/',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardTeacherPacksPackageIdImportRoute =
-  DashboardTeacherPacksPackageIdImportRouteImport.update({
-    id: '/teacher/packs/$packageId/import',
-    path: '/teacher/packs/$packageId/import',
-    getParentRoute: () => DashboardRoute,
+const DashboardStudentPackagesGroupIdPackageIdRoute =
+  DashboardStudentPackagesGroupIdPackageIdRouteImport.update({
+    id: '/$packageId',
+    path: '/$packageId',
+    getParentRoute: () => DashboardStudentPackagesGroupIdRoute,
   } as any)
 const DashboardStudentMaterialsChaptersIdRoute =
   DashboardStudentMaterialsChaptersIdRouteImport.update({
     id: '/student/materials/chapters/$id',
     path: '/student/materials/chapters/$id',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherPacksGroupIdPackageIdIndexRoute =
+  DashboardTeacherPacksGroupIdPackageIdIndexRouteImport.update({
+    id: '/teacher/packs/$groupId/$packageId/',
+    path: '/teacher/packs/$groupId/$packageId/',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardTeacherChaptersChapterIdMaterialsIndexRoute =
@@ -368,10 +390,10 @@ const DashboardTeacherChaptersChapterIdMaterialsIndexRoute =
     path: '/teacher/chapters/$chapterId/materials/',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardTeacherPacksPackageIdQuestionsNewRoute =
-  DashboardTeacherPacksPackageIdQuestionsNewRouteImport.update({
-    id: '/teacher/packs/$packageId/questions/new',
-    path: '/teacher/packs/$packageId/questions/new',
+const DashboardTeacherPacksGroupIdPackageIdImportRoute =
+  DashboardTeacherPacksGroupIdPackageIdImportRouteImport.update({
+    id: '/teacher/packs/$groupId/$packageId/import',
+    path: '/teacher/packs/$groupId/$packageId/import',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardTeacherChaptersChapterIdMaterialsNewRoute =
@@ -386,10 +408,10 @@ const DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute =
     path: '/student/materials/chapters/$chapterId/$materialId',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardTeacherPacksPackageIdQuestionsQuestionIdEditRoute =
-  DashboardTeacherPacksPackageIdQuestionsQuestionIdEditRouteImport.update({
-    id: '/teacher/packs/$packageId/questions/$questionId/edit',
-    path: '/teacher/packs/$packageId/questions/$questionId/edit',
+const DashboardTeacherPacksGroupIdPackageIdQuestionsNewRoute =
+  DashboardTeacherPacksGroupIdPackageIdQuestionsNewRouteImport.update({
+    id: '/teacher/packs/$groupId/$packageId/questions/new',
+    path: '/teacher/packs/$groupId/$packageId/questions/new',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute =
@@ -398,6 +420,14 @@ const DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute =
     path: '/teacher/chapters/$chapterId/materials/$materialId/edit',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardTeacherPacksGroupIdPackageIdQuestionsQuestionIdEditRoute =
+  DashboardTeacherPacksGroupIdPackageIdQuestionsQuestionIdEditRouteImport.update(
+    {
+      id: '/teacher/packs/$groupId/$packageId/questions/$questionId/edit',
+      path: '/teacher/packs/$groupId/$packageId/questions/$questionId/edit',
+      getParentRoute: () => DashboardRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -430,6 +460,7 @@ export interface FileRoutesByFullPath {
   '/student/forum/$id': typeof DashboardStudentForumIdRoute
   '/student/forum/mine': typeof DashboardStudentForumMineRoute
   '/student/forum/new': typeof DashboardStudentForumNewRoute
+  '/student/packages/$groupId': typeof DashboardStudentPackagesGroupIdRouteWithChildren
   '/student/tutoring/join': typeof DashboardStudentTutoringJoinRoute
   '/student/tutoring/new': typeof DashboardStudentTutoringNewRoute
   '/teacher/forum/$id': typeof DashboardTeacherForumIdRoute
@@ -443,20 +474,23 @@ export interface FileRoutesByFullPath {
   '/admin/tutoring/': typeof DashboardAdminTutoringIndexRoute
   '/student/forum/': typeof DashboardStudentForumIndexRoute
   '/student/materials/': typeof DashboardStudentMaterialsIndexRoute
+  '/student/packages/': typeof DashboardStudentPackagesIndexRoute
   '/student/tutoring/': typeof DashboardStudentTutoringIndexRoute
   '/teacher/chapters/': typeof DashboardTeacherChaptersIndexRoute
   '/teacher/forum/': typeof DashboardTeacherForumIndexRoute
   '/teacher/packs/': typeof DashboardTeacherPacksIndexRoute
   '/teacher/tutoring/': typeof DashboardTeacherTutoringIndexRoute
   '/student/materials/chapters/$id': typeof DashboardStudentMaterialsChaptersIdRoute
-  '/teacher/packs/$packageId/import': typeof DashboardTeacherPacksPackageIdImportRoute
-  '/teacher/packs/$packageId/': typeof DashboardTeacherPacksPackageIdIndexRoute
+  '/student/packages/$groupId/$packageId': typeof DashboardStudentPackagesGroupIdPackageIdRoute
+  '/teacher/packs/$groupId/': typeof DashboardTeacherPacksGroupIdIndexRoute
   '/student/materials/chapters/$chapterId/$materialId': typeof DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute
   '/teacher/chapters/$chapterId/materials/new': typeof DashboardTeacherChaptersChapterIdMaterialsNewRoute
-  '/teacher/packs/$packageId/questions/new': typeof DashboardTeacherPacksPackageIdQuestionsNewRoute
+  '/teacher/packs/$groupId/$packageId/import': typeof DashboardTeacherPacksGroupIdPackageIdImportRoute
   '/teacher/chapters/$chapterId/materials/': typeof DashboardTeacherChaptersChapterIdMaterialsIndexRoute
+  '/teacher/packs/$groupId/$packageId/': typeof DashboardTeacherPacksGroupIdPackageIdIndexRoute
   '/teacher/chapters/$chapterId/materials/$materialId/edit': typeof DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute
-  '/teacher/packs/$packageId/questions/$questionId/edit': typeof DashboardTeacherPacksPackageIdQuestionsQuestionIdEditRoute
+  '/teacher/packs/$groupId/$packageId/questions/new': typeof DashboardTeacherPacksGroupIdPackageIdQuestionsNewRoute
+  '/teacher/packs/$groupId/$packageId/questions/$questionId/edit': typeof DashboardTeacherPacksGroupIdPackageIdQuestionsQuestionIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -488,6 +522,7 @@ export interface FileRoutesByTo {
   '/student/forum/$id': typeof DashboardStudentForumIdRoute
   '/student/forum/mine': typeof DashboardStudentForumMineRoute
   '/student/forum/new': typeof DashboardStudentForumNewRoute
+  '/student/packages/$groupId': typeof DashboardStudentPackagesGroupIdRouteWithChildren
   '/student/tutoring/join': typeof DashboardStudentTutoringJoinRoute
   '/student/tutoring/new': typeof DashboardStudentTutoringNewRoute
   '/teacher/forum/$id': typeof DashboardTeacherForumIdRoute
@@ -501,20 +536,23 @@ export interface FileRoutesByTo {
   '/admin/tutoring': typeof DashboardAdminTutoringIndexRoute
   '/student/forum': typeof DashboardStudentForumIndexRoute
   '/student/materials': typeof DashboardStudentMaterialsIndexRoute
+  '/student/packages': typeof DashboardStudentPackagesIndexRoute
   '/student/tutoring': typeof DashboardStudentTutoringIndexRoute
   '/teacher/chapters': typeof DashboardTeacherChaptersIndexRoute
   '/teacher/forum': typeof DashboardTeacherForumIndexRoute
   '/teacher/packs': typeof DashboardTeacherPacksIndexRoute
   '/teacher/tutoring': typeof DashboardTeacherTutoringIndexRoute
   '/student/materials/chapters/$id': typeof DashboardStudentMaterialsChaptersIdRoute
-  '/teacher/packs/$packageId/import': typeof DashboardTeacherPacksPackageIdImportRoute
-  '/teacher/packs/$packageId': typeof DashboardTeacherPacksPackageIdIndexRoute
+  '/student/packages/$groupId/$packageId': typeof DashboardStudentPackagesGroupIdPackageIdRoute
+  '/teacher/packs/$groupId': typeof DashboardTeacherPacksGroupIdIndexRoute
   '/student/materials/chapters/$chapterId/$materialId': typeof DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute
   '/teacher/chapters/$chapterId/materials/new': typeof DashboardTeacherChaptersChapterIdMaterialsNewRoute
-  '/teacher/packs/$packageId/questions/new': typeof DashboardTeacherPacksPackageIdQuestionsNewRoute
+  '/teacher/packs/$groupId/$packageId/import': typeof DashboardTeacherPacksGroupIdPackageIdImportRoute
   '/teacher/chapters/$chapterId/materials': typeof DashboardTeacherChaptersChapterIdMaterialsIndexRoute
+  '/teacher/packs/$groupId/$packageId': typeof DashboardTeacherPacksGroupIdPackageIdIndexRoute
   '/teacher/chapters/$chapterId/materials/$materialId/edit': typeof DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute
-  '/teacher/packs/$packageId/questions/$questionId/edit': typeof DashboardTeacherPacksPackageIdQuestionsQuestionIdEditRoute
+  '/teacher/packs/$groupId/$packageId/questions/new': typeof DashboardTeacherPacksGroupIdPackageIdQuestionsNewRoute
+  '/teacher/packs/$groupId/$packageId/questions/$questionId/edit': typeof DashboardTeacherPacksGroupIdPackageIdQuestionsQuestionIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -549,6 +587,7 @@ export interface FileRoutesById {
   '/_dashboard/student/forum/$id': typeof DashboardStudentForumIdRoute
   '/_dashboard/student/forum/mine': typeof DashboardStudentForumMineRoute
   '/_dashboard/student/forum/new': typeof DashboardStudentForumNewRoute
+  '/_dashboard/student/packages/$groupId': typeof DashboardStudentPackagesGroupIdRouteWithChildren
   '/_dashboard/student/tutoring/join': typeof DashboardStudentTutoringJoinRoute
   '/_dashboard/student/tutoring/new': typeof DashboardStudentTutoringNewRoute
   '/_dashboard/teacher/forum/$id': typeof DashboardTeacherForumIdRoute
@@ -562,20 +601,23 @@ export interface FileRoutesById {
   '/_dashboard/admin/tutoring/': typeof DashboardAdminTutoringIndexRoute
   '/_dashboard/student/forum/': typeof DashboardStudentForumIndexRoute
   '/_dashboard/student/materials/': typeof DashboardStudentMaterialsIndexRoute
+  '/_dashboard/student/packages/': typeof DashboardStudentPackagesIndexRoute
   '/_dashboard/student/tutoring/': typeof DashboardStudentTutoringIndexRoute
   '/_dashboard/teacher/chapters/': typeof DashboardTeacherChaptersIndexRoute
   '/_dashboard/teacher/forum/': typeof DashboardTeacherForumIndexRoute
   '/_dashboard/teacher/packs/': typeof DashboardTeacherPacksIndexRoute
   '/_dashboard/teacher/tutoring/': typeof DashboardTeacherTutoringIndexRoute
   '/_dashboard/student/materials/chapters/$id': typeof DashboardStudentMaterialsChaptersIdRoute
-  '/_dashboard/teacher/packs/$packageId/import': typeof DashboardTeacherPacksPackageIdImportRoute
-  '/_dashboard/teacher/packs/$packageId/': typeof DashboardTeacherPacksPackageIdIndexRoute
+  '/_dashboard/student/packages/$groupId/$packageId': typeof DashboardStudentPackagesGroupIdPackageIdRoute
+  '/_dashboard/teacher/packs/$groupId/': typeof DashboardTeacherPacksGroupIdIndexRoute
   '/_dashboard/student/materials/chapters/$chapterId/$materialId': typeof DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute
   '/_dashboard/teacher/chapters/$chapterId/materials/new': typeof DashboardTeacherChaptersChapterIdMaterialsNewRoute
-  '/_dashboard/teacher/packs/$packageId/questions/new': typeof DashboardTeacherPacksPackageIdQuestionsNewRoute
+  '/_dashboard/teacher/packs/$groupId/$packageId/import': typeof DashboardTeacherPacksGroupIdPackageIdImportRoute
   '/_dashboard/teacher/chapters/$chapterId/materials/': typeof DashboardTeacherChaptersChapterIdMaterialsIndexRoute
+  '/_dashboard/teacher/packs/$groupId/$packageId/': typeof DashboardTeacherPacksGroupIdPackageIdIndexRoute
   '/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit': typeof DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute
-  '/_dashboard/teacher/packs/$packageId/questions/$questionId/edit': typeof DashboardTeacherPacksPackageIdQuestionsQuestionIdEditRoute
+  '/_dashboard/teacher/packs/$groupId/$packageId/questions/new': typeof DashboardTeacherPacksGroupIdPackageIdQuestionsNewRoute
+  '/_dashboard/teacher/packs/$groupId/$packageId/questions/$questionId/edit': typeof DashboardTeacherPacksGroupIdPackageIdQuestionsQuestionIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -610,6 +652,7 @@ export interface FileRouteTypes {
     | '/student/forum/$id'
     | '/student/forum/mine'
     | '/student/forum/new'
+    | '/student/packages/$groupId'
     | '/student/tutoring/join'
     | '/student/tutoring/new'
     | '/teacher/forum/$id'
@@ -623,20 +666,23 @@ export interface FileRouteTypes {
     | '/admin/tutoring/'
     | '/student/forum/'
     | '/student/materials/'
+    | '/student/packages/'
     | '/student/tutoring/'
     | '/teacher/chapters/'
     | '/teacher/forum/'
     | '/teacher/packs/'
     | '/teacher/tutoring/'
     | '/student/materials/chapters/$id'
-    | '/teacher/packs/$packageId/import'
-    | '/teacher/packs/$packageId/'
+    | '/student/packages/$groupId/$packageId'
+    | '/teacher/packs/$groupId/'
     | '/student/materials/chapters/$chapterId/$materialId'
     | '/teacher/chapters/$chapterId/materials/new'
-    | '/teacher/packs/$packageId/questions/new'
+    | '/teacher/packs/$groupId/$packageId/import'
     | '/teacher/chapters/$chapterId/materials/'
+    | '/teacher/packs/$groupId/$packageId/'
     | '/teacher/chapters/$chapterId/materials/$materialId/edit'
-    | '/teacher/packs/$packageId/questions/$questionId/edit'
+    | '/teacher/packs/$groupId/$packageId/questions/new'
+    | '/teacher/packs/$groupId/$packageId/questions/$questionId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -668,6 +714,7 @@ export interface FileRouteTypes {
     | '/student/forum/$id'
     | '/student/forum/mine'
     | '/student/forum/new'
+    | '/student/packages/$groupId'
     | '/student/tutoring/join'
     | '/student/tutoring/new'
     | '/teacher/forum/$id'
@@ -681,20 +728,23 @@ export interface FileRouteTypes {
     | '/admin/tutoring'
     | '/student/forum'
     | '/student/materials'
+    | '/student/packages'
     | '/student/tutoring'
     | '/teacher/chapters'
     | '/teacher/forum'
     | '/teacher/packs'
     | '/teacher/tutoring'
     | '/student/materials/chapters/$id'
-    | '/teacher/packs/$packageId/import'
-    | '/teacher/packs/$packageId'
+    | '/student/packages/$groupId/$packageId'
+    | '/teacher/packs/$groupId'
     | '/student/materials/chapters/$chapterId/$materialId'
     | '/teacher/chapters/$chapterId/materials/new'
-    | '/teacher/packs/$packageId/questions/new'
+    | '/teacher/packs/$groupId/$packageId/import'
     | '/teacher/chapters/$chapterId/materials'
+    | '/teacher/packs/$groupId/$packageId'
     | '/teacher/chapters/$chapterId/materials/$materialId/edit'
-    | '/teacher/packs/$packageId/questions/$questionId/edit'
+    | '/teacher/packs/$groupId/$packageId/questions/new'
+    | '/teacher/packs/$groupId/$packageId/questions/$questionId/edit'
   id:
     | '__root__'
     | '/'
@@ -728,6 +778,7 @@ export interface FileRouteTypes {
     | '/_dashboard/student/forum/$id'
     | '/_dashboard/student/forum/mine'
     | '/_dashboard/student/forum/new'
+    | '/_dashboard/student/packages/$groupId'
     | '/_dashboard/student/tutoring/join'
     | '/_dashboard/student/tutoring/new'
     | '/_dashboard/teacher/forum/$id'
@@ -741,20 +792,23 @@ export interface FileRouteTypes {
     | '/_dashboard/admin/tutoring/'
     | '/_dashboard/student/forum/'
     | '/_dashboard/student/materials/'
+    | '/_dashboard/student/packages/'
     | '/_dashboard/student/tutoring/'
     | '/_dashboard/teacher/chapters/'
     | '/_dashboard/teacher/forum/'
     | '/_dashboard/teacher/packs/'
     | '/_dashboard/teacher/tutoring/'
     | '/_dashboard/student/materials/chapters/$id'
-    | '/_dashboard/teacher/packs/$packageId/import'
-    | '/_dashboard/teacher/packs/$packageId/'
+    | '/_dashboard/student/packages/$groupId/$packageId'
+    | '/_dashboard/teacher/packs/$groupId/'
     | '/_dashboard/student/materials/chapters/$chapterId/$materialId'
     | '/_dashboard/teacher/chapters/$chapterId/materials/new'
-    | '/_dashboard/teacher/packs/$packageId/questions/new'
+    | '/_dashboard/teacher/packs/$groupId/$packageId/import'
     | '/_dashboard/teacher/chapters/$chapterId/materials/'
+    | '/_dashboard/teacher/packs/$groupId/$packageId/'
     | '/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit'
-    | '/_dashboard/teacher/packs/$packageId/questions/$questionId/edit'
+    | '/_dashboard/teacher/packs/$groupId/$packageId/questions/new'
+    | '/_dashboard/teacher/packs/$groupId/$packageId/questions/$questionId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -969,6 +1023,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentTutoringIndexRouteImport
       parentRoute: typeof DashboardStudentTutoringRoute
     }
+    '/_dashboard/student/packages/': {
+      id: '/_dashboard/student/packages/'
+      path: '/student/packages'
+      fullPath: '/student/packages/'
+      preLoaderRoute: typeof DashboardStudentPackagesIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/student/materials/': {
       id: '/_dashboard/student/materials/'
       path: '/student/materials'
@@ -1060,6 +1121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentTutoringJoinRouteImport
       parentRoute: typeof DashboardStudentTutoringRoute
     }
+    '/_dashboard/student/packages/$groupId': {
+      id: '/_dashboard/student/packages/$groupId'
+      path: '/student/packages/$groupId'
+      fullPath: '/student/packages/$groupId'
+      preLoaderRoute: typeof DashboardStudentPackagesGroupIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/student/forum/new': {
       id: '/_dashboard/student/forum/new'
       path: '/student/forum/new'
@@ -1109,25 +1177,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminAttendanceUserIdRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/packs/$packageId/': {
-      id: '/_dashboard/teacher/packs/$packageId/'
-      path: '/teacher/packs/$packageId'
-      fullPath: '/teacher/packs/$packageId/'
-      preLoaderRoute: typeof DashboardTeacherPacksPackageIdIndexRouteImport
+    '/_dashboard/teacher/packs/$groupId/': {
+      id: '/_dashboard/teacher/packs/$groupId/'
+      path: '/teacher/packs/$groupId'
+      fullPath: '/teacher/packs/$groupId/'
+      preLoaderRoute: typeof DashboardTeacherPacksGroupIdIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/packs/$packageId/import': {
-      id: '/_dashboard/teacher/packs/$packageId/import'
-      path: '/teacher/packs/$packageId/import'
-      fullPath: '/teacher/packs/$packageId/import'
-      preLoaderRoute: typeof DashboardTeacherPacksPackageIdImportRouteImport
-      parentRoute: typeof DashboardRoute
+    '/_dashboard/student/packages/$groupId/$packageId': {
+      id: '/_dashboard/student/packages/$groupId/$packageId'
+      path: '/$packageId'
+      fullPath: '/student/packages/$groupId/$packageId'
+      preLoaderRoute: typeof DashboardStudentPackagesGroupIdPackageIdRouteImport
+      parentRoute: typeof DashboardStudentPackagesGroupIdRoute
     }
     '/_dashboard/student/materials/chapters/$id': {
       id: '/_dashboard/student/materials/chapters/$id'
       path: '/student/materials/chapters/$id'
       fullPath: '/student/materials/chapters/$id'
       preLoaderRoute: typeof DashboardStudentMaterialsChaptersIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/packs/$groupId/$packageId/': {
+      id: '/_dashboard/teacher/packs/$groupId/$packageId/'
+      path: '/teacher/packs/$groupId/$packageId'
+      fullPath: '/teacher/packs/$groupId/$packageId/'
+      preLoaderRoute: typeof DashboardTeacherPacksGroupIdPackageIdIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/teacher/chapters/$chapterId/materials/': {
@@ -1137,11 +1212,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardTeacherChaptersChapterIdMaterialsIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/packs/$packageId/questions/new': {
-      id: '/_dashboard/teacher/packs/$packageId/questions/new'
-      path: '/teacher/packs/$packageId/questions/new'
-      fullPath: '/teacher/packs/$packageId/questions/new'
-      preLoaderRoute: typeof DashboardTeacherPacksPackageIdQuestionsNewRouteImport
+    '/_dashboard/teacher/packs/$groupId/$packageId/import': {
+      id: '/_dashboard/teacher/packs/$groupId/$packageId/import'
+      path: '/teacher/packs/$groupId/$packageId/import'
+      fullPath: '/teacher/packs/$groupId/$packageId/import'
+      preLoaderRoute: typeof DashboardTeacherPacksGroupIdPackageIdImportRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/teacher/chapters/$chapterId/materials/new': {
@@ -1158,11 +1233,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentMaterialsChaptersChapterIdMaterialIdRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/packs/$packageId/questions/$questionId/edit': {
-      id: '/_dashboard/teacher/packs/$packageId/questions/$questionId/edit'
-      path: '/teacher/packs/$packageId/questions/$questionId/edit'
-      fullPath: '/teacher/packs/$packageId/questions/$questionId/edit'
-      preLoaderRoute: typeof DashboardTeacherPacksPackageIdQuestionsQuestionIdEditRouteImport
+    '/_dashboard/teacher/packs/$groupId/$packageId/questions/new': {
+      id: '/_dashboard/teacher/packs/$groupId/$packageId/questions/new'
+      path: '/teacher/packs/$groupId/$packageId/questions/new'
+      fullPath: '/teacher/packs/$groupId/$packageId/questions/new'
+      preLoaderRoute: typeof DashboardTeacherPacksGroupIdPackageIdQuestionsNewRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit': {
@@ -1170,6 +1245,13 @@ declare module '@tanstack/react-router' {
       path: '/teacher/chapters/$chapterId/materials/$materialId/edit'
       fullPath: '/teacher/chapters/$chapterId/materials/$materialId/edit'
       preLoaderRoute: typeof DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/packs/$groupId/$packageId/questions/$questionId/edit': {
+      id: '/_dashboard/teacher/packs/$groupId/$packageId/questions/$questionId/edit'
+      path: '/teacher/packs/$groupId/$packageId/questions/$questionId/edit'
+      fullPath: '/teacher/packs/$groupId/$packageId/questions/$questionId/edit'
+      preLoaderRoute: typeof DashboardTeacherPacksGroupIdPackageIdQuestionsQuestionIdEditRouteImport
       parentRoute: typeof DashboardRoute
     }
   }
@@ -1208,6 +1290,21 @@ const DashboardUserMaterialsRouteWithChildren =
     DashboardUserMaterialsRouteChildren,
   )
 
+interface DashboardStudentPackagesGroupIdRouteChildren {
+  DashboardStudentPackagesGroupIdPackageIdRoute: typeof DashboardStudentPackagesGroupIdPackageIdRoute
+}
+
+const DashboardStudentPackagesGroupIdRouteChildren: DashboardStudentPackagesGroupIdRouteChildren =
+  {
+    DashboardStudentPackagesGroupIdPackageIdRoute:
+      DashboardStudentPackagesGroupIdPackageIdRoute,
+  }
+
+const DashboardStudentPackagesGroupIdRouteWithChildren =
+  DashboardStudentPackagesGroupIdRoute._addFileChildren(
+    DashboardStudentPackagesGroupIdRouteChildren,
+  )
+
 interface DashboardRouteChildren {
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardAdminDashboardRoute: typeof DashboardAdminDashboardRoute
@@ -1236,6 +1333,7 @@ interface DashboardRouteChildren {
   DashboardStudentForumIdRoute: typeof DashboardStudentForumIdRoute
   DashboardStudentForumMineRoute: typeof DashboardStudentForumMineRoute
   DashboardStudentForumNewRoute: typeof DashboardStudentForumNewRoute
+  DashboardStudentPackagesGroupIdRoute: typeof DashboardStudentPackagesGroupIdRouteWithChildren
   DashboardTeacherForumIdRoute: typeof DashboardTeacherForumIdRoute
   DashboardTeacherTutoringEarningsRoute: typeof DashboardTeacherTutoringEarningsRoute
   DashboardTeacherTutoringRequestsRoute: typeof DashboardTeacherTutoringRequestsRoute
@@ -1246,19 +1344,21 @@ interface DashboardRouteChildren {
   DashboardAdminTutoringIndexRoute: typeof DashboardAdminTutoringIndexRoute
   DashboardStudentForumIndexRoute: typeof DashboardStudentForumIndexRoute
   DashboardStudentMaterialsIndexRoute: typeof DashboardStudentMaterialsIndexRoute
+  DashboardStudentPackagesIndexRoute: typeof DashboardStudentPackagesIndexRoute
   DashboardTeacherChaptersIndexRoute: typeof DashboardTeacherChaptersIndexRoute
   DashboardTeacherForumIndexRoute: typeof DashboardTeacherForumIndexRoute
   DashboardTeacherPacksIndexRoute: typeof DashboardTeacherPacksIndexRoute
   DashboardTeacherTutoringIndexRoute: typeof DashboardTeacherTutoringIndexRoute
   DashboardStudentMaterialsChaptersIdRoute: typeof DashboardStudentMaterialsChaptersIdRoute
-  DashboardTeacherPacksPackageIdImportRoute: typeof DashboardTeacherPacksPackageIdImportRoute
-  DashboardTeacherPacksPackageIdIndexRoute: typeof DashboardTeacherPacksPackageIdIndexRoute
+  DashboardTeacherPacksGroupIdIndexRoute: typeof DashboardTeacherPacksGroupIdIndexRoute
   DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute: typeof DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute
   DashboardTeacherChaptersChapterIdMaterialsNewRoute: typeof DashboardTeacherChaptersChapterIdMaterialsNewRoute
-  DashboardTeacherPacksPackageIdQuestionsNewRoute: typeof DashboardTeacherPacksPackageIdQuestionsNewRoute
+  DashboardTeacherPacksGroupIdPackageIdImportRoute: typeof DashboardTeacherPacksGroupIdPackageIdImportRoute
   DashboardTeacherChaptersChapterIdMaterialsIndexRoute: typeof DashboardTeacherChaptersChapterIdMaterialsIndexRoute
+  DashboardTeacherPacksGroupIdPackageIdIndexRoute: typeof DashboardTeacherPacksGroupIdPackageIdIndexRoute
   DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute: typeof DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute
-  DashboardTeacherPacksPackageIdQuestionsQuestionIdEditRoute: typeof DashboardTeacherPacksPackageIdQuestionsQuestionIdEditRoute
+  DashboardTeacherPacksGroupIdPackageIdQuestionsNewRoute: typeof DashboardTeacherPacksGroupIdPackageIdQuestionsNewRoute
+  DashboardTeacherPacksGroupIdPackageIdQuestionsQuestionIdEditRoute: typeof DashboardTeacherPacksGroupIdPackageIdQuestionsQuestionIdEditRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -1289,6 +1389,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardStudentForumIdRoute: DashboardStudentForumIdRoute,
   DashboardStudentForumMineRoute: DashboardStudentForumMineRoute,
   DashboardStudentForumNewRoute: DashboardStudentForumNewRoute,
+  DashboardStudentPackagesGroupIdRoute:
+    DashboardStudentPackagesGroupIdRouteWithChildren,
   DashboardTeacherForumIdRoute: DashboardTeacherForumIdRoute,
   DashboardTeacherTutoringEarningsRoute: DashboardTeacherTutoringEarningsRoute,
   DashboardTeacherTutoringRequestsRoute: DashboardTeacherTutoringRequestsRoute,
@@ -1299,28 +1401,31 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminTutoringIndexRoute: DashboardAdminTutoringIndexRoute,
   DashboardStudentForumIndexRoute: DashboardStudentForumIndexRoute,
   DashboardStudentMaterialsIndexRoute: DashboardStudentMaterialsIndexRoute,
+  DashboardStudentPackagesIndexRoute: DashboardStudentPackagesIndexRoute,
   DashboardTeacherChaptersIndexRoute: DashboardTeacherChaptersIndexRoute,
   DashboardTeacherForumIndexRoute: DashboardTeacherForumIndexRoute,
   DashboardTeacherPacksIndexRoute: DashboardTeacherPacksIndexRoute,
   DashboardTeacherTutoringIndexRoute: DashboardTeacherTutoringIndexRoute,
   DashboardStudentMaterialsChaptersIdRoute:
     DashboardStudentMaterialsChaptersIdRoute,
-  DashboardTeacherPacksPackageIdImportRoute:
-    DashboardTeacherPacksPackageIdImportRoute,
-  DashboardTeacherPacksPackageIdIndexRoute:
-    DashboardTeacherPacksPackageIdIndexRoute,
+  DashboardTeacherPacksGroupIdIndexRoute:
+    DashboardTeacherPacksGroupIdIndexRoute,
   DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute:
     DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute,
   DashboardTeacherChaptersChapterIdMaterialsNewRoute:
     DashboardTeacherChaptersChapterIdMaterialsNewRoute,
-  DashboardTeacherPacksPackageIdQuestionsNewRoute:
-    DashboardTeacherPacksPackageIdQuestionsNewRoute,
+  DashboardTeacherPacksGroupIdPackageIdImportRoute:
+    DashboardTeacherPacksGroupIdPackageIdImportRoute,
   DashboardTeacherChaptersChapterIdMaterialsIndexRoute:
     DashboardTeacherChaptersChapterIdMaterialsIndexRoute,
+  DashboardTeacherPacksGroupIdPackageIdIndexRoute:
+    DashboardTeacherPacksGroupIdPackageIdIndexRoute,
   DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute:
     DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute,
-  DashboardTeacherPacksPackageIdQuestionsQuestionIdEditRoute:
-    DashboardTeacherPacksPackageIdQuestionsQuestionIdEditRoute,
+  DashboardTeacherPacksGroupIdPackageIdQuestionsNewRoute:
+    DashboardTeacherPacksGroupIdPackageIdQuestionsNewRoute,
+  DashboardTeacherPacksGroupIdPackageIdQuestionsQuestionIdEditRoute:
+    DashboardTeacherPacksGroupIdPackageIdQuestionsQuestionIdEditRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
