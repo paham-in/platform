@@ -4,13 +4,16 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { Input } from "@/components/ui/input"
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { CalendarDays } from "lucide-react"
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getTutoringAvailabilityOptions, getTutoringAvailabilityQueryKey, postTutoringAvailabilityMutation, deleteTutoringAvailabilityByIdMutation } from "@/lib/api/@tanstack/react-query.gen"
-import { Loader2, Plus, Trash2 } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 export function AvailabilitySchedule() {
@@ -47,35 +50,58 @@ export function AvailabilitySchedule() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: getTutoringAvailabilityQueryKey() }); setDeleteId(null); toast.success("Slot berhasil dihapus") },
   })
 
-  if (isLoading) return <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-
   return (
     <>
-      <div className="mb-4">
+      <div className="mb-4 flex justify-end">
         <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Tambah Slot</Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {slots.length === 0 && <p className="col-span-full py-12 text-center text-muted-foreground">Belum ada jadwal.</p>}
-        {[0, 1, 2, 3, 4, 5, 6].map((day) => {
-          const daySlots = grouped[day]
-          if (!daySlots) return null
-          return (
-            <Card key={day}>
-              <CardHeader className="pb-2"><CardTitle>{dayNames[day]}</CardTitle></CardHeader>
+        {isLoading ? (
+          Array.from({ length: 7 }).map((_, i) => (
+            <Card key={`skeleton-${i}`}>
+              <CardHeader className="pb-2"><Skeleton className="h-5 w-20" /></CardHeader>
               <CardContent className="space-y-2">
-                {daySlots.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
-                    <span>{s.start_time} - {s.end_time}</span>
-                    <Button variant="ghost" size="icon-xs" onClick={() => setDeleteId(s.id!)}>
-                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                    </Button>
-                  </div>
-                ))}
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
               </CardContent>
             </Card>
-          )
-        })}
+          ))
+        ) : (
+          <>
+            {slots.length === 0 && (
+              <Empty className="col-span-full">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon"><CalendarDays /></EmptyMedia>
+                  <EmptyTitle>Belum ada jadwal</EmptyTitle>
+                  <EmptyDescription>Tambahkan slot jadwal mengajar Anda</EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <Button onClick={() => setAddOpen(true)}><Plus className="h-4 w-4" /> Tambah Slot</Button>
+                </EmptyContent>
+              </Empty>
+            )}
+            {[0, 1, 2, 3, 4, 5, 6].map((day) => {
+              const daySlots = grouped[day]
+              if (!daySlots) return null
+              return (
+                <Card key={day}>
+                  <CardHeader className="pb-2"><CardTitle>{dayNames[day]}</CardTitle></CardHeader>
+                  <CardContent className="space-y-2">
+                    {daySlots.map((s) => (
+                      <div key={s.id} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
+                        <span>{s.start_time} - {s.end_time}</span>
+                        <Button variant="ghost" size="icon-xs" onClick={() => setDeleteId(s.id!)}>
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </>
+        )}
       </div>
 
       <Dialog open={addOpen} onOpenChange={(o) => { if (!o) setAddOpen(false) }}>
@@ -85,7 +111,7 @@ export function AvailabilitySchedule() {
             <div className="space-y-1.5">
               <Label>Hari</Label>
               <Select items={dayOptions} value={dayOfWeek} onValueChange={(v) => v && setDayOfWeek(v)}>
-                <SelectTrigger><SelectValue placeholder="Pilih hari" /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Pilih hari" /></SelectTrigger>
                 <SelectContent>
                   {dayOptions.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
