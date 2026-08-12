@@ -119,7 +119,7 @@ function CollectionPackages() {
       </main>
 
       {createOpen && (
-        <CreatePackageDialog defaultCollectionId={cid} onClose={() => setCreateOpen(false)} />
+        <CreatePackageDialog collectionId={cid} collectionName={collection?.name ?? ""} onClose={() => setCreateOpen(false)} />
       )}
 
       {editTarget && (
