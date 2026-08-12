@@ -15,7 +15,6 @@ import (
 	"bimbel2/backend/internal/gallery"
 	"bimbel2/backend/internal/invoice"
 	"bimbel2/backend/internal/jobs"
-	"bimbel2/backend/internal/paymentproof"
 	"bimbel2/backend/internal/tutoring"
 	"bimbel2/backend/internal/material"
 	"bimbel2/backend/internal/push"
@@ -106,7 +105,6 @@ func main() {
 	invoice.AuthRoutes(auth, db)
 	if objectStorage != nil {
 		upload.AuthRoutes(auth, db, objectStorage)
-		paymentproof.Routes(auth, db, objectStorage)
 	}
 
 	// Teacher + admin shared resources (register first so teacher can pass)
@@ -139,13 +137,11 @@ func main() {
 	studentclass.AdminRoutes(admin, db)
 	setting.AdminRoutes(admin, db, cfg.TeacherFeePercent)
 	tutoring.AdminRoutes(admin, db, objectStorage, settingSvc)
-	paymentproof.AdminRoutes(admin, db, objectStorage)
 	devreset.AdminRoutes(admin, db, cfg, jobRunner)
 
 	// background job: hapus sesi kedaluwarsa tiap jam & bukti kehadiran lewat masa simpan
 	jobRunner.StartSessionCleanup()
 	jobRunner.StartEvidenceCleanup()
-	jobRunner.StartPaymentProofCleanup()
 
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)

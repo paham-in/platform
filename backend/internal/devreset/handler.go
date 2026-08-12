@@ -272,29 +272,6 @@ func (h *Handler) RunEvidenceCleanup(c *fiber.Ctx) error {
 	})
 }
 
-// RunPaymentProofCleanup menjalankan job pembersihan bukti pembayaran lama
-// secara manual (development).
-//
-// @Summary      Run payment proof cleanup job
-// @Description  Jalankan manual job hapus bukti pembayaran yang sudah di-approve dan lewat masa simpan (development)
-// @Tags         Dev
-// @Produce      json
-// @Security     BearerAuth
-// @Success      200 {object} RunJobResponse
-// @Failure      500 {object} ErrorResponse
-// @Router       /admin/dev/cron/payment-proof-cleanup [post]
-func (h *Handler) RunPaymentProofCleanup(c *fiber.Ctx) error {
-	deleted, err := h.jobs.PaymentProofCleanup()
-	if err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal bersihkan proof: " + err.Error()})
-	}
-	return c.JSON(RunJobResponse{
-		Job:     "payment-proof-cleanup",
-		Deleted: int64(deleted),
-		Message: fmt.Sprintf("%d bukti pembayaran dihapus", deleted),
-	})
-}
-
 func AdminRoutes(admin fiber.Router, db *gorm.DB, cfg *config.Config, jobRunner *jobs.Runner) {
 	h := NewHandler(db, cfg, jobRunner)
 	// GET selalu diregistrasi (FE butuh flag enabled buat hide menu).
@@ -304,6 +281,5 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, cfg *config.Config, jobRunner 
 		admin.Delete("/dev/tables/:table", h.ResetTable)
 		admin.Post("/dev/cron/session-cleanup", h.RunSessionCleanup)
 		admin.Post("/dev/cron/evidence-cleanup", h.RunEvidenceCleanup)
-		admin.Post("/dev/cron/payment-proof-cleanup", h.RunPaymentProofCleanup)
 	}
 }

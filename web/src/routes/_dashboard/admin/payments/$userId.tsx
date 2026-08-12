@@ -7,18 +7,13 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { useState, useEffect } from "react"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import {
   getAdminUsersOptions,
   getAdminInvoicesOptions,
-  getInvoicesByInvoiceIdProofQueryKey,
-  patchAdminPaymentProofsByIdApproveMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { getInvoicesByInvoiceIdProof } from "@/lib/api/sdk.gen"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, MoreVertical, CheckCircle2, XCircle, Search, Trash2, FileImage, Loader2 } from "lucide-react"
-import { toast } from "sonner"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Plus, MoreVertical, CheckCircle2, XCircle, Search, Trash2 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
@@ -41,10 +36,8 @@ function PaymentsDetail() {
   const { search: searchParam, status: statusParam } = Route.useSearch()
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
 
-  // Sync URL → local state when search changes externally
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
 
-  // Debounce search → navigate to URL
   useEffect(() => {
     const timer = setTimeout(() => {
       navigate({
@@ -69,21 +62,6 @@ function PaymentsDetail() {
   const [deleteTarget, setDeleteTarget] = useState<InvoiceInvoiceResponse[] | null>(null)
   const [toggleTarget, setToggleTarget] = useState<{ invoices: InvoiceInvoiceResponse[]; status: "paid" | "pending" } | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
-  const qc = useQueryClient()
-
-  const approveMutation = useMutation({
-    ...patchAdminPaymentProofsByIdApproveMutation(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["getInvoices"] })
-      qc.invalidateQueries({ queryKey: ["getInvoicesByInvoiceIdProof"] })
-      toast.success("Bukti pembayaran disetujui.")
-    },
-    onError: (err: any) => toast.error(err?.error || "Gagal approve bukti"),
-  })
-
-  const handleApprove = (proofId: number) => {
-    approveMutation.mutate({ path: { id: proofId } })
-  }
 
   const statusOptions = [
     { label: "Semua", value: "all" },
@@ -107,7 +85,6 @@ function PaymentsDetail() {
       return next
     })
   }
-
 
   if (!isLoading && !user) {
     return (
@@ -185,7 +162,6 @@ function PaymentsDetail() {
                 <TableHead className="pl-0">Periode</TableHead>
                 <TableHead>Jumlah</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Bukti</TableHead>
                 <TableHead>Catatan</TableHead>
                 <TableHead>Tgl Buat</TableHead>
                 <TableHead className="pr-6 text-right">Aksi</TableHead>
@@ -199,14 +175,13 @@ function PaymentsDetail() {
                     <TableCell className="pl-0"><Skeleton className="h-4 w-28" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : invoices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="p-8 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="p-8 text-center text-muted-foreground">
                     Belum ada invoice
                   </TableCell>
                 </TableRow>
@@ -230,9 +205,6 @@ function PaymentsDetail() {
                           Pending
                         </span>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <AdminProofCell invoice={inv} onApprove={handleApprove} />
                     </TableCell>
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">
                       {inv.note || "-"}
@@ -261,7 +233,7 @@ function PaymentsDetail() {
             {selectedIds.size > 0 && (
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={8} className="text-sm text-muted-foreground">
+                  <TableCell colSpan={7} className="text-sm text-muted-foreground">
                     {selectedIds.size} dipilih
                   </TableCell>
                 </TableRow>
@@ -291,58 +263,6 @@ function PaymentsDetail() {
       )}
     </main>
   )
-}
-
-// AdminProofCell: lihat + approve bukti pembayaran per invoice.
-function AdminProofCell({
-  invoice,
-  onApprove,
-}: {
-  invoice: InvoiceInvoiceResponse
-  onApprove: (proofId: number) => void
-}) {
-  const { data: proofs } = useQuery({
-    queryKey: getInvoicesByInvoiceIdProofQueryKey({ path: { invoice_id: invoice.id! } }),
-    queryFn: async () => {
-      const { data } = await getInvoicesByInvoiceIdProof({ path: { invoice_id: invoice.id! } })
-      return data
-    },
-  })
-  const pendingProofs = proofs?.filter((p) => p.status === "pending") ?? []
-  const approvedProof = proofs?.find((p) => p.status === "approved")
-  const loading = proofs === undefined
-
-  if (loading) {
-    return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-  }
-
-  if (approvedProof) {
-    return (
-      <div className="flex items-center gap-1">
-        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-          Disetujui
-        </span>
-        {approvedProof.url && <FileImage className="h-4 w-4 text-muted-foreground" />}
-      </div>
-    )
-  }
-
-  if (pendingProofs.length > 0) {
-    return (
-      <div className="flex items-center gap-1">
-        <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
-          {pendingProofs.length} menunggu
-        </span>
-        {pendingProofs.map((p) => (
-          <Button key={p.id} variant="outline" size="sm" onClick={() => onApprove(p.id!)}>
-            <CheckCircle2 className="h-3 w-3" />
-          </Button>
-        ))}
-      </div>
-    )
-  }
-
-  return <span className="text-sm text-muted-foreground">—</span>
 }
 
 export const Route = createFileRoute("/_dashboard/admin/payments/$userId")({

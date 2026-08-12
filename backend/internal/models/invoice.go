@@ -13,6 +13,4 @@ type Invoice struct {
 	Note      string  `gorm:"size:500" json:"note"`
 	ClassID   *uint   `gorm:"index" json:"class_id,omitempty"`
 	BookingID *uint   `gorm:"index" json:"booking_id,omitempty"` // tautan invoice↔booking les privat
-	// Bukti pembayaran yang di-upload student (bisa ada banyak, re-upload).
-	Proofs []PaymentProof `gorm:"foreignKey:InvoiceID" json:"proofs,omitempty"`
 }
