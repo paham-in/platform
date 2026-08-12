@@ -306,12 +306,8 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 		return s.createNoTeacherBooking(studentID, input)
 	}
 
-	// validasi slot sesuai jadwal kosong guru
-	if err := s.validateAvailability(*input.TeacherID, input.Date, input.StartTime, input.EndTime); err != nil {
-		return nil, err
-	}
-	// cek konflik jadwal guru
-	if err := s.checkTeacherConflict(*input.TeacherID, input.Date, input.StartTime, input.EndTime, ""); err != nil {
+	// validasi slot sesuai jadwal kosong guru + cek konflik (booking & sesi)
+	if err := s.checkBookingConflict(*input.TeacherID, input.Date, input.StartTime, input.EndTime); err != nil {
 		return nil, err
 	}
 
@@ -518,10 +514,7 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 	if input.StartTime >= input.EndTime {
 		return nil, errors.New("start_time harus sebelum end_time")
 	}
-	if err := s.validateAvailability(input.TeacherID, input.Date, input.StartTime, input.EndTime); err != nil {
-		return nil, err
-	}
-	if err := s.checkTeacherConflict(input.TeacherID, input.Date, input.StartTime, input.EndTime, ""); err != nil {
+	if err := s.checkBookingConflict(input.TeacherID, input.Date, input.StartTime, input.EndTime); err != nil {
 		return nil, err
 	}
 
@@ -743,6 +736,27 @@ func (s *Service) validateAvailability(teacherID uint, date, startTime, endTime 
 	return errors.New("jadwal tidak tersedia untuk slot waktu tersebut")
 }
 
+// checkBookingConflict mengecek keseluruhan bentrokan jadwal guru: slot kosong
+// (availability), booking existing pada date+time, dan sesi pertemuan yang sudah
+// di-expand dari booking berulang (multi-week). Dipanggil saat create/assign
+// booking — termasuk path admin yang langsung confirmed + generate sesi.
+func (s *Service) checkBookingConflict(teacherID uint, date, startTime, endTime string) error {
+	if err := s.validateAvailability(teacherID, date, startTime, endTime); err != nil {
+		return err
+	}
+	if err := s.checkTeacherConflict(teacherID, date, startTime, endTime, ""); err != nil {
+		return err
+	}
+	conflict, err := s.repo.SessionConflict(teacherID, date, startTime, endTime, 0)
+	if err != nil {
+		return err
+	}
+	if conflict {
+		return errors.New("guru sudah memiliki sesi pada tanggal & jam tersebut")
+	}
+	return nil
+}
+
 // checkTeacherConflict memblokir booking yang bentrok dgn booking guru lain.
 // excludeToken dipakai utk mengabaikan booking dalam grup yang sama.
 func (s *Service) checkTeacherConflict(teacherID uint, date, startTime, endTime, excludeToken string) error {
@@ -892,10 +906,7 @@ func (s *Service) AssignTeacher(id, teacherID uint) (*BookingResponse, error) {
 	if booking.Status != "pending" {
 		return nil, errors.New("booking sudah diproses sebelumnya")
 	}
-	if err := s.validateAvailability(teacherID, booking.Date, booking.StartTime, booking.EndTime); err != nil {
-		return nil, err
-	}
-	if err := s.checkTeacherConflict(teacherID, booking.Date, booking.StartTime, booking.EndTime, ""); err != nil {
+	if err := s.checkBookingConflict(teacherID, booking.Date, booking.StartTime, booking.EndTime); err != nil {
 		return nil, err
 	}
 	if err := s.repo.UpdateBookingTeacher(id, teacherID); err != nil {
