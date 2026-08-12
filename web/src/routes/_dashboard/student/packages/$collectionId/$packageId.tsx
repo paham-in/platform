@@ -7,7 +7,7 @@ import { getQuestionPackagesByIdOptions } from "@/lib/api/@tanstack/react-query.
 import { ArrowLeft, FileQuestion, Layers } from "lucide-react"
 
 function PackageDetail() {
-  const { groupId, packageId } = useParams({ from: "/_dashboard/student/packages/$groupId/$packageId" })
+  const { collectionId, packageId } = useParams({ from: "/_dashboard/student/packages/$collectionId/$packageId" })
   const { data: pkg, isLoading, isError } = useQuery(
     getQuestionPackagesByIdOptions({ path: { id: Number(packageId) } })
   )
@@ -39,11 +39,11 @@ function PackageDetail() {
   return (
     <main className="w-full max-w-3xl p-6">
       <Link
-        to="/student/packages/$groupId"
-        params={{ groupId }}
+        to="/student/packages/$collectionId"
+        params={{ collectionId }}
         className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" /> {pkg.group_name || "Kembali"}
+        <ArrowLeft className="h-4 w-4" /> {pkg.collection_name || "Kembali"}
       </Link>
 
       <div className="mb-8">
@@ -91,6 +91,6 @@ function PackageDetail() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/student/packages/$groupId/$packageId")({
+export const Route = createFileRoute("/_dashboard/student/packages/$collectionId/$packageId")({
   component: PackageDetail,
 })

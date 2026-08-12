@@ -18,7 +18,7 @@ function stripHtml(html: string): string {
 }
 
 function NewQuestion() {
-  const { groupId, packageId } = useParams({ from: "/_dashboard/teacher/packs/$groupId/$packageId/questions/new" })
+  const { collectionId, packageId } = useParams({ from: "/_dashboard/teacher/packs/$collectionId/$packageId/questions/new" })
   const qc = useQueryClient()
   const navigate = useNavigate()
 
@@ -40,7 +40,7 @@ function NewQuestion() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getAdminQuestionPackagesQueryKey() })
       toast.success("Soal berhasil ditambahkan")
-      navigate({ to: "/teacher/packs/$groupId/$packageId", params: { groupId, packageId } })
+      navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId } })
     },
     onError: (err: any) => toast.error(err?.error || "Gagal menambah soal"),
   })
@@ -70,7 +70,7 @@ function NewQuestion() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-3xl space-y-6">
-        <Link to="/teacher/packs/$groupId/$packageId" params={{ groupId, packageId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <Link to="/teacher/packs/$collectionId/$packageId" params={{ collectionId, packageId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Link>
 
@@ -126,7 +126,7 @@ function NewQuestion() {
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Link to="/teacher/packs/$groupId/$packageId" params={{ groupId, packageId }}><Button variant="outline">Batal</Button></Link>
+          <Link to="/teacher/packs/$collectionId/$packageId" params={{ collectionId, packageId }}><Button variant="outline">Batal</Button></Link>
           <Button
             onClick={save}
             disabled={!question || validCount < 2 || isPending}
@@ -140,6 +140,6 @@ function NewQuestion() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/packs/$groupId/$packageId/questions/new")({
+export const Route = createFileRoute("/_dashboard/teacher/packs/$collectionId/$packageId/questions/new")({
   component: NewQuestion,
 })

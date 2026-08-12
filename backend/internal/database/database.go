@@ -42,7 +42,20 @@ func Migrate(db *gorm.DB) {
 	db.Exec("DELETE FROM questionbank_answers WHERE question_id IN (SELECT id FROM questionbank_questions WHERE package_id NOT IN (SELECT id FROM question_packages))")
 	db.Exec("DELETE FROM questionbank_questions WHERE package_id NOT IN (SELECT id FROM question_packages)")
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackageGroup{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{})
+	// migrasi rename: question_package_groups → question_package_collections,
+	// kolom group_id → collection_id di question_packages. Idempotent — lewati
+	// kalau tabel/kolom baru sudah ada (rename sekali saja, lalu AutoMigrate lanjut).
+	if db.Migrator().HasTable("question_package_groups") && !db.Migrator().HasTable("question_package_collections") {
+		db.Exec("ALTER TABLE question_package_groups RENAME TO question_package_collections")
+		db.Exec("ALTER INDEX IF EXISTS idx_question_package_groups_class_id RENAME TO idx_question_package_collections_class_id")
+		log.Println("Renamed table question_package_groups → question_package_collections")
+	}
+	if db.Migrator().HasColumn(&models.QuestionPackage{}, "group_id") && !db.Migrator().HasColumn(&models.QuestionPackage{}, "collection_id") {
+		db.Exec("ALTER TABLE question_packages RENAME COLUMN group_id TO collection_id")
+		log.Println("Renamed column question_packages.group_id → collection_id")
+	}
+
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackageCollection{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{})
 
 	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
 	for _, name := range []string{"student", "teacher", "admin"} {

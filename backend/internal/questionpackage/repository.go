@@ -16,7 +16,7 @@ func NewRepository(db *gorm.DB) *Repository {
 
 func (r *Repository) List() ([]models.QuestionPackage, error) {
 	var packages []models.QuestionPackage
-	if err := r.db.Preload("Questions").Preload("Subject").Preload("Group").Order("created_at desc").Find(&packages).Error; err != nil {
+	if err := r.db.Preload("Questions").Preload("Subject").Preload("Collection").Order("created_at desc").Find(&packages).Error; err != nil {
 		return nil, err
 	}
 	return packages, nil
@@ -24,21 +24,21 @@ func (r *Repository) List() ([]models.QuestionPackage, error) {
 
 func (r *Repository) Get(id uint) (*models.QuestionPackage, error) {
 	var pkg models.QuestionPackage
-	if err := r.db.Preload("Questions").Preload("Subject").Preload("Group").First(&pkg, id).Error; err != nil {
+	if err := r.db.Preload("Questions").Preload("Subject").Preload("Collection").First(&pkg, id).Error; err != nil {
 		return nil, err
 	}
 	return &pkg, nil
 }
 
-// ListVisible untuk akses murid/user. Paket tanpa grup tidak pernah dikembalikan
-// (belum dipublish ke murid). classIDs non-nil membatasi grup premium ke kelas
-// tertentu (nil = semua kelas, staff). Grup free selalu ikut.
+// ListVisible untuk akses murid/user. Paket tanpa koleksi tidak pernah dikembalikan
+// (belum dipublish ke murid). classIDs non-nil membatasi koleksi premium ke kelas
+// tertentu (nil = semua kelas, staff). Koleksi free selalu ikut.
 func (r *Repository) ListVisible(classIDs []uint) ([]models.QuestionPackage, error) {
 	var packages []models.QuestionPackage
-	q := r.db.Preload("Questions").Preload("Subject").Preload("Group").
-		Where("group_id IS NOT NULL")
+	q := r.db.Preload("Questions").Preload("Subject").Preload("Collection").
+		Where("collection_id IS NOT NULL")
 	if classIDs != nil {
-		q = q.Where("group_id IN (SELECT id FROM question_package_groups WHERE is_free = ? OR class_id IN ?)", true, classIDs)
+		q = q.Where("collection_id IN (SELECT id FROM question_package_collections WHERE is_free = ? OR class_id IN ?)", true, classIDs)
 	}
 	if err := q.Order("created_at desc").Find(&packages).Error; err != nil {
 		return nil, err
@@ -74,44 +74,44 @@ func (r *Repository) Delete(id uint) error {
 	})
 }
 
-// ListGroups mengembalikan grup paket soal. classIDs non-nil membatasi ke grup
-// free (semua kelas) + grup premium di kelas yang diakses student; nil = semua
+// ListCollections mengembalikan koleksi paket soal. classIDs non-nil membatasi ke koleksi
+// free (semua kelas) + koleksi premium di kelas yang diakses student; nil = semua
 // kelas (staff).
-func (r *Repository) ListGroups(classIDs []uint) ([]models.QuestionPackageGroup, error) {
-	var groups []models.QuestionPackageGroup
+func (r *Repository) ListCollections(classIDs []uint) ([]models.QuestionPackageCollection, error) {
+	var collections []models.QuestionPackageCollection
 	q := r.db.Preload("Class").Preload("Packages.Subject")
 	if classIDs != nil {
 		q = q.Where("is_free = ? OR class_id IN ?", true, classIDs)
 	}
-	if err := q.Order("created_at desc").Find(&groups).Error; err != nil {
+	if err := q.Order("created_at desc").Find(&collections).Error; err != nil {
 		return nil, err
 	}
-	return groups, nil
+	return collections, nil
 }
 
-func (r *Repository) GetGroup(id uint) (*models.QuestionPackageGroup, error) {
-	var group models.QuestionPackageGroup
-	if err := r.db.Preload("Class").Preload("Packages.Subject").First(&group, id).Error; err != nil {
+func (r *Repository) GetCollection(id uint) (*models.QuestionPackageCollection, error) {
+	var collection models.QuestionPackageCollection
+	if err := r.db.Preload("Class").Preload("Packages.Subject").First(&collection, id).Error; err != nil {
 		return nil, err
 	}
-	return &group, nil
+	return &collection, nil
 }
 
-func (r *Repository) CreateGroup(group *models.QuestionPackageGroup) error {
-	return r.db.Create(group).Error
+func (r *Repository) CreateCollection(collection *models.QuestionPackageCollection) error {
+	return r.db.Create(collection).Error
 }
 
-func (r *Repository) UpdateGroup(group *models.QuestionPackageGroup) error {
-	return r.db.Save(group).Error
+func (r *Repository) UpdateCollection(collection *models.QuestionPackageCollection) error {
+	return r.db.Save(collection).Error
 }
 
-// DeleteGroup menghapus grup (hard delete). Paket di dalamnya tidak ikut terhapus
-// — group_id di-null-kan dulu supaya FK tidak melanggar.
-func (r *Repository) DeleteGroup(id uint) error {
+// DeleteCollection menghapus koleksi (hard delete). Paket di dalamnya tidak ikut terhapus
+// — collection_id di-null-kan dulu supaya FK tidak melanggar.
+func (r *Repository) DeleteCollection(id uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.QuestionPackage{}).Where("group_id = ?", id).Update("group_id", nil).Error; err != nil {
+		if err := tx.Model(&models.QuestionPackage{}).Where("collection_id = ?", id).Update("collection_id", nil).Error; err != nil {
 			return err
 		}
-		return tx.Unscoped().Delete(&models.QuestionPackageGroup{}, id).Error
+		return tx.Unscoped().Delete(&models.QuestionPackageCollection{}, id).Error
 	})
 }

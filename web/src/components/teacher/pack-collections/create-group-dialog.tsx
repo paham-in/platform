@@ -9,13 +9,13 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { getAdminClassesOptions, getAdminQuestionPackageGroupsQueryKey, postAdminQuestionPackageGroupsMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminClassesOptions, getAdminQuestionPackageCollectionsQueryKey, postAdminQuestionPackageCollectionsMutation } from "@/lib/api/@tanstack/react-query.gen"
 
-interface CreateGroupDialogProps {
+interface CreateCollectionDialogProps {
   onClose: () => void
 }
 
-export function CreateGroupDialog({ onClose }: CreateGroupDialogProps) {
+export function CreateCollectionDialog({ onClose }: CreateCollectionDialogProps) {
   const qc = useQueryClient()
   const { data: classes = [] } = useQuery(getAdminClassesOptions())
   const [name, setName] = useState("")
@@ -25,31 +25,31 @@ export function CreateGroupDialog({ onClose }: CreateGroupDialogProps) {
 
   const classOptions = classes.map((c) => ({ label: c.name ?? "", value: String(c.id) }))
 
-  const { mutate: createGroup, isPending } = useMutation({
-    ...postAdminQuestionPackageGroupsMutation(),
+  const { mutate: createCollection, isPending } = useMutation({
+    ...postAdminQuestionPackageCollectionsMutation(),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getAdminQuestionPackageGroupsQueryKey() })
-      toast.success("Grup paket soal berhasil ditambahkan")
+      qc.invalidateQueries({ queryKey: getAdminQuestionPackageCollectionsQueryKey() })
+      toast.success("Koleksi paket soal berhasil ditambahkan")
       onClose()
     },
-    onError: (err: any) => toast.error(err?.error || "Gagal menambah grup"),
+    onError: (err: any) => toast.error(err?.error || "Gagal menambah koleksi"),
   })
 
   const save = () => {
     if (!name.trim() || !classId) return
-    createGroup({ body: { name, description, class_id: Number(classId), is_free: isFree } })
+    createCollection({ body: { name, description, class_id: Number(classId), is_free: isFree } })
   }
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Tambah Grup Paket Soal</DialogTitle>
+          <DialogTitle>Tambah Koleksi Paket Soal</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label htmlFor="name">Nama Grup</Label>
+            <Label htmlFor="name">Nama Koleksi</Label>
             <Input
               id="name"
               value={name}
@@ -79,7 +79,7 @@ export function CreateGroupDialog({ onClose }: CreateGroupDialogProps) {
               id="desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Deskripsi grup..."
+              placeholder="Deskripsi koleksi..."
               className="min-h-[80px]"
             />
           </div>
@@ -87,7 +87,7 @@ export function CreateGroupDialog({ onClose }: CreateGroupDialogProps) {
           <label className="flex items-center gap-3 rounded-lg border p-4">
             <Checkbox checked={isFree} onCheckedChange={(v) => setIsFree(v === true)} />
             <div>
-              <p className="font-medium">Grup gratis</p>
+              <p className="font-medium">Koleksi gratis</p>
               <p className="text-xs text-muted-foreground">
                 {isFree ? "Bisa diakses semua user tanpa berlangganan" : "Hanya untuk murid yang berlangganan kelas ini"}
               </p>

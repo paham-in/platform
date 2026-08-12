@@ -350,25 +350,14 @@ export type QuestionbankUpdateInput = {
     question?: string;
 };
 
-export type QuestionpackageCreateInput = {
-    description?: string;
-    group_id?: number;
-    name?: string;
-    subject_id?: number;
-};
-
-export type QuestionpackageErrorResponse = {
-    error?: string;
-};
-
-export type QuestionpackageGroupCreateInput = {
+export type QuestionpackageCollectionCreateInput = {
     class_id?: number;
     description?: string;
     is_free?: boolean;
     name?: string;
 };
 
-export type QuestionpackageGroupResponse = {
+export type QuestionpackageCollectionResponse = {
     class_id?: number;
     class_name?: string;
     created_at?: string;
@@ -380,11 +369,22 @@ export type QuestionpackageGroupResponse = {
     packages?: Array<QuestionpackagePackageResponse>;
 };
 
-export type QuestionpackageGroupUpdateInput = {
+export type QuestionpackageCollectionUpdateInput = {
     class_id?: number;
     description?: string;
     is_free?: boolean;
     name?: string;
+};
+
+export type QuestionpackageCreateInput = {
+    collection_id?: number;
+    description?: string;
+    name?: string;
+    subject_id?: number;
+};
+
+export type QuestionpackageErrorResponse = {
+    error?: string;
 };
 
 export type QuestionpackageMessageResponse = {
@@ -397,10 +397,10 @@ export type QuestionpackagePackageQuestionResponse = {
 };
 
 export type QuestionpackagePackageResponse = {
+    collection_id?: number;
+    collection_name?: string;
     created_at?: string;
     description?: string;
-    group_id?: number;
-    group_name?: string;
     id?: number;
     is_free?: boolean;
     name?: string;
@@ -410,8 +410,8 @@ export type QuestionpackagePackageResponse = {
 };
 
 export type QuestionpackageUpdateInput = {
+    collection_id?: number;
     description?: string;
-    group_id?: number;
     name?: string;
     subject_id?: number;
 };
@@ -1566,112 +1566,112 @@ export type PostAdminProgramsByIdClassesResponses = {
 
 export type PostAdminProgramsByIdClassesResponse = PostAdminProgramsByIdClassesResponses[keyof PostAdminProgramsByIdClassesResponses];
 
-export type GetAdminQuestionPackageGroupsData = {
+export type GetAdminQuestionPackageCollectionsData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/admin/question-package-groups';
+    url: '/admin/question-package-collections';
 };
 
-export type GetAdminQuestionPackageGroupsResponses = {
+export type GetAdminQuestionPackageCollectionsResponses = {
     /**
      * OK
      */
-    200: Array<QuestionpackageGroupResponse>;
+    200: Array<QuestionpackageCollectionResponse>;
 };
 
-export type GetAdminQuestionPackageGroupsResponse = GetAdminQuestionPackageGroupsResponses[keyof GetAdminQuestionPackageGroupsResponses];
+export type GetAdminQuestionPackageCollectionsResponse = GetAdminQuestionPackageCollectionsResponses[keyof GetAdminQuestionPackageCollectionsResponses];
 
-export type PostAdminQuestionPackageGroupsData = {
+export type PostAdminQuestionPackageCollectionsData = {
     /**
-     * Data grup
+     * Data koleksi
      */
-    body: QuestionpackageGroupCreateInput;
+    body: QuestionpackageCollectionCreateInput;
     path?: never;
     query?: never;
-    url: '/admin/question-package-groups';
+    url: '/admin/question-package-collections';
 };
 
-export type PostAdminQuestionPackageGroupsErrors = {
+export type PostAdminQuestionPackageCollectionsErrors = {
     /**
      * Bad Request
      */
     400: QuestionpackageErrorResponse;
 };
 
-export type PostAdminQuestionPackageGroupsError = PostAdminQuestionPackageGroupsErrors[keyof PostAdminQuestionPackageGroupsErrors];
+export type PostAdminQuestionPackageCollectionsError = PostAdminQuestionPackageCollectionsErrors[keyof PostAdminQuestionPackageCollectionsErrors];
 
-export type PostAdminQuestionPackageGroupsResponses = {
+export type PostAdminQuestionPackageCollectionsResponses = {
     /**
      * Created
      */
-    201: QuestionpackageGroupResponse;
+    201: QuestionpackageCollectionResponse;
 };
 
-export type PostAdminQuestionPackageGroupsResponse = PostAdminQuestionPackageGroupsResponses[keyof PostAdminQuestionPackageGroupsResponses];
+export type PostAdminQuestionPackageCollectionsResponse = PostAdminQuestionPackageCollectionsResponses[keyof PostAdminQuestionPackageCollectionsResponses];
 
-export type DeleteAdminQuestionPackageGroupsByIdData = {
+export type DeleteAdminQuestionPackageCollectionsByIdData = {
     body?: never;
     path: {
         /**
-         * Group ID
+         * Collection ID
          */
         id: number;
     };
     query?: never;
-    url: '/admin/question-package-groups/{id}';
+    url: '/admin/question-package-collections/{id}';
 };
 
-export type DeleteAdminQuestionPackageGroupsByIdErrors = {
+export type DeleteAdminQuestionPackageCollectionsByIdErrors = {
     /**
      * Not Found
      */
     404: QuestionpackageErrorResponse;
 };
 
-export type DeleteAdminQuestionPackageGroupsByIdError = DeleteAdminQuestionPackageGroupsByIdErrors[keyof DeleteAdminQuestionPackageGroupsByIdErrors];
+export type DeleteAdminQuestionPackageCollectionsByIdError = DeleteAdminQuestionPackageCollectionsByIdErrors[keyof DeleteAdminQuestionPackageCollectionsByIdErrors];
 
-export type DeleteAdminQuestionPackageGroupsByIdResponses = {
+export type DeleteAdminQuestionPackageCollectionsByIdResponses = {
     /**
      * OK
      */
     200: QuestionpackageMessageResponse;
 };
 
-export type DeleteAdminQuestionPackageGroupsByIdResponse = DeleteAdminQuestionPackageGroupsByIdResponses[keyof DeleteAdminQuestionPackageGroupsByIdResponses];
+export type DeleteAdminQuestionPackageCollectionsByIdResponse = DeleteAdminQuestionPackageCollectionsByIdResponses[keyof DeleteAdminQuestionPackageCollectionsByIdResponses];
 
-export type PatchAdminQuestionPackageGroupsByIdData = {
+export type PatchAdminQuestionPackageCollectionsByIdData = {
     /**
      * Data update
      */
-    body: QuestionpackageGroupUpdateInput;
+    body: QuestionpackageCollectionUpdateInput;
     path: {
         /**
-         * Group ID
+         * Collection ID
          */
         id: number;
     };
     query?: never;
-    url: '/admin/question-package-groups/{id}';
+    url: '/admin/question-package-collections/{id}';
 };
 
-export type PatchAdminQuestionPackageGroupsByIdErrors = {
+export type PatchAdminQuestionPackageCollectionsByIdErrors = {
     /**
      * Bad Request
      */
     400: QuestionpackageErrorResponse;
 };
 
-export type PatchAdminQuestionPackageGroupsByIdError = PatchAdminQuestionPackageGroupsByIdErrors[keyof PatchAdminQuestionPackageGroupsByIdErrors];
+export type PatchAdminQuestionPackageCollectionsByIdError = PatchAdminQuestionPackageCollectionsByIdErrors[keyof PatchAdminQuestionPackageCollectionsByIdErrors];
 
-export type PatchAdminQuestionPackageGroupsByIdResponses = {
+export type PatchAdminQuestionPackageCollectionsByIdResponses = {
     /**
      * OK
      */
-    200: QuestionpackageGroupResponse;
+    200: QuestionpackageCollectionResponse;
 };
 
-export type PatchAdminQuestionPackageGroupsByIdResponse = PatchAdminQuestionPackageGroupsByIdResponses[keyof PatchAdminQuestionPackageGroupsByIdResponses];
+export type PatchAdminQuestionPackageCollectionsByIdResponse = PatchAdminQuestionPackageCollectionsByIdResponses[keyof PatchAdminQuestionPackageCollectionsByIdResponses];
 
 export type GetAdminQuestionPackagesData = {
     body?: never;
@@ -3211,35 +3211,35 @@ export type PostPushSubscribeResponses = {
 
 export type PostPushSubscribeResponse = PostPushSubscribeResponses[keyof PostPushSubscribeResponses];
 
-export type GetQuestionPackageGroupsData = {
+export type GetQuestionPackageCollectionsData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/question-package-groups';
+    url: '/question-package-collections';
 };
 
-export type GetQuestionPackageGroupsResponses = {
+export type GetQuestionPackageCollectionsResponses = {
     /**
      * OK
      */
-    200: Array<QuestionpackageGroupResponse>;
+    200: Array<QuestionpackageCollectionResponse>;
 };
 
-export type GetQuestionPackageGroupsResponse = GetQuestionPackageGroupsResponses[keyof GetQuestionPackageGroupsResponses];
+export type GetQuestionPackageCollectionsResponse = GetQuestionPackageCollectionsResponses[keyof GetQuestionPackageCollectionsResponses];
 
-export type GetQuestionPackageGroupsByIdData = {
+export type GetQuestionPackageCollectionsByIdData = {
     body?: never;
     path: {
         /**
-         * Group ID
+         * Collection ID
          */
         id: number;
     };
     query?: never;
-    url: '/question-package-groups/{id}';
+    url: '/question-package-collections/{id}';
 };
 
-export type GetQuestionPackageGroupsByIdErrors = {
+export type GetQuestionPackageCollectionsByIdErrors = {
     /**
      * Forbidden
      */
@@ -3250,16 +3250,16 @@ export type GetQuestionPackageGroupsByIdErrors = {
     404: QuestionpackageErrorResponse;
 };
 
-export type GetQuestionPackageGroupsByIdError = GetQuestionPackageGroupsByIdErrors[keyof GetQuestionPackageGroupsByIdErrors];
+export type GetQuestionPackageCollectionsByIdError = GetQuestionPackageCollectionsByIdErrors[keyof GetQuestionPackageCollectionsByIdErrors];
 
-export type GetQuestionPackageGroupsByIdResponses = {
+export type GetQuestionPackageCollectionsByIdResponses = {
     /**
      * OK
      */
-    200: QuestionpackageGroupResponse;
+    200: QuestionpackageCollectionResponse;
 };
 
-export type GetQuestionPackageGroupsByIdResponse = GetQuestionPackageGroupsByIdResponses[keyof GetQuestionPackageGroupsByIdResponses];
+export type GetQuestionPackageCollectionsByIdResponse = GetQuestionPackageCollectionsByIdResponses[keyof GetQuestionPackageCollectionsByIdResponses];
 
 export type GetQuestionPackagesData = {
     body?: never;

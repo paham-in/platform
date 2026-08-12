@@ -10,40 +10,40 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Spinner } from "@/components/ui/spinner"
-import { deleteAdminQuestionPackageGroupsByIdMutation, getAdminQuestionPackageGroupsQueryKey, getAdminQuestionPackagesQueryKey } from "@/lib/api/@tanstack/react-query.gen"
+import { deleteAdminQuestionPackageCollectionsByIdMutation, getAdminQuestionPackageCollectionsQueryKey, getAdminQuestionPackagesQueryKey } from "@/lib/api/@tanstack/react-query.gen"
 
-interface DeleteGroupDialogProps {
-  group: { id: number; name: string }
+interface DeleteCollectionDialogProps {
+  collection: { id: number; name: string }
   onClose: () => void
 }
 
-export function DeleteGroupDialog({ group, onClose }: DeleteGroupDialogProps) {
+export function DeleteCollectionDialog({ collection, onClose }: DeleteCollectionDialogProps) {
   const qc = useQueryClient()
 
-  const { mutate: deleteGroup, isPending } = useMutation({
-    ...deleteAdminQuestionPackageGroupsByIdMutation(),
+  const { mutate: deleteCollection, isPending } = useMutation({
+    ...deleteAdminQuestionPackageCollectionsByIdMutation(),
     onSuccess: () => {
-      toast.success("Grup paket soal berhasil dihapus")
-      qc.invalidateQueries({ queryKey: getAdminQuestionPackageGroupsQueryKey() })
+      toast.success("Koleksi paket soal berhasil dihapus")
+      qc.invalidateQueries({ queryKey: getAdminQuestionPackageCollectionsQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminQuestionPackagesQueryKey() })
       onClose()
     },
-    onError: (err: any) => toast.error(err?.error || "Gagal menghapus grup"),
+    onError: (err: any) => toast.error(err?.error || "Gagal menghapus koleksi"),
   })
 
   return (
     <AlertDialog open onOpenChange={(open) => !open && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Hapus Grup Paket Soal</AlertDialogTitle>
+          <AlertDialogTitle>Hapus Koleksi Paket Soal</AlertDialogTitle>
           <AlertDialogDescription>
-            Yakin ingin menghapus grup "{group.name}"? Paket soal di dalamnya tidak ikut terhapus,
-            tapi akan lepas dari grup dan tidak terlihat oleh murid sampai di-assign ke grup lain.
+            Yakin ingin menghapus koleksi "{collection.name}"? Paket soal di dalamnya tidak ikut terhapus,
+            tapi akan lepas dari koleksi dan tidak terlihat oleh murid sampai di-assign ke koleksi lain.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button variant="destructive" onClick={() => deleteGroup({ path: { id: group.id } })} disabled={isPending}>
+          <Button variant="destructive" onClick={() => deleteCollection({ path: { id: collection.id } })} disabled={isPending}>
             <span className="inline-flex items-center gap-2">
               {isPending && <Spinner />}
               Hapus

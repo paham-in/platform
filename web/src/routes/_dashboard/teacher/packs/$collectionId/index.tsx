@@ -6,26 +6,26 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useQuery } from "@tanstack/react-query";
-import { getAdminQuestionPackageGroupsOptions, getAdminQuestionPackagesOptions, getMeOptions } from "@/lib/api/@tanstack/react-query.gen";
+import { getAdminQuestionPackageCollectionsOptions, getAdminQuestionPackagesOptions, getMeOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { CreatePackageDialog, DeletePackageDialog, EditPackageDialog } from "@/components/teacher/packs";
-import type { QuestionpackagePackageResponse, QuestionpackageGroupResponse } from "@/lib/api/types.gen";
+import type { QuestionpackagePackageResponse, QuestionpackageCollectionResponse } from "@/lib/api/types.gen";
 import { ArrowLeft, ListChecks, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 
 const PACKS_PER_PAGE = 20;
 
-function GroupPackages() {
-  const { groupId } = useParams({ from: "/_dashboard/teacher/packs/$groupId/" });
+function CollectionPackages() {
+  const { collectionId } = useParams({ from: "/_dashboard/teacher/packs/$collectionId/" });
   const { data: user } = useQuery(getMeOptions());
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_question_packages;
-  const { data: groups = [] } = useQuery(getAdminQuestionPackageGroupsOptions());
+  const { data: collections = [] } = useQuery(getAdminQuestionPackageCollectionsOptions());
   const { data: allPackages = [], isLoading } = useQuery(getAdminQuestionPackagesOptions());
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<QuestionpackagePackageResponse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
 
-  const gid = Number(groupId);
-  const group = groups.find((g) => g.id === gid) as QuestionpackageGroupResponse | undefined;
-  const packages = (allPackages ?? []).filter((p) => p.group_id === gid).slice(0, PACKS_PER_PAGE);
+  const cid = Number(collectionId);
+  const collection = collections.find((g) => g.id === cid) as QuestionpackageCollectionResponse | undefined;
+  const packages = (allPackages ?? []).filter((p) => p.collection_id === cid).slice(0, PACKS_PER_PAGE);
 
   return (
     <>
@@ -34,10 +34,10 @@ function GroupPackages() {
           <Link to="/teacher/packs" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 h-4" /> Paket Soal
           </Link>
-          {group && (
+          {collection && (
             <>
               <span className="text-sm text-muted-foreground">/</span>
-              <span className="text-sm font-medium">{group.name}</span>
+              <span className="text-sm font-medium">{collection.name}</span>
             </>
           )}
         </div>
@@ -75,11 +75,11 @@ function GroupPackages() {
                     </TableRow>
                   ))
                 ) : packages.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Belum ada paket soal di grup ini</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Belum ada paket soal di koleksi ini</TableCell></TableRow>
                 ) : packages.map((pkg) => (
                   <TableRow key={pkg.id}>
                     <TableCell className="pl-6 font-medium">
-                      <Link to="/teacher/packs/$groupId/$packageId" params={{ groupId, packageId: String(pkg.id!) }} className="hover:underline">
+                      <Link to="/teacher/packs/$collectionId/$packageId" params={{ collectionId, packageId: String(pkg.id!) }} className="hover:underline">
                         {pkg.name}
                       </Link>
                     </TableCell>
@@ -93,7 +93,7 @@ function GroupPackages() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <Link to="/teacher/packs/$groupId/$packageId" params={{ groupId, packageId: String(pkg.id!) }}>
+                          <Link to="/teacher/packs/$collectionId/$packageId" params={{ collectionId, packageId: String(pkg.id!) }}>
                             <DropdownMenuItem>
                               <ListChecks className="h-4 w-4" /> Soal
                             </DropdownMenuItem>
@@ -119,7 +119,7 @@ function GroupPackages() {
       </main>
 
       {createOpen && (
-        <CreatePackageDialog defaultGroupId={gid} onClose={() => setCreateOpen(false)} />
+        <CreatePackageDialog defaultCollectionId={cid} onClose={() => setCreateOpen(false)} />
       )}
 
       {editTarget && (
@@ -133,6 +133,6 @@ function GroupPackages() {
   );
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/packs/$groupId/")({
-  component: GroupPackages,
+export const Route = createFileRoute("/_dashboard/teacher/packs/$collectionId/")({
+  component: CollectionPackages,
 });

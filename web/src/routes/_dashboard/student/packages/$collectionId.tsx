@@ -2,13 +2,13 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getQuestionPackageGroupsByIdOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getQuestionPackageCollectionsByIdOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { ArrowLeft, FileText, Layers, Sparkles, ChevronRight } from "lucide-react"
 
-function GroupDetail() {
-  const { groupId } = useParams({ from: "/_dashboard/student/packages/$groupId" })
-  const { data: group, isLoading, isError } = useQuery(
-    getQuestionPackageGroupsByIdOptions({ path: { id: Number(groupId) } })
+function CollectionDetail() {
+  const { collectionId } = useParams({ from: "/_dashboard/student/packages/$collectionId" })
+  const { data: collection, isLoading, isError } = useQuery(
+    getQuestionPackageCollectionsByIdOptions({ path: { id: Number(collectionId) } })
   )
 
   if (isLoading) {
@@ -30,10 +30,10 @@ function GroupDetail() {
     )
   }
 
-  if (isError || !group) {
+  if (isError || !collection) {
     return (
       <main className="p-6">
-        <p className="text-muted-foreground">Grup paket soal tidak ditemukan.</p>
+        <p className="text-muted-foreground">Koleksi paket soal tidak ditemukan.</p>
       </main>
     )
   }
@@ -48,32 +48,32 @@ function GroupDetail() {
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">{group.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{collection.name}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {group.class_name} • {group.package_count ?? 0} paket
+          {collection.class_name} • {collection.package_count ?? 0} paket
           <span className={`ml-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-            group.is_free ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+            collection.is_free ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
           }`}>
-            {group.is_free ? "Gratis" : "Premium"}
+            {collection.is_free ? "Gratis" : "Premium"}
           </span>
         </p>
-        {group.description ? <p className="mt-2 text-sm text-muted-foreground">{group.description}</p> : null}
+        {collection.description ? <p className="mt-2 text-sm text-muted-foreground">{collection.description}</p> : null}
       </div>
 
-      {group.packages?.length === 0 ? (
+      {collection.packages?.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-2 p-10 text-center">
             <Sparkles className="h-8 w-8 text-muted-foreground/40" />
             <p className="font-medium">Belum ada paket soal</p>
             <p className="max-w-xs text-sm text-muted-foreground">
-              Paket soal di grup ini belum ditambahkan.
+              Paket soal di koleksi ini belum ditambahkan.
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {group.packages?.map((pkg) => (
-            <Link key={pkg.id} to="/student/packages/$groupId/$packageId" params={{ groupId, packageId: String(pkg.id!) }}>
+          {collection.packages?.map((pkg) => (
+            <Link key={pkg.id} to="/student/packages/$collectionId/$packageId" params={{ collectionId, packageId: String(pkg.id!) }}>
               <Card className="group cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
                 <CardContent>
                   <div className="flex items-start gap-3">
@@ -100,6 +100,6 @@ function GroupDetail() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/student/packages/$groupId")({
-  component: GroupDetail,
+export const Route = createFileRoute("/_dashboard/student/packages/$collectionId")({
+  component: CollectionDetail,
 })

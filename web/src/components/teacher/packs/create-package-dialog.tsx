@@ -8,24 +8,24 @@ import { Textarea } from "@/components/ui/textarea"
 import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { getAdminQuestionPackageGroupsOptions, getAdminQuestionPackagesQueryKey, getSubjectsOptions, postAdminQuestionPackagesMutation } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminQuestionPackageCollectionsOptions, getAdminQuestionPackagesQueryKey, getSubjectsOptions, postAdminQuestionPackagesMutation } from "@/lib/api/@tanstack/react-query.gen"
 
 interface CreatePackageDialogProps {
   onClose: () => void
-  defaultGroupId?: number
+  defaultCollectionId?: number
 }
 
-export function CreatePackageDialog({ onClose, defaultGroupId }: CreatePackageDialogProps) {
+export function CreatePackageDialog({ onClose, defaultCollectionId }: CreatePackageDialogProps) {
   const qc = useQueryClient()
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
-  const { data: groups = [] } = useQuery(getAdminQuestionPackageGroupsOptions())
+  const { data: collections = [] } = useQuery(getAdminQuestionPackageCollectionsOptions())
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [subjectId, setSubjectId] = useState("")
-  const [groupId, setGroupId] = useState(defaultGroupId ? String(defaultGroupId) : "")
+  const [collectionId, setCollectionId] = useState(defaultCollectionId ? String(defaultCollectionId) : "")
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
-  const groupOptions = groups.map((g) => ({
+  const collectionOptions = collections.map((g) => ({
     label: `${g.name ?? ""} — ${g.class_name ?? "?"}`,
     value: String(g.id),
   }))
@@ -41,8 +41,8 @@ export function CreatePackageDialog({ onClose, defaultGroupId }: CreatePackageDi
   })
 
   const save = () => {
-    if (!name.trim() || !subjectId || !groupId) return
-    createPackage({ body: { name, description, subject_id: Number(subjectId), group_id: Number(groupId) } })
+    if (!name.trim() || !subjectId || !collectionId) return
+    createPackage({ body: { name, description, subject_id: Number(subjectId), collection_id: Number(collectionId) } })
   }
 
   return (
@@ -65,13 +65,13 @@ export function CreatePackageDialog({ onClose, defaultGroupId }: CreatePackageDi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="group">Grup Paket Soal</Label>
-            <Select items={groupOptions} value={groupId} onValueChange={(v) => setGroupId(v ?? "")}>
-              <SelectTrigger id="group" className="w-full">
-                <SelectValue placeholder="Pilih grup (kelas)" />
+            <Label htmlFor="collection">Koleksi Paket Soal</Label>
+            <Select items={collectionOptions} value={collectionId} onValueChange={(v) => setCollectionId(v ?? "")}>
+              <SelectTrigger id="collection" className="w-full">
+                <SelectValue placeholder="Pilih koleksi (kelas)" />
               </SelectTrigger>
               <SelectContent>
-                {groupOptions.map((opt) => (
+                {collectionOptions.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                 ))}
               </SelectContent>
@@ -106,7 +106,7 @@ export function CreatePackageDialog({ onClose, defaultGroupId }: CreatePackageDi
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button onClick={save} disabled={!name.trim() || !subjectId || !groupId || isPending}>
+          <Button onClick={save} disabled={!name.trim() || !subjectId || !collectionId || isPending}>
             {isPending && <Spinner />}
             Simpan
           </Button>

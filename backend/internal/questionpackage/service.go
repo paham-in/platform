@@ -15,20 +15,20 @@ type PackageQuestionResponse struct {
 
 // PackageResponse
 type PackageResponse struct {
-	ID          uint                     `json:"id"`
-	Name        string                   `json:"name"`
-	Description string                   `json:"description"`
-	SubjectID   uint                     `json:"subject_id"`
-	SubjectName string                   `json:"subject_name"`
-	IsFree      bool                     `json:"is_free"`
-	GroupID     uint                     `json:"group_id"`
-	GroupName   string                   `json:"group_name"`
-	Questions   []PackageQuestionResponse `json:"questions"`
-	CreatedAt   string                   `json:"created_at"`
+	ID            uint                     `json:"id"`
+	Name          string                   `json:"name"`
+	Description   string                   `json:"description"`
+	SubjectID     uint                     `json:"subject_id"`
+	SubjectName   string                   `json:"subject_name"`
+	IsFree        bool                     `json:"is_free"`
+	CollectionID  uint                     `json:"collection_id"`
+	CollectionName string                  `json:"collection_name"`
+	Questions     []PackageQuestionResponse `json:"questions"`
+	CreatedAt     string                   `json:"created_at"`
 }
 
-// GroupResponse
-type GroupResponse struct {
+// CollectionResponse
+type CollectionResponse struct {
 	ID           uint              `json:"id"`
 	Name         string            `json:"name"`
 	ClassID      uint              `json:"class_id"`
@@ -53,7 +53,7 @@ type CreateInput struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	SubjectID   uint   `json:"subject_id"`
-	GroupID     uint   `json:"group_id"`
+	CollectionID uint  `json:"collection_id"`
 }
 
 func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
@@ -63,15 +63,15 @@ func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
 	if input.SubjectID == 0 {
 		return nil, errors.New("mata pelajaran wajib diisi")
 	}
-	if input.GroupID == 0 {
-		return nil, errors.New("grup paket soal wajib diisi")
+	if input.CollectionID == 0 {
+		return nil, errors.New("koleksi paket soal wajib diisi")
 	}
 
 	pkg := models.QuestionPackage{
-		Name:        input.Name,
-		Description: input.Description,
-		SubjectID:   input.SubjectID,
-		GroupID:     &input.GroupID,
+		Name:         input.Name,
+		Description:  input.Description,
+		SubjectID:    input.SubjectID,
+		CollectionID: &input.CollectionID,
 	}
 	if err := s.repo.Create(&pkg); err != nil {
 		return nil, err
@@ -85,10 +85,10 @@ func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
 }
 
 type UpdateInput struct {
-	Name        *string `json:"name"`
-	Description *string `json:"description"`
-	SubjectID   *uint   `json:"subject_id"`
-	GroupID     *uint   `json:"group_id"`
+	Name          *string `json:"name"`
+	Description   *string `json:"description"`
+	SubjectID     *uint   `json:"subject_id"`
+	CollectionID  *uint   `json:"collection_id"`
 }
 
 func (s *Service) Update(id uint, input UpdateInput) (*PackageResponse, error) {
@@ -105,8 +105,8 @@ func (s *Service) Update(id uint, input UpdateInput) (*PackageResponse, error) {
 	if input.SubjectID != nil {
 		pkg.SubjectID = *input.SubjectID
 	}
-	if input.GroupID != nil {
-		pkg.GroupID = input.GroupID
+	if input.CollectionID != nil {
+		pkg.CollectionID = input.CollectionID
 	}
 	if err := s.repo.Update(pkg); err != nil {
 		return nil, err
@@ -131,8 +131,8 @@ func (s *Service) List() ([]PackageResponse, error) {
 	return result, nil
 }
 
-// ListVisible untuk akses murid/user. classIDs non-nil membatasi grup premium ke
-// kelas tertentu (nil = semua, staff); paket tanpa grup tidak pernah dikembalikan.
+// ListVisible untuk akses murid/user. classIDs non-nil membatasi koleksi premium ke
+// kelas tertentu (nil = semua, staff); paket tanpa koleksi tidak pernah dikembalikan.
 func (s *Service) ListVisible(classIDs []uint) ([]PackageResponse, error) {
 	packages, err := s.repo.ListVisible(classIDs)
 	if err != nil {
@@ -158,19 +158,19 @@ func (s *Service) Get(id uint) (*PackageResponse, error) {
 var ErrNoAccess = errors.New("tidak ada akses ke paket ini")
 
 // GetVisible mengambil detail paket untuk murid/user. classIDs nil = staff
-// (lihat semua). Paket tanpa grup selalu ditolak untuk non-staff.
+// (lihat semua). Paket tanpa koleksi selalu ditolak untuk non-staff.
 func (s *Service) GetVisible(id uint, classIDs []uint) (*PackageResponse, error) {
 	pkg, err := s.repo.Get(id)
 	if err != nil {
 		return nil, err
 	}
-	if pkg.GroupID == nil {
+	if pkg.CollectionID == nil {
 		return nil, ErrNoAccess
 	}
-	if classIDs != nil && !pkg.Group.IsFree {
+	if classIDs != nil && !pkg.Collection.IsFree {
 		allowed := false
 		for _, cid := range classIDs {
-			if cid == pkg.Group.ClassID {
+			if cid == pkg.Collection.ClassID {
 				allowed = true
 				break
 			}
@@ -187,97 +187,97 @@ func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-type GroupCreateInput struct {
+type CollectionCreateInput struct {
 	Name        string `json:"name"`
 	ClassID     uint   `json:"class_id"`
 	IsFree      bool   `json:"is_free"`
 	Description string `json:"description"`
 }
 
-func (s *Service) CreateGroup(input GroupCreateInput) (*GroupResponse, error) {
+func (s *Service) CreateCollection(input CollectionCreateInput) (*CollectionResponse, error) {
 	if input.Name == "" {
-		return nil, errors.New("nama grup wajib diisi")
+		return nil, errors.New("nama koleksi wajib diisi")
 	}
 	if input.ClassID == 0 {
 		return nil, errors.New("kelas wajib diisi")
 	}
 
-	group := models.QuestionPackageGroup{
+	collection := models.QuestionPackageCollection{
 		Name:        input.Name,
 		ClassID:     input.ClassID,
 		IsFree:      input.IsFree,
 		Description: input.Description,
 	}
-	if err := s.repo.CreateGroup(&group); err != nil {
+	if err := s.repo.CreateCollection(&collection); err != nil {
 		return nil, err
 	}
-	created, err := s.repo.GetGroup(group.ID)
+	created, err := s.repo.GetCollection(collection.ID)
 	if err != nil {
 		return nil, err
 	}
-	r := s.toGroupResponse(*created)
+	r := s.toCollectionResponse(*created)
 	return &r, nil
 }
 
-type GroupUpdateInput struct {
+type CollectionUpdateInput struct {
 	Name        *string `json:"name"`
 	ClassID     *uint   `json:"class_id"`
 	IsFree      *bool   `json:"is_free"`
 	Description *string `json:"description"`
 }
 
-func (s *Service) UpdateGroup(id uint, input GroupUpdateInput) (*GroupResponse, error) {
-	group, err := s.repo.GetGroup(id)
+func (s *Service) UpdateCollection(id uint, input CollectionUpdateInput) (*CollectionResponse, error) {
+	collection, err := s.repo.GetCollection(id)
 	if err != nil {
 		return nil, err
 	}
 	if input.Name != nil {
-		group.Name = *input.Name
+		collection.Name = *input.Name
 	}
 	if input.ClassID != nil {
-		group.ClassID = *input.ClassID
+		collection.ClassID = *input.ClassID
 	}
 	if input.IsFree != nil {
-		group.IsFree = *input.IsFree
+		collection.IsFree = *input.IsFree
 	}
 	if input.Description != nil {
-		group.Description = *input.Description
+		collection.Description = *input.Description
 	}
-	if err := s.repo.UpdateGroup(group); err != nil {
+	if err := s.repo.UpdateCollection(collection); err != nil {
 		return nil, err
 	}
-	updated, err := s.repo.GetGroup(id)
+	updated, err := s.repo.GetCollection(id)
 	if err != nil {
 		return nil, err
 	}
-	r := s.toGroupResponse(*updated)
+	r := s.toCollectionResponse(*updated)
 	return &r, nil
 }
 
-func (s *Service) DeleteGroup(id uint) error {
-	return s.repo.DeleteGroup(id)
+func (s *Service) DeleteCollection(id uint) error {
+	return s.repo.DeleteCollection(id)
 }
 
-// ListGroups mengembalikan daftar grup. classIDs nil = semua (staff); non-nil
-// membatasi ke kelas yang boleh diakses student (termasuk grup free).
-func (s *Service) ListGroups(classIDs []uint) ([]GroupResponse, error) {
-	groups, err := s.repo.ListGroups(classIDs)
+// ListCollections mengembalikan daftar koleksi. classIDs nil = semua (staff); non-nil
+// membatasi ke kelas yang boleh diakses student (termasuk koleksi free).
+func (s *Service) ListCollections(classIDs []uint) ([]CollectionResponse, error) {
+	collections, err := s.repo.ListCollections(classIDs)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]GroupResponse, len(groups))
-	for i, g := range groups {
-		result[i] = s.toGroupResponse(g)
+	result := make([]CollectionResponse, len(collections))
+	for i, g := range collections {
+		result[i] = s.toCollectionResponse(g)
 	}
 	return result, nil
 }
 
-func (s *Service) GetGroup(id uint) (*GroupResponse, error) {
-	group, err := s.repo.GetGroup(id)
+func (s *Service) GetCollection(id uint) (*CollectionResponse, error) {
+	collection, err := s.repo.GetCollection(id)
 	if err != nil {
 		return nil, err
 	}
-	r := s.toGroupResponse(*group)
+	r := s.toCollectionResponse(*collection)
 	return &r, nil
 }
 
@@ -289,32 +289,32 @@ func (s *Service) toResponse(pkg models.QuestionPackage) PackageResponse {
 			Question: s.storage.RewriteContentImages(q.Question),
 		}
 	}
-	groupID := uint(0)
-	groupName := ""
-	if pkg.Group.ID != 0 {
-		groupID = pkg.Group.ID
-		groupName = pkg.Group.Name
+	collectionID := uint(0)
+	collectionName := ""
+	if pkg.Collection.ID != 0 {
+		collectionID = pkg.Collection.ID
+		collectionName = pkg.Collection.Name
 	}
 	return PackageResponse{
-		ID:          pkg.ID,
-		Name:        pkg.Name,
-		Description: pkg.Description,
-		SubjectID:   pkg.SubjectID,
-		SubjectName: pkg.Subject.Name,
-		IsFree:      pkg.IsFree,
-		GroupID:     groupID,
-		GroupName:   groupName,
-		Questions:   questions,
-		CreatedAt:   pkg.CreatedAt.Format("2006-01-02 15:04"),
+		ID:             pkg.ID,
+		Name:           pkg.Name,
+		Description:    pkg.Description,
+		SubjectID:      pkg.SubjectID,
+		SubjectName:    pkg.Subject.Name,
+		IsFree:         pkg.IsFree,
+		CollectionID:   collectionID,
+		CollectionName: collectionName,
+		Questions:      questions,
+		CreatedAt:      pkg.CreatedAt.Format("2006-01-02 15:04"),
 	}
 }
 
-func (s *Service) toGroupResponse(g models.QuestionPackageGroup) GroupResponse {
+func (s *Service) toCollectionResponse(g models.QuestionPackageCollection) CollectionResponse {
 	packages := make([]PackageResponse, len(g.Packages))
 	for i, p := range g.Packages {
 		packages[i] = s.toResponse(p)
 	}
-	return GroupResponse{
+	return CollectionResponse{
 		ID:           g.ID,
 		Name:         g.Name,
 		ClassID:      g.ClassID,

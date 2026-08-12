@@ -547,23 +547,7 @@ definitions:
       question:
         type: string
     type: object
-  questionpackage.CreateInput:
-    properties:
-      description:
-        type: string
-      group_id:
-        type: integer
-      name:
-        type: string
-      subject_id:
-        type: integer
-    type: object
-  questionpackage.ErrorResponse:
-    properties:
-      error:
-        type: string
-    type: object
-  questionpackage.GroupCreateInput:
+  questionpackage.CollectionCreateInput:
     properties:
       class_id:
         type: integer
@@ -574,7 +558,7 @@ definitions:
       name:
         type: string
     type: object
-  questionpackage.GroupResponse:
+  questionpackage.CollectionResponse:
     properties:
       class_id:
         type: integer
@@ -597,7 +581,7 @@ definitions:
           $ref: '#/definitions/questionpackage.PackageResponse'
         type: array
     type: object
-  questionpackage.GroupUpdateInput:
+  questionpackage.CollectionUpdateInput:
     properties:
       class_id:
         type: integer
@@ -606,6 +590,22 @@ definitions:
       is_free:
         type: boolean
       name:
+        type: string
+    type: object
+  questionpackage.CreateInput:
+    properties:
+      collection_id:
+        type: integer
+      description:
+        type: string
+      name:
+        type: string
+      subject_id:
+        type: integer
+    type: object
+  questionpackage.ErrorResponse:
+    properties:
+      error:
         type: string
     type: object
   questionpackage.MessageResponse:
@@ -622,13 +622,13 @@ definitions:
     type: object
   questionpackage.PackageResponse:
     properties:
+      collection_id:
+        type: integer
+      collection_name:
+        type: string
       created_at:
         type: string
       description:
-        type: string
-      group_id:
-        type: integer
-      group_name:
         type: string
       id:
         type: integer
@@ -647,10 +647,10 @@ definitions:
     type: object
   questionpackage.UpdateInput:
     properties:
+      collection_id:
+        type: integer
       description:
         type: string
-      group_id:
-        type: integer
       name:
         type: string
       subject_id:
@@ -1959,11 +1959,11 @@ paths:
       summary: Unassign class from program
       tags:
       - Program
-  /admin/question-package-groups:
+  /admin/question-package-collections:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar grup paket soal
+      description: Mengembalikan daftar koleksi paket soal
       produces:
       - application/json
       responses:
@@ -1971,48 +1971,48 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/questionpackage.GroupResponse'
+              $ref: '#/definitions/questionpackage.CollectionResponse'
             type: array
       security:
       - BearerAuth: []
-      summary: List question package groups
+      summary: List question package collections
       tags:
       - QuestionPackage
     post:
       consumes:
       - application/json
-      description: Membuat grup paket soal baru (bundel per kelas)
+      description: Membuat koleksi paket soal baru (bundel per kelas)
       parameters:
-      - description: Data grup
+      - description: Data koleksi
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/questionpackage.GroupCreateInput'
+          $ref: '#/definitions/questionpackage.CollectionCreateInput'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/questionpackage.GroupResponse'
+            $ref: '#/definitions/questionpackage.CollectionResponse'
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/questionpackage.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Create question package group
+      summary: Create question package collection
       tags:
       - QuestionPackage
-  /admin/question-package-groups/{id}:
+  /admin/question-package-collections/{id}:
     delete:
       consumes:
       - application/json
-      description: Menghapus grup paket soal; paket di dalamnya tetap ada tapi lepas
-        dari grup
+      description: Menghapus koleksi paket soal; paket di dalamnya tetap ada tapi
+        lepas dari koleksi
       parameters:
-      - description: Group ID
+      - description: Collection ID
         in: path
         name: id
         required: true
@@ -2030,15 +2030,15 @@ paths:
             $ref: '#/definitions/questionpackage.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Delete question package group
+      summary: Delete question package collection
       tags:
       - QuestionPackage
     patch:
       consumes:
       - application/json
-      description: Mengubah grup paket soal
+      description: Mengubah koleksi paket soal
       parameters:
-      - description: Group ID
+      - description: Collection ID
         in: path
         name: id
         required: true
@@ -2048,21 +2048,21 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/questionpackage.GroupUpdateInput'
+          $ref: '#/definitions/questionpackage.CollectionUpdateInput'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/questionpackage.GroupResponse'
+            $ref: '#/definitions/questionpackage.CollectionResponse'
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/questionpackage.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Update question package group
+      summary: Update question package collection
       tags:
       - QuestionPackage
   /admin/question-packages:
@@ -3587,11 +3587,12 @@ paths:
       summary: Subscribe push
       tags:
       - Push
-  /question-package-groups:
+  /question-package-collections:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar grup paket soal. Grup premium hanya untuk
+      description: Mengembalikan daftar koleksi paket soal. Koleksi premium hanya
+        untuk
       produces:
       - application/json
       responses:
@@ -3599,20 +3600,20 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/questionpackage.GroupResponse'
+              $ref: '#/definitions/questionpackage.CollectionResponse'
             type: array
       security:
       - BearerAuth: []
-      summary: List visible question package groups
+      summary: List visible question package collections
       tags:
       - QuestionPackage
-  /question-package-groups/{id}:
+  /question-package-collections/{id}:
     get:
       consumes:
       - application/json
-      description: Mengambil detail grup paket soal beserta paket di dalamnya
+      description: Mengambil detail koleksi paket soal beserta paket di dalamnya
       parameters:
-      - description: Group ID
+      - description: Collection ID
         in: path
         name: id
         required: true
@@ -3623,7 +3624,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/questionpackage.GroupResponse'
+            $ref: '#/definitions/questionpackage.CollectionResponse'
         "403":
           description: Forbidden
           schema:
@@ -3634,7 +3635,7 @@ paths:
             $ref: '#/definitions/questionpackage.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get visible question package group
+      summary: Get visible question package collection
       tags:
       - QuestionPackage
   /question-packages:
@@ -3642,7 +3643,7 @@ paths:
       consumes:
       - application/json
       description: Mengembalikan daftar paket soal. User hanya melihat paket dalam
-        grup
+        koleksi
       produces:
       - application/json
       responses:

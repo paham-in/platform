@@ -2,11 +2,11 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getQuestionPackageGroupsOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getQuestionPackageCollectionsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { FolderOpen, Sparkles, Layers } from "lucide-react"
 
 function PackagesPage() {
-  const { data: groups = [], isLoading, isError } = useQuery(getQuestionPackageGroupsOptions())
+  const { data: collections = [], isLoading, isError } = useQuery(getQuestionPackageCollectionsOptions())
 
   if (isLoading) {
     return (
@@ -41,20 +41,20 @@ function PackagesPage() {
             </button>
           </CardContent>
         </Card>
-      ) : groups.length === 0 ? (
+      ) : collections.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-2 p-10 text-center">
             <FolderOpen className="h-8 w-8 text-muted-foreground/40" />
             <p className="font-medium">Belum ada paket soal</p>
             <p className="max-w-xs text-sm text-muted-foreground">
-              Paket soal akan muncul di sini setelah admin membuat grup untuk kelasmu.
+              Paket soal akan muncul di sini setelah admin membuat koleksi untuk kelasmu.
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {groups.map((group) => (
-            <Link key={group.id} to="/student/packages/$groupId" params={{ groupId: String(group.id!) }}>
+          {collections.map((collection) => (
+            <Link key={collection.id} to="/student/packages/$collectionId" params={{ collectionId: String(collection.id!) }}>
               <Card className="group cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
                 <CardContent>
                   <div className="flex items-start justify-between gap-2">
@@ -62,21 +62,21 @@ function PackagesPage() {
                       <FolderOpen className="h-5 w-5 text-primary" />
                     </div>
                     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                      group.is_free ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                      collection.is_free ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
                     }`}>
-                      {group.is_free ? "Gratis" : "Premium"}
+                      {collection.is_free ? "Gratis" : "Premium"}
                     </span>
                   </div>
-                  <h3 className="mt-3 font-semibold">{group.name}</h3>
+                  <h3 className="mt-3 font-semibold">{collection.name}</h3>
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                       <Layers className="h-3 w-3" />
-                      {group.class_name}
+                      {collection.class_name}
                     </span>
-                    {group.package_count != null && (
+                    {collection.package_count != null && (
                       <span className="inline-flex items-center gap-1">
                         <Sparkles className="h-3 w-3" />
-                        {group.package_count} paket
+                        {collection.package_count} paket
                       </span>
                     )}
                   </div>

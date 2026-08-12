@@ -30,7 +30,7 @@ func NewHandler(svc *Service, db *gorm.DB) *Handler {
 
 // scopeClassIDs mengembalikan class_id yang boleh diakses utk scoping konten.
 // admin/teacher → nil (semua); student → kelas aktif, [] kosong kalau tak punya
-// (supaya cuma grup free yang muncul).
+// (supaya cuma koleksi free yang muncul).
 func (h *Handler) scopeClassIDs(c *fiber.Ctx) []uint {
 	roles, ok := c.Locals("roles").([]string)
 	if ok {
@@ -160,99 +160,99 @@ func (h *Handler) DeletePackage(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "paket berhasil dihapus"})
 }
 
-// AdminListGroups mengembalikan daftar grup paket soal
-// @Summary      List question package groups
-// @Description  Mengembalikan daftar grup paket soal
+// AdminListCollections mengembalikan daftar koleksi paket soal
+// @Summary      List question package collections
+// @Description  Mengembalikan daftar koleksi paket soal
 // @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {array} GroupResponse
-// @Router       /admin/question-package-groups [get]
-func (h *Handler) AdminListGroups(c *fiber.Ctx) error {
-	groups, err := h.svc.ListGroups(nil)
+// @Success      200 {array} CollectionResponse
+// @Router       /admin/question-package-collections [get]
+func (h *Handler) AdminListCollections(c *fiber.Ctx) error {
+	collections, err := h.svc.ListCollections(nil)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
-	return c.JSON(groups)
+	return c.JSON(collections)
 }
 
-// AdminCreateGroup membuat grup paket soal baru
-// @Summary      Create question package group
-// @Description  Membuat grup paket soal baru (bundel per kelas)
+// AdminCreateCollection membuat koleksi paket soal baru
+// @Summary      Create question package collection
+// @Description  Membuat koleksi paket soal baru (bundel per kelas)
 // @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body body GroupCreateInput true "Data grup"
-// @Success      201 {object} GroupResponse
+// @Param        body body CollectionCreateInput true "Data koleksi"
+// @Success      201 {object} CollectionResponse
 // @Failure      400 {object} ErrorResponse
-// @Router       /admin/question-package-groups [post]
-func (h *Handler) AdminCreateGroup(c *fiber.Ctx) error {
-	var input GroupCreateInput
+// @Router       /admin/question-package-collections [post]
+func (h *Handler) AdminCreateCollection(c *fiber.Ctx) error {
+	var input CollectionCreateInput
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
-	group, err := h.svc.CreateGroup(input)
+	collection, err := h.svc.CreateCollection(input)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
-	return c.Status(201).JSON(group)
+	return c.Status(201).JSON(collection)
 }
 
-// AdminUpdateGroup mengubah grup paket soal
-// @Summary      Update question package group
-// @Description  Mengubah grup paket soal
+// AdminUpdateCollection mengubah koleksi paket soal
+// @Summary      Update question package collection
+// @Description  Mengubah koleksi paket soal
 // @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id   path int             true "Group ID"
-// @Param        body body GroupUpdateInput true "Data update"
-// @Success      200 {object} GroupResponse
+// @Param        id   path int                 true "Collection ID"
+// @Param        body body CollectionUpdateInput true "Data update"
+// @Success      200 {object} CollectionResponse
 // @Failure      400 {object} ErrorResponse
-// @Router       /admin/question-package-groups/{id} [patch]
-func (h *Handler) AdminUpdateGroup(c *fiber.Ctx) error {
+// @Router       /admin/question-package-collections/{id} [patch]
+func (h *Handler) AdminUpdateCollection(c *fiber.Ctx) error {
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	var input GroupUpdateInput
+	var input CollectionUpdateInput
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
-	group, err := h.svc.UpdateGroup(uint(id), input)
+	collection, err := h.svc.UpdateCollection(uint(id), input)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
-	return c.JSON(group)
+	return c.JSON(collection)
 }
 
-// AdminDeleteGroup menghapus grup paket soal
-// @Summary      Delete question package group
-// @Description  Menghapus grup paket soal; paket di dalamnya tetap ada tapi lepas dari grup
+// AdminDeleteCollection menghapus koleksi paket soal
+// @Summary      Delete question package collection
+// @Description  Menghapus koleksi paket soal; paket di dalamnya tetap ada tapi lepas dari koleksi
 // @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "Group ID"
+// @Param        id path int true "Collection ID"
 // @Success      200 {object} MessageResponse
 // @Failure      404 {object} ErrorResponse
-// @Router       /admin/question-package-groups/{id} [delete]
-func (h *Handler) AdminDeleteGroup(c *fiber.Ctx) error {
+// @Router       /admin/question-package-collections/{id} [delete]
+func (h *Handler) AdminDeleteCollection(c *fiber.Ctx) error {
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	if err := h.svc.DeleteGroup(uint(id)); err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus grup"})
+	if err := h.svc.DeleteCollection(uint(id)); err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus koleksi"})
 	}
-	return c.JSON(MessageResponse{Message: "grup berhasil dihapus"})
+	return c.JSON(MessageResponse{Message: "koleksi berhasil dihapus"})
 }
 
 // MyPackages mengembalikan daftar paket soal untuk murid/user.
 // @Summary      List visible question packages
-// @Description  Mengembalikan daftar paket soal. User hanya melihat paket dalam grup
+// @Description  Mengembalikan daftar paket soal. User hanya melihat paket dalam koleksi
 // @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
@@ -294,59 +294,59 @@ func (h *Handler) MyPackage(c *fiber.Ctx) error {
 	return c.JSON(pkg)
 }
 
-// MyGroups mengembalikan daftar grup paket soal untuk murid/user.
-// @Summary      List visible question package groups
-// @Description  Mengembalikan daftar grup paket soal. Grup premium hanya untuk
+// MyCollections mengembalikan daftar koleksi paket soal untuk murid/user.
+// @Summary      List visible question package collections
+// @Description  Mengembalikan daftar koleksi paket soal. Koleksi premium hanya untuk
 // @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {array} GroupResponse
-// @Router       /question-package-groups [get]
-func (h *Handler) MyGroups(c *fiber.Ctx) error {
-	groups, err := h.svc.ListGroups(h.scopeClassIDs(c))
+// @Success      200 {array} CollectionResponse
+// @Router       /question-package-collections [get]
+func (h *Handler) MyCollections(c *fiber.Ctx) error {
+	collections, err := h.svc.ListCollections(h.scopeClassIDs(c))
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
-	return c.JSON(groups)
+	return c.JSON(collections)
 }
 
-// MyGroup mengembalikan detail grup paket soal untuk murid/user.
-// @Summary      Get visible question package group
-// @Description  Mengambil detail grup paket soal beserta paket di dalamnya
+// MyCollection mengembalikan detail koleksi paket soal untuk murid/user.
+// @Summary      Get visible question package collection
+// @Description  Mengambil detail koleksi paket soal beserta paket di dalamnya
 // @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "Group ID"
-// @Success      200 {object} GroupResponse
+// @Param        id path int true "Collection ID"
+// @Success      200 {object} CollectionResponse
 // @Failure      404 {object} ErrorResponse
 // @Failure      403 {object} ErrorResponse
-// @Router       /question-package-groups/{id} [get]
-func (h *Handler) MyGroup(c *fiber.Ctx) error {
+// @Router       /question-package-collections/{id} [get]
+func (h *Handler) MyCollection(c *fiber.Ctx) error {
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	group, err := h.svc.GetGroup(uint(id))
+	collection, err := h.svc.GetCollection(uint(id))
 	if err != nil {
-		return c.Status(404).JSON(ErrorResponse{Error: "grup tidak ditemukan"})
+		return c.Status(404).JSON(ErrorResponse{Error: "koleksi tidak ditemukan"})
 	}
 
 	classIDs := h.scopeClassIDs(c)
-	allowed := group.IsFree || classIDs == nil // staff → semua
+	allowed := collection.IsFree || classIDs == nil // staff → semua
 	if !allowed {
 		for _, cid := range classIDs {
-			if cid == group.ClassID {
+			if cid == collection.ClassID {
 				allowed = true
 				break
 			}
 		}
 	}
 	if !allowed {
-		return c.Status(403).JSON(ErrorResponse{Error: "grup ini belum tersedia untukmu"})
+		return c.Status(403).JSON(ErrorResponse{Error: "koleksi ini belum tersedia untukmu"})
 	}
-	return c.JSON(group)
+	return c.JSON(collection)
 }
 
 func Routes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
@@ -359,10 +359,10 @@ func Routes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	admin.Post("/question-packages", h.CreatePackage)
 	admin.Patch("/question-packages/:id", h.UpdatePackage)
 	admin.Delete("/question-packages/:id", h.DeletePackage)
-	admin.Get("/question-package-groups", h.AdminListGroups)
-	admin.Post("/question-package-groups", h.AdminCreateGroup)
-	admin.Patch("/question-package-groups/:id", h.AdminUpdateGroup)
-	admin.Delete("/question-package-groups/:id", h.AdminDeleteGroup)
+	admin.Get("/question-package-collections", h.AdminListCollections)
+	admin.Post("/question-package-collections", h.AdminCreateCollection)
+	admin.Patch("/question-package-collections/:id", h.AdminUpdateCollection)
+	admin.Delete("/question-package-collections/:id", h.AdminDeleteCollection)
 }
 
 func AuthRoutes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
@@ -372,6 +372,6 @@ func AuthRoutes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 
 	auth.Get("/question-packages", h.MyPackages)
 	auth.Get("/question-packages/:id", h.MyPackage)
-	auth.Get("/question-package-groups", h.MyGroups)
-	auth.Get("/question-package-groups/:id", h.MyGroup)
+	auth.Get("/question-package-collections", h.MyCollections)
+	auth.Get("/question-package-collections/:id", h.MyCollection)
 }
