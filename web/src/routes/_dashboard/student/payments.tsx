@@ -1,13 +1,101 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useQuery } from "@tanstack/react-query"
-import { getInvoicesOptions } from "@/lib/api/@tanstack/react-query.gen"
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import {
+  getInvoicesOptions,
+  getInvoicesByInvoiceIdProofQueryKey,
+  postInvoicesByInvoiceIdProofMutation,
+} from "@/lib/api/@tanstack/react-query.gen"
+import { getInvoicesByInvoiceIdProof } from "@/lib/api/sdk.gen"
 import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
-import { CreditCard, CheckCircle2, Clock, ReceiptText, Loader2 } from "lucide-react"
+import { CreditCard, CheckCircle2, Clock, ReceiptText, Loader2, FileImage } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+
+// ProofCell: tombol upload (pending) atau preview (approved/pending ada proof).
+// Fetch proof via getInvoicesByInvoiceIdProofOptions — query kecil per invoice.
+function ProofCell({
+  invoice,
+  uploadingInvoice,
+  onUpload,
+  onPreview,
+}: {
+  invoice: InvoiceInvoiceResponse
+  uploadingInvoice: number | null
+  onUpload: (invId: number, file: File) => Promise<void>
+  onPreview: () => void
+}) {
+  const { data: proofs } = useQuery({
+    queryKey: getInvoicesByInvoiceIdProofQueryKey({ path: { invoice_id: invoice.id! } }),
+    queryFn: async () => {
+      const { data } = await getInvoicesByInvoiceIdProof({ path: { invoice_id: invoice.id! } })
+      return data
+    },
+  })
+  const approvedProof = proofs?.find((p) => p.status === "approved")
+  const uploading = uploadingInvoice === invoice.id
+
+  // invoice sudah lunas → tidak perlu proof UI
+  if (invoice.status === "paid") {
+    return <span className="text-sm text-muted-foreground">—</span>
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      {approvedProof?.url && (
+        <Button variant="link" size="sm" onClick={onPreview} className="p-0">
+          <FileImage className="h-4 w-4" />
+        </Button>
+      )}
+      <label className={`cursor-pointer text-xs underline ${uploading ? "opacity-50" : ""}`}>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          className="hidden"
+          disabled={uploading}
+          onChange={async (e) => {
+            const file = e.target.files?.[0]
+            if (file && !uploading) {
+              await onUpload(invoice.id!, file)
+              e.target.value = ""
+            }
+          }}
+        />
+        {uploading ? "Mengunggah..." : "Upload Bukti"}
+      </label>
+    </div>
+  )
+}
 
 function StudentPayments() {
   const { data: invoices = [], isLoading } = useQuery(getInvoicesOptions())
+
+  const qc = useQueryClient()
+  const [uploadingInvoice, setUploadingInvoice] = useState<number | null>(null)
+  const [previewInvoice, setPreviewInvoice] = useState<InvoiceInvoiceResponse | null>(null)
+
+  const uploadMutation = useMutation({
+    ...postInvoicesByInvoiceIdProofMutation(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["getInvoices"] })
+      toast.success("Bukti pembayaran terunggah. Admin akan memverifikasi.")
+    },
+    onError: (err: any) => toast.error(err?.error || "Gagal unggah bukti"),
+  })
+
+  const handleUpload = async (invId: number, file: File) => {
+    setUploadingInvoice(invId)
+    try {
+      await uploadMutation.mutateAsync({ body: { image: file }, path: { invoice_id: invId } })
+    } finally {
+      setUploadingInvoice(null)
+    }
+  }
 
   const total = invoices.reduce((sum, inv) => sum + (inv.amount ?? 0), 0)
   const totalPaid = invoices.filter((inv) => inv.status === "paid").reduce((sum, inv) => sum + (inv.amount ?? 0), 0)
@@ -58,6 +146,7 @@ function StudentPayments() {
                   <TableHead className="pl-6">Periode</TableHead>
                   <TableHead>Jumlah</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Bukti</TableHead>
                   <TableHead>Catatan</TableHead>
                   <TableHead className="pr-6">Tgl Buat</TableHead>
                 </TableRow>
@@ -65,7 +154,7 @@ function StudentPayments() {
               <TableBody>
                 {invoices.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="p-8 text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="p-8 text-center text-muted-foreground">
                       Belum ada invoice
                     </TableCell>
                   </TableRow>
@@ -87,6 +176,14 @@ function StudentPayments() {
                           </span>
                         )}
                       </TableCell>
+                      <TableCell>
+                        <ProofCell
+                          invoice={inv}
+                          uploadingInvoice={uploadingInvoice}
+                          onUpload={handleUpload}
+                          onPreview={() => setPreviewInvoice(inv)}
+                        />
+                      </TableCell>
                       <TableCell className="max-w-[200px] truncate text-muted-foreground">
                         {inv.note || "-"}
                       </TableCell>
@@ -99,7 +196,48 @@ function StudentPayments() {
           </CardContent>
         </Card>
       </div>
+
+      <ProofPreviewDialog invoice={previewInvoice} onClose={() => setPreviewInvoice(null)} />
     </main>
+  )
+}
+
+// ProofPreviewDialog: fetch proof presigned URL untuk invoice yang dipilih,
+// display gambar approved di dialog.
+function ProofPreviewDialog({
+  invoice,
+  onClose,
+}: {
+  invoice: InvoiceInvoiceResponse | null
+  onClose: () => void
+}) {
+  const invoiceId = invoice?.id ?? 0
+  const { data: proofs } = useQuery({
+    queryKey: getInvoicesByInvoiceIdProofQueryKey({ path: { invoice_id: invoiceId } }),
+    queryFn: async () => {
+      if (!invoice) return []
+      const { data } = await getInvoicesByInvoiceIdProof({ path: { invoice_id: invoice.id! } })
+      return data
+    },
+    enabled: !!invoice,
+  })
+  const approved = proofs?.find((p) => p.status === "approved" && p.url)
+
+  return (
+    <Dialog open={!!invoice} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="p-0">
+        <DialogHeader className="p-4">
+          <DialogTitle>Bukti Pembayaran</DialogTitle>
+        </DialogHeader>
+        <div className="p-4">
+          {approved?.url ? (
+            <img src={approved.url} alt="Bukti pembayaran" className="max-h-[70vh] w-full object-contain rounded" />
+          ) : (
+            <p className="text-sm text-muted-foreground">Bukti belum tersedia atau belum disetujui.</p>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

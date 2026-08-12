@@ -20,7 +20,7 @@ function UserSubscribe() {
   const { mutate: subscribe, isPending } = useMutation({
     ...postSubscribeMutation(),
     onSuccess: () => {
-      toast.success("Permintaan berlangganan terkirim. Admin akan memverifikasi pembayaran kamu.")
+      toast.success("Permintaan berlangganan terkirim. Upload bukti bayar di halaman pembayaran.")
     },
     onError: (err: any) => toast.error(err.error || err.message || "Gagal mengirim permintaan"),
   })
@@ -77,8 +77,8 @@ function UserSubscribe() {
             </div>
             <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
               <li>Kirim permintaan berlangganan di bawah.</li>
-              <li>Bayar sesuai nominal ke admin.</li>
-              <li>Admin verifikasi pembayaran → akun kamu aktif sebagai murid.</li>
+              <li>Upload bukti transfer di halaman Riwayat Pembayaran.</li>
+              <li>Admin verifikasi → akun kamu aktif sebagai murid.</li>
             </ol>
           </div>
         </CardContent>

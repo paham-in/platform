@@ -259,6 +259,27 @@ export type MaterialUpdateInput = {
     video_url?: string;
 };
 
+export type PaymentproofErrorResponse = {
+    error?: string;
+};
+
+export type PaymentproofProofDetail = {
+    approved_at?: string;
+    created_at?: string;
+    id?: number;
+    status?: string;
+    /**
+     * presigned, kosong untuk pending
+     */
+    url?: string;
+};
+
+export type PaymentproofUploadResponse = {
+    created_at?: string;
+    id?: number;
+    status?: string;
+};
+
 export type ProgramClassInfo = {
     id?: number;
     name?: string;
@@ -1033,6 +1054,31 @@ export type PostAdminDevCronEvidenceCleanupResponses = {
 
 export type PostAdminDevCronEvidenceCleanupResponse = PostAdminDevCronEvidenceCleanupResponses[keyof PostAdminDevCronEvidenceCleanupResponses];
 
+export type PostAdminDevCronPaymentProofCleanupData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/dev/cron/payment-proof-cleanup';
+};
+
+export type PostAdminDevCronPaymentProofCleanupErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: DevresetErrorResponse;
+};
+
+export type PostAdminDevCronPaymentProofCleanupError = PostAdminDevCronPaymentProofCleanupErrors[keyof PostAdminDevCronPaymentProofCleanupErrors];
+
+export type PostAdminDevCronPaymentProofCleanupResponses = {
+    /**
+     * OK
+     */
+    200: DevresetRunJobResponse;
+};
+
+export type PostAdminDevCronPaymentProofCleanupResponse = PostAdminDevCronPaymentProofCleanupResponses[keyof PostAdminDevCronPaymentProofCleanupResponses];
+
 export type PostAdminDevCronSessionCleanupData = {
     body?: never;
     path?: never;
@@ -1363,6 +1409,42 @@ export type PatchAdminMaterialsByIdResponses = {
 };
 
 export type PatchAdminMaterialsByIdResponse = PatchAdminMaterialsByIdResponses[keyof PatchAdminMaterialsByIdResponses];
+
+export type PatchAdminPaymentProofsByIdApproveData = {
+    body?: never;
+    path: {
+        /**
+         * PaymentProof ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/payment-proofs/{id}/approve';
+};
+
+export type PatchAdminPaymentProofsByIdApproveErrors = {
+    /**
+     * Forbidden
+     */
+    403: PaymentproofErrorResponse;
+    /**
+     * Not Found
+     */
+    404: PaymentproofErrorResponse;
+};
+
+export type PatchAdminPaymentProofsByIdApproveError = PatchAdminPaymentProofsByIdApproveErrors[keyof PatchAdminPaymentProofsByIdApproveErrors];
+
+export type PatchAdminPaymentProofsByIdApproveResponses = {
+    /**
+     * OK
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+export type PatchAdminPaymentProofsByIdApproveResponse = PatchAdminPaymentProofsByIdApproveResponses[keyof PatchAdminPaymentProofsByIdApproveResponses];
 
 export type GetAdminProgramsData = {
     body?: never;
@@ -3029,6 +3111,62 @@ export type GetInvoicesResponses = {
 };
 
 export type GetInvoicesResponse = GetInvoicesResponses[keyof GetInvoicesResponses];
+
+export type GetInvoicesByInvoiceIdProofData = {
+    body?: never;
+    path: {
+        /**
+         * Invoice ID
+         */
+        invoice_id: number;
+    };
+    query?: never;
+    url: '/invoices/{invoice_id}/proof';
+};
+
+export type GetInvoicesByInvoiceIdProofResponses = {
+    /**
+     * OK
+     */
+    200: Array<PaymentproofProofDetail>;
+};
+
+export type GetInvoicesByInvoiceIdProofResponse = GetInvoicesByInvoiceIdProofResponses[keyof GetInvoicesByInvoiceIdProofResponses];
+
+export type PostInvoicesByInvoiceIdProofData = {
+    body: {
+        /**
+         * Foto bukti transfer (jpg, png, gif, webp, max 5MB)
+         */
+        image: Blob | File;
+    };
+    path: {
+        /**
+         * Invoice ID
+         */
+        invoice_id: number;
+    };
+    query?: never;
+    url: '/invoices/{invoice_id}/proof';
+};
+
+export type PostInvoicesByInvoiceIdProofErrors = {
+    /**
+     * Bad Request
+     */
+    400: PaymentproofErrorResponse;
+};
+
+export type PostInvoicesByInvoiceIdProofError = PostInvoicesByInvoiceIdProofErrors[keyof PostInvoicesByInvoiceIdProofErrors];
+
+export type PostInvoicesByInvoiceIdProofResponses = {
+    /**
+     * Created
+     */
+    201: PaymentproofUploadResponse;
+};
+
+export type PostInvoicesByInvoiceIdProofResponse = PostInvoicesByInvoiceIdProofResponses[keyof PostInvoicesByInvoiceIdProofResponses];
 
 export type PostLogoutData = {
     body?: never;
