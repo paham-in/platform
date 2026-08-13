@@ -84,6 +84,7 @@ var tables = []tableDef{
 	{name: "questionbank_answers", label: "Jawaban Bank", desc: "Jawaban soal paket"},
 	{name: "question_packages", label: "Paket Soal", desc: "Paket soal"},
 	{name: "question_package_collections", label: "Koleksi Paket Soal", desc: "Koleksi paket soal per kelas"},
+	{name: "student_question_progresses", label: "Progress Jawaban", desc: "Jawaban student per soal paket"},
 	{name: "teacher_subjects", label: "Guru–Mapel", desc: "Mapel yang diajar guru"},
 	{name: "push_subscriptions", label: "Subs Push", desc: "Langganan notifikasi push"},
 	{name: "programs", label: "Program", desc: "Program belajar"},

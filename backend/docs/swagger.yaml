@@ -654,6 +654,10 @@ definitions:
     type: object
   questionpackage.SubmitAnswerResponse:
     properties:
+      correct_answer_ids:
+        items:
+          type: integer
+        type: array
       explanation:
         type: string
       is_correct:
@@ -685,6 +689,12 @@ definitions:
         items:
           type: integer
         type: array
+      correct_answer_ids:
+        additionalProperties:
+          items:
+            type: integer
+          type: array
+        type: object
       explanations:
         additionalProperties:
           type: string

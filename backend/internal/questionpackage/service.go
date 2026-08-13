@@ -328,25 +328,29 @@ func (s *Service) toCollectionResponse(g models.QuestionPackageCollection) Colle
 }
 
 // SubmitAnswer menyimpan jawaban student untuk 1 soal.
-func (s *Service) SubmitAnswer(userID, packageID, questionID uint, selectedAnswerID uint) (bool, string, error) {
+// Mengembalikan is_correct, explanation, dan ID jawaban yang benar (untuk highlight kunci di FE).
+func (s *Service) SubmitAnswer(userID, packageID, questionID uint, selectedAnswerID uint) (bool, string, []uint, error) {
 	q, err := s.repo.GetQuestionWithAnswers(questionID)
 	if err != nil {
-		return false, "", errors.New("soal tidak ditemukan")
+		return false, "", nil, errors.New("soal tidak ditemukan")
 	}
 	if q.PackageID != packageID {
-		return false, "", errors.New("soal bukan milik paket ini")
+		return false, "", nil, errors.New("soal bukan milik paket ini")
 	}
 	isCorrect := false
+	correctAnswerIDs := make([]uint, 0, len(q.Answers))
 	for _, a := range q.Answers {
 		if a.IsCorrect {
-			isCorrect = true
-			break
+			correctAnswerIDs = append(correctAnswerIDs, a.ID)
+			if a.ID == selectedAnswerID {
+				isCorrect = true
+			}
 		}
 	}
 	if err := s.repo.SaveProgress(userID, packageID, questionID, isCorrect, selectedAnswerID); err != nil {
-		return false, "", err
+		return false, "", nil, err
 	}
-	return isCorrect, s.storage.RewriteContentImages(q.Explanation), nil
+	return isCorrect, s.storage.RewriteContentImages(q.Explanation), correctAnswerIDs, nil
 }
 
 // GetStudentProgress mengembalikan daftar ID soal yang sudah dikerjakan.
@@ -355,27 +359,29 @@ func (s *Service) GetStudentProgress(userID, packageID uint) ([]uint, error) {
 }
 
 // GetProgressDetail mengembalikan record progress + pembahasan per soal yang sudah dikerjakan.
-// answers fe: map question_id → selected_answer_id; explanations: map question_id → explanation.
-func (s *Service) GetProgressDetail(userID, packageID uint) (answers map[uint]uint, explanations map[uint]string, isCorrect map[uint]bool, err error) {
+// answers fe: map question_id → selected_answer_id; explanations: map question_id → explanation;
+// correctAnswerIDs: map question_id → ID jawaban yang benar (untuk highlight kunci).
+func (s *Service) GetProgressDetail(userID, packageID uint) (answers map[uint]uint, explanations map[uint]string, isCorrect map[uint]bool, correctAnswerIDs map[uint][]uint, err error) {
 	progress, err := s.repo.GetCompletedProgress(userID, packageID)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	if len(progress) == 0 {
-		return map[uint]uint{}, map[uint]string{}, map[uint]bool{}, nil
-	}
-	// Batch fetch explanations untuk soal yang sudah dikerjakan.
-	qids := make([]uint, 0, len(progress))
-	for _, p := range progress {
-		qids = append(qids, p.QuestionID)
+		return map[uint]uint{}, map[uint]string{}, map[uint]bool{}, map[uint][]uint{}, nil
 	}
 	questions, err := s.repo.ListByPackage(packageID)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	explMap := make(map[uint]string, len(questions))
+	correctMap := make(map[uint][]uint, len(questions))
 	for _, q := range questions {
 		explMap[q.ID] = s.storage.RewriteContentImages(q.Explanation)
+		for _, a := range q.Answers {
+			if a.IsCorrect {
+				correctMap[q.ID] = append(correctMap[q.ID], a.ID)
+			}
+		}
 	}
 	answers = make(map[uint]uint, len(progress))
 	explanations = make(map[uint]string, len(progress))
@@ -385,7 +391,7 @@ func (s *Service) GetProgressDetail(userID, packageID uint) (answers map[uint]ui
 		explanations[p.QuestionID] = explMap[p.QuestionID]
 		isCorrect[p.QuestionID] = p.IsCorrect
 	}
-	return answers, explanations, isCorrect, nil
+	return answers, explanations, isCorrect, correctMap, nil
 }
 
 // ListQuestionsForPackage mengembalikan soal + jawaban (untuk grading di backend).

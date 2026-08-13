@@ -25,6 +25,7 @@ function WorkPage() {
   const [revealed, setRevealed] = useState(false)
   const [explanation, setExplanation] = useState("")
   const [isCorrect, setIsCorrect] = useState(false)
+  const [correctAnswerIds, setCorrectAnswerIds] = useState<Set<number>>(new Set())
 
   const { data: questions = [], isLoading: questionsLoading } = useQuery(
     getQuestionPackagesByIdWorkQuestionsOptions({ path: { id: Number(packageId) } })
@@ -40,6 +41,7 @@ function WorkPage() {
       setRevealed(true)
       setIsCorrect(data.is_correct ?? false)
       setExplanation(data.explanation ?? "")
+      setCorrectAnswerIds(new Set(data.correct_answer_ids ?? []))
       qc.invalidateQueries({ queryKey: getQuestionPackagesByIdWorkProgressQueryKey({ path: { id: Number(packageId) } }) })
       if (data.is_correct) {
         toast.success("Jawaban benar!")
@@ -82,12 +84,14 @@ function WorkPage() {
       setRevealed(true)
       setIsCorrect(isCorrectMap[questionId] ?? false)
       setExplanation(explanations[questionId] ?? "")
+      setCorrectAnswerIds(new Set(progress?.correct_answer_ids?.[questionId] ?? []))
     } else {
       setSelectedAnswerId(null)
       setRevealed(false)
       setExplanation("")
+      setCorrectAnswerIds(new Set())
     }
-  }, [currentIndex, currentQuestion?.id, selectedAnswers, explanations, isCorrectMap])
+  }, [currentIndex, currentQuestion?.id, selectedAnswers, explanations, isCorrectMap, progress?.correct_answer_ids])
 
   const handleSelectAnswer = (answerId: number) => {
     if (revealed) return
@@ -177,7 +181,8 @@ function WorkPage() {
             <div className="space-y-2">
               {(currentQuestion.answers ?? []).map((answer, idx) => {
                 const isSelected = selectedAnswerId === answer.id
-                const showResult = revealed && isSelected
+                const isCorrectAnswer = revealed && correctAnswerIds.has(answer.id!)
+                const isWrongSelected = revealed && isSelected && !isCorrectAnswer
                 return (
                   <button
                     key={answer.id}
@@ -188,9 +193,9 @@ function WorkPage() {
                         ? "border-primary bg-primary/5"
                         : "border-muted hover:border-primary/50"
                     } ${
-                      showResult && isCorrect ? "border-green-500 bg-green-50 dark:bg-green-950" : ""
+                      isCorrectAnswer ? "border-green-500 bg-green-50 dark:bg-green-950" : ""
                     } ${
-                      showResult && !isCorrect ? "border-red-500 bg-red-50 dark:bg-red-950" : ""
+                      isWrongSelected ? "border-red-500 bg-red-50 dark:bg-red-950" : ""
                     } ${revealed ? "cursor-default" : "cursor-pointer"}`}
                   >
                     <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
@@ -201,8 +206,8 @@ function WorkPage() {
                     <div className="flex-1">
                       <RichContent html={answer.content ?? ""} className="prose-sm" />
                     </div>
-                    {showResult && isCorrect && <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />}
-                    {showResult && !isCorrect && <XCircle className="h-5 w-5 shrink-0 text-red-600" />}
+                    {isCorrectAnswer && <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />}
+                    {isWrongSelected && <XCircle className="h-5 w-5 shrink-0 text-red-600" />}
                   </button>
                 )
               })}

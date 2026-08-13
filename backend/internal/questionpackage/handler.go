@@ -431,13 +431,14 @@ func (h *Handler) SubmitAnswer(c *fiber.Ctx) error {
 	if input.QuestionID == 0 {
 		return c.Status(400).JSON(ErrorResponse{Error: "question_id wajib diisi"})
 	}
-	isCorrect, explanation, err := h.svc.SubmitAnswer(userID, uint(packageID), input.QuestionID, input.AnswerID)
+	isCorrect, explanation, correctAnswerIDs, err := h.svc.SubmitAnswer(userID, uint(packageID), input.QuestionID, input.AnswerID)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(SubmitAnswerResponse{
-		IsCorrect:    isCorrect,
-		Explanation:  explanation,
+		IsCorrect:        isCorrect,
+		Explanation:      explanation,
+		CorrectAnswerIDs: correctAnswerIDs,
 	})
 }
 
@@ -447,8 +448,9 @@ type SubmitAnswerInput struct {
 }
 
 type SubmitAnswerResponse struct {
-	IsCorrect   bool   `json:"is_correct"`
-	Explanation string `json:"explanation"`
+	IsCorrect        bool   `json:"is_correct"`
+	Explanation      string `json:"explanation"`
+	CorrectAnswerIDs []uint `json:"correct_answer_ids"`
 }
 
 // GetWorkProgress mengembalikan progress student di paket, termasuk jawaban terpilih dan pembahasan.
@@ -480,27 +482,29 @@ func (h *Handler) GetWorkProgress(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil progress"})
 	}
 	total := len(pkg.Questions)
-	selectedAnswers, explanations, isCorrectMap, err := h.svc.GetProgressDetail(userID, uint(id))
+	selectedAnswers, explanations, isCorrectMap, correctAnswerIDs, err := h.svc.GetProgressDetail(userID, uint(id))
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil detail progress"})
 	}
 	return c.JSON(WorkProgressResponse{
-		TotalCount:      total,
-		CompletedCount:  len(completedIDs),
-		CompletedIDs:    completedIDs,
-		SelectedAnswers: selectedAnswers,
-		Explanations:    explanations,
-		IsCorrect:       isCorrectMap,
+		TotalCount:       total,
+		CompletedCount:   len(completedIDs),
+		CompletedIDs:     completedIDs,
+		SelectedAnswers:  selectedAnswers,
+		Explanations:     explanations,
+		IsCorrect:        isCorrectMap,
+		CorrectAnswerIDs: correctAnswerIDs,
 	})
 }
 
 type WorkProgressResponse struct {
-	TotalCount      int               `json:"total_count"`
-	CompletedCount  int               `json:"completed_count"`
-	CompletedIDs    []uint            `json:"completed_ids"`
-	SelectedAnswers map[uint]uint     `json:"selected_answers"`
-	Explanations    map[uint]string   `json:"explanations"`
-	IsCorrect       map[uint]bool     `json:"is_correct"`
+	TotalCount       int             `json:"total_count"`
+	CompletedCount   int             `json:"completed_count"`
+	CompletedIDs     []uint          `json:"completed_ids"`
+	SelectedAnswers  map[uint]uint   `json:"selected_answers"`
+	Explanations     map[uint]string `json:"explanations"`
+	IsCorrect        map[uint]bool   `json:"is_correct"`
+	CorrectAnswerIDs map[uint][]uint `json:"correct_answer_ids"`
 }
 
 func Routes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {

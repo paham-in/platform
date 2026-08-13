@@ -6198,6 +6198,12 @@ const docTemplate = `{
         "questionpackage.SubmitAnswerResponse": {
             "type": "object",
             "properties": {
+                "correct_answer_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
                 "explanation": {
                     "type": "string"
                 },
@@ -6244,6 +6250,15 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "type": "integer"
+                    }
+                },
+                "correct_answer_ids": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
                     }
                 },
                 "explanations": {
