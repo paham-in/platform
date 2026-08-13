@@ -17,7 +17,7 @@ import {
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringTeacherResponse } from "@/lib/api/types.gen"
-import { CalendarIcon, CheckCircle2, Loader2, Plus, UserRound, Users, X, UserX } from "lucide-react"
+import { CalendarIcon, CheckCircle2, Loader2, Plus, X, UserX } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
@@ -43,6 +43,11 @@ const TIME_OPTIONS = Array.from({ length: 28 }, (_, i) => {
 })
 
 const countOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12]
+
+const modeOptions = [
+  { label: "Private", value: "private" },
+  { label: "Kelompok", value: "group" },
+]
 
 function toMinutes(t: string): number {
   const [h, m] = t.split(":").map(Number)
@@ -326,20 +331,24 @@ function NewBooking() {
           </div>
 
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <Label>Mode</Label>
-              <button type="button" onClick={() => setMode(mode === "private" ? "group" : "private")} className="rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted/50">
-                {mode === "private" ? "Ganti Kelompok" : "Ganti Private"}
-              </button>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {mode === "group" ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
-              ) : (
-                <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
-              )}
-              <span>{mode === "group" ? "Maksimal 5 siswa termasuk kamu." : "Les sendiri berdua dengan guru."}</span>
-            </div>
+            <Label>Mode</Label>
+            <Select
+              items={modeOptions}
+              value={mode}
+              onValueChange={(v) => setMode(v === "group" ? "group" : "private")}
+            >
+              <SelectTrigger id="new-mode" className="w-full" size="sm">
+                <SelectValue placeholder="Pilih mode" />
+              </SelectTrigger>
+              <SelectContent>
+                {modeOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {mode === "group" ? "Maksimal 5 siswa termasuk kamu." : "Les sendiri berdua dengan guru."}
+            </p>
           </div>
 
           {mode === "group" && (

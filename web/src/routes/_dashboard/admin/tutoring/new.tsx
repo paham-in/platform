@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ArrowLeft, CalendarIcon, Loader2, CheckCircle2, UserRound, Users, UserX } from "lucide-react"
+import { ArrowLeft, CalendarIcon, CheckCircle2, Loader2, UserX, X } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
@@ -37,6 +37,10 @@ import {
 
 const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
 const countOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12]
+const modeOptions = [
+  { label: "Private", value: "private" },
+  { label: "Kelompok", value: "group" },
+]
 const SESSION_MINUTES = 90
 
 function toMinutes(t: string): number {
@@ -149,7 +153,7 @@ function AdminTutoringNew() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Tambah Booking Manual</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Daftarkan les privat untuk murid secara manual. Langsung confirmed + buat sesi & invoice.
+            Daftarkan les privat untuk murid secara manual. Langsung disetujui + buat sesi & invoice.
           </p>
         </div>
         <Button variant="outline" onClick={() => navigate({ to: "/admin/tutoring" })}>
@@ -160,7 +164,7 @@ function AdminTutoringNew() {
       <Card className="gap-0 pt-0 pb-0">
         <CardContent className="space-y-6 p-6">
           <div className="space-y-2">
-            <Label>Murid</Label>
+            <Label htmlFor="admin-booking-student">Murid</Label>
             <Combobox
               autoHighlight
               items={students}
@@ -172,7 +176,7 @@ function AdminTutoringNew() {
               }}
               itemToStringLabel={(u) => (u ? `${u.name} — ${u.email}` : "")}
             >
-              <ComboboxInput placeholder={students.length ? "Pilih murid..." : "Tidak ada murid"} />
+              <ComboboxInput id="admin-booking-student" placeholder={students.length ? "Pilih murid..." : "Tidak ada murid"} />
               <ComboboxContent>
                 <ComboboxEmpty>Tidak ada murid ditemukan</ComboboxEmpty>
                 <ComboboxList>
@@ -206,29 +210,32 @@ function AdminTutoringNew() {
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Mode</Label>
-              <button
-                type="button"
-                onClick={() => { setMode(mode === "private" ? "group" : "private"); setMembers([]) }}
-                className="rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted/50"
-              >
-                {mode === "private" ? "Ganti Kelompok" : "Ganti Private"}
-              </button>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {mode === "group" ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
-              ) : (
-                <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
-              )}
-              <span>{mode === "group" ? "Maksimal 5 siswa termasuk murid utama." : "Les sendiri berdua dengan guru."}</span>
-            </div>
+            <Label htmlFor="admin-booking-mode">Mode</Label>
+            <Select
+              items={modeOptions}
+              value={mode}
+              onValueChange={(v) => {
+                setMode(v === "group" ? "group" : "private")
+                setMembers([])
+              }}
+            >
+              <SelectTrigger id="admin-booking-mode" className="w-full" size="sm">
+                <SelectValue placeholder="Pilih mode" />
+              </SelectTrigger>
+              <SelectContent>
+                {modeOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {mode === "group" ? "Maksimal 5 siswa termasuk murid utama." : "Les sendiri berdua dengan guru."}
+            </p>
           </div>
 
           {mode === "group" && (
             <div className="space-y-2">
-              <Label>Member</Label>
+              <Label htmlFor="admin-booking-member">Member</Label>
               <Combobox
                 autoHighlight
                 items={students.filter((u) => u.id !== student?.id && !members.some((m) => m.id === u.id))}
@@ -242,7 +249,7 @@ function AdminTutoringNew() {
                 }}
                 itemToStringLabel={(u) => (u ? `${u.name} — ${u.email}` : "")}
               >
-                <ComboboxInput placeholder="Pilih murid (max 4)..." />
+                <ComboboxInput id="admin-booking-member" placeholder="Pilih murid (max 4)..." />
                 <ComboboxContent>
                   <ComboboxEmpty>Tidak ada murid ditemukan</ComboboxEmpty>
                   <ComboboxList>
@@ -263,7 +270,7 @@ function AdminTutoringNew() {
                   {members.map((m) => (
                     <span key={m.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs">
                       {m.name}
-                      <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setMembers(members.filter((x) => x.id !== m.id))}>✕</button>
+                      <button type="button" aria-label={`Hapus ${m.name}`} className="text-muted-foreground hover:text-foreground" onClick={() => setMembers(members.filter((x) => x.id !== m.id))}><X className="h-3 w-3" /></button>
                     </span>
                   ))}
                   <span className="text-xs text-muted-foreground">{members.length + 1}/5</span>
@@ -298,7 +305,7 @@ function AdminTutoringNew() {
           </div>
 
           <div className="space-y-2">
-            <Label>Guru</Label>
+            <Label htmlFor="admin-booking-teacher">Guru</Label>
             {!subjectId ? (
               <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">Pilih mapel dulu</p>
             ) : teachersLoading ? (
@@ -326,7 +333,7 @@ function AdminTutoringNew() {
                 }}
                 itemToStringLabel={(t) => (t ? t.name ?? "" : "")}
               >
-                <ComboboxInput placeholder="Pilih guru..." />
+                <ComboboxInput id="admin-booking-teacher" placeholder="Pilih guru..." />
                 <ComboboxContent>
                   <ComboboxEmpty>Tidak ada guru ditemukan</ComboboxEmpty>
                   <ComboboxList>
@@ -363,6 +370,7 @@ function AdminTutoringNew() {
                       <button
                         key={s.id}
                         type="button"
+                        aria-pressed={active}
                         onClick={() => {
                           setSelectedSlot({ day: s.day_of_week!, start: s.start_time!, end: s.end_time! })
                           setStartTime("")
@@ -422,11 +430,12 @@ function AdminTutoringNew() {
               )}
 
               <div className="space-y-2">
-                <Label>Tanggal Mulai</Label>
+                <Label htmlFor="admin-booking-date">Tanggal Mulai</Label>
                 <Popover>
                   <PopoverTrigger
                     render={
                       <Button
+                        id="admin-booking-date"
                         variant="outline"
                         data-empty={!date}
                         className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
@@ -459,6 +468,7 @@ function AdminTutoringNew() {
                     <button
                       key={n}
                       type="button"
+                      aria-pressed={sessionCount === n}
                       onClick={() => setSessionCount(n)}
                       className={`rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${sessionCount === n ? "border-primary bg-primary/5 text-primary ring-1 ring-primary" : "hover:bg-muted/50"}`}
                     >
@@ -475,7 +485,7 @@ function AdminTutoringNew() {
 
               <div className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3">
                 <div className="text-sm">
-                  <p className="font-medium">Total ({sessionCount}× pertemuan{sessionCount > 0 && perWeek ? ` · ${totalSessions} sesi` : ""})</p>
+                  <p className="font-medium">Total ({sessionCount}× pertemuan{perWeek ? ` · ${totalSessions} sesi` : ""})</p>
                   <p className="text-xs text-muted-foreground">
                     Rp {pricePerSession.toLocaleString("id-ID")} / sesi (90 menit)
                     {myClass && !myClass.price_per_session && (
