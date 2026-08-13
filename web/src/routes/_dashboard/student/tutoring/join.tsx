@@ -64,7 +64,7 @@ function JoinGroup() {
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
           <Users className="h-7 w-7 text-blue-600" />
         </div>
-        <h2 className="text-xl font-bold">Gabung Les Semi Private</h2>
+        <h2 className="text-xl font-bold">Gabung Les Kelompok</h2>
         <p className="text-sm text-muted-foreground">Kamu diundang bergabung ke grup belajar dengan {group.teacher_name}.</p>
       </div>
 

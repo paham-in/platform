@@ -67,7 +67,7 @@ function NewBooking() {
   const [start, setStart] = useState("")
   const [end, setEnd] = useState("")
   const [teacher, setTeacher] = useState<TutoringTeacherResponse | undefined>()
-  const [mode, setMode] = useState<"private" | "semi_private">("private")
+  const [mode, setMode] = useState<"private" | "group">("private")
   const [sessionCount, setSessionCount] = useState(1)
   const [classId, setClassId] = useState("")
   const [date, setDate] = useState("")
@@ -76,7 +76,7 @@ function NewBooking() {
   const [emailInput, setEmailInput] = useState("")
 
   const myClass = classes.find((c) => c.id === Number(classId))
-  const pricePerSession = mode === "semi_private" ? (myClass?.semi_private_price ?? 0) : (myClass?.price_per_session ?? 0)
+  const pricePerSession = mode === "group" ? (myClass?.group_price ?? 0) : (myClass?.price_per_session ?? 0)
   const dayNum = day === "" ? 0 : Number(day)
 
   // jam selesai hanya yang durasinya kelipatan 90 menit (1 sesi les)
@@ -147,7 +147,7 @@ function NewBooking() {
         session_count: sessionCount,
         note,
         class_id: Number(classId),
-        member_emails: mode === "semi_private" ? memberEmails : undefined,
+        member_emails: mode === "group" ? memberEmails : undefined,
       },
     })
   }
@@ -323,21 +323,21 @@ function NewBooking() {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label>Mode</Label>
-              <button type="button" onClick={() => setMode(mode === "private" ? "semi_private" : "private")} className="rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted/50">
-                {mode === "private" ? "Ganti Semi Private" : "Ganti Private"}
+              <button type="button" onClick={() => setMode(mode === "private" ? "group" : "private")} className="rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted/50">
+                {mode === "private" ? "Ganti Kelompok" : "Ganti Private"}
               </button>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {mode === "semi_private" ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Semi Private</span>
+              {mode === "group" ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
               ) : (
                 <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
               )}
-              <span>{mode === "semi_private" ? "Maksimal 5 siswa termasuk kamu." : "Les sendiri berdua dengan guru."}</span>
+              <span>{mode === "group" ? "Maksimal 5 siswa termasuk kamu." : "Les sendiri berdua dengan guru."}</span>
             </div>
           </div>
 
-          {mode === "semi_private" && (
+          {mode === "group" && (
             <div className="space-y-1.5">
               <Label>Email Teman</Label>
               <div className="flex gap-2">
@@ -420,7 +420,7 @@ function NewBooking() {
               <p className="font-medium">Total ({sessionCount}× pertemuan{perWeek ? ` · ${totalSessions} sesi` : ""})</p>
               <p className="text-xs text-muted-foreground">
                 Rp {pricePerSession.toLocaleString("id-ID")} / sesi ({SESSION_MINUTES} menit)
-                {myClass && (mode === "semi_private" ? !myClass.semi_private_price : !myClass.price_per_session) && (
+                {myClass && (mode === "group" ? !myClass.group_price : !myClass.price_per_session) && (
                   <span className="ml-1 text-amber-600">(kelas tanpa harga)</span>
                 )}
               </p>

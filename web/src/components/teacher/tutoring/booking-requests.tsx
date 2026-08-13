@@ -22,18 +22,18 @@ function statusBadge(s: string) {
 }
 
 function modeBadge(mode?: string) {
-  if (mode === "semi_private") {
-    return <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Semi Private</span>
+  if (mode === "group") {
+    return <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
   }
   return <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
 }
 
-// Kelompokkan booking satu grup (semi_private) jadi satu baris.
+// Kelompokkan booking satu grup jadi satu baris.
 function groupBookings(bookings: TutoringBookingResponse[]): TutoringBookingResponse[][] {
   const groups: TutoringBookingResponse[][] = []
   const index = new Map<string, number>()
   for (const b of bookings) {
-    if (b.mode === "semi_private" && b.group_token) {
+    if (b.mode === "group" && b.group_token) {
       const key = b.group_token
       const existing = index.get(key)
       if (existing !== undefined) {

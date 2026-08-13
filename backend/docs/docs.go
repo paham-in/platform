@@ -4472,7 +4472,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/upload.UploadResponse"
+                                "$ref": "#/definitions/forum.UploadResponse"
                             }
                         }
                     }
@@ -4515,7 +4515,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/upload.UploadResponse"
+                            "$ref": "#/definitions/forum.UploadResponse"
                         }
                     },
                     "400": {
@@ -4790,7 +4790,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Murid booking jadwal guru. User gratis boleh join grup semi-private (role student digrant otomatis saat invoice lunas).",
+                "description": "Murid booking jadwal guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).",
                 "consumes": [
                     "application/json"
                 ],
@@ -4915,7 +4915,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan info grup semi-private dari token undangan",
+                "description": "Mengembalikan info grup dari token undangan",
                 "consumes": [
                     "application/json"
                 ],
@@ -5345,6 +5345,9 @@ const docTemplate = `{
         "class.ClassResponse": {
             "type": "object",
             "properties": {
+                "group_price": {
+                    "type": "number"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -5352,9 +5355,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "price_per_session": {
-                    "type": "number"
-                },
-                "semi_private_price": {
                     "type": "number"
                 },
                 "slug": {
@@ -5529,6 +5529,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "forum.UploadResponse": {
+            "type": "object",
+            "properties": {
+                "file_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "url": {
                     "type": "string"
                 }
             }
@@ -6529,14 +6543,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "member_emails": {
-                    "description": "semi_private: email member (wajib ≥1)",
+                    "description": "group: email member (wajib ≥1)",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "mode": {
-                    "description": "private/semi_private",
+                    "description": "private/group",
                     "type": "string"
                 },
                 "note": {
@@ -6678,14 +6692,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "member_emails": {
-                    "description": "semi_private: email member (wajib ≥1)",
+                    "description": "group: email member (wajib ≥1)",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "mode": {
-                    "description": "private/semi_private",
+                    "description": "private/group",
                     "type": "string"
                 },
                 "note": {
@@ -6888,20 +6902,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "teacher_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "upload.UploadResponse": {
-            "type": "object",
-            "properties": {
-                "file_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "url": {
                     "type": "string"
                 }
             }

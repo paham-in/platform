@@ -8,5 +8,5 @@ type Class struct {
 	Slug              string  `gorm:"size:100;uniqueIndex;not null" json:"slug"`
 	ProgramID         *uint   `gorm:"index" json:"program_id,omitempty"`
 	PricePerSession   float64 `gorm:"default:0" json:"price_per_session"`    // biaya per pertemuan les privat
-	SemiPrivatePrice  float64 `gorm:"default:0" json:"semi_private_price"`   // biaya per pertemuan semi-private
+	GroupPrice        float64 `gorm:"default:0" json:"group_price"`          // biaya per pertemuan les kelompok
 }

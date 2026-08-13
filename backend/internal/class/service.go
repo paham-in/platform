@@ -15,11 +15,11 @@ func NewService(repo *Repository) *Service {
 }
 
 type ClassResponse struct {
-	ID                uint    `json:"id"`
-	Name              string  `json:"name"`
-	Slug              string  `json:"slug"`
-	PricePerSession   float64 `json:"price_per_session"`
-	SemiPrivatePrice  float64 `json:"semi_private_price"`
+	ID               uint    `json:"id"`
+	Name             string  `json:"name"`
+	Slug             string  `json:"slug"`
+	PricePerSession  float64 `json:"price_per_session"`
+	GroupPrice       float64 `json:"group_price"`
 }
 
 func (s *Service) List() ([]ClassResponse, error) {
@@ -43,13 +43,13 @@ func (s *Service) Get(id uint) (*ClassResponse, error) {
 	return &r, nil
 }
 
-func (s *Service) Create(name string, price, semiPrice float64) (*ClassResponse, error) {
+func (s *Service) Create(name string, price, groupPrice float64) (*ClassResponse, error) {
 	slug := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
 	class := models.Class{
-		Name:             name,
-		Slug:             slug,
-		PricePerSession:  price,
-		SemiPrivatePrice: semiPrice,
+		Name:            name,
+		Slug:            slug,
+		PricePerSession: price,
+		GroupPrice:      groupPrice,
 	}
 	if err := s.repo.Create(&class); err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (s *Service) Create(name string, price, semiPrice float64) (*ClassResponse,
 	return &r, nil
 }
 
-func (s *Service) Update(id uint, name string, price, semiPrice *float64) (*ClassResponse, error) {
+func (s *Service) Update(id uint, name string, price, groupPrice *float64) (*ClassResponse, error) {
 	updates := map[string]interface{}{}
 	if name != "" {
 		updates["name"] = name
@@ -67,8 +67,8 @@ func (s *Service) Update(id uint, name string, price, semiPrice *float64) (*Clas
 	if price != nil {
 		updates["price_per_session"] = *price
 	}
-	if semiPrice != nil {
-		updates["semi_private_price"] = *semiPrice
+	if groupPrice != nil {
+		updates["group_price"] = *groupPrice
 	}
 	if err := s.repo.Update(id, updates); err != nil {
 		return nil, err
@@ -86,6 +86,6 @@ func toResponse(c models.Class) ClassResponse {
 		Name:             c.Name,
 		Slug:             c.Slug,
 		PricePerSession:  c.PricePerSession,
-		SemiPrivatePrice: c.SemiPrivatePrice,
+		GroupPrice:       c.GroupPrice,
 	}
 }

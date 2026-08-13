@@ -40,7 +40,7 @@ function AdminSettings() {
   const [fee, setFee] = useState("")
   const [settingsInitialized, setSettingsInitialized] = useState(false)
   // harga per kelas, keyed by class id
-  const [classPrices, setClassPrices] = useState<Record<number, { private: string; semi: string }>>({})
+  const [classPrices, setClassPrices] = useState<Record<number, { private: string; group: string }>>({})
 
   useEffect(() => {
     if (settings && !settingsInitialized) {
@@ -57,7 +57,7 @@ function AdminSettings() {
         if (c.id !== undefined && !(c.id in next)) {
           next[c.id] = {
             private: priceStr(c.price_per_session),
-            semi: priceStr(c.semi_private_price),
+            group: priceStr(c.group_price),
           }
         }
       }
@@ -82,12 +82,12 @@ function AdminSettings() {
   const dirtyClasses = classes.filter((c) => {
     const row = classPrices[c.id!]
     if (!row) return false
-    return priceNorm(row.private) !== priceStr(c.price_per_session) || priceNorm(row.semi) !== priceStr(c.semi_private_price)
+    return priceNorm(row.private) !== priceStr(c.price_per_session) || priceNorm(row.group) !== priceStr(c.group_price)
   })
 
   const hasInvalidPrice = dirtyClasses.some((c) => {
     const row = classPrices[c.id!]
-    return priceNum(row?.private ?? "") === null || priceNum(row?.semi ?? "") === null
+    return priceNum(row?.private ?? "") === null || priceNum(row?.group ?? "") === null
   })
 
   const handleSaveAll = async () => {
@@ -101,7 +101,7 @@ function AdminSettings() {
             body: {
               name: cls.name,
               price_per_session: priceNum(row.private)!,
-              semi_private_price: priceNum(row.semi)!,
+              group_price: priceNum(row.group)!,
             },
           })
         })
@@ -187,7 +187,7 @@ function AdminSettings() {
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-(--card-spacing)">Kelas</TableHead>
                   <TableHead>Private (Rp)</TableHead>
-                  <TableHead className="pr-(--card-spacing)">Semi Private (Rp)</TableHead>
+                  <TableHead className="pr-(--card-spacing)">Kelompok (Rp)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -212,9 +212,9 @@ function AdminSettings() {
                   classes.map((cls) => {
                     const row = classPrices[cls.id!]
                     const pv = row?.private ?? ""
-                    const sv = row?.semi ?? ""
+                    const gv = row?.group ?? ""
                     const pvValid = priceNum(pv) !== null
-                    const svValid = priceNum(sv) !== null
+                    const gvValid = priceNum(gv) !== null
                     return (
                       <TableRow key={cls.id}>
                         <TableCell className="font-medium pl-(--card-spacing)">{cls.name}</TableCell>
@@ -230,7 +230,7 @@ function AdminSettings() {
                               onChange={(e) =>
                                 setClassPrices((prev) => ({
                                   ...prev,
-                                  [cls.id!]: { private: e.target.value, semi: prev[cls.id!]?.semi ?? "" },
+                                  [cls.id!]: { private: e.target.value, group: prev[cls.id!]?.group ?? "" },
                                 }))
                               }
                             />
@@ -247,19 +247,19 @@ function AdminSettings() {
                               type="number"
                               min="0"
                               className="h-8 w-32"
-                              value={sv}
-                              aria-label={`Harga semi privat ${cls.name}`}
-                              aria-invalid={!svValid}
+                              value={gv}
+                              aria-label={`Harga kelompok ${cls.name}`}
+                              aria-invalid={!gvValid}
                               onChange={(e) =>
                                 setClassPrices((prev) => ({
                                   ...prev,
-                                  [cls.id!]: { private: prev[cls.id!]?.private ?? "", semi: e.target.value },
+                                  [cls.id!]: { private: prev[cls.id!]?.private ?? "", group: e.target.value },
                                 }))
                               }
                             />
-                            {svValid && Number(sv) > 0 && (
+                            {gvValid && Number(gv) > 0 && (
                               <p className="text-xs text-muted-foreground">
-                                Fee guru: {fmtRp(teacherFee(sv))}
+                                Fee guru: {fmtRp(teacherFee(gv))}
                               </p>
                             )}
                           </div>

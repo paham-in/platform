@@ -2210,7 +2210,7 @@ export const getTutoringBookingsOptions = (options?: Options<GetTutoringBookings
 /**
  * Create booking
  *
- * Murid booking jadwal guru. User gratis boleh join grup semi-private (role student digrant otomatis saat invoice lunas).
+ * Murid booking jadwal guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).
  */
 export const postTutoringBookingsMutation = (options?: Partial<Options<PostTutoringBookingsData>>): UseMutationOptions<PostTutoringBookingsResponse, PostTutoringBookingsError, Options<PostTutoringBookingsData>> => {
     const mutationOptions: UseMutationOptions<PostTutoringBookingsResponse, PostTutoringBookingsError, Options<PostTutoringBookingsData>> = {
@@ -2270,7 +2270,7 @@ export const getTutoringGroupsByTokenQueryKey = (options: Options<GetTutoringGro
 /**
  * Group info
  *
- * Mengembalikan info grup semi-private dari token undangan
+ * Mengembalikan info grup dari token undangan
  */
 export const getTutoringGroupsByTokenOptions = (options: Options<GetTutoringGroupsByTokenData>) => queryOptions<GetTutoringGroupsByTokenResponse, GetTutoringGroupsByTokenError, GetTutoringGroupsByTokenResponse, ReturnType<typeof getTutoringGroupsByTokenQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {

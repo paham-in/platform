@@ -31,12 +31,12 @@
 Kolom/tabel berikut dicek dan **masih dipakai** kode — jangan dihapus:
 
 - `users.avatar_url`, `users.google_id` — OAuth Google, ditampilkan di avatar
-- `bookings.group_token` — join grup semi-private
+- `bookings.group_token` — join grup kelompok
 - `questions.plain_content`, `answers.plain_content` — search & preview forum
 - `questionbank_questions.explanation` — pembahasan paket soal
 - `bookings.note`, `invoices.note` — ditampilkan di halaman admin/teacher/student
 - `programs.desc`, `question_packages.description` — ditampilkan di web
-- `classes.price_per_session`, `classes.semi_private_price` — harga les privat
+- `classes.price_per_session`, `classes.group_price` — harga les privat
 - `materials.video_url`, `answers.video_url` — video materi/jawaban
 - `subject_images.*` — gallery subject
 - kolom lain di `push_subscriptions`, `sessions`, `availabilities`, `tutoring_sessions`, dst.

@@ -71,7 +71,7 @@ function TeacherCalendarPage() {
     start: s.start_time!,
     end: s.end_time!,
     title: s.student_name ?? "Murid",
-    subtitle: s.mode === "semi_private" ? "Semi Private" : "Private",
+    subtitle: s.mode === "group" ? "Kelompok" : "Private",
     note: s.note,
     status: s.status,
     evidenceUrl: s.evidence_url,

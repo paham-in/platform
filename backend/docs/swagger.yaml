@@ -103,13 +103,13 @@ definitions:
     type: object
   class.ClassResponse:
     properties:
+      group_price:
+        type: number
       id:
         type: integer
       name:
         type: string
       price_per_session:
-        type: number
-      semi_private_price:
         type: number
       slug:
         type: string
@@ -222,6 +222,15 @@ definitions:
       user_avatar:
         type: string
       user_name:
+        type: string
+    type: object
+  forum.UploadResponse:
+    properties:
+      file_name:
+        type: string
+      id:
+        type: integer
+      url:
         type: string
     type: object
   gallery.GalleryDeleteResponse:
@@ -870,12 +879,12 @@ definitions:
       end_time:
         type: string
       member_emails:
-        description: 'semi_private: email member (wajib ≥1)'
+        description: 'group: email member (wajib ≥1)'
         items:
           type: string
         type: array
       mode:
-        description: private/semi_private
+        description: private/group
         type: string
       note:
         type: string
@@ -969,12 +978,12 @@ definitions:
         description: isi utk join grup yang sudah ada
         type: string
       member_emails:
-        description: 'semi_private: email member (wajib ≥1)'
+        description: 'group: email member (wajib ≥1)'
         items:
           type: string
         type: array
       mode:
-        description: private/semi_private
+        description: private/group
         type: string
       note:
         type: string
@@ -1108,15 +1117,6 @@ definitions:
       student_name:
         type: string
       teacher_name:
-        type: string
-    type: object
-  upload.UploadResponse:
-    properties:
-      file_name:
-        type: string
-      id:
-        type: integer
-      url:
         type: string
     type: object
   user.AdminCreateStudentInput:
@@ -4058,7 +4058,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/upload.UploadResponse'
+              $ref: '#/definitions/forum.UploadResponse'
             type: array
       security:
       - BearerAuth: []
@@ -4086,7 +4086,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/upload.UploadResponse'
+            $ref: '#/definitions/forum.UploadResponse'
         "400":
           description: Bad Request
           schema:
@@ -4262,8 +4262,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Murid booking jadwal guru. User gratis boleh join grup semi-private
-        (role student digrant otomatis saat invoice lunas).
+      description: Murid booking jadwal guru. User gratis boleh join grup (role student
+        digrant otomatis saat invoice lunas).
       parameters:
       - description: Booking data
         in: body
@@ -4342,7 +4342,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan info grup semi-private dari token undangan
+      description: Mengembalikan info grup dari token undangan
       parameters:
       - description: Group token
         in: path

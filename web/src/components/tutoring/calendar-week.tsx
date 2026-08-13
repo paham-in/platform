@@ -14,7 +14,7 @@ export type CalendarEvent = {
   start: string // "HH:mm"
   end: string // "HH:mm"
   title: string // nama pihak lain (murid utk guru, guru utk murid)
-  subtitle?: string // mode: "Private" / "Semi Private"
+  subtitle?: string // mode: "Private" / "Kelompok"
   note?: string
   status?: string // scheduled/done/cancelled | confirmed/pending/...
   evidenceUrl?: string // foto bukti kehadiran (presigned URL)
@@ -156,7 +156,7 @@ export function CalendarWeek({
                       className={cn(
                         "absolute inset-x-1 z-10 cursor-pointer overflow-hidden rounded-md border px-4 py-1.5 text-left text-xs leading-tight transition-colors hover:brightness-95",
                         statusMeta(ev.status).className,
-                        ev.subtitle === "Semi Private" && "border-l-[3px] border-l-blue-500",
+                        ev.subtitle === "Kelompok" && "border-l-[3px] border-l-blue-500",
                       )}
                       style={{
                         top: (toMinutes(ev.start) - HOUR_START * 60) * (PX_PER_HOUR / 60),

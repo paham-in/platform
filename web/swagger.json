@@ -4469,7 +4469,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/upload.UploadResponse"
+                                "$ref": "#/definitions/forum.UploadResponse"
                             }
                         }
                     }
@@ -4512,7 +4512,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/upload.UploadResponse"
+                            "$ref": "#/definitions/forum.UploadResponse"
                         }
                     },
                     "400": {
@@ -4787,7 +4787,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Murid booking jadwal guru. User gratis boleh join grup semi-private (role student digrant otomatis saat invoice lunas).",
+                "description": "Murid booking jadwal guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).",
                 "consumes": [
                     "application/json"
                 ],
@@ -4912,7 +4912,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan info grup semi-private dari token undangan",
+                "description": "Mengembalikan info grup dari token undangan",
                 "consumes": [
                     "application/json"
                 ],
@@ -5342,6 +5342,9 @@
         "class.ClassResponse": {
             "type": "object",
             "properties": {
+                "group_price": {
+                    "type": "number"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -5349,9 +5352,6 @@
                     "type": "string"
                 },
                 "price_per_session": {
-                    "type": "number"
-                },
-                "semi_private_price": {
                     "type": "number"
                 },
                 "slug": {
@@ -5526,6 +5526,20 @@
                     "type": "string"
                 },
                 "user_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "forum.UploadResponse": {
+            "type": "object",
+            "properties": {
+                "file_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "url": {
                     "type": "string"
                 }
             }
@@ -6526,14 +6540,14 @@
                     "type": "string"
                 },
                 "member_emails": {
-                    "description": "semi_private: email member (wajib ≥1)",
+                    "description": "group: email member (wajib ≥1)",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "mode": {
-                    "description": "private/semi_private",
+                    "description": "private/group",
                     "type": "string"
                 },
                 "note": {
@@ -6675,14 +6689,14 @@
                     "type": "string"
                 },
                 "member_emails": {
-                    "description": "semi_private: email member (wajib ≥1)",
+                    "description": "group: email member (wajib ≥1)",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "mode": {
-                    "description": "private/semi_private",
+                    "description": "private/group",
                     "type": "string"
                 },
                 "note": {
@@ -6885,20 +6899,6 @@
                     "type": "string"
                 },
                 "teacher_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "upload.UploadResponse": {
-            "type": "object",
-            "properties": {
-                "file_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "url": {
                     "type": "string"
                 }
             }

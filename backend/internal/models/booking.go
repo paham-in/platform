@@ -14,9 +14,9 @@ type Booking struct {
 	StartTime    string `gorm:"size:5;not null" json:"start_time"`  // "HH:mm"
 	EndTime      string `gorm:"size:5;not null" json:"end_time"`    // "HH:mm"
 	Status       string `gorm:"size:20;default:pending" json:"status"` // pending/confirmed/rejected/cancelled
-	Mode         string `gorm:"size:20;default:private" json:"mode"`   // private/semi_private
+	Mode         string `gorm:"size:20;default:private" json:"mode"`   // private/group
 	SessionCount int    `gorm:"not null;default:1" json:"session_count"`
-	GroupToken   string `gorm:"size:64;index" json:"group_token"`      // token undangan grup semi_private
+	GroupToken   string `gorm:"size:64;index" json:"group_token"`      // token undangan grup
 	Note         string `gorm:"size:500" json:"note"`
 	ClassID      *uint  `gorm:"index" json:"class_id,omitempty"`       // snapshot kelas murid saat booking
 	Sessions     []TutoringSession `gorm:"foreignKey:BookingID" json:"sessions,omitempty"`

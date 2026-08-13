@@ -201,7 +201,7 @@ func (h *Handler) ListBookings(c *fiber.Ctx) error {
 
 // CreateBooking creates a new booking request (student or free user)
 // @Summary      Create booking
-// @Description  Murid booking jadwal guru. User gratis boleh join grup semi-private (role student digrant otomatis saat invoice lunas).
+// @Description  Murid booking jadwal guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).
 // @Tags         Tutoring
 // @Accept       json
 // @Produce      json
@@ -356,7 +356,7 @@ func (h *Handler) AdminListAvailability(c *fiber.Ctx) error {
 
 // GroupInfo returns group info for a share link
 // @Summary      Group info
-// @Description  Mengembalikan info grup semi-private dari token undangan
+// @Description  Mengembalikan info grup dari token undangan
 // @Tags         Tutoring
 // @Accept       json
 // @Produce      json

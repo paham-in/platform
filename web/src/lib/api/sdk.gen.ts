@@ -1392,7 +1392,7 @@ export const getTutoringBookings = <ThrowOnError extends boolean = false>(option
 /**
  * Create booking
  *
- * Murid booking jadwal guru. User gratis boleh join grup semi-private (role student digrant otomatis saat invoice lunas).
+ * Murid booking jadwal guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).
  */
 export const postTutoringBookings = <ThrowOnError extends boolean = false>(options: Options<PostTutoringBookingsData, ThrowOnError>): RequestResult<PostTutoringBookingsResponses, PostTutoringBookingsErrors, ThrowOnError> => (options.client ?? client).post<PostTutoringBookingsResponses, PostTutoringBookingsErrors, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],
@@ -1433,7 +1433,7 @@ export const getTutoringEarnings = <ThrowOnError extends boolean = false>(option
 /**
  * Group info
  *
- * Mengembalikan info grup semi-private dari token undangan
+ * Mengembalikan info grup dari token undangan
  */
 export const getTutoringGroupsByToken = <ThrowOnError extends boolean = false>(options: Options<GetTutoringGroupsByTokenData, ThrowOnError>): RequestResult<GetTutoringGroupsByTokenResponses, GetTutoringGroupsByTokenErrors, ThrowOnError> => (options.client ?? client).get<GetTutoringGroupsByTokenResponses, GetTutoringGroupsByTokenErrors, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],

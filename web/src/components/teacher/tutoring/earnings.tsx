@@ -13,8 +13,8 @@ function feeBadge(paid?: boolean) {
 }
 
 function modeBadge(mode?: string) {
-  if (mode === "semi_private") {
-    return <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">Semi Private</span>
+  if (mode === "group") {
+    return <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">Kelompok</span>
   }
   return <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700">Private</span>
 }

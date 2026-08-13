@@ -231,12 +231,12 @@ type CreateBookingInput struct {
 	Date         string   `json:"date"`
 	StartTime    string   `json:"start_time"`
 	EndTime      string   `json:"end_time"`
-	Mode         string   `json:"mode"`          // private/semi_private
+	Mode         string   `json:"mode"`          // private/group
 	SessionCount int      `json:"session_count"` // jumlah pertemuan (default 1)
 	GroupToken   string   `json:"group_token"`   // isi utk join grup yang sudah ada
 	Note         string   `json:"note"`
 	ClassID      *uint    `json:"class_id,omitempty"`
-	MemberEmails []string `json:"member_emails"` // semi_private: email member (wajib ≥1)
+	MemberEmails []string `json:"member_emails"` // group: email member (wajib ≥1)
 }
 
 type AssignTeacherInput struct {
@@ -250,19 +250,19 @@ type AdminCreateBookingInput struct {
 	Date         string   `json:"date"`
 	StartTime    string   `json:"start_time"`
 	EndTime      string   `json:"end_time"`
-	Mode         string   `json:"mode"`          // private/semi_private
+	Mode         string   `json:"mode"`          // private/group
 	SessionCount int      `json:"session_count"` // jumlah pertemuan (default 1)
 	Note         string   `json:"note"`
 	ClassID      *uint    `json:"class_id,omitempty"`
-	MemberEmails []string `json:"member_emails"` // semi_private: email member (wajib ≥1)
+	MemberEmails []string `json:"member_emails"` // group: email member (wajib ≥1)
 }
 
 func (s *Service) CreateBooking(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
 	if input.Mode == "" {
 		input.Mode = "private"
 	}
-	if input.Mode != "private" && input.Mode != "semi_private" {
-		return nil, errors.New("mode harus private atau semi_private")
+	if input.Mode != "private" && input.Mode != "group" {
+		return nil, errors.New("mode harus private atau group")
 	}
 	if input.SessionCount < 1 {
 		input.SessionCount = 1
@@ -311,8 +311,8 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 		return nil, err
 	}
 
-	// semi-private selalu grup: resolve member, semua booking ber-token sama.
-	if input.Mode == "semi_private" {
+	// kelompok selalu grup: resolve member, semua booking ber-token sama.
+	if input.Mode == "group" {
 		memberIDs, err := s.resolveGroupMembers(studentID, input.MemberEmails)
 		if err != nil {
 			return nil, err
@@ -334,7 +334,7 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 				StartTime:    input.StartTime,
 				EndTime:      input.EndTime,
 				Status:       "pending",
-				Mode:         "semi_private",
+				Mode:         "group",
 				SessionCount: total,
 				GroupToken:   token,
 				Note:         input.Note,
@@ -395,7 +395,7 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 	return &r, nil
 }
 
-// resolveGroupMembers memvalidasi & meresolve email member semi-private.
+// resolveGroupMembers memvalidasi & meresolve email member grup.
 // Email tanpa akun student → error (register-first: semua wajib daftar dulu).
 // Mengembalikan member user IDs, sudah dedupe dan tanpa organizer.
 func (s *Service) resolveGroupMembers(organizerID uint, emails []string) ([]uint, error) {
@@ -437,16 +437,16 @@ func (s *Service) resolveGroupMembers(organizerID uint, emails []string) ([]uint
 		return nil, errors.New("daftarkan minimal 1 email teman")
 	}
 	if len(memberIDs)+1 > maxGroupSlots {
-		return nil, fmt.Errorf("grup semi-private maksimal %d siswa termasuk kamu", maxGroupSlots)
+		return nil, fmt.Errorf("grup maksimal %d siswa termasuk kamu", maxGroupSlots)
 	}
 	return memberIDs, nil
 }
 
 // createNoTeacherBooking membuat booking tanpa guru untuk diproses admin.
-// Semi-private butuh guru (grup berbagi jadwal), jadi ditolak.
+// Kelompok butuh guru (grup berbagi jadwal), jadi ditolak.
 func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
-	if input.Mode == "semi_private" {
-		return nil, errors.New("semi-private butuh guru — pilih guru dari daftar")
+	if input.Mode == "group" {
+		return nil, errors.New("kelompok butuh guru — pilih guru dari daftar")
 	}
 	total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
 	if err != nil {
@@ -499,8 +499,8 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 	if input.Mode == "" {
 		input.Mode = "private"
 	}
-	if input.Mode != "private" && input.Mode != "semi_private" {
-		return nil, errors.New("mode harus private atau semi_private")
+	if input.Mode != "private" && input.Mode != "group" {
+		return nil, errors.New("mode harus private atau group")
 	}
 	if input.SessionCount < 1 {
 		input.SessionCount = 1
@@ -534,8 +534,8 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 		return nil, err
 	}
 
-	// semi-private: resolve member & buat semua booking + sesi + invoice ber-token sama.
-	if input.Mode == "semi_private" {
+	// kelompok: resolve member & buat semua booking + sesi + invoice ber-token sama.
+	if input.Mode == "group" {
 		memberIDs, err := s.resolveGroupMembers(input.StudentID, input.MemberEmails)
 		if err != nil {
 			return nil, err
@@ -557,7 +557,7 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 				StartTime:    input.StartTime,
 				EndTime:      input.EndTime,
 				Status:       "confirmed",
-				Mode:         "semi_private",
+				Mode:         "group",
 				SessionCount: total,
 				GroupToken:   token,
 				Note:         input.Note,
@@ -942,7 +942,7 @@ func (s *Service) resolveStudentClassID(studentID uint) (*uint, error) {
 
 // getClassPrices mengembalikan harga les privat per kelas.
 // Kelas tidak ditemukan / belum diisi harga → 0.
-func (s *Service) getClassPrices(classID *uint) (price, semiPrice float64) {
+func (s *Service) getClassPrices(classID *uint) (price, groupPrice float64) {
 	if classID == nil {
 		return 0, 0
 	}
@@ -950,15 +950,15 @@ func (s *Service) getClassPrices(classID *uint) (price, semiPrice float64) {
 	if err := s.repo.db.First(&class, *classID).Error; err != nil {
 		return 0, 0
 	}
-	return class.PricePerSession, class.SemiPrivatePrice
+	return class.PricePerSession, class.GroupPrice
 }
 
 // perSessionPrice menghitung harga per pertemuan utk mode tertentu.
 // Admin diharapkan mengisi harga tiap kelas; kelas tanpa harga → 0.
 func (s *Service) perSessionPrice(classID *uint, mode string) float64 {
-	price, semiPrice := s.getClassPrices(classID)
-	if mode == "semi_private" {
-		return semiPrice
+	price, groupPrice := s.getClassPrices(classID)
+	if mode == "group" {
+		return groupPrice
 	}
 	return price
 }
@@ -1009,8 +1009,8 @@ func (s *Service) createSessionsAndInvoice(db *gorm.DB, booking models.Booking) 
 	}
 
 	modeLabel := "private"
-	if booking.Mode == "semi_private" {
-		modeLabel = "semi-private"
+	if booking.Mode == "group" {
+		modeLabel = "kelompok"
 	}
 	perSession := s.perSessionPrice(booking.ClassID, booking.Mode)
 	invoice := models.Invoice{

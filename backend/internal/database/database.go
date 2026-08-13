@@ -55,6 +55,14 @@ func Migrate(db *gorm.DB) {
 		log.Println("Renamed column question_packages.group_id → collection_id")
 	}
 
+	// migrasi rename: semi-private → kelompok. Kolom classes.semi_private_price
+	// jadi group_price, dan value mode 'semi_private' di bookings jadi 'group'.
+	if db.Migrator().HasColumn(&models.Class{}, "semi_private_price") && !db.Migrator().HasColumn(&models.Class{}, "group_price") {
+		db.Exec("ALTER TABLE classes RENAME COLUMN semi_private_price TO group_price")
+		log.Println("Renamed column classes.semi_private_price → group_price")
+	}
+	db.Exec("UPDATE bookings SET mode = 'group' WHERE mode = 'semi_private'")
+
 	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackageCollection{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.StudentQuestionProgress{})
 
 	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
@@ -199,7 +207,7 @@ func Migrate(db *gorm.DB) {
 	// migrasi: classes tambah harga les privat per kelas
 	if !db.Migrator().HasColumn(&models.Class{}, "price_per_session") {
 		db.Exec("ALTER TABLE classes ADD COLUMN price_per_session DECIMAL(12,2) NOT NULL DEFAULT 0")
-		db.Exec("ALTER TABLE classes ADD COLUMN semi_private_price DECIMAL(12,2) NOT NULL DEFAULT 0")
+		db.Exec("ALTER TABLE classes ADD COLUMN group_price DECIMAL(12,2) NOT NULL DEFAULT 0")
 	}
 
 	// migrasi: classes tambah program_id; invoices ganti program_id → class_id

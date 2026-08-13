@@ -69,10 +69,10 @@ export type ChapterUpdateInput = {
 };
 
 export type ClassClassResponse = {
+    group_price?: number;
     id?: number;
     name?: string;
     price_per_session?: number;
-    semi_private_price?: number;
     slug?: string;
 };
 
@@ -146,6 +146,12 @@ export type ForumQuestionResponse = {
     top_answer?: ForumAnswerPreview;
     user_avatar?: string;
     user_name?: string;
+};
+
+export type ForumUploadResponse = {
+    file_name?: string;
+    id?: number;
+    url?: string;
 };
 
 export type GalleryGalleryDeleteResponse = {
@@ -549,11 +555,11 @@ export type TutoringAdminCreateBookingInput = {
     date?: string;
     end_time?: string;
     /**
-     * semi_private: email member (wajib ≥1)
+     * group: email member (wajib ≥1)
      */
     member_emails?: Array<string>;
     /**
-     * private/semi_private
+     * private/group
      */
     mode?: string;
     note?: string;
@@ -615,11 +621,11 @@ export type TutoringCreateBookingInput = {
      */
     group_token?: string;
     /**
-     * semi_private: email member (wajib ≥1)
+     * group: email member (wajib ≥1)
      */
     member_emails?: Array<string>;
     /**
-     * private/semi_private
+     * private/group
      */
     mode?: string;
     note?: string;
@@ -709,12 +715,6 @@ export type TutoringTutoringSessionResponse = {
     student_id?: number;
     student_name?: string;
     teacher_name?: string;
-};
-
-export type UploadUploadResponse = {
-    file_name?: string;
-    id?: number;
-    url?: string;
 };
 
 export type UserAdminCreateStudentInput = {
@@ -3656,7 +3656,7 @@ export type GetQuestionsByQuestionIdImagesResponses = {
     /**
      * OK
      */
-    200: Array<UploadUploadResponse>;
+    200: Array<ForumUploadResponse>;
 };
 
 export type GetQuestionsByQuestionIdImagesResponse = GetQuestionsByQuestionIdImagesResponses[keyof GetQuestionsByQuestionIdImagesResponses];
@@ -3693,7 +3693,7 @@ export type PostQuestionsByQuestionIdImagesResponses = {
     /**
      * Created
      */
-    201: UploadUploadResponse;
+    201: ForumUploadResponse;
 };
 
 export type PostQuestionsByQuestionIdImagesResponse = PostQuestionsByQuestionIdImagesResponses[keyof PostQuestionsByQuestionIdImagesResponses];

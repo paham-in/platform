@@ -66,7 +66,7 @@ function AdminTutoringNew() {
   const [endTime, setEndTime] = useState("")
   const [date, setDate] = useState("")
   const [note, setNote] = useState("")
-  const [mode, setMode] = useState<"private" | "semi_private">("private")
+  const [mode, setMode] = useState<"private" | "group">("private")
   const [members, setMembers] = useState<UserAdminUserResponse[]>([])
   const [memberPick, setMemberPick] = useState<UserAdminUserResponse | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -100,7 +100,7 @@ function AdminTutoringNew() {
     !!student && classId && subjectId && teacher && selectedSlot && timesValid && perWeek !== null && date && !submitting &&
     (mode === "private" || members.length > 0)
 
-  const memberEmails = mode === "semi_private"
+  const memberEmails = mode === "group"
     ? Array.from(new Set(
         members
           .map((m) => m.email?.trim())
@@ -110,7 +110,7 @@ function AdminTutoringNew() {
 
   const save = async () => {
     if (!student || !teacher || !selectedSlot || !timesValid || !date || !classId || !subjectId) return
-    if (mode === "semi_private" && (memberEmails ?? []).length === 0) return
+    if (mode === "group" && (memberEmails ?? []).length === 0) return
     setSubmitting(true)
     try {
       await createBooking({
@@ -209,23 +209,23 @@ function AdminTutoringNew() {
               <Label>Mode</Label>
               <button
                 type="button"
-                onClick={() => { setMode(mode === "private" ? "semi_private" : "private"); setMembers([]) }}
+                onClick={() => { setMode(mode === "private" ? "group" : "private"); setMembers([]) }}
                 className="rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted/50"
               >
-                {mode === "private" ? "Ganti Semi Private" : "Ganti Private"}
+                {mode === "private" ? "Ganti Kelompok" : "Ganti Private"}
               </button>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {mode === "semi_private" ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Semi Private</span>
+              {mode === "group" ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
               ) : (
                 <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
               )}
-              <span>{mode === "semi_private" ? "Maksimal 5 siswa termasuk murid utama." : "Les sendiri berdua dengan guru."}</span>
+              <span>{mode === "group" ? "Maksimal 5 siswa termasuk murid utama." : "Les sendiri berdua dengan guru."}</span>
             </div>
           </div>
 
-          {mode === "semi_private" && (
+          {mode === "group" && (
             <div className="space-y-2">
               <Label>Member</Label>
               <Combobox

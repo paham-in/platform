@@ -85,7 +85,7 @@ function AdminPrograms() {
     if (!cls) return ""
     const parts: string[] = []
     if (cls.price_per_session) parts.push(`Rp ${cls.price_per_session.toLocaleString("id-ID")} / pertemuan`)
-    if (cls.semi_private_price) parts.push(`semi: Rp ${cls.semi_private_price.toLocaleString("id-ID")} / pertemuan`)
+    if (cls.group_price) parts.push(`kelompok: Rp ${cls.group_price.toLocaleString("id-ID")} / pertemuan`)
     return parts.join(" · ")
   }
 
