@@ -312,11 +312,11 @@ func (h *Handler) Usage(c *fiber.Ctx) error {
 	if err := h.db.Select("id", "title", "content").Find(&materials).Error; err != nil {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengambil materi"})
 	}
-	var questions []models.QuestionbankQuestion
+	var questions []models.QuizQuestion
 	if err := h.db.Preload("Package").Select("id", "question", "explanation", "package_id").Find(&questions).Error; err != nil {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengambil soal"})
 	}
-	var answers []models.QuestionbankAnswer
+	var answers []models.QuizAnswer
 	if err := h.db.Select("id", "question_id", "content").Find(&answers).Error; err != nil {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengambil jawaban"})
 	}

@@ -72,11 +72,11 @@ func cleanupUser(db *gorm.DB, id uint) {
 
 	// bank soal milik user → jawabannya
 	var pqids []uint
-	db.Unscoped().Model(&models.QuestionbankQuestion{}).Where("user_id = ?", id).Pluck("id", &pqids)
+	db.Unscoped().Model(&models.QuizQuestion{}).Where("user_id = ?", id).Pluck("id", &pqids)
 	if len(pqids) > 0 {
-		db.Unscoped().Where("question_id IN ?", pqids).Delete(&models.QuestionbankAnswer{})
+		db.Unscoped().Where("question_id IN ?", pqids).Delete(&models.QuizAnswer{})
 	}
-	db.Unscoped().Where("user_id = ?", id).Delete(&models.QuestionbankQuestion{})
+	db.Unscoped().Where("user_id = ?", id).Delete(&models.QuizQuestion{})
 
 	// sisa referensi langsung
 	db.Unscoped().Where("user_id = ?", id).Delete(&models.Session{})

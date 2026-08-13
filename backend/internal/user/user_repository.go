@@ -182,13 +182,13 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 	}
 	// soal bank soal milik user + jawabannya
 	var pqids []uint
-	tx.Model(&models.QuestionbankQuestion{}).Where("user_id = ?", id).Pluck("id", &pqids)
+	tx.Model(&models.QuizQuestion{}).Where("user_id = ?", id).Pluck("id", &pqids)
 	if len(pqids) > 0 {
-		if err := tx.Unscoped().Where("question_id IN ?", pqids).Delete(&models.QuestionbankAnswer{}).Error; err != nil {
+		if err := tx.Unscoped().Where("question_id IN ?", pqids).Delete(&models.QuizAnswer{}).Error; err != nil {
 			return err
 		}
 	}
-	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.QuestionbankQuestion{}).Error; err != nil {
+	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.QuizQuestion{}).Error; err != nil {
 		return err
 	}
 	// materi yang dibuat user (teacher)

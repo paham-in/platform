@@ -67,7 +67,7 @@ func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
 		return nil, errors.New("koleksi paket soal wajib diisi")
 	}
 
-	pkg := models.QuestionPackage{
+	pkg := models.QuizPackage{
 		Name:         input.Name,
 		Description:  input.Description,
 		SubjectID:    input.SubjectID,
@@ -202,7 +202,7 @@ func (s *Service) CreateCollection(input CollectionCreateInput) (*CollectionResp
 		return nil, errors.New("kelas wajib diisi")
 	}
 
-	collection := models.QuestionPackageCollection{
+	collection := models.QuizCollection{
 		Name:        input.Name,
 		ClassID:     input.ClassID,
 		IsFree:      input.IsFree,
@@ -281,7 +281,7 @@ func (s *Service) GetCollection(id uint) (*CollectionResponse, error) {
 	return &r, nil
 }
 
-func (s *Service) toResponse(pkg models.QuestionPackage) PackageResponse {
+func (s *Service) toResponse(pkg models.QuizPackage) PackageResponse {
 	questions := make([]PackageQuestionResponse, len(pkg.Questions))
 	for i, q := range pkg.Questions {
 		questions[i] = PackageQuestionResponse{
@@ -309,7 +309,7 @@ func (s *Service) toResponse(pkg models.QuestionPackage) PackageResponse {
 	}
 }
 
-func (s *Service) toCollectionResponse(g models.QuestionPackageCollection) CollectionResponse {
+func (s *Service) toCollectionResponse(g models.QuizCollection) CollectionResponse {
 	packages := make([]PackageResponse, len(g.Packages))
 	for i, p := range g.Packages {
 		packages[i] = s.toResponse(p)
@@ -395,7 +395,7 @@ func (s *Service) GetProgressDetail(userID, packageID uint) (answers map[uint]ui
 }
 
 // ListQuestionsForPackage mengembalikan soal + jawaban (untuk grading di backend).
-func (s *Service) ListQuestionsForPackage(packageID uint) ([]models.QuestionbankQuestion, error) {
+func (s *Service) ListQuestionsForPackage(packageID uint) ([]models.QuizQuestion, error) {
 	questions, err := s.repo.ListByPackage(packageID)
 	if err != nil {
 		return nil, err

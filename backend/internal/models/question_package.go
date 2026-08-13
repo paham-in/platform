@@ -2,14 +2,17 @@ package models
 
 import "gorm.io/gorm"
 
-type QuestionPackage struct {
+type QuizPackage struct {
 	gorm.Model
-	Name        string                 `gorm:"size:200;not null" json:"name"`
-	Description string                 `gorm:"size:500" json:"description"`
-	SubjectID   uint                   `gorm:"not null;default:0;index" json:"subject_id"`
-	IsFree      bool                   `gorm:"default:true;not null" json:"is_free"`
-	CollectionID *uint                   `gorm:"index" json:"collection_id,omitempty"`
-	Questions    []QuestionbankQuestion  `gorm:"foreignKey:PackageID" json:"questions"`
-	Subject      Subject                 `gorm:"foreignKey:SubjectID" json:"-"`
-	Collection   QuestionPackageCollection `gorm:"foreignKey:CollectionID" json:"-"`
+	Name         string         `gorm:"size:200;not null" json:"name"`
+	Description  string         `gorm:"size:500" json:"description"`
+	SubjectID    uint           `gorm:"not null;default:0;index" json:"subject_id"`
+	IsFree       bool           `gorm:"default:true;not null" json:"is_free"`
+	CollectionID *uint          `gorm:"index" json:"collection_id,omitempty"`
+	Questions    []QuizQuestion `gorm:"foreignKey:PackageID" json:"questions"`
+	Subject      Subject        `gorm:"foreignKey:SubjectID" json:"-"`
+	Collection   QuizCollection `gorm:"foreignKey:CollectionID" json:"-"`
 }
+
+// TableName override supaya GORM pake quiz_packages.
+func (QuizPackage) TableName() string { return "quiz_packages" }

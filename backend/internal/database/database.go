@@ -35,24 +35,56 @@ func Migrate(db *gorm.DB) {
 	// clean up orphaned subject_images before AutoMigrate (FK constraint)
 	db.Exec("DELETE FROM subject_images WHERE user_id NOT IN (SELECT id FROM users)")
 
-	// clean up orphaned questionbank data before AutoMigrate (FK constraint):
-	// row lama ber-`package_id` tidak valid (mis. 0 dari default kolom) akan
-	// memblokir pembuatan constraint FK dan menghentikan AutoMigrate. Hapus
-	// jawaban anak dulu, baru soal (FK fk_questionbank_questions_answers).
-	db.Exec("DELETE FROM questionbank_answers WHERE question_id IN (SELECT id FROM questionbank_questions WHERE package_id NOT IN (SELECT id FROM question_packages))")
-	db.Exec("DELETE FROM questionbank_questions WHERE package_id NOT IN (SELECT id FROM question_packages)")
-
-	// migrasi rename: question_package_groups → question_package_collections,
-	// kolom group_id → collection_id di question_packages. Idempotent — lewati
-	// kalau tabel/kolom baru sudah ada (rename sekali saja, lalu AutoMigrate lanjut).
+	// migrasi rename: question_package_groups → question_package_collections.
+	// Idempotent — lewati kalau tabel baru sudah ada (rename sekali saja, lalu
+	// AutoMigrate lanjut). Blok ini harus jalan sebelum rename ke quiz_collections
+	// supaya DB lama bisa ter-rename dua tahap dalam satu run.
 	if db.Migrator().HasTable("question_package_groups") && !db.Migrator().HasTable("question_package_collections") {
 		db.Exec("ALTER TABLE question_package_groups RENAME TO question_package_collections")
 		db.Exec("ALTER INDEX IF EXISTS idx_question_package_groups_class_id RENAME TO idx_question_package_collections_class_id")
 		log.Println("Renamed table question_package_groups → question_package_collections")
 	}
-	if db.Migrator().HasColumn(&models.QuestionPackage{}, "group_id") && !db.Migrator().HasColumn(&models.QuestionPackage{}, "collection_id") {
-		db.Exec("ALTER TABLE question_packages RENAME COLUMN group_id TO collection_id")
-		log.Println("Renamed column question_packages.group_id → collection_id")
+
+	// migrasi rename: fitur quiz — tabel questionbank_questions/questionbank_answers/
+	// question_packages/question_package_collections/student_question_progresses jadi
+	// ber-prefix quiz_*. Idempotent — lewati kalau tabel baru sudah ada (rename
+	// sekali saja, lalu AutoMigrate lanjut). Postgres otomatis memperbarui FK
+	// constraint dan sequence; index di-rename manual biar konsisten.
+	if db.Migrator().HasTable("questionbank_questions") && !db.Migrator().HasTable("quiz_questions") {
+		db.Exec("ALTER TABLE questionbank_questions RENAME TO quiz_questions")
+		db.Exec("ALTER INDEX IF EXISTS idx_questionbank_questions_package_id RENAME TO idx_quiz_questions_package_id")
+		log.Println("Renamed table questionbank_questions → quiz_questions")
+	}
+	if db.Migrator().HasTable("questionbank_answers") && !db.Migrator().HasTable("quiz_answers") {
+		db.Exec("ALTER TABLE questionbank_answers RENAME TO quiz_answers")
+		log.Println("Renamed table questionbank_answers → quiz_answers")
+	}
+	if db.Migrator().HasTable("question_packages") && !db.Migrator().HasTable("quiz_packages") {
+		db.Exec("ALTER TABLE question_packages RENAME TO quiz_packages")
+		log.Println("Renamed table question_packages → quiz_packages")
+	}
+	if db.Migrator().HasTable("question_package_collections") && !db.Migrator().HasTable("quiz_collections") {
+		db.Exec("ALTER TABLE question_package_collections RENAME TO quiz_collections")
+		db.Exec("ALTER INDEX IF EXISTS idx_question_package_collections_class_id RENAME TO idx_quiz_collections_class_id")
+		log.Println("Renamed table question_package_collections → quiz_collections")
+	}
+	if db.Migrator().HasTable("student_question_progresses") && !db.Migrator().HasTable("quiz_student_progresses") {
+		db.Exec("ALTER TABLE student_question_progresses RENAME TO quiz_student_progresses")
+		log.Println("Renamed table student_question_progresses → quiz_student_progresses")
+	}
+
+	// clean up orphaned quiz data before AutoMigrate (FK constraint): row lama
+	// ber-`package_id` tidak valid (mis. 0 dari default kolom) akan memblokir
+	// pembuatan constraint FK dan menghentikan AutoMigrate. Hapus jawaban anak
+	// dulu, baru soal (FK quiz_answers.question_id → quiz_questions.id).
+	// Jalan setelah rename di atas supaya nama tabel sudah yang baru.
+	db.Exec("DELETE FROM quiz_answers WHERE question_id IN (SELECT id FROM quiz_questions WHERE package_id NOT IN (SELECT id FROM quiz_packages))")
+	db.Exec("DELETE FROM quiz_questions WHERE package_id NOT IN (SELECT id FROM quiz_packages)")
+
+	// migrasi rename: kolom group_id → collection_id di quiz_packages.
+	if db.Migrator().HasColumn(&models.QuizPackage{}, "group_id") && !db.Migrator().HasColumn(&models.QuizPackage{}, "collection_id") {
+		db.Exec("ALTER TABLE quiz_packages RENAME COLUMN group_id TO collection_id")
+		log.Println("Renamed column quiz_packages.group_id → collection_id")
 	}
 
 	// migrasi rename: semi-private → kelompok. Kolom classes.semi_private_price
@@ -80,7 +112,7 @@ func Migrate(db *gorm.DB) {
 		log.Println("Renamed table question_images → forum_question_images")
 	}
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackageCollection{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.StudentQuestionProgress{})
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.QuizStudentProgress{})
 
 	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
 	for _, name := range []string{"student", "teacher", "admin"} {
@@ -150,8 +182,8 @@ func Migrate(db *gorm.DB) {
 	if !db.Migrator().HasColumn(&models.Material{}, "is_free") {
 		db.Exec("ALTER TABLE materials ADD COLUMN is_free BOOLEAN NOT NULL DEFAULT TRUE")
 	}
-	if !db.Migrator().HasColumn(&models.QuestionPackage{}, "is_free") {
-		db.Exec("ALTER TABLE question_packages ADD COLUMN is_free BOOLEAN NOT NULL DEFAULT TRUE")
+	if !db.Migrator().HasColumn(&models.QuizPackage{}, "is_free") {
+		db.Exec("ALTER TABLE quiz_packages ADD COLUMN is_free BOOLEAN NOT NULL DEFAULT TRUE")
 	}
 
 	// migrate questions -- drop title, add plain_content
@@ -198,13 +230,13 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE subjects DROP COLUMN description")
 	}
 
-	// migrate questionbank_questions -- pindah dari chapter ke paket soal
-	if !db.Migrator().HasColumn(&models.QuestionbankQuestion{}, "package_id") {
-		db.Exec("ALTER TABLE questionbank_questions ADD COLUMN package_id BIGINT NOT NULL DEFAULT 0")
-		db.Exec("CREATE INDEX idx_questionbank_questions_package_id ON questionbank_questions(package_id)")
+	// migrate quiz_questions -- pindah dari chapter ke paket soal
+	if !db.Migrator().HasColumn(&models.QuizQuestion{}, "package_id") {
+		db.Exec("ALTER TABLE quiz_questions ADD COLUMN package_id BIGINT NOT NULL DEFAULT 0")
+		db.Exec("CREATE INDEX idx_quiz_questions_package_id ON quiz_questions(package_id)")
 	}
-	if db.Migrator().HasColumn(&models.QuestionbankQuestion{}, "chapter_id") {
-		db.Exec("ALTER TABLE questionbank_questions DROP COLUMN chapter_id")
+	if db.Migrator().HasColumn(&models.QuizQuestion{}, "chapter_id") {
+		db.Exec("ALTER TABLE quiz_questions DROP COLUMN chapter_id")
 	}
 
 	// tabel join many2many tidak dipakai lagi (soal dimiliki paket)

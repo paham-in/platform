@@ -50,7 +50,7 @@ func (s *Service) Get(id uint) (*QuestionResponse, error) {
 	return &r, nil
 }
 
-type QuestionbankAnswerInput struct {
+type QuizAnswerInput struct {
 	Content   string `json:"content"`
 	IsCorrect bool   `json:"is_correct"`
 }
@@ -58,7 +58,7 @@ type QuestionbankAnswerInput struct {
 type CreateInput struct {
 	UserID      uint                      `json:"user_id"`
 	Question    string                    `json:"question"`
-	Answers     []QuestionbankAnswerInput `json:"answers"`
+	Answers     []QuizAnswerInput `json:"answers"`
 	Explanation string                    `json:"explanation"`
 }
 
@@ -73,7 +73,7 @@ func (s *Service) Create(packageID uint, input CreateInput) (*QuestionResponse, 
 		return nil, errors.New("minimal 2 opsi jawaban")
 	}
 
-	q := models.QuestionbankQuestion{
+	q := models.QuizQuestion{
 		UserID:      input.UserID,
 		PackageID:   packageID,
 		Question:    storage.SanitizeContentImages(input.Question),
@@ -84,7 +84,7 @@ func (s *Service) Create(packageID uint, input CreateInput) (*QuestionResponse, 
 		if a.Content == "" {
 			continue
 		}
-		q.Answers = append(q.Answers, models.QuestionbankAnswer{
+		q.Answers = append(q.Answers, models.QuizAnswer{
 			Content:   storage.SanitizeContentImages(a.Content),
 			IsCorrect: a.IsCorrect,
 			SortOrder: i,
@@ -103,7 +103,7 @@ func (s *Service) Create(packageID uint, input CreateInput) (*QuestionResponse, 
 
 type UpdateInput struct {
 	Question    *string                    `json:"question"`
-	Answers     *[]QuestionbankAnswerInput `json:"answers"`
+	Answers     *[]QuizAnswerInput `json:"answers"`
 	Explanation *string                    `json:"explanation"`
 }
 
@@ -118,9 +118,9 @@ func (s *Service) Update(id uint, input UpdateInput) (*QuestionResponse, error) 
 	if input.Answers != nil {
 		// sanitize content jawaban sebelum disimpan, lalu update soal + replace
 		// jawaban dalam satu transaksi.
-		answers := make([]QuestionbankAnswerInput, len(*input.Answers))
+		answers := make([]QuizAnswerInput, len(*input.Answers))
 		for i, a := range *input.Answers {
-			answers[i] = QuestionbankAnswerInput{
+			answers[i] = QuizAnswerInput{
 				Content:   storage.SanitizeContentImages(a.Content),
 				IsCorrect: a.IsCorrect,
 			}
@@ -140,7 +140,7 @@ func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-func (s *Service) toResponse(q models.QuestionbankQuestion) QuestionResponse {
+func (s *Service) toResponse(q models.QuizQuestion) QuestionResponse {
 	userName := ""
 	if q.User.ID != 0 {
 		userName = q.User.Name
@@ -165,7 +165,7 @@ func (s *Service) toResponse(q models.QuestionbankQuestion) QuestionResponse {
 	}
 }
 
-func (s *Service) toResponses(questions []models.QuestionbankQuestion) []QuestionResponse {
+func (s *Service) toResponses(questions []models.QuizQuestion) []QuestionResponse {
 	result := make([]QuestionResponse, len(questions))
 	for i, q := range questions {
 		result[i] = s.toResponse(q)
