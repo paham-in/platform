@@ -177,7 +177,7 @@ func (r *Repository) ListCollections(classIDs []uint) ([]models.QuestionPackageC
 
 func (r *Repository) GetCollection(id uint) (*models.QuestionPackageCollection, error) {
 	var collection models.QuestionPackageCollection
-	if err := r.db.Preload("Class").Preload("Packages.Subject").First(&collection, id).Error; err != nil {
+	if err := r.db.Preload("Class").Preload("Packages.Subject").Preload("Packages.Questions").First(&collection, id).Error; err != nil {
 		return nil, err
 	}
 	return &collection, nil
