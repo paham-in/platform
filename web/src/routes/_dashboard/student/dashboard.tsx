@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
 import { getMeOptions, getStudentClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { BookOpen, TrendingUp, Clock, CheckCircle2, BadgeCheck } from "lucide-react"
+import { BookMarked, BookOpen, TrendingUp, Clock, CheckCircle2, BadgeCheck, Calendar, ChevronRight, CreditCard, GraduationCap, ListChecks, MessageSquare, Zap } from "lucide-react"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { format } from "date-fns"
 
@@ -30,6 +30,31 @@ function StudentDashboard() {
             </CardContent></Card>
           ))}
         </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" /> Pintasan
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                { icon: BookMarked, label: "Materi", desc: "Jelajahi materi pelajaran", to: "/student/materials" as const },
+                { icon: ListChecks, label: "Paket Soal", desc: "Latihan soal per kelas", to: "/student/packages" as const },
+                { icon: GraduationCap, label: "Les Privat", desc: "Booking & jadwal les", to: "/student/tutoring" as const },
+                { icon: MessageSquare, label: "Tanya Jawab", desc: "Bertanya di forum", to: "/student/forum" as const },
+                { icon: Calendar, label: "Kalender", desc: "Lihat jadwal belajarmu", to: "/student/calendar" as const },
+                { icon: CreditCard, label: "Pembayaran", desc: "Langganan & invoice", to: "/student/payments" as const },
+              ].map((a) => (
+                <Link key={a.label} to={a.to} className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><a.icon className="h-5 w-5" /></div>
+                  <div className="flex-1"><p className="text-sm font-medium">{a.label}</p><p className="text-xs text-muted-foreground">{a.desc}</p></div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="lg:col-span-2">
             <CardHeader>
