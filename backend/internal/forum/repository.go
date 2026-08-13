@@ -14,8 +14,8 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) List(subjectID, userID *uint, unanswered bool) ([]models.Question, error) {
-	var questions []models.Question
+func (r *Repository) List(subjectID, userID *uint, unanswered bool) ([]models.ForumQuestion, error) {
+	var questions []models.ForumQuestion
 	q := r.db.
 		Preload("User").
 		Preload("Subject").
@@ -29,7 +29,7 @@ func (r *Repository) List(subjectID, userID *uint, unanswered bool) ([]models.Qu
 		q = q.Where("user_id = ?", *userID)
 	}
 	if unanswered {
-		q = q.Where("NOT EXISTS (SELECT 1 FROM answers WHERE answers.question_id = questions.id)")
+		q = q.Where("NOT EXISTS (SELECT 1 FROM forum_answers WHERE forum_answers.question_id = forum_questions.id)")
 	}
 	if err := q.Order("created_at desc").Find(&questions).Error; err != nil {
 		return nil, err
@@ -37,8 +37,8 @@ func (r *Repository) List(subjectID, userID *uint, unanswered bool) ([]models.Qu
 	return questions, nil
 }
 
-func (r *Repository) GetByID(id uint) (*models.Question, error) {
-	var q models.Question
+func (r *Repository) GetByID(id uint) (*models.ForumQuestion, error) {
+	var q models.ForumQuestion
 	if err := r.db.
 		Preload("User").
 		Preload("Subject").
@@ -51,12 +51,12 @@ func (r *Repository) GetByID(id uint) (*models.Question, error) {
 	return &q, nil
 }
 
-func (r *Repository) Create(q *models.Question) error {
+func (r *Repository) Create(q *models.ForumQuestion) error {
 	return r.db.Create(q).Error
 }
 
 func (r *Repository) Delete(id uint) error {
-	return r.db.Delete(&models.Question{}, id).Error
+	return r.db.Delete(&models.ForumQuestion{}, id).Error
 }
 
 func (r *Repository) GetUserByID(id uint) (*models.User, error) {
@@ -67,8 +67,8 @@ func (r *Repository) GetUserByID(id uint) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *Repository) GetQuestionImages(questionID uint) ([]models.QuestionImage, error) {
-	var images []models.QuestionImage
+func (r *Repository) GetQuestionImages(questionID uint) ([]models.ForumQuestionImage, error) {
+	var images []models.ForumQuestionImage
 	if err := r.db.Where("question_id = ?", questionID).Find(&images).Error; err != nil {
 		return nil, err
 	}
@@ -76,5 +76,5 @@ func (r *Repository) GetQuestionImages(questionID uint) ([]models.QuestionImage,
 }
 
 func (r *Repository) DeleteQuestionImage(fileName string) error {
-	return r.db.Where("file_name = ?", fileName).Delete(&models.QuestionImage{}).Error
+	return r.db.Where("file_name = ?", fileName).Delete(&models.ForumQuestionImage{}).Error
 }

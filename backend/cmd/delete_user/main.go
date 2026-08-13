@@ -62,13 +62,13 @@ func cleanupUser(db *gorm.DB, id uint) {
 
 	// pertanyaan milik user → gambar + jawabannya
 	var qids []uint
-	db.Unscoped().Model(&models.Question{}).Where("user_id = ?", id).Pluck("id", &qids)
+	db.Unscoped().Model(&models.ForumQuestion{}).Where("user_id = ?", id).Pluck("id", &qids)
 	if len(qids) > 0 {
-		db.Unscoped().Where("question_id IN ?", qids).Delete(&models.QuestionImage{})
-		db.Unscoped().Where("question_id IN ?", qids).Delete(&models.Answer{})
+		db.Unscoped().Where("question_id IN ?", qids).Delete(&models.ForumQuestionImage{})
+		db.Unscoped().Where("question_id IN ?", qids).Delete(&models.ForumAnswer{})
 	}
-	db.Unscoped().Where("user_id = ?", id).Delete(&models.Question{})
-	db.Unscoped().Where("user_id = ?", id).Delete(&models.Answer{})
+	db.Unscoped().Where("user_id = ?", id).Delete(&models.ForumQuestion{})
+	db.Unscoped().Where("user_id = ?", id).Delete(&models.ForumAnswer{})
 
 	// bank soal milik user → jawabannya
 	var pqids []uint

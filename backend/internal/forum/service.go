@@ -25,12 +25,12 @@ func NewService(repo *Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) List(subjectID, userID *uint, unanswered bool) ([]models.Question, error) {
+func (s *Service) List(subjectID, userID *uint, unanswered bool) ([]models.ForumQuestion, error) {
 	return s.repo.List(subjectID, userID, unanswered)
 }
 
-func (s *Service) Create(userID uint, content string, subjectID *uint) (*models.Question, error) {
-	question := models.Question{
+func (s *Service) Create(userID uint, content string, subjectID *uint) (*models.ForumQuestion, error) {
+	question := models.ForumQuestion{
 		UserID:       userID,
 		Content:      content,
 		PlainContent: stripHTML(content),
@@ -62,7 +62,7 @@ func (s *Service) AdminDelete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-func (s *Service) GetByID(id uint) (*models.Question, error) {
+func (s *Service) GetByID(id uint) (*models.ForumQuestion, error) {
 	return s.repo.GetByID(id)
 }
 

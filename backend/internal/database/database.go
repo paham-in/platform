@@ -63,7 +63,24 @@ func Migrate(db *gorm.DB) {
 	}
 	db.Exec("UPDATE bookings SET mode = 'group' WHERE mode = 'semi_private'")
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.Question{}, &models.Answer{}, &models.QuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackageCollection{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.StudentQuestionProgress{})
+	// migrasi rename: fitur forum — tabel questions/answers/question_images
+	// jadi ber-prefix forum_*. Idempotent — lewati kalau tabel baru sudah ada
+	// (rename sekali saja, lalu AutoMigrate lanjut). Postgres otomatis
+	// memperbarui FK constraint, index, dan sequence yang mereferensikan tabel.
+	if db.Migrator().HasTable("questions") && !db.Migrator().HasTable("forum_questions") {
+		db.Exec("ALTER TABLE questions RENAME TO forum_questions")
+		log.Println("Renamed table questions → forum_questions")
+	}
+	if db.Migrator().HasTable("answers") && !db.Migrator().HasTable("forum_answers") {
+		db.Exec("ALTER TABLE answers RENAME TO forum_answers")
+		log.Println("Renamed table answers → forum_answers")
+	}
+	if db.Migrator().HasTable("question_images") && !db.Migrator().HasTable("forum_question_images") {
+		db.Exec("ALTER TABLE question_images RENAME TO forum_question_images")
+		log.Println("Renamed table question_images → forum_question_images")
+	}
+
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Availability{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuestionbankQuestion{}, &models.QuestionbankAnswer{}, &models.QuestionPackageCollection{}, &models.QuestionPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.StudentQuestionProgress{})
 
 	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
 	for _, name := range []string{"student", "teacher", "admin"} {
@@ -138,32 +155,32 @@ func Migrate(db *gorm.DB) {
 	}
 
 	// migrate questions -- drop title, add plain_content
-	if db.Migrator().HasColumn(&models.Question{}, "title") {
-		db.Exec("ALTER TABLE questions DROP COLUMN title")
+	if db.Migrator().HasColumn(&models.ForumQuestion{}, "title") {
+		db.Exec("ALTER TABLE forum_questions DROP COLUMN title")
 	}
-	if !db.Migrator().HasColumn(&models.Question{}, "plain_content") {
-		db.Exec("ALTER TABLE questions ADD COLUMN plain_content TEXT NOT NULL DEFAULT ''")
+	if !db.Migrator().HasColumn(&models.ForumQuestion{}, "plain_content") {
+		db.Exec("ALTER TABLE forum_questions ADD COLUMN plain_content TEXT NOT NULL DEFAULT ''")
 	}
 
 	// migrate answers -- add video_url
-	if !db.Migrator().HasColumn(&models.Answer{}, "video_url") {
-		db.Exec("ALTER TABLE answers ADD COLUMN video_url VARCHAR(500) NOT NULL DEFAULT ''")
+	if !db.Migrator().HasColumn(&models.ForumAnswer{}, "video_url") {
+		db.Exec("ALTER TABLE forum_answers ADD COLUMN video_url VARCHAR(500) NOT NULL DEFAULT ''")
 	}
 
 	// migrate questions -- drop upvotes
-	if db.Migrator().HasColumn(&models.Question{}, "upvotes") {
-		db.Exec("ALTER TABLE questions DROP COLUMN upvotes")
+	if db.Migrator().HasColumn(&models.ForumQuestion{}, "upvotes") {
+		db.Exec("ALTER TABLE forum_questions DROP COLUMN upvotes")
 	}
 
 	// migrate question_images -- drop url column
-	if db.Migrator().HasColumn(&models.QuestionImage{}, "url") {
-		db.Exec("ALTER TABLE question_images DROP COLUMN url")
+	if db.Migrator().HasColumn(&models.ForumQuestionImage{}, "url") {
+		db.Exec("ALTER TABLE forum_question_images DROP COLUMN url")
 	}
 
 	// backfill: pertanyaan open yang sudah punya jawaban → status answered
-	db.Exec(`UPDATE questions SET status = 'answered'
+	db.Exec(`UPDATE forum_questions SET status = 'answered'
 		WHERE status = 'open'
-		AND id IN (SELECT DISTINCT question_id FROM answers WHERE deleted_at IS NULL)`)
+		AND id IN (SELECT DISTINCT question_id FROM forum_answers WHERE deleted_at IS NULL)`)
 
 	// migrate subject_images -- add user_id column
 	if !db.Migrator().HasColumn(&models.SubjectImage{}, "user_id") {

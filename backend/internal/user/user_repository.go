@@ -164,20 +164,20 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 	}
 	// pertanyaan forum milik user + gambar & jawabannya
 	var qids []uint
-	tx.Model(&models.Question{}).Where("user_id = ?", id).Pluck("id", &qids)
+	tx.Model(&models.ForumQuestion{}).Where("user_id = ?", id).Pluck("id", &qids)
 	if len(qids) > 0 {
-		if err := tx.Unscoped().Where("question_id IN ?", qids).Delete(&models.QuestionImage{}).Error; err != nil {
+		if err := tx.Unscoped().Where("question_id IN ?", qids).Delete(&models.ForumQuestionImage{}).Error; err != nil {
 			return err
 		}
-		if err := tx.Unscoped().Where("question_id IN ?", qids).Delete(&models.Answer{}).Error; err != nil {
+		if err := tx.Unscoped().Where("question_id IN ?", qids).Delete(&models.ForumAnswer{}).Error; err != nil {
 			return err
 		}
 	}
-	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.Question{}).Error; err != nil {
+	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.ForumQuestion{}).Error; err != nil {
 		return err
 	}
 	// jawaban yang user tulis di pertanyaan orang lain
-	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.Answer{}).Error; err != nil {
+	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.ForumAnswer{}).Error; err != nil {
 		return err
 	}
 	// soal bank soal milik user + jawabannya
@@ -227,8 +227,8 @@ func (r *UserRepository) Merge(dummyID, targetID uint) error {
 			{&models.Invoice{}, "user_id"},
 			{&models.StudentClass{}, "user_id"},
 			{&models.PushSubscription{}, "user_id"},
-			{&models.Question{}, "user_id"},
-			{&models.Answer{}, "user_id"},
+			{&models.ForumQuestion{}, "user_id"},
+			{&models.ForumAnswer{}, "user_id"},
 		}
 		for _, m := range moves {
 			// Unscoped: booking/invoice dll yang sudah soft-deleted ikut kepindah,

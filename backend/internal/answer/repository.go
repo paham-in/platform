@@ -14,8 +14,8 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) ListByQuestion(questionID uint) ([]models.Answer, error) {
-	var answers []models.Answer
+func (r *Repository) ListByQuestion(questionID uint) ([]models.ForumAnswer, error) {
+	var answers []models.ForumAnswer
 	if err := r.db.Preload("User").Where("question_id = ?", questionID).Order("created_at asc").Find(&answers).Error; err != nil {
 		return nil, err
 	}
@@ -23,16 +23,16 @@ func (r *Repository) ListByQuestion(questionID uint) ([]models.Answer, error) {
 }
 
 // CreateWithDB menyimpan jawaban memakai koneksi tertentu (bisa tx).
-func (r *Repository) CreateWithDB(db *gorm.DB, a *models.Answer) error {
+func (r *Repository) CreateWithDB(db *gorm.DB, a *models.ForumAnswer) error {
 	return db.Create(a).Error
 }
 
-func (r *Repository) ReloadWithUser(a *models.Answer) error {
+func (r *Repository) ReloadWithUser(a *models.ForumAnswer) error {
 	return r.db.Preload("User").First(a, a.ID).Error
 }
 
-func (r *Repository) GetByID(id uint) (*models.Answer, error) {
-	var a models.Answer
+func (r *Repository) GetByID(id uint) (*models.ForumAnswer, error) {
+	var a models.ForumAnswer
 	if err := r.db.First(&a, id).Error; err != nil {
 		return nil, err
 	}
@@ -40,5 +40,5 @@ func (r *Repository) GetByID(id uint) (*models.Answer, error) {
 }
 
 func (r *Repository) Delete(id uint) error {
-	return r.db.Delete(&models.Answer{}, id).Error
+	return r.db.Delete(&models.ForumAnswer{}, id).Error
 }

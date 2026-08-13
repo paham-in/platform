@@ -35,7 +35,7 @@ func (s *Service) SetPushService(p *push.Service) {
 	s.pushSvc = p
 }
 
-func (s *Service) ListByQuestion(questionID uint) ([]models.Answer, error) {
+func (s *Service) ListByQuestion(questionID uint) ([]models.ForumAnswer, error) {
 	return s.repo.ListByQuestion(questionID)
 }
 
@@ -50,7 +50,7 @@ func (s *Service) Delete(id, userID uint) error {
 	return s.repo.Delete(id)
 }
 
-func (s *Service) Create(questionID, userID uint, content, videoURL string) (*models.Answer, error) {
+func (s *Service) Create(questionID, userID uint, content, videoURL string) (*models.ForumAnswer, error) {
 	question, err := s.questionRepo.GetByID(questionID)
 	if err != nil {
 		return nil, errors.New("pertanyaan tidak ditemukan")
@@ -60,7 +60,7 @@ func (s *Service) Create(questionID, userID uint, content, videoURL string) (*mo
 		return nil, errors.New("tidak bisa menjawab pertanyaan sendiri")
 	}
 
-	answer := models.Answer{
+	answer := models.ForumAnswer{
 		QuestionID:   questionID,
 		UserID:       userID,
 		Content:      content,
@@ -123,8 +123,8 @@ func NewQuestionRepository(db *gorm.DB) *QuestionRepository {
 	return &QuestionRepository{db: db}
 }
 
-func (r *QuestionRepository) GetByID(id uint) (*models.Question, error) {
-	var q models.Question
+func (r *QuestionRepository) GetByID(id uint) (*models.ForumQuestion, error) {
+	var q models.ForumQuestion
 	if err := r.db.First(&q, id).Error; err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func (r *QuestionRepository) MarkAnswered(id uint) error {
 // MarkAnsweredWithDB sama dengan MarkAnswered tapi memakai koneksi tertentu
 // (bisa tx).
 func (r *QuestionRepository) MarkAnsweredWithDB(db *gorm.DB, id uint) error {
-	return db.Model(&models.Question{}).
+	return db.Model(&models.ForumQuestion{}).
 		Where("id = ? AND status = ?", id, "open").
 		Update("status", "answered").Error
 }
