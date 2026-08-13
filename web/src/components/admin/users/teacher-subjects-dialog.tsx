@@ -11,6 +11,8 @@ import {
   getAdminUsersQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import { BookX } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 interface TeacherSubjectsDialogProps {
   user: UserAdminUserResponse
@@ -62,7 +64,12 @@ export function TeacherSubjectsDialog({ user, onClose }: TeacherSubjectsDialogPr
             </label>
           ))}
           {subjects.length === 0 && (
-            <p className="text-sm text-muted-foreground">Belum ada mata pelajaran.</p>
+            <Empty className="border-0 px-0 py-4">
+              <EmptyHeader className="gap-1">
+                <EmptyMedia variant="icon"><BookX /></EmptyMedia>
+                <EmptyTitle className="text-sm">Belum ada mata pelajaran</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
           )}
         </div>
         <DialogFooter>

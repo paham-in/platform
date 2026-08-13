@@ -18,7 +18,8 @@ import { Spinner } from "@/components/ui/spinner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getAdminTutoringBookingsOptions, getAdminTutoringBookingsQueryKey, patchAdminTutoringBookingsByIdAssignMutation, patchTutoringBookingsByIdMutation, deleteAdminTutoringBookingsByIdMutation, getTutoringTeachersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringBookingResponse, TutoringTeacherResponse } from "@/lib/api/types.gen"
-import { Loader2, Plus, Trash2, UserRound, Users } from "lucide-react"
+import { Plus, Trash2, UserRound, Users, CalendarX2 } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -201,9 +202,13 @@ function AdminTutoring() {
                 ))
               ) : bookings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="p-8 text-center">
-                    <Loader2 className="mx-auto mb-2 h-6 w-6 text-muted-foreground/40" />
-                    <p className="text-muted-foreground">Belum ada booking les privat.</p>
+                  <TableCell colSpan={9}>
+                    <Empty className="border-0 p-8">
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
+                        <EmptyTitle>Belum ada booking les privat</EmptyTitle>
+                      </EmptyHeader>
+                    </Empty>
                   </TableCell>
                 </TableRow>
               ) : bookings.map((b) => (

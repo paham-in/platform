@@ -10,7 +10,8 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { useState, useEffect } from "react"
-import { Search, SearchX, ChevronLeft, ChevronRight, Eye, Funnel, X } from "lucide-react"
+import { Search, SearchX, ChevronLeft, ChevronRight, Eye, Funnel, X, MessageSquare } from "lucide-react"
+import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -174,22 +175,26 @@ function TeacherForum() {
               ))}
               {!isLoading && paged.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="p-8 text-center">
-                    {hasActiveFilter ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <SearchX className="h-6 w-6 text-muted-foreground" />
-                        <p className="text-muted-foreground">Tidak ada pertanyaan yang cocok.</p>
-                        <Button variant="outline" size="sm" onClick={() => {
-                          setSearchInput("")
-                          navigate({ search: {}, replace: true })
-                          setPage(1)
-                        }}>
-                          <X className="mr-1 h-4 w-4" /> Bersihkan filter
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground">Tidak ada pertanyaan</p>
-                    )}
+                  <TableCell colSpan={6}>
+                    <Empty className="border-0 p-8">
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <MessageSquare />}</EmptyMedia>
+                        <EmptyTitle>
+                          {hasActiveFilter ? "Tidak ada pertanyaan yang cocok" : "Tidak ada pertanyaan"}
+                        </EmptyTitle>
+                      </EmptyHeader>
+                      {hasActiveFilter && (
+                        <EmptyContent>
+                          <Button variant="outline" size="sm" onClick={() => {
+                            setSearchInput("")
+                            navigate({ search: {}, replace: true })
+                            setPage(1)
+                          }}>
+                            <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                          </Button>
+                        </EmptyContent>
+                      )}
+                    </Empty>
                   </TableCell>
                 </TableRow>
               )}

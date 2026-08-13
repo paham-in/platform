@@ -2,7 +2,8 @@ import { useEffect, useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { SearchX } from "lucide-react"
+import { School } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -201,11 +202,13 @@ function AdminSettings() {
                   ))
                 ) : classes.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="p-8 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <SearchX className="h-6 w-6 text-muted-foreground" />
-                        <p className="text-muted-foreground">Belum ada kelas. Tambahkan kelas di menu Kelas.</p>
-                      </div>
+                    <TableCell colSpan={3}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon"><School /></EmptyMedia>
+                          <EmptyTitle>Belum ada kelas</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
                     </TableCell>
                   </TableRow>
                 ) : (

@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { RichContent } from "@/components/ui/rich-content"
 import { getQuestionPackagesByIdOptions, getQuestionPackagesByIdWorkProgressOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { ArrowLeft, FileQuestion, Layers, PlayCircle } from "lucide-react"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function PackageDetail() {
   const { collectionId, packageId } = useParams({ from: "/_dashboard/student/packages/$collectionId/$packageId/" })
@@ -78,15 +79,15 @@ function PackageDetail() {
       </div>
 
       {total === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-2 p-10 text-center">
-            <FileQuestion className="h-8 w-8 text-muted-foreground/40" />
-            <p className="font-medium">Belum ada soal</p>
-            <p className="max-w-xs text-sm text-muted-foreground">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><FileQuestion /></EmptyMedia>
+            <EmptyTitle>Belum ada soal</EmptyTitle>
+            <EmptyDescription>
               Soal di paket ini belum ditambahkan.
-            </p>
-          </CardContent>
-        </Card>
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <div className="space-y-3">
           {pkg.questions?.map((q, i) => (

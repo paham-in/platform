@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Plus, Search, SearchX, Funnel, X, MessageSquare } from "lucide-react"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 const forumSearchSchema = z.object({
   search: z.string().optional(),
@@ -181,40 +182,34 @@ function ForumPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
-            <span className="mb-1 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
-              {hasActiveFilter ? (
-                <SearchX className="h-6 w-6 text-muted-foreground" />
-              ) : (
-                <MessageSquare className="h-6 w-6 text-muted-foreground" />
-              )}
-            </span>
+        <Empty className="py-12">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <MessageSquare />}</EmptyMedia>
+            <EmptyTitle>{hasActiveFilter ? "Tidak ada pertanyaan" : "Belum ada pertanyaan"}</EmptyTitle>
             {hasActiveFilter ? (
-              <>
-                <p className="font-medium">Tidak ada pertanyaan</p>
-                <p className="mb-2 max-w-xs text-sm text-muted-foreground">
-                  Tidak ada pertanyaan yang cocok dengan pencarian atau filter saat ini.
-                </p>
-                <Button variant="outline" size="sm" onClick={resetFilters}>
-                  <X className="mr-1 h-4 w-4" /> Bersihkan filter
-                </Button>
-              </>
+              <EmptyDescription>
+                Tidak ada pertanyaan yang cocok dengan pencarian atau filter saat ini.
+              </EmptyDescription>
             ) : (
-              <>
-                <p className="font-medium">Belum ada pertanyaan</p>
-                <p className="mb-2 max-w-xs text-sm text-muted-foreground">
-                  Mulai diskusi pertamamu dengan mengajukan pertanyaan.
-                </p>
-                <Link to="/student/forum/new">
-                  <Button size="sm">
-                    <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
-                  </Button>
-                </Link>
-              </>
+              <EmptyDescription>
+                Mulai diskusi pertamamu dengan mengajukan pertanyaan.
+              </EmptyDescription>
             )}
-          </CardContent>
-        </Card>
+          </EmptyHeader>
+          <EmptyContent>
+            {hasActiveFilter ? (
+              <Button variant="outline" size="sm" onClick={resetFilters}>
+                <X className="mr-1 h-4 w-4" /> Bersihkan filter
+              </Button>
+            ) : (
+              <Link to="/student/forum/new">
+                <Button size="sm">
+                  <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
+                </Button>
+              </Link>
+            )}
+          </EmptyContent>
+        </Empty>
       ) : (
         <div className="columns-2 gap-4">
           {filtered.map((q) => (

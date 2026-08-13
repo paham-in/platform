@@ -8,7 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { getAdminTutoringEvidenceOptions, getAdminTutoringEvidenceQueryKey, patchAdminTutoringEvidenceByIdMutation, patchAdminTutoringFeesByIdMutation, getAdminUsersOptions, getAdminTutoringReportOptions, getAdminTutoringReportQueryKey } from "@/lib/api/@tanstack/react-query.gen"
-import { Check, ChevronLeft, SearchX, X } from "lucide-react"
+import { Check, ChevronLeft, X, ClipboardCheck } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { toast } from "sonner"
 import { useState } from "react"
 
@@ -171,9 +172,13 @@ function AttendanceDetail() {
                 ))
               ) : studentSessions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="p-8 text-center">
-                    <SearchX className="mx-auto mb-2 h-6 w-6 text-muted-foreground/40" />
-                    <p className="text-muted-foreground">Tidak ada sesi dengan bukti kehadiran untuk murid ini.</p>
+                  <TableCell colSpan={7}>
+                    <Empty className="border-0 p-8">
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon"><ClipboardCheck /></EmptyMedia>
+                        <EmptyTitle>Tidak ada sesi dengan bukti kehadiran untuk murid ini</EmptyTitle>
+                      </EmptyHeader>
+                    </Empty>
                   </TableCell>
                 </TableRow>
               ) : studentSessions.map((s) => (

@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
 import { getMeOptions, getStudentClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { BookOpen, TrendingUp, Clock, CheckCircle2, BadgeCheck } from "lucide-react"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { format } from "date-fns"
 
 function StudentDashboard() {
@@ -42,15 +43,20 @@ function StudentDashboard() {
                   ))}
                 </div>
               ) : classes.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 py-4 text-center">
-                  <BadgeCheck className="h-8 w-8 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">
-                    Belum ada langganan. Berlangganan dulu untuk akses materi premium.
-                  </p>
-                  <Link to="/student/payments" className="text-sm font-medium text-primary hover:underline">
-                    Lihat halaman pembayaran →
-                  </Link>
-                </div>
+                <Empty className="border-0 px-0 py-2">
+                  <EmptyHeader className="gap-1">
+                    <EmptyMedia variant="icon"><BadgeCheck /></EmptyMedia>
+                    <EmptyTitle className="text-sm">Belum ada langganan</EmptyTitle>
+                    <EmptyDescription>
+                      Berlangganan dulu untuk akses materi premium.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  <EmptyContent>
+                    <Link to="/student/payments" className="text-sm font-medium text-primary hover:underline">
+                      Lihat halaman pembayaran →
+                    </Link>
+                  </EmptyContent>
+                </Empty>
               ) : (
                 <div className="divide-y">
                   {classes.map((sp) => {

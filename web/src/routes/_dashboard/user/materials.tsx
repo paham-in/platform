@@ -8,6 +8,7 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Loader2, BookOpen, FileText } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function UserMaterials() {
   const { data: materials = [], isLoading } = useQuery(getMaterialsOptions())
@@ -37,11 +38,12 @@ function UserMaterials() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {materials.length === 0 && (
-          <Card>
-            <CardContent className="p-8 text-center text-muted-foreground">
-              Belum ada materi gratis
-            </CardContent>
-          </Card>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><FileText /></EmptyMedia>
+              <EmptyTitle>Belum ada materi gratis</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
         )}
         {materials.map((m) => {
           const chapter = allChapters.find((c) => c.id === m.chapter_id)

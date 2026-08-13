@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Loader2, Trash2 } from "lucide-react"
+import { Loader2, Trash2, ImageOff } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -124,7 +125,12 @@ export function GalleryBrowser({
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : usageImages.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">Tidak ada gambar di subject ini.</p>
+              <Empty className="py-10">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon"><ImageOff /></EmptyMedia>
+                  <EmptyTitle>Tidak ada gambar di subject ini</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
             ) : (
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 {usageImages.map((img) => (

@@ -17,7 +17,8 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Loader2, Plus, Trash2, ArrowLeft } from "lucide-react"
+import { Loader2, Plus, Trash2, ArrowLeft, MessageSquare } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function MyQuestions() {
   const qc = useQueryClient()
@@ -76,11 +77,12 @@ function MyQuestions() {
 
       <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
         {questions.length === 0 && (
-          <Card>
-            <CardContent className="p-8 text-center text-muted-foreground">
-              Belum ada pertanyaan
-            </CardContent>
-          </Card>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><MessageSquare /></EmptyMedia>
+              <EmptyTitle>Belum ada pertanyaan</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
         )}
         {questions.map((q) => (
           <Link key={q.id} to="/student/forum/$id" params={{ id: String(q.id!) }}>

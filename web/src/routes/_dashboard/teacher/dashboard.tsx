@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery } from "@tanstack/react-query"
 import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { FileText, MessageSquare, HelpCircle, Users, Plus, BookOpen } from "lucide-react"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function TeacherDashboard() {
   const { data: user } = useQuery(getMeOptions())
@@ -36,9 +37,15 @@ function TeacherDashboard() {
           </CardHeader>
           <CardContent>
             {(user?.subjects ?? []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Belum ada mata pelajaran yang diatur. Hubungi admin untuk menetapkan mata pelajaran yang Anda ampu.
-              </p>
+              <Empty className="border-0 px-0 py-2">
+                <EmptyHeader className="gap-1">
+                  <EmptyMedia variant="icon"><BookOpen /></EmptyMedia>
+                  <EmptyTitle className="text-sm">Belum ada mata pelajaran yang diatur</EmptyTitle>
+                  <EmptyDescription>
+                    Hubungi admin untuk menetapkan mata pelajaran yang Anda ampu.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             ) : (
               <div className="flex flex-wrap gap-1.5">
                 {(user?.subjects ?? []).map((s) => (

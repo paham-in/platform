@@ -29,7 +29,8 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { getAdminSubjectsBySubjectIdImages } from "@/lib/api/sdk.gen"
 import { toast } from "sonner"
-import { Loader2, SearchIcon, Trash2, Upload, X } from "lucide-react"
+import { Loader2, SearchIcon, Trash2, Upload, X, ImageOff } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 type GalleryImage = { id: number; url: string; object_name?: string; title: string; is_owner?: boolean }
 
 // GalleryPicker: galeri gambar per-subject. Subject sudah ditentukan pemanggil
@@ -115,7 +116,12 @@ export function GalleryPicker({
           {isLoading ? (
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
           ) : images.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">Tidak ada gambar</p>
+            <Empty className="py-8">
+              <EmptyHeader>
+                <EmptyMedia variant="icon"><ImageOff /></EmptyMedia>
+                <EmptyTitle>Tidak ada gambar</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <div className="grid grid-cols-2 gap-3 overflow-y-auto" style={{ maxHeight: "calc(100vh - 340px)" }}>
               {images.map((img) => (

@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Search, SearchX, X } from "lucide-react"
+import { Loader2, Search, SearchX, X, ClipboardCheck } from "lucide-react"
+import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
 import { getAdminTutoringEvidenceOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 
@@ -155,21 +156,22 @@ function AttendanceIndex() {
               ))}
               {rows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="p-8 text-center">
-                    {searchParam ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <SearchX className="h-6 w-6 text-muted-foreground" />
-                        <p className="text-muted-foreground">Tidak ada murid yang cocok.</p>
-                        <Button variant="outline" size="sm" onClick={() => setSearchInput("")}>
-                          <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <SearchX className="h-6 w-6 text-muted-foreground" />
-                        <p className="text-muted-foreground">Tidak ada murid dengan bukti kehadiran.</p>
-                      </div>
-                    )}
+                  <TableCell colSpan={5}>
+                    <Empty className="border-0 p-8">
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon">{searchParam ? <SearchX /> : <ClipboardCheck />}</EmptyMedia>
+                        <EmptyTitle>
+                          {searchParam ? "Tidak ada murid yang cocok" : "Tidak ada murid dengan bukti kehadiran"}
+                        </EmptyTitle>
+                      </EmptyHeader>
+                      {searchParam && (
+                        <EmptyContent>
+                          <Button variant="outline" size="sm" onClick={() => setSearchInput("")}>
+                            <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                          </Button>
+                        </EmptyContent>
+                      )}
+                    </Empty>
                   </TableCell>
                 </TableRow>
               )}

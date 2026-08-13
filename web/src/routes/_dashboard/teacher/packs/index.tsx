@@ -7,7 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminQuestionPackageCollectionsOptions, getMeOptions } from "@/lib/api/@tanstack/react-query.gen";
-import { MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Plus, Trash2, FolderOpen } from "lucide-react";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { CreateCollectionDialog, DeleteCollectionDialog, EditCollectionDialog } from "@/components/teacher/pack-collections";
 import type { QuestionpackageCollectionResponse } from "@/lib/api/types.gen";
 
@@ -58,7 +59,16 @@ function CollectionsPage() {
                     </TableRow>
                   ))
                 ) : collections.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="p-8 text-center text-muted-foreground">Belum ada koleksi paket soal</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={5}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon"><FolderOpen /></EmptyMedia>
+                          <EmptyTitle>Belum ada koleksi paket soal</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
+                    </TableCell>
+                  </TableRow>
                 ) : collections.map((collection) => (
                   <TableRow key={collection.id}>
                     <TableCell className="pl-6 font-medium">

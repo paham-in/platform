@@ -9,7 +9,8 @@ import { useQuery } from "@tanstack/react-query";
 import { getAdminQuestionPackageCollectionsOptions, getAdminQuestionPackagesOptions, getMeOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { CreatePackageDialog, DeletePackageDialog, EditPackageDialog } from "@/components/teacher/packs";
 import type { QuestionpackagePackageResponse, QuestionpackageCollectionResponse } from "@/lib/api/types.gen";
-import { ArrowLeft, ListChecks, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ListChecks, MoreVertical, Pencil, Plus, Trash2, FolderOpen } from "lucide-react";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 const PACKS_PER_PAGE = 20;
 
@@ -75,7 +76,16 @@ function CollectionPackages() {
                     </TableRow>
                   ))
                 ) : packages.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Belum ada paket soal di koleksi ini</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={6}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon"><FolderOpen /></EmptyMedia>
+                          <EmptyTitle>Belum ada paket soal di koleksi ini</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
+                    </TableCell>
+                  </TableRow>
                 ) : packages.map((pkg) => (
                   <TableRow key={pkg.id}>
                     <TableCell className="pl-6 font-medium">

@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { getTutoringEarningsOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { SearchX } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Clock3 } from "lucide-react"
 
 const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
 
@@ -70,9 +71,13 @@ export function Earnings() {
                 ))
               ) : sessions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="p-8 text-center">
-                    <SearchX className="mx-auto mb-2 h-6 w-6 text-muted-foreground/40" />
-                    <p className="text-muted-foreground">Belum ada sesi yang selesai.</p>
+                  <TableCell colSpan={6}>
+                    <Empty className="border-0 p-8">
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon"><Clock3 /></EmptyMedia>
+                        <EmptyTitle>Belum ada sesi yang selesai</EmptyTitle>
+                      </EmptyHeader>
+                    </Empty>
                   </TableCell>
                 </TableRow>
               ) : sessions.map((s) => (

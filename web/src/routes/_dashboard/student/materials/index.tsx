@@ -20,6 +20,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Search, SearchX, BookOpen, ChevronRight, GraduationCap, Layers, Funnel, X } from "lucide-react"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 const materialsSearchSchema = z.object({
   search: z.string().optional(),
@@ -153,38 +154,31 @@ function MaterialsPage() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.length === 0 ? (
-          <Card className="sm:col-span-2 lg:col-span-3">
-            <CardContent className="flex flex-col items-center gap-2 p-10 text-center">
-              <span className="mb-1 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
-                {hasActiveFilter ? (
-                  <SearchX className="h-6 w-6 text-muted-foreground" />
-                ) : (
-                  <BookOpen className="h-6 w-6 text-muted-foreground" />
-                )}
-              </span>
+          <Empty className="sm:col-span-2 lg:col-span-3">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <BookOpen />}</EmptyMedia>
+              <EmptyTitle>{hasActiveFilter ? "Tidak ada chapter" : "Belum ada materi"}</EmptyTitle>
               {hasActiveFilter ? (
-                <>
-                  <p className="font-medium">Tidak ada chapter</p>
-                  <p className="mb-2 max-w-xs text-sm text-muted-foreground">
-                    Tidak ada chapter yang cocok dengan pencarian atau filter saat ini.
-                  </p>
-                  <Button variant="outline" size="sm" onClick={() => {
-                    setSearchInput("")
-                    navigate({ search: {}, replace: true })
-                  }}>
-                    <X className="mr-1 h-4 w-4" /> Bersihkan filter
-                  </Button>
-                </>
+                <EmptyDescription>
+                  Tidak ada chapter yang cocok dengan pencarian atau filter saat ini.
+                </EmptyDescription>
               ) : (
-                <>
-                  <p className="font-medium">Belum ada materi</p>
-                  <p className="max-w-xs text-sm text-muted-foreground">
-                    Materi akan muncul di sini setelah guru menambahkan chapter.
-                  </p>
-                </>
+                <EmptyDescription>
+                  Materi akan muncul di sini setelah guru menambahkan chapter.
+                </EmptyDescription>
               )}
-            </CardContent>
-          </Card>
+            </EmptyHeader>
+            {hasActiveFilter && (
+              <EmptyContent>
+                <Button variant="outline" size="sm" onClick={() => {
+                  setSearchInput("")
+                  navigate({ search: {}, replace: true })
+                }}>
+                  <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                </Button>
+              </EmptyContent>
+            )}
+          </Empty>
         ) : (
           filtered.map((c) => (
             <Link key={c.id} to="/student/materials/chapters/$id" params={{ id: String(c.id!) }}>

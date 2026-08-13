@@ -12,7 +12,8 @@ import {
   getQuestionsByQuestionIdImagesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useParams } from "@tanstack/react-router"
-import { Trash2 } from "lucide-react"
+import { Trash2, MessageCircle } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import type { AnswerAnswerResponse } from "@/lib/api/types.gen"
 import { DeleteAnswerDialog } from "@/components/teacher/forum"
 import { AnswerForm } from "@/components/forum"
@@ -111,11 +112,12 @@ function ForumDetail() {
         <h2 className="text-lg font-semibold">Jawaban ({answers.length})</h2>
 
         {answers.length === 0 && (
-          <Card>
-            <CardContent className="p-6 text-center text-sm text-muted-foreground">
-              Belum ada jawaban.
-            </CardContent>
-          </Card>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><MessageCircle /></EmptyMedia>
+              <EmptyTitle>Belum ada jawaban</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
         )}
 
         {answers.map((a) => (

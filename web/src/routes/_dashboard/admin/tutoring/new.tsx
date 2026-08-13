@@ -10,7 +10,8 @@ import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ArrowLeft, CalendarIcon, Loader2, CheckCircle2, UserRound, Users } from "lucide-react"
+import { ArrowLeft, CalendarIcon, Loader2, CheckCircle2, UserRound, Users, UserX } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
 import {
@@ -305,9 +306,12 @@ function AdminTutoringNew() {
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
             ) : teachers.length === 0 ? (
-              <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                Tidak ada guru untuk mapel ini.
-              </p>
+              <Empty className="border-0 px-0 py-4">
+                <EmptyHeader className="gap-1">
+                  <EmptyMedia variant="icon"><UserX /></EmptyMedia>
+                  <EmptyTitle className="text-sm">Tidak ada guru untuk mapel ini</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
             ) : (
               <Combobox
                 autoHighlight

@@ -14,7 +14,8 @@ import {
   getQuestionPackagesByIdWorkProgressQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { QuestionpackageSubmitAnswerResponse } from "@/lib/api/types.gen"
-import { ArrowLeft, ArrowRight, CheckCircle2, XCircle, ChevronLeft } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle2, XCircle, ChevronLeft, FileQuestion } from "lucide-react"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function WorkPage() {
   const { collectionId, packageId } = useParams({ from: "/_dashboard/student/packages/$collectionId/$packageId/work/" })
@@ -134,7 +135,13 @@ function WorkPage() {
   if (total === 0) {
     return (
       <main className="p-6">
-        <p className="text-muted-foreground">Belum ada soal di paket ini.</p>
+        <Empty className="py-20">
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><FileQuestion /></EmptyMedia>
+            <EmptyTitle>Belum ada soal</EmptyTitle>
+            <EmptyDescription>Soal di paket ini belum ditambahkan.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </main>
     )
   }

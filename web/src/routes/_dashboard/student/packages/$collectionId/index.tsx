@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getQuestionPackageCollectionsByIdOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { ArrowLeft, FileText, Layers, Sparkles, ChevronRight } from "lucide-react"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function CollectionDetail() {
   const { collectionId } = useParams({ from: "/_dashboard/student/packages/$collectionId/" })
@@ -63,15 +64,15 @@ function CollectionDetail() {
       </div>
 
       {collection.packages?.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-2 p-10 text-center">
-            <Sparkles className="h-8 w-8 text-muted-foreground/40" />
-            <p className="font-medium">Belum ada paket soal</p>
-            <p className="max-w-xs text-sm text-muted-foreground">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><Sparkles /></EmptyMedia>
+            <EmptyTitle>Belum ada paket soal</EmptyTitle>
+            <EmptyDescription>
               Paket soal di koleksi ini belum ditambahkan.
-            </p>
-          </CardContent>
-        </Card>
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {collection.packages?.map((pkg) => (

@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { Search, SearchX, Loader2, X } from "lucide-react"
+import { Search, SearchX, Loader2, X, UserX } from "lucide-react"
+import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 const paymentsSearchSchema = z.object({
   search: z.string().optional(),
@@ -108,18 +109,22 @@ function PaymentsIndex() {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="p-8 text-center">
-                    {searchParam ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <SearchX className="h-6 w-6 text-muted-foreground" />
-                        <p className="text-muted-foreground">Tidak ada murid yang cocok.</p>
-                        <Button variant="outline" size="sm" onClick={() => setSearchInput("")}>
-                          <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground">Tidak ada murid ditemukan</p>
-                    )}
+                  <TableCell colSpan={3}>
+                    <Empty className="border-0 p-8">
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon">{searchParam ? <SearchX /> : <UserX />}</EmptyMedia>
+                        <EmptyTitle>
+                          {searchParam ? "Tidak ada murid yang cocok" : "Tidak ada murid ditemukan"}
+                        </EmptyTitle>
+                      </EmptyHeader>
+                      {searchParam && (
+                        <EmptyContent>
+                          <Button variant="outline" size="sm" onClick={() => setSearchInput("")}>
+                            <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                          </Button>
+                        </EmptyContent>
+                      )}
+                    </Empty>
                   </TableCell>
                 </TableRow>
               )}

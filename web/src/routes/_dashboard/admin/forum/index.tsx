@@ -16,7 +16,8 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { useState, useEffect } from "react"
-import { Search, SearchX, MoreVertical, Trash2, ChevronLeft, ChevronRight, Eye, X } from "lucide-react"
+import { Search, SearchX, MoreVertical, Trash2, ChevronLeft, ChevronRight, Eye, X, MessageSquare } from "lucide-react"
+import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { DeleteQuestionDialog } from "@/components/admin/forum"
 
 const adminForumSearchSchema = z.object({
@@ -134,18 +135,22 @@ function AdminForum() {
                 ))}
                 {!isLoading && paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="p-8 text-center">
-                      {searchParam ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <SearchX className="h-6 w-6 text-muted-foreground" />
-                          <p className="text-muted-foreground">Tidak ada pertanyaan yang cocok.</p>
-                          <Button variant="outline" size="sm" onClick={() => { setSearchInput(""); setPage(1) }}>
-                            <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
-                          </Button>
-                        </div>
-                      ) : (
-                        <p className="text-muted-foreground">Tidak ada pertanyaan</p>
-                      )}
+                    <TableCell colSpan={5}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon">{searchParam ? <SearchX /> : <MessageSquare />}</EmptyMedia>
+                          <EmptyTitle>
+                            {searchParam ? "Tidak ada pertanyaan yang cocok" : "Tidak ada pertanyaan"}
+                          </EmptyTitle>
+                        </EmptyHeader>
+                        {searchParam && (
+                          <EmptyContent>
+                            <Button variant="outline" size="sm" onClick={() => { setSearchInput(""); setPage(1) }}>
+                              <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                            </Button>
+                          </EmptyContent>
+                        )}
+                      </Empty>
                     </TableCell>
                   </TableRow>
                 )}

@@ -13,7 +13,8 @@ import {
   getAdminInvoicesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, MoreVertical, CheckCircle2, XCircle, Search, Trash2 } from "lucide-react"
+import { Plus, MoreVertical, CheckCircle2, XCircle, Search, Trash2, Receipt } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
@@ -181,8 +182,13 @@ function PaymentsDetail() {
                 ))
               ) : invoices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="p-8 text-center text-muted-foreground">
-                    Belum ada invoice
+                  <TableCell colSpan={7}>
+                    <Empty className="border-0 p-8">
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon"><Receipt /></EmptyMedia>
+                        <EmptyTitle>Belum ada invoice</EmptyTitle>
+                      </EmptyHeader>
+                    </Empty>
                   </TableCell>
                 </TableRow>
               ) : (

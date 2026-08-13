@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useQuery } from "@tanstack/react-query"
 import { getTutoringBookingsOptions, getTutoringSessionsOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { Loader2, Plus, UserRound, Users } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Loader2, Plus, UserRound, Users, CalendarX2, CalendarDays } from "lucide-react"
 
 function statusBadge(s: string) {
   const styles: Record<string, string> = {
@@ -52,7 +53,16 @@ function StudentTutoringIndex() {
               </TableHeader>
               <TableBody>
                 {bookings.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Belum ada booking</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={6}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
+                          <EmptyTitle>Belum ada booking</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
+                    </TableCell>
+                  </TableRow>
                 ) : bookings.map((b) => (
                   <TableRow key={b.id}>
                     <TableCell className="pl-6 font-medium">{b.teacher_name}</TableCell>
@@ -89,7 +99,16 @@ function StudentTutoringIndex() {
                 {sessionsLoading ? (
                   <TableRow><TableCell colSpan={4} className="p-8 text-center"><Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" /></TableCell></TableRow>
                 ) : sessions.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="p-8 text-center text-muted-foreground">Belum ada jadwal pertemuan</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={4}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon"><CalendarDays /></EmptyMedia>
+                          <EmptyTitle>Belum ada jadwal pertemuan</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
+                    </TableCell>
+                  </TableRow>
                 ) : sessions.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell className="pl-6 font-medium">{s.teacher_name}</TableCell>

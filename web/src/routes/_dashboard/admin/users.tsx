@@ -8,7 +8,8 @@ import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
-import { Search, SearchX, MoreVertical, Shield, Plus, Trash2, ChevronLeft, ChevronRight, Funnel, X, Link2 } from "lucide-react"
+import { Search, SearchX, MoreVertical, Shield, Plus, Trash2, ChevronLeft, ChevronRight, Funnel, X, Link2, UserX } from "lucide-react"
+import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -201,22 +202,26 @@ function AdminUsers() {
                 ))}
                 {!isLoading && paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="p-8 text-center">
-                      {hasActiveFilter ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <SearchX className="h-6 w-6 text-muted-foreground" />
-                          <p className="text-muted-foreground">Tidak ada user yang cocok dengan filter.</p>
-                          <Button variant="outline" size="sm" onClick={() => {
-                            setSearchInput("")
-                            navigate({ search: {}, replace: true })
-                            setPage(1)
-                          }}>
-                            <X className="mr-1 h-4 w-4" /> Bersihkan filter
-                          </Button>
-                        </div>
-                      ) : (
-                        <p className="text-muted-foreground">Tidak ada user ditemukan</p>
-                      )}
+                    <TableCell colSpan={5}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <UserX />}</EmptyMedia>
+                          <EmptyTitle>
+                            {hasActiveFilter ? "Tidak ada user yang cocok dengan filter" : "Tidak ada user ditemukan"}
+                          </EmptyTitle>
+                        </EmptyHeader>
+                        {hasActiveFilter && (
+                          <EmptyContent>
+                            <Button variant="outline" size="sm" onClick={() => {
+                              setSearchInput("")
+                              navigate({ search: {}, replace: true })
+                              setPage(1)
+                            }}>
+                              <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                            </Button>
+                          </EmptyContent>
+                        )}
+                      </Empty>
                     </TableCell>
                   </TableRow>
                 )}

@@ -58,9 +58,17 @@ import {
   Pencil,
   Plus,
   Search,
+  SearchX,
   Trash2,
   X,
 } from "lucide-react";
+import {
+  Empty,
+  EmptyContent,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -579,21 +587,26 @@ function AdminChapters() {
                 ))}
                 {paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="p-8 text-center">
-                      {hasActiveFilter ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <p className="text-muted-foreground">Tidak ada chapter yang cocok dengan filter.</p>
-                          <Button variant="outline" size="sm" onClick={() => {
-                            setSearchInput("");
-                            navigate({ search: {}, replace: true });
-                            setPage(1);
-                          }}>
-                            <X className="mr-1 h-4 w-4" /> Bersihkan filter
-                          </Button>
-                        </div>
-                      ) : (
-                        <p className="text-muted-foreground">Belum ada chapter. Klik Tambah untuk membuat chapter pertama.</p>
-                      )}
+                    <TableCell colSpan={8}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <BookOpen />}</EmptyMedia>
+                          <EmptyTitle>
+                            {hasActiveFilter ? "Tidak ada chapter yang cocok dengan filter" : "Belum ada chapter"}
+                          </EmptyTitle>
+                        </EmptyHeader>
+                        {hasActiveFilter && (
+                          <EmptyContent>
+                            <Button variant="outline" size="sm" onClick={() => {
+                              setSearchInput("");
+                              navigate({ search: {}, replace: true });
+                              setPage(1);
+                            }}>
+                              <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                            </Button>
+                          </EmptyContent>
+                        )}
+                      </Empty>
                     </TableCell>
                   </TableRow>
                 )}

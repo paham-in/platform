@@ -17,7 +17,8 @@ import {
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringTeacherResponse } from "@/lib/api/types.gen"
-import { CalendarIcon, CheckCircle2, Loader2, Plus, UserRound, Users, X } from "lucide-react"
+import { CalendarIcon, CheckCircle2, Loader2, Plus, UserRound, Users, X, UserX } from "lucide-react"
+import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
 import { useEffect, useState } from "react"
@@ -242,15 +243,19 @@ function NewBooking() {
             ) : teachersLoading ? (
               <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
             ) : teachers.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed py-8 text-center">
-                <UserRound className="h-8 w-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Tidak ada guru untuk mapel & jam ini.</p>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => { setDay(""); setStart(""); setEnd("") }}>Cari Slot Lain</Button>
-                  <Button size="sm" onClick={() => setTeacher(undefined)}>Kirim Tanpa Guru</Button>
-                </div>
-                <p className="px-4 text-xs text-muted-foreground">Kirim tanpa guru: admin yang carikan guru buat kamu.</p>
-              </div>
+              <Empty className="py-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon"><UserX /></EmptyMedia>
+                  <EmptyTitle>Tidak ada guru untuk mapel & jam ini</EmptyTitle>
+                </EmptyHeader>
+                <EmptyContent className="gap-1">
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => { setDay(""); setStart(""); setEnd("") }}>Cari Slot Lain</Button>
+                    <Button size="sm" onClick={() => setTeacher(undefined)}>Kirim Tanpa Guru</Button>
+                  </div>
+                  <p className="px-4 text-xs text-muted-foreground">Kirim tanpa guru: admin yang carikan guru buat kamu.</p>
+                </EmptyContent>
+              </Empty>
             ) : (
               <>
                 <div className="max-h-[300px] space-y-2 overflow-y-auto pr-1">

@@ -19,7 +19,8 @@ import type { StudentclassStudentClassResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { ChevronLeft, ChevronRight, Plus, SearchX, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2, KeyRound } from "lucide-react";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { useState } from "react";
 import { toast } from "sonner";
 import { GrantClassDialog } from "@/components/admin/student-classes";
@@ -100,11 +101,13 @@ function AdminStudentClasses() {
                 ))}
                 {!isLoading && paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="p-8 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <SearchX className="h-6 w-6 text-muted-foreground" />
-                        <p className="text-muted-foreground">Belum ada hak akses. Berikan akses pertama ke murid.</p>
-                      </div>
+                    <TableCell colSpan={5}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon"><KeyRound /></EmptyMedia>
+                          <EmptyTitle>Belum ada hak akses</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
                     </TableCell>
                   </TableRow>
                 )}

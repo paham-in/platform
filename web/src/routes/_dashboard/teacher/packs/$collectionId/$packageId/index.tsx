@@ -11,7 +11,8 @@ import { PreviewQuestionDialog, DeleteQuestionDialog, EditPackageDialog } from "
 import { useQuery } from "@tanstack/react-query"
 import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesByIdQuestionsOptions, getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { QuestionbankQuestionResponse, QuestionpackagePackageResponse } from "@/lib/api/types.gen"
-import { ArrowLeft, ChevronLeft, ChevronRight, Eye, MoreVertical, Pencil, Plus, Search, SearchX, Trash2, UploadCloud, X } from "lucide-react"
+import { ArrowLeft, ChevronLeft, ChevronRight, Eye, MoreVertical, Pencil, Plus, Search, SearchX, Trash2, UploadCloud, X, FileQuestion } from "lucide-react"
+import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function stripHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html")
@@ -136,18 +137,22 @@ function PackageQuestions() {
                   ))
                 ) : paged.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="p-8 text-center">
-                      {search ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <SearchX className="h-6 w-6 text-muted-foreground" />
-                          <p className="text-muted-foreground">Tidak ada soal yang cocok dengan &ldquo;{search}&rdquo;.</p>
-                          <Button variant="outline" size="sm" onClick={() => { setSearchInput(""); setPage(1) }}>
-                            <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
-                          </Button>
-                        </div>
-                      ) : (
-                        <p className="text-muted-foreground">Belum ada soal di paket ini</p>
-                      )}
+                    <TableCell colSpan={5}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon">{search ? <SearchX /> : <FileQuestion />}</EmptyMedia>
+                          <EmptyTitle>
+                            {search ? "Tidak ada soal yang cocok" : "Belum ada soal di paket ini"}
+                          </EmptyTitle>
+                        </EmptyHeader>
+                        {search && (
+                          <EmptyContent>
+                            <Button variant="outline" size="sm" onClick={() => { setSearchInput(""); setPage(1) }}>
+                              <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                            </Button>
+                          </EmptyContent>
+                        )}
+                      </Empty>
                     </TableCell>
                   </TableRow>
                 ) : paged.map((q) => (

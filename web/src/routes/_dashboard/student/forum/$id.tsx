@@ -12,7 +12,8 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Loader2, Trash2 } from "lucide-react"
+import { Loader2, Trash2, MessageCircle } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { AnswerForm } from "@/components/forum"
 import {
   AlertDialog,
@@ -117,7 +118,12 @@ function ForumDetail() {
         <h2 className="text-lg font-semibold">Jawaban ({answers.length})</h2>
 
         {answers.length === 0 && (
-          <p className="text-sm text-muted-foreground">Belum ada jawaban.</p>
+          <Empty className="border-0 p-6">
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><MessageCircle /></EmptyMedia>
+              <EmptyTitle className="text-sm">Belum ada jawaban</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
         )}
 
         {answers.map((a) => (

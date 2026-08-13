@@ -11,7 +11,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { MoreVertical, GraduationCap, SearchX } from "lucide-react"
+import { MoreVertical, GraduationCap, UserX } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminUserResponse } from "@/lib/api/types.gen"
 import { TeacherSubjectsDialog } from "@/components/admin/users"
@@ -96,11 +97,13 @@ function AdminTeacherSubjects() {
                 ))}
                 {!isLoading && paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="p-8 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <SearchX className="h-6 w-6 text-muted-foreground" />
-                        <p className="text-muted-foreground">Tidak ada guru ditemukan</p>
-                      </div>
+                    <TableCell colSpan={4}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon"><UserX /></EmptyMedia>
+                          <EmptyTitle>Tidak ada guru ditemukan</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
                     </TableCell>
                   </TableRow>
                 )}

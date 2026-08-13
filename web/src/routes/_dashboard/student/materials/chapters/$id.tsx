@@ -8,6 +8,7 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
 import { Loader2, ArrowLeft, FileText } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function ChapterDetail() {
   const { id } = useParams({ from: "/_dashboard/student/materials/chapters/$id" })
@@ -47,11 +48,12 @@ function ChapterDetail() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {chapterMaterials.length === 0 && (
-          <Card>
-            <CardContent className="p-8 text-center text-muted-foreground">
-              Belum ada materi di chapter ini
-            </CardContent>
-          </Card>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><FileText /></EmptyMedia>
+              <EmptyTitle>Belum ada materi di chapter ini</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
         )}
         {chapterMaterials.map((m) => (
           <Link key={m.id} to="/student/materials/chapters/$chapterId/$materialId" params={{ chapterId: id, materialId: String(m.id!) }}>

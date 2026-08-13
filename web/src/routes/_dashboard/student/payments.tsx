@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query"
 import { getInvoicesOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
 import { CreditCard, CheckCircle2, Clock, ReceiptText, Loader2 } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function StudentPayments() {
   const { data: invoices = [], isLoading } = useQuery(getInvoicesOptions())
@@ -67,8 +68,13 @@ function StudentPayments() {
               <TableBody>
                 {invoices.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="p-8 text-center text-muted-foreground">
-                      Belum ada invoice
+                    <TableCell colSpan={5}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon"><ReceiptText /></EmptyMedia>
+                          <EmptyTitle>Belum ada invoice</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
                     </TableCell>
                   </TableRow>
                 ) : (

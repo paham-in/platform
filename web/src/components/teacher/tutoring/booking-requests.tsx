@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getTutoringBookingsOptions, getTutoringBookingsQueryKey, patchTutoringBookingsByIdMutation } from "@/lib/api/@tanstack/react-query.gen"
-import { Loader2, CheckCircle2, UserRound, Users, XCircle } from "lucide-react"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Loader2, CheckCircle2, UserRound, Users, XCircle, Inbox, History } from "lucide-react"
 import { toast } from "sonner"
 import type { TutoringBookingResponse } from "@/lib/api/types.gen"
 
@@ -82,7 +83,16 @@ export function BookingRequests() {
               </TableHeader>
               <TableBody>
                 {pendingGroups.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Belum ada permintaan</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={6}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon"><Inbox /></EmptyMedia>
+                          <EmptyTitle>Belum ada permintaan</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
+                    </TableCell>
+                  </TableRow>
                 ) : pendingGroups.map((group) => {
                   const primary = group[0]
                   return (
@@ -136,7 +146,16 @@ export function BookingRequests() {
               </TableHeader>
               <TableBody>
                 {otherGroups.length === 0 ? (
-                  <TableRow><TableCell colSpan={6} className="p-8 text-center text-muted-foreground">Belum ada riwayat</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={6}>
+                      <Empty className="border-0 p-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon"><History /></EmptyMedia>
+                          <EmptyTitle>Belum ada riwayat</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
+                    </TableCell>
+                  </TableRow>
                 ) : otherGroups.map((group) => (
                   <TableRow key={group[0].id}>
                     <TableCell className="pl-6">

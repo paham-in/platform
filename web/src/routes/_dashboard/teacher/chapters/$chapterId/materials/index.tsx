@@ -41,6 +41,14 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { useEffect, useState } from "react";
 import {
   DropdownMenu,
@@ -404,21 +412,25 @@ function ChapterMaterials() {
                 ))}
                 {paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="px-6 py-14 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <span className="mb-1 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+                    <TableCell colSpan={5}>
+                      <Empty className="border-0 px-6 py-14">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <BookOpen />}</EmptyMedia>
+                          <EmptyTitle>
+                            {hasActiveFilter ? "Tidak ada hasil" : "Belum ada materi"}
+                          </EmptyTitle>
                           {hasActiveFilter ? (
-                            <SearchX className="h-6 w-6 text-muted-foreground" />
-                          ) : (
-                            <BookOpen className="h-6 w-6 text-muted-foreground" />
-                          )}
-                        </span>
-                        {hasActiveFilter ? (
-                          <>
-                            <p className="font-medium">Tidak ada hasil</p>
-                            <p className="mb-2 max-w-xs text-sm text-muted-foreground">
+                            <EmptyDescription>
                               Tidak ada materi yang cocok dengan pencarian atau filter saat ini.
-                            </p>
+                            </EmptyDescription>
+                          ) : canManage ? (
+                            <EmptyDescription>
+                              Buat materi pertama untuk chapter ini agar murid bisa mulai belajar.
+                            </EmptyDescription>
+                          ) : null}
+                        </EmptyHeader>
+                        <EmptyContent>
+                          {hasActiveFilter ? (
                             <Button variant="outline" size="sm" onClick={() => {
                               setSearchInput("");
                               navigate({ search: {}, replace: true });
@@ -426,25 +438,15 @@ function ChapterMaterials() {
                             }}>
                               <X className="mr-1 h-4 w-4" /> Bersihkan filter
                             </Button>
-                          </>
-                        ) : (
-                          <>
-                            <p className="font-medium">Belum ada materi</p>
-                            {canManage && (
-                              <>
-                                <p className="mb-2 max-w-xs text-sm text-muted-foreground">
-                                  Buat materi pertama untuk chapter ini agar murid bisa mulai belajar.
-                                </p>
-                                <Link to="/teacher/chapters/$chapterId/materials/new" params={{ chapterId }}>
-                                  <Button size="sm">
-                                    <Plus className="mr-1 h-4 w-4" /> Tambah materi pertama
-                                  </Button>
-                                </Link>
-                              </>
-                            )}
-                          </>
-                        )}
-                      </div>
+                          ) : canManage ? (
+                            <Link to="/teacher/chapters/$chapterId/materials/new" params={{ chapterId }}>
+                              <Button size="sm">
+                                <Plus className="mr-1 h-4 w-4" /> Tambah materi pertama
+                              </Button>
+                            </Link>
+                          ) : null}
+                        </EmptyContent>
+                      </Empty>
                     </TableCell>
                   </TableRow>
                 )}

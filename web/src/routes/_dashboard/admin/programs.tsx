@@ -22,6 +22,7 @@ import {
   FolderOpen,
   Unplug,
 } from "lucide-react";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -120,12 +121,13 @@ function AdminPrograms() {
               </Card>
             ))
           ) : programs.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center gap-2 text-center">
-                <FolderOpen className="h-8 w-8 text-muted-foreground" />
-                <p className="text-muted-foreground">Belum ada program. Buat program pertama kamu.</p>
-              </CardContent>
-            </Card>
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon"><FolderOpen /></EmptyMedia>
+                <EmptyTitle>Belum ada program</EmptyTitle>
+                <EmptyDescription>Buat program pertama kamu.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             programs.map((p) => {
               const isOpen = expanded.has(p.id!)
@@ -178,7 +180,12 @@ function AdminPrograms() {
                       <div className="border-t pt-4">
                         <p className="text-sm font-medium">Kelas</p>
                         {(p.classes ?? []).length === 0 ? (
-                          <p className="py-2 text-sm text-muted-foreground">Belum ada kelas dalam program ini.</p>
+                          <Empty className="border-0 px-0 py-4">
+                            <EmptyHeader className="gap-1">
+                              <EmptyMedia variant="icon"><Layers /></EmptyMedia>
+                              <EmptyTitle className="text-sm">Belum ada kelas dalam program ini</EmptyTitle>
+                            </EmptyHeader>
+                          </Empty>
                         ) : (
                           <ul className="divide-y">
                             {(p.classes ?? []).map((c) => (

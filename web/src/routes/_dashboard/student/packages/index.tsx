@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getQuestionPackageCollectionsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { FolderOpen, Sparkles, Layers } from "lucide-react"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function PackagesPage() {
   const { data: collections = [], isLoading, isError } = useQuery(getQuestionPackageCollectionsOptions())
@@ -42,15 +43,15 @@ function PackagesPage() {
           </CardContent>
         </Card>
       ) : collections.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-2 p-10 text-center">
-            <FolderOpen className="h-8 w-8 text-muted-foreground/40" />
-            <p className="font-medium">Belum ada paket soal</p>
-            <p className="max-w-xs text-sm text-muted-foreground">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><FolderOpen /></EmptyMedia>
+            <EmptyTitle>Belum ada paket soal</EmptyTitle>
+            <EmptyDescription>
               Paket soal akan muncul di sini setelah admin membuat koleksi untuk kelasmu.
-            </p>
-          </CardContent>
-        </Card>
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {collections.map((collection) => (
