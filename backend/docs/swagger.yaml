@@ -1123,8 +1123,6 @@ definitions:
     type: object
   user.AdminCreateStudentInput:
     properties:
-      class_id:
-        type: integer
       email:
         type: string
       name:
@@ -1138,8 +1136,6 @@ definitions:
         type: boolean
       can_manage_question_packages:
         type: boolean
-      class_id:
-        type: integer
       created_at:
         type: string
       email:
@@ -1207,8 +1203,6 @@ definitions:
         type: boolean
       can_manage_question_packages:
         type: boolean
-      class_id:
-        type: integer
       email:
         type: string
       id:

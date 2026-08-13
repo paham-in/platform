@@ -264,6 +264,12 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE classes ADD COLUMN content_price DECIMAL(12,2) NOT NULL DEFAULT 0")
 	}
 
+	// migrasi: users.class_id dihapus — akses kelas sepenuhnya lewat student_classes
+	if db.Migrator().HasColumn(&models.User{}, "class_id") {
+		db.Exec("ALTER TABLE users DROP COLUMN class_id")
+		log.Println("Dropped column users.class_id")
+	}
+
 	// migrasi: classes tambah program_id; invoices ganti program_id → class_id
 	if !db.Migrator().HasColumn(&models.Class{}, "program_id") {
 		db.Exec("ALTER TABLE classes ADD COLUMN program_id BIGINT DEFAULT NULL")

@@ -15,10 +15,10 @@ import (
 )
 
 type OAuthConfig struct {
-	ClientID      string
-	ClientSecret  string
-	RedirectURL   string
-	AppURL        string
+	ClientID     string
+	ClientSecret string
+	RedirectURL  string
+	AppURL       string
 }
 
 type googleUserInfo struct {

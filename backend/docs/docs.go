@@ -6912,9 +6912,6 @@ const docTemplate = `{
         "user.AdminCreateStudentInput": {
             "type": "object",
             "properties": {
-                "class_id": {
-                    "type": "integer"
-                },
                 "email": {
                     "type": "string"
                 },
@@ -6934,9 +6931,6 @@ const docTemplate = `{
                 },
                 "can_manage_question_packages": {
                     "type": "boolean"
-                },
-                "class_id": {
-                    "type": "integer"
                 },
                 "created_at": {
                     "type": "string"
@@ -7039,9 +7033,6 @@ const docTemplate = `{
                 },
                 "can_manage_question_packages": {
                     "type": "boolean"
-                },
-                "class_id": {
-                    "type": "integer"
                 },
                 "email": {
                     "type": "string"

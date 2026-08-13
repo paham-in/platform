@@ -6909,9 +6909,6 @@
         "user.AdminCreateStudentInput": {
             "type": "object",
             "properties": {
-                "class_id": {
-                    "type": "integer"
-                },
                 "email": {
                     "type": "string"
                 },
@@ -6931,9 +6928,6 @@
                 },
                 "can_manage_question_packages": {
                     "type": "boolean"
-                },
-                "class_id": {
-                    "type": "integer"
                 },
                 "created_at": {
                     "type": "string"
@@ -7036,9 +7030,6 @@
                 },
                 "can_manage_question_packages": {
                     "type": "boolean"
-                },
-                "class_id": {
-                    "type": "integer"
                 },
                 "email": {
                     "type": "string"

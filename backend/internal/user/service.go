@@ -28,7 +28,6 @@ type UserResponse struct {
 	Roles                     []string      `json:"roles"`
 	AvatarURL                 string        `json:"avatar_url"`
 	PaymentStatus             string        `json:"payment_status"`
-	ClassID                   *uint         `json:"class_id"`
 	Subjects                  []SubjectInfo `json:"subjects"`
 	CanManageMaterials        bool          `json:"can_manage_materials"`
 	CanManageQuestionPackages bool          `json:"can_manage_question_packages"`
@@ -41,7 +40,6 @@ type AdminUserResponse struct {
 	Roles                     []string      `json:"roles"`
 	AvatarURL                 string        `json:"avatar_url"`
 	PaymentStatus             string        `json:"payment_status"`
-	ClassID                   *uint         `json:"class_id"`
 	HasGoogle                 bool          `json:"has_google"`
 	HasPassword               bool          `json:"has_password"`
 	CreatedAt                 string        `json:"created_at"`
@@ -205,13 +203,11 @@ func (s *Service) ListUsers(search string, role string) ([]AdminUserResponse, er
 	result := make([]AdminUserResponse, len(users))
 	for i, u := range users {
 		result[i] = AdminUserResponse{
-			ID:                        u.ID,
-			Name:                      u.Name,
-			Email:                     u.Email,
-			Roles:                     roleNames(u),
-			AvatarURL:                 u.AvatarURL,
+			ID:    u.ID,
+			Name:  u.Name,
+			Email: u.Email,
+			Roles: roleNames(u), AvatarURL: u.AvatarURL,
 			PaymentStatus:             u.PaymentStatus,
-			ClassID:                   u.ClassID,
 			HasGoogle:                 u.GoogleID != "",
 			CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
 			Subjects:                  subjectInfos(u.Subjects),
@@ -231,15 +227,14 @@ func subjectInfos(subjects []models.Subject) []SubjectInfo {
 }
 
 // AdminCreateStudentInput adalah body request utk membuat akun murid manual
-// (misal murid yang belum punya akun sendiri). ClassID = properti kelas murid.
+// (misal murid yang belum punya akun sendiri). Akses kelas diatur terpisah
+// lewat student_classes setelah admin approve langganan.
 type AdminCreateStudentInput struct {
-	Name    string `json:"name"`
-	Email   string `json:"email"`
-	ClassID *uint  `json:"class_id,omitempty"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
-// AdminCreateStudent membuat user ber-role student. Set properti kelas murid
-// (users.class_id) kalau dikirim — ini BUKAN akses kelas (student_classes).
+// AdminCreateStudent membuat user ber-role student.
 func (s *Service) AdminCreateStudent(input AdminCreateStudentInput) (*AdminUserResponse, error) {
 	name := strings.TrimSpace(input.Name)
 	email := strings.TrimSpace(input.Email)
@@ -253,7 +248,7 @@ func (s *Service) AdminCreateStudent(input AdminCreateStudentInput) (*AdminUserR
 		return nil, errEmailExists
 	}
 
-	u := models.User{Name: name, Email: email, ClassID: input.ClassID}
+	u := models.User{Name: name, Email: email}
 	err := s.userRepo.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&u).Error; err != nil {
 			return err
@@ -335,7 +330,6 @@ func (s *Service) toAdminResponse(u models.User) AdminUserResponse {
 		Roles:                     roleNames(u),
 		AvatarURL:                 u.AvatarURL,
 		PaymentStatus:             u.PaymentStatus,
-		ClassID:                   u.ClassID,
 		HasGoogle:                 u.GoogleID != "",
 		HasPassword:               u.Password != nil,
 		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
@@ -393,7 +387,6 @@ func (s *Service) SetTeacherSubjects(id uint, input SetTeacherSubjectsInput) (*A
 		Roles:                     roleNames(*u),
 		AvatarURL:                 u.AvatarURL,
 		PaymentStatus:             u.PaymentStatus,
-		ClassID:                   u.ClassID,
 		HasGoogle:                 u.GoogleID != "",
 		HasPassword:               u.Password != nil,
 		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
@@ -463,7 +456,6 @@ func toResponse(u models.User) UserResponse {
 		Roles:                     roleNames(u),
 		AvatarURL:                 u.AvatarURL,
 		PaymentStatus:             u.PaymentStatus,
-		ClassID:                   u.ClassID,
 		Subjects:                  subjectInfos(u.Subjects),
 		CanManageMaterials:        u.CanManageMaterials,
 		CanManageQuestionPackages: u.CanManageQuestionPackages,

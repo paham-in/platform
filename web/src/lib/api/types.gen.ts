@@ -719,7 +719,6 @@ export type TutoringTutoringSessionResponse = {
 };
 
 export type UserAdminCreateStudentInput = {
-    class_id?: number;
     email?: string;
     name?: string;
 };
@@ -728,7 +727,6 @@ export type UserAdminUserResponse = {
     avatar_url?: string;
     can_manage_materials?: boolean;
     can_manage_question_packages?: boolean;
-    class_id?: number;
     created_at?: string;
     email?: string;
     has_google?: boolean;
@@ -766,7 +764,6 @@ export type UserUserResponse = {
     avatar_url?: string;
     can_manage_materials?: boolean;
     can_manage_question_packages?: boolean;
-    class_id?: number;
     email?: string;
     id?: number;
     name?: string;

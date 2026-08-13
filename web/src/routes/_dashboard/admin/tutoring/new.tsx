@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
@@ -74,6 +74,7 @@ function AdminTutoringNew() {
   const [mode, setMode] = useState<"private" | "group">("private")
   const [members, setMembers] = useState<UserAdminUserResponse[]>([])
   const [memberPick, setMemberPick] = useState<UserAdminUserResponse | null>(null)
+  const [classId, setClassId] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
   // guru difilter by mapel
@@ -93,8 +94,11 @@ function AdminTutoringNew() {
 
   const { mutateAsync: createBooking } = useMutation(postAdminTutoringBookingsMutation())
 
-  // kelas les dari properti kelas murid (users.class_id)
-  const classId = student?.class_id ? String(student.class_id) : ""
+  // ganti murid → reset kelas supaya admin pilih ulang (tidak bawa pilihan murid sebelumnya)
+  useEffect(() => {
+    setClassId("")
+  }, [student])
+
   const myClass = classes.find((c) => c.id === Number(classId))
   const pricePerSession = myClass?.price_per_session ?? 0
 
@@ -193,18 +197,31 @@ function AdminTutoringNew() {
             </Combobox>
 
             <div className="space-y-2">
-              <Label>Kelas</Label>
+              <Label htmlFor="admin-booking-class">Kelas</Label>
               {!student ? (
                 <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">Pilih murid dulu</p>
-              ) : classId ? (
-                <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm">
-                  <span className="font-medium">{myClass?.name ?? "-"}</span>
-                  <span className="text-muted-foreground"> — kelas murid dari properti akun</span>
-                </p>
+              ) : classes.length === 0 ? (
+                <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">Belum ada kelas tersedia.</p>
               ) : (
-                <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                  Murid belum punya kelas. Set kelas dulu di halaman Kelola User.
-                </p>
+                <>
+                  <Select
+                    items={classes.map((c) => ({ label: c.name, value: String(c.id) }))}
+                    value={classId}
+                    onValueChange={(v) => setClassId(v ?? "")}
+                  >
+                    <SelectTrigger id="admin-booking-class" className="w-full" size="sm">
+                      <SelectValue placeholder="Pilih kelas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes.map((c) => (
+                        <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Akses kelas murid diberikan setelah invoice booking lunas.
+                  </p>
+                </>
               )}
             </div>
           </div>

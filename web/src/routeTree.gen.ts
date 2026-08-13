@@ -20,6 +20,7 @@ import { Route as DashboardUserDashboardRouteImport } from './routes/_dashboard/
 import { Route as DashboardTeacherDashboardRouteImport } from './routes/_dashboard/teacher/dashboard'
 import { Route as DashboardTeacherCalendarRouteImport } from './routes/_dashboard/teacher/calendar'
 import { Route as DashboardStudentTutoringRouteImport } from './routes/_dashboard/student/tutoring'
+import { Route as DashboardStudentSubscribeRouteImport } from './routes/_dashboard/student/subscribe'
 import { Route as DashboardStudentPaymentsRouteImport } from './routes/_dashboard/student/payments'
 import { Route as DashboardStudentDashboardRouteImport } from './routes/_dashboard/student/dashboard'
 import { Route as DashboardStudentCalendarRouteImport } from './routes/_dashboard/student/calendar'
@@ -128,6 +129,12 @@ const DashboardStudentTutoringRoute =
   DashboardStudentTutoringRouteImport.update({
     id: '/student/tutoring',
     path: '/student/tutoring',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardStudentSubscribeRoute =
+  DashboardStudentSubscribeRouteImport.update({
+    id: '/student/subscribe',
+    path: '/student/subscribe',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardStudentPaymentsRoute =
@@ -454,6 +461,7 @@ export interface FileRoutesByFullPath {
   '/student/calendar': typeof DashboardStudentCalendarRoute
   '/student/dashboard': typeof DashboardStudentDashboardRoute
   '/student/payments': typeof DashboardStudentPaymentsRoute
+  '/student/subscribe': typeof DashboardStudentSubscribeRoute
   '/student/tutoring': typeof DashboardStudentTutoringRouteWithChildren
   '/teacher/calendar': typeof DashboardTeacherCalendarRoute
   '/teacher/dashboard': typeof DashboardTeacherDashboardRoute
@@ -518,6 +526,7 @@ export interface FileRoutesByTo {
   '/student/calendar': typeof DashboardStudentCalendarRoute
   '/student/dashboard': typeof DashboardStudentDashboardRoute
   '/student/payments': typeof DashboardStudentPaymentsRoute
+  '/student/subscribe': typeof DashboardStudentSubscribeRoute
   '/teacher/calendar': typeof DashboardTeacherCalendarRoute
   '/teacher/dashboard': typeof DashboardTeacherDashboardRoute
   '/user/dashboard': typeof DashboardUserDashboardRoute
@@ -583,6 +592,7 @@ export interface FileRoutesById {
   '/_dashboard/student/calendar': typeof DashboardStudentCalendarRoute
   '/_dashboard/student/dashboard': typeof DashboardStudentDashboardRoute
   '/_dashboard/student/payments': typeof DashboardStudentPaymentsRoute
+  '/_dashboard/student/subscribe': typeof DashboardStudentSubscribeRoute
   '/_dashboard/student/tutoring': typeof DashboardStudentTutoringRouteWithChildren
   '/_dashboard/teacher/calendar': typeof DashboardTeacherCalendarRoute
   '/_dashboard/teacher/dashboard': typeof DashboardTeacherDashboardRoute
@@ -649,6 +659,7 @@ export interface FileRouteTypes {
     | '/student/calendar'
     | '/student/dashboard'
     | '/student/payments'
+    | '/student/subscribe'
     | '/student/tutoring'
     | '/teacher/calendar'
     | '/teacher/dashboard'
@@ -713,6 +724,7 @@ export interface FileRouteTypes {
     | '/student/calendar'
     | '/student/dashboard'
     | '/student/payments'
+    | '/student/subscribe'
     | '/teacher/calendar'
     | '/teacher/dashboard'
     | '/user/dashboard'
@@ -777,6 +789,7 @@ export interface FileRouteTypes {
     | '/_dashboard/student/calendar'
     | '/_dashboard/student/dashboard'
     | '/_dashboard/student/payments'
+    | '/_dashboard/student/subscribe'
     | '/_dashboard/student/tutoring'
     | '/_dashboard/teacher/calendar'
     | '/_dashboard/teacher/dashboard'
@@ -908,6 +921,13 @@ declare module '@tanstack/react-router' {
       path: '/student/tutoring'
       fullPath: '/student/tutoring'
       preLoaderRoute: typeof DashboardStudentTutoringRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/student/subscribe': {
+      id: '/_dashboard/student/subscribe'
+      path: '/student/subscribe'
+      fullPath: '/student/subscribe'
+      preLoaderRoute: typeof DashboardStudentSubscribeRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/student/payments': {
@@ -1325,6 +1345,7 @@ interface DashboardRouteChildren {
   DashboardStudentCalendarRoute: typeof DashboardStudentCalendarRoute
   DashboardStudentDashboardRoute: typeof DashboardStudentDashboardRoute
   DashboardStudentPaymentsRoute: typeof DashboardStudentPaymentsRoute
+  DashboardStudentSubscribeRoute: typeof DashboardStudentSubscribeRoute
   DashboardStudentTutoringRoute: typeof DashboardStudentTutoringRouteWithChildren
   DashboardTeacherCalendarRoute: typeof DashboardTeacherCalendarRoute
   DashboardTeacherDashboardRoute: typeof DashboardTeacherDashboardRoute
@@ -1383,6 +1404,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardStudentCalendarRoute: DashboardStudentCalendarRoute,
   DashboardStudentDashboardRoute: DashboardStudentDashboardRoute,
   DashboardStudentPaymentsRoute: DashboardStudentPaymentsRoute,
+  DashboardStudentSubscribeRoute: DashboardStudentSubscribeRoute,
   DashboardStudentTutoringRoute: DashboardStudentTutoringRouteWithChildren,
   DashboardTeacherCalendarRoute: DashboardTeacherCalendarRoute,
   DashboardTeacherDashboardRoute: DashboardTeacherDashboardRoute,

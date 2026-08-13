@@ -212,13 +212,6 @@ func (r *UserRepository) Merge(dummyID, targetID uint) error {
 		if err := tx.First(&target, targetID).Error; err != nil {
 			return err
 		}
-		// salin properti kelas dummy kalau target belum punya
-		if target.ClassID == nil && dummy.ClassID != nil {
-			if err := tx.Model(&target).Update("class_id", *dummy.ClassID).Error; err != nil {
-				return err
-			}
-		}
-
 		moves := []struct {
 			model interface{}
 			col   string

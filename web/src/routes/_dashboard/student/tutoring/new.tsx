@@ -114,10 +114,14 @@ function NewBooking() {
     enabled: canSearch,
   })
 
-  // auto-pilih kelas kalau murid cuma punya 1 langganan
+  // auto-pilih kelas: preferensi kelas yang sudah diakses, else kelas pertama
   useEffect(() => {
-    if (!classId && myClasses.length === 1) setClassId(String(myClasses[0].class_id))
-  }, [myClasses, classId])
+    if (classId || classes.length === 0) return
+    const preferred = myClasses
+      .map((c) => String(c.class_id))
+      .find((id) => classes.some((c) => String(c.id) === id))
+    setClassId(preferred ?? String(classes[0].id ?? ""))
+  }, [myClasses, classes, classId])
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
@@ -404,23 +408,28 @@ function NewBooking() {
 
           <div className="space-y-1.5">
             <Label htmlFor="new-class">Kelas</Label>
-            {myClasses.length === 0 ? (
+            {classes.length === 0 ? (
               <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                Kamu belum punya akses kelas. Hubungi admin untuk berlangganan.
+                Belum ada kelas tersedia.
               </p>
             ) : (
-              <Select items={myClasses.map((c) => ({ label: c.class?.name ?? "-", value: String(c.class_id) }))} value={classId} onValueChange={(v) => setClassId(v ?? "")}>
+              <Select items={classes.map((c) => ({ label: c.name, value: String(c.id) }))} value={classId} onValueChange={(v) => setClassId(v ?? "")}>
                 <SelectTrigger id="new-class" className="w-full" size="sm">
                   <SelectValue placeholder="Pilih kelas" />
                 </SelectTrigger>
                 <SelectContent>
-                  {myClasses.map((c) => (
-                    <SelectItem key={c.id} value={String(c.class_id)}>
-                      {c.class?.name ?? "-"}
+                  {classes.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            )}
+            {myClasses.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Kamu belum punya akses kelas — akses diberikan otomatis setelah pembayaran booking diverifikasi admin.
+              </p>
             )}
           </div>
 
