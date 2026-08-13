@@ -137,7 +137,7 @@ const sidebarGroups: SidebarGroup[] = [
         label: "Keuangan",
         icon: CreditCard,
         items: [
-          { label: "Tarif & Fee Guru", to: "/admin/tutoring-fees" },
+          { label: "Tarif Produk", to: "/admin/tutoring-fees" },
           { label: "Pembayaran Murid", to: "/admin/payments" },
           { label: "Validasi & Fee Guru", to: "/admin/attendance" },
         ],

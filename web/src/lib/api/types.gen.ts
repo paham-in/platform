@@ -69,6 +69,7 @@ export type ChapterUpdateInput = {
 };
 
 export type ClassClassResponse = {
+    content_price?: number;
     group_price?: number;
     id?: number;
     name?: string;
@@ -320,7 +321,7 @@ export type QuestionbankAnswerResponse = {
 };
 
 export type QuestionbankCreateInput = {
-    answers?: Array<QuestionbankQuestionbankAnswerInput>;
+    answers?: Array<QuestionbankQuizAnswerInput>;
     explanation?: string;
     question?: string;
     user_id?: number;
@@ -345,13 +346,13 @@ export type QuestionbankQuestionResponse = {
     user_name?: string;
 };
 
-export type QuestionbankQuestionbankAnswerInput = {
+export type QuestionbankQuizAnswerInput = {
     content?: string;
     is_correct?: boolean;
 };
 
 export type QuestionbankUpdateInput = {
-    answers?: Array<QuestionbankQuestionbankAnswerInput>;
+    answers?: Array<QuestionbankQuizAnswerInput>;
     explanation?: string;
     question?: string;
 };

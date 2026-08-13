@@ -5345,6 +5345,9 @@ const docTemplate = `{
         "class.ClassResponse": {
             "type": "object",
             "properties": {
+                "content_price": {
+                    "type": "number"
+                },
                 "group_price": {
                     "type": "number"
                 },
@@ -5957,7 +5960,7 @@ const docTemplate = `{
                 "answers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/questionbank.QuestionbankAnswerInput"
+                        "$ref": "#/definitions/questionbank.QuizAnswerInput"
                     }
                 },
                 "explanation": {
@@ -6019,7 +6022,7 @@ const docTemplate = `{
                 }
             }
         },
-        "questionbank.QuestionbankAnswerInput": {
+        "questionbank.QuizAnswerInput": {
             "type": "object",
             "properties": {
                 "content": {
@@ -6036,7 +6039,7 @@ const docTemplate = `{
                 "answers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/questionbank.QuestionbankAnswerInput"
+                        "$ref": "#/definitions/questionbank.QuizAnswerInput"
                     }
                 },
                 "explanation": {

@@ -103,6 +103,8 @@ definitions:
     type: object
   class.ClassResponse:
     properties:
+      content_price:
+        type: number
       group_price:
         type: number
       id:
@@ -498,7 +500,7 @@ definitions:
     properties:
       answers:
         items:
-          $ref: '#/definitions/questionbank.QuestionbankAnswerInput'
+          $ref: '#/definitions/questionbank.QuizAnswerInput'
         type: array
       explanation:
         type: string
@@ -538,7 +540,7 @@ definitions:
       user_name:
         type: string
     type: object
-  questionbank.QuestionbankAnswerInput:
+  questionbank.QuizAnswerInput:
     properties:
       content:
         type: string
@@ -549,7 +551,7 @@ definitions:
     properties:
       answers:
         items:
-          $ref: '#/definitions/questionbank.QuestionbankAnswerInput'
+          $ref: '#/definitions/questionbank.QuizAnswerInput'
         type: array
       explanation:
         type: string

@@ -259,6 +259,11 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE classes ADD COLUMN group_price DECIMAL(12,2) NOT NULL DEFAULT 0")
 	}
 
+	// migrasi: classes tambah harga konten (materi + paket soal + forum) per kelas
+	if !db.Migrator().HasColumn(&models.Class{}, "content_price") {
+		db.Exec("ALTER TABLE classes ADD COLUMN content_price DECIMAL(12,2) NOT NULL DEFAULT 0")
+	}
+
 	// migrasi: classes tambah program_id; invoices ganti program_id → class_id
 	if !db.Migrator().HasColumn(&models.Class{}, "program_id") {
 		db.Exec("ALTER TABLE classes ADD COLUMN program_id BIGINT DEFAULT NULL")

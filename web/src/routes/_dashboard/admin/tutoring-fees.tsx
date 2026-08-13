@@ -33,6 +33,8 @@ const priceNum = (s: string): number | null => {
 // 0 (atau kosong) = belum ditentukan → kanonik "". Buat "0" setara server 0.
 const priceNorm = (s: string) => (priceNum(s) === 0 ? "" : s)
 
+type TutoringPrices = Record<number, { private: string; group: string }>
+
 function AdminSettings() {
   const qc = useQueryClient()
   const { data: settings, isLoading: settingsLoading } = useQuery(getAdminSettingsOptions())
@@ -40,8 +42,10 @@ function AdminSettings() {
 
   const [fee, setFee] = useState("")
   const [settingsInitialized, setSettingsInitialized] = useState(false)
-  // harga per kelas, keyed by class id
-  const [classPrices, setClassPrices] = useState<Record<number, { private: string; group: string }>>({})
+  // harga les privat per kelas, keyed by class id
+  const [tutoringPrices, setTutoringPrices] = useState<TutoringPrices>({})
+  // harga konten per kelas, keyed by class id
+  const [contentPrices, setContentPrices] = useState<Record<number, string>>({})
 
   useEffect(() => {
     if (settings && !settingsInitialized) {
@@ -52,7 +56,7 @@ function AdminSettings() {
 
   useEffect(() => {
     if (classes.length === 0) return
-    setClassPrices((prev) => {
+    setTutoringPrices((prev) => {
       const next = { ...prev }
       for (const c of classes) {
         if (c.id !== undefined && !(c.id in next)) {
@@ -60,6 +64,19 @@ function AdminSettings() {
             private: priceStr(c.price_per_session),
             group: priceStr(c.group_price),
           }
+        }
+      }
+      return next
+    })
+  }, [classes])
+
+  useEffect(() => {
+    if (classes.length === 0) return
+    setContentPrices((prev) => {
+      const next = { ...prev }
+      for (const c of classes) {
+        if (c.id !== undefined && !(c.id in next)) {
+          next[c.id] = priceStr(c.content_price)
         }
       }
       return next
@@ -75,29 +92,44 @@ function AdminSettings() {
     onError: (err: any) => toast.error(err?.error || "Gagal menyimpan fee guru"),
   })
 
-  const saveClass = useMutation({
+  const saveTutoring = useMutation({
+    ...patchAdminClassesByIdMutation(),
+  })
+
+  const saveContent = useMutation({
     ...patchAdminClassesByIdMutation(),
   })
 
   // kelas yang harganya beda dari nilai server → yang perlu disimpan
-  const dirtyClasses = classes.filter((c) => {
-    const row = classPrices[c.id!]
+  const dirtyTutoringClasses = classes.filter((c) => {
+    const row = tutoringPrices[c.id!]
     if (!row) return false
     return priceNorm(row.private) !== priceStr(c.price_per_session) || priceNorm(row.group) !== priceStr(c.group_price)
   })
 
-  const hasInvalidPrice = dirtyClasses.some((c) => {
-    const row = classPrices[c.id!]
+  const dirtyContentClasses = classes.filter((c) => {
+    const v = contentPrices[c.id!]
+    if (v === undefined) return false
+    return priceNorm(v) !== priceStr(c.content_price)
+  })
+
+  const hasInvalidTutoringPrice = dirtyTutoringClasses.some((c) => {
+    const row = tutoringPrices[c.id!]
     return priceNum(row?.private ?? "") === null || priceNum(row?.group ?? "") === null
   })
 
-  const handleSaveAll = async () => {
-    if (dirtyClasses.length === 0) return
+  const hasInvalidContentPrice = dirtyContentClasses.some((c) => {
+    const v = contentPrices[c.id!]
+    return v !== undefined && priceNum(v) === null
+  })
+
+  const handleSaveTutoring = async () => {
+    if (dirtyTutoringClasses.length === 0) return
     try {
       await Promise.all(
-        dirtyClasses.map((cls) => {
-          const row = classPrices[cls.id!]
-          return saveClass.mutateAsync({
+        dirtyTutoringClasses.map((cls) => {
+          const row = tutoringPrices[cls.id!]
+          return saveTutoring.mutateAsync({
             path: { id: cls.id! },
             body: {
               name: cls.name,
@@ -107,10 +139,29 @@ function AdminSettings() {
           })
         })
       )
-      toast.success("Harga kelas diperbarui")
+      toast.success("Harga les privat diperbarui")
       qc.invalidateQueries({ queryKey: getAdminClassesQueryKey() })
     } catch (err: any) {
-      toast.error(err?.error || "Gagal mengubah harga kelas")
+      toast.error(err?.error || "Gagal mengubah harga les privat")
+    }
+  }
+
+  const handleSaveContent = async () => {
+    if (dirtyContentClasses.length === 0) return
+    try {
+      await Promise.all(
+        dirtyContentClasses.map((cls) => {
+          const v = contentPrices[cls.id!]
+          return saveContent.mutateAsync({
+            path: { id: cls.id! },
+            body: { name: cls.name, content_price: priceNum(v)! },
+          })
+        })
+      )
+      toast.success("Harga konten diperbarui")
+      qc.invalidateQueries({ queryKey: getAdminClassesQueryKey() })
+    } catch (err: any) {
+      toast.error(err?.error || "Gagal mengubah harga konten")
     }
   }
 
@@ -127,11 +178,24 @@ function AdminSettings() {
     return Math.round((p * feeNum) / 100)
   }
 
+  const emptyState = (colSpan: number) => (
+    <TableRow>
+      <TableCell colSpan={colSpan}>
+        <Empty className="border-0 p-8">
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><School /></EmptyMedia>
+            <EmptyTitle>Belum ada kelas</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
+      </TableCell>
+    </TableRow>
+  )
+
   return (
     <main className="p-6">
-      <h1 className="mb-1 text-2xl font-bold tracking-tight">Tarif & Fee Guru</h1>
+      <h1 className="mb-1 text-2xl font-bold tracking-tight">Tarif Produk</h1>
       <p className="mb-6 text-sm text-muted-foreground">
-        Konfigurasi biaya les privat. Isi harga untuk tiap kelas — dipakai saat murid booking les.
+        Konfigurasi harga per kelas untuk les privat dan konten (materi + paket soal + forum).
       </p>
 
       <div className="flex max-w-2xl flex-col gap-6">
@@ -177,10 +241,11 @@ function AdminSettings() {
           </CardFooter>
         </Card>
 
-        {/* Harga per Kelas */}
+        {/* Harga Les Privat */}
         <Card>
           <CardHeader>
-            <CardTitle>Harga per Kelas</CardTitle>
+            <CardTitle>Harga Les Privat</CardTitle>
+            <CardDescription>Biaya per pertemuan — dipakai saat murid booking les.</CardDescription>
           </CardHeader>
           <CardContent className="px-0">
             <Table>
@@ -201,19 +266,10 @@ function AdminSettings() {
                     </TableRow>
                   ))
                 ) : classes.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3}>
-                      <Empty className="border-0 p-8">
-                        <EmptyHeader>
-                          <EmptyMedia variant="icon"><School /></EmptyMedia>
-                          <EmptyTitle>Belum ada kelas</EmptyTitle>
-                        </EmptyHeader>
-                      </Empty>
-                    </TableCell>
-                  </TableRow>
+                  emptyState(3)
                 ) : (
                   classes.map((cls) => {
-                    const row = classPrices[cls.id!]
+                    const row = tutoringPrices[cls.id!]
                     const pv = row?.private ?? ""
                     const gv = row?.group ?? ""
                     const pvValid = priceNum(pv) !== null
@@ -231,7 +287,7 @@ function AdminSettings() {
                               aria-label={`Harga les privat ${cls.name}`}
                               aria-invalid={!pvValid}
                               onChange={(e) =>
-                                setClassPrices((prev) => ({
+                                setTutoringPrices((prev) => ({
                                   ...prev,
                                   [cls.id!]: { private: e.target.value, group: prev[cls.id!]?.group ?? "" },
                                 }))
@@ -254,7 +310,7 @@ function AdminSettings() {
                               aria-label={`Harga kelompok ${cls.name}`}
                               aria-invalid={!gvValid}
                               onChange={(e) =>
-                                setClassPrices((prev) => ({
+                                setTutoringPrices((prev) => ({
                                   ...prev,
                                   [cls.id!]: { private: prev[cls.id!]?.private ?? "", group: e.target.value },
                                 }))
@@ -280,11 +336,80 @@ function AdminSettings() {
                 Kosongkan untuk harga yang belum ditentukan.
               </p>
               <Button
-                onClick={handleSaveAll}
-                disabled={saveClass.isPending || dirtyClasses.length === 0 || hasInvalidPrice}
+                onClick={handleSaveTutoring}
+                disabled={saveTutoring.isPending || dirtyTutoringClasses.length === 0 || hasInvalidTutoringPrice}
               >
-                {saveClass.isPending && <Spinner />}
-                Simpan{dirtyClasses.length > 0 ? ` (${dirtyClasses.length})` : ""}
+                {saveTutoring.isPending && <Spinner />}
+                Simpan{dirtyTutoringClasses.length > 0 ? ` (${dirtyTutoringClasses.length})` : ""}
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
+
+        {/* Harga Konten */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Harga Konten</CardTitle>
+            <CardDescription>
+              Langganan materi + paket soal + forum per kelas (tanpa les privat).
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="pl-(--card-spacing)">Kelas</TableHead>
+                  <TableHead className="pr-(--card-spacing)">Konten (Rp)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {classesLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell className="pl-(--card-spacing)"><Skeleton className="h-4 w-28" /></TableCell>
+                      <TableCell className="pr-(--card-spacing)"><Skeleton className="h-8 w-28" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : classes.length === 0 ? (
+                  emptyState(2)
+                ) : (
+                  classes.map((cls) => {
+                    const v = contentPrices[cls.id!] ?? ""
+                    const valid = priceNum(v) !== null
+                    return (
+                      <TableRow key={cls.id}>
+                        <TableCell className="font-medium pl-(--card-spacing)">{cls.name}</TableCell>
+                        <TableCell className="pr-(--card-spacing)">
+                          <Input
+                            type="number"
+                            min="0"
+                            className="h-8 w-32"
+                            value={v}
+                            aria-label={`Harga konten ${cls.name}`}
+                            aria-invalid={!valid}
+                            onChange={(e) =>
+                              setContentPrices((prev) => ({ ...prev, [cls.id!]: e.target.value }))
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+          <CardFooter>
+            <div className="flex w-full items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Kosongkan untuk harga yang belum ditentukan.
+              </p>
+              <Button
+                onClick={handleSaveContent}
+                disabled={saveContent.isPending || dirtyContentClasses.length === 0 || hasInvalidContentPrice}
+              >
+                {saveContent.isPending && <Spinner />}
+                Simpan{dirtyContentClasses.length > 0 ? ` (${dirtyContentClasses.length})` : ""}
               </Button>
             </div>
           </CardFooter>

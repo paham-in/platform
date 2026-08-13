@@ -5342,6 +5342,9 @@
         "class.ClassResponse": {
             "type": "object",
             "properties": {
+                "content_price": {
+                    "type": "number"
+                },
                 "group_price": {
                     "type": "number"
                 },
@@ -5954,7 +5957,7 @@
                 "answers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/questionbank.QuestionbankAnswerInput"
+                        "$ref": "#/definitions/questionbank.QuizAnswerInput"
                     }
                 },
                 "explanation": {
@@ -6016,7 +6019,7 @@
                 }
             }
         },
-        "questionbank.QuestionbankAnswerInput": {
+        "questionbank.QuizAnswerInput": {
             "type": "object",
             "properties": {
                 "content": {
@@ -6033,7 +6036,7 @@
                 "answers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/questionbank.QuestionbankAnswerInput"
+                        "$ref": "#/definitions/questionbank.QuizAnswerInput"
                     }
                 },
                 "explanation": {
