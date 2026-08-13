@@ -1,4 +1,4 @@
-package upload
+package forum
 
 import (
 	"bytes"
@@ -16,27 +16,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type Handler struct {
+type ImageHandler struct {
 	db      *gorm.DB
 	storage *storage.ObjectStorage
 }
 
-func NewHandler(db *gorm.DB, store *storage.ObjectStorage) *Handler {
-	return &Handler{db: db, storage: store}
+func NewImageHandler(db *gorm.DB, store *storage.ObjectStorage) *ImageHandler {
+	return &ImageHandler{db: db, storage: store}
 }
 
 type UploadResponse struct {
 	ID       uint   `json:"id"`
 	URL      string `json:"url"`
 	FileName string `json:"file_name"`
-}
-
-func userIDFrom(c *fiber.Ctx) uint {
-	u, ok := c.Locals("user").(*models.User)
-	if !ok || u == nil {
-		return 0
-	}
-	return u.ID
 }
 
 func roleFrom(c *fiber.Ctx) string {
@@ -64,7 +56,7 @@ func roleFrom(c *fiber.Ctx) string {
 // @Success      201 {object} UploadResponse
 // @Failure      400 {object} map[string]interface{}
 // @Router       /questions/{question_id}/images [post]
-func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
+func (h *ImageHandler) UploadQuestionImage(c *fiber.Ctx) error {
 	userID := userIDFrom(c)
 	if userID == 0 {
 		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
@@ -171,7 +163,7 @@ func (h *Handler) UploadQuestionImage(c *fiber.Ctx) error {
 // @Param        question_id path int true "Question ID"
 // @Success      200 {array} UploadResponse
 // @Router       /questions/{question_id}/images [get]
-func (h *Handler) ListQuestionImages(c *fiber.Ctx) error {
+func (h *ImageHandler) ListQuestionImages(c *fiber.Ctx) error {
 	questionID, err := strconv.ParseUint(c.Params("question_id"), 10, 64)
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "id tidak valid"})
@@ -199,11 +191,11 @@ func (h *Handler) ListQuestionImages(c *fiber.Ctx) error {
 }
 
 func PublicRoutes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
-	h := NewHandler(db, store)
+	h := NewImageHandler(db, store)
 	app.Get("/questions/:question_id/images", h.ListQuestionImages)
 }
 
-func AuthRoutes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
-	h := NewHandler(db, store)
-	app.Post("/questions/:question_id/images", h.UploadQuestionImage)
+func AuthRoutes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
+	h := NewImageHandler(db, store)
+	auth.Post("/questions/:question_id/images", h.UploadQuestionImage)
 }

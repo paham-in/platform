@@ -25,7 +25,6 @@ import (
 	"bimbel2/backend/internal/storage"
 	"bimbel2/backend/internal/studentclass"
 	"bimbel2/backend/internal/subject"
-	"bimbel2/backend/internal/upload"
 	"bimbel2/backend/internal/user"
 
 	"github.com/gofiber/fiber/v2"
@@ -87,7 +86,7 @@ func main() {
 	answer.PublicRoutes(app, db)
 	push.PublicRoutes(app, db, cfg.VapidPublicKey)
 	if objectStorage != nil {
-		upload.PublicRoutes(app, db, objectStorage)
+		forum.PublicRoutes(app, db, objectStorage)
 	}
 
 	// Authenticated routes (any role with valid session)
@@ -104,7 +103,7 @@ func main() {
 	answer.AuthRoutes(auth, db, pushSvc)
 	invoice.AuthRoutes(auth, db)
 	if objectStorage != nil {
-		upload.AuthRoutes(auth, db, objectStorage)
+		forum.AuthRoutes(auth, db, objectStorage)
 	}
 
 	// Teacher + admin shared resources (register first so teacher can pass)
