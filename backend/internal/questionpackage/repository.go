@@ -91,15 +91,16 @@ func (r *Repository) GetProgress(userID, packageID uint, completedOnly bool) ([]
 }
 
 // SaveProgress upsert jawaban student. Kalau record untuk (user, package, question)
-// sudah ada → update IsCorrect + restore deleted_at. Kalau belum → create.
-func (r *Repository) SaveProgress(userID, packageID, questionID uint, isCorrect bool) error {
+// sudah ada → update IsCorrect + SelectedAnswerID + restore deleted_at. Kalau belum → create.
+func (r *Repository) SaveProgress(userID, packageID, questionID uint, isCorrect bool, selectedAnswerID uint) error {
 	var existing models.StudentQuestionProgress
 	err := r.db.Unscoped().Where("user_id = ? AND package_id = ? AND question_id = ?", userID, packageID, questionID).First(&existing).Error
 	if err == nil {
 		// sudah ada → update + restore kalau soft-deleted
 		return r.db.Model(&existing).Updates(map[string]any{
-			"is_correct": isCorrect,
-			"deleted_at": nil,
+			"is_correct":         isCorrect,
+			"selected_answer_id": selectedAnswerID,
+			"deleted_at":         nil,
 		}).Error
 	}
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -107,10 +108,11 @@ func (r *Repository) SaveProgress(userID, packageID, questionID uint, isCorrect 
 	}
 	// belum ada → create
 	return r.db.Create(&models.StudentQuestionProgress{
-		UserID:     userID,
-		PackageID:  packageID,
-		QuestionID: questionID,
-		IsCorrect:  isCorrect,
+		UserID:            userID,
+		PackageID:         packageID,
+		QuestionID:        questionID,
+		IsCorrect:         isCorrect,
+		SelectedAnswerID:  selectedAnswerID,
 	}).Error
 }
 
@@ -123,6 +125,17 @@ func (r *Repository) GetCompletedQuestionIDs(userID, packageID uint) ([]uint, er
 		return nil, err
 	}
 	return ids, nil
+}
+
+// GetCompletedProgress mengembalikan record progress student yang sudah dikerjakan (non-deleted).
+// Dipakai untuk rebuild jawaban + pembahasan saat student kembali ke soal yang sudah dikerjakan.
+func (r *Repository) GetCompletedProgress(userID, packageID uint) ([]models.StudentQuestionProgress, error) {
+	var progress []models.StudentQuestionProgress
+	if err := r.db.Where("user_id = ? AND package_id = ? AND deleted_at IS NULL", userID, packageID).
+		Find(&progress).Error; err != nil {
+		return nil, err
+	}
+	return progress, nil
 }
 
 // GetQuestionWithAnswers mengambil 1 soal + jawabannya (untuk grading).

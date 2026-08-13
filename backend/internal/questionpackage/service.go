@@ -328,7 +328,7 @@ func (s *Service) toCollectionResponse(g models.QuestionPackageCollection) Colle
 }
 
 // SubmitAnswer menyimpan jawaban student untuk 1 soal.
-func (s *Service) SubmitAnswer(userID, packageID, questionID uint) (bool, string, error) {
+func (s *Service) SubmitAnswer(userID, packageID, questionID uint, selectedAnswerID uint) (bool, string, error) {
 	q, err := s.repo.GetQuestionWithAnswers(questionID)
 	if err != nil {
 		return false, "", errors.New("soal tidak ditemukan")
@@ -343,7 +343,7 @@ func (s *Service) SubmitAnswer(userID, packageID, questionID uint) (bool, string
 			break
 		}
 	}
-	if err := s.repo.SaveProgress(userID, packageID, questionID, isCorrect); err != nil {
+	if err := s.repo.SaveProgress(userID, packageID, questionID, isCorrect, selectedAnswerID); err != nil {
 		return false, "", err
 	}
 	return isCorrect, s.storage.RewriteContentImages(q.Explanation), nil
@@ -352,6 +352,40 @@ func (s *Service) SubmitAnswer(userID, packageID, questionID uint) (bool, string
 // GetStudentProgress mengembalikan daftar ID soal yang sudah dikerjakan.
 func (s *Service) GetStudentProgress(userID, packageID uint) ([]uint, error) {
 	return s.repo.GetCompletedQuestionIDs(userID, packageID)
+}
+
+// GetProgressDetail mengembalikan record progress + pembahasan per soal yang sudah dikerjakan.
+// answers fe: map question_id → selected_answer_id; explanations: map question_id → explanation.
+func (s *Service) GetProgressDetail(userID, packageID uint) (answers map[uint]uint, explanations map[uint]string, isCorrect map[uint]bool, err error) {
+	progress, err := s.repo.GetCompletedProgress(userID, packageID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	if len(progress) == 0 {
+		return map[uint]uint{}, map[uint]string{}, map[uint]bool{}, nil
+	}
+	// Batch fetch explanations untuk soal yang sudah dikerjakan.
+	qids := make([]uint, 0, len(progress))
+	for _, p := range progress {
+		qids = append(qids, p.QuestionID)
+	}
+	questions, err := s.repo.ListByPackage(packageID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	explMap := make(map[uint]string, len(questions))
+	for _, q := range questions {
+		explMap[q.ID] = s.storage.RewriteContentImages(q.Explanation)
+	}
+	answers = make(map[uint]uint, len(progress))
+	explanations = make(map[uint]string, len(progress))
+	isCorrect = make(map[uint]bool, len(progress))
+	for _, p := range progress {
+		answers[p.QuestionID] = p.SelectedAnswerID
+		explanations[p.QuestionID] = explMap[p.QuestionID]
+		isCorrect[p.QuestionID] = p.IsCorrect
+	}
+	return answers, explanations, isCorrect, nil
 }
 
 // ListQuestionsForPackage mengembalikan soal + jawaban (untuk grading di backend).

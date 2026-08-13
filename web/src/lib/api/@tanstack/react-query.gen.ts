@@ -1843,7 +1843,7 @@ export const getQuestionPackagesByIdWorkProgressQueryKey = (options: Options<Get
 /**
  * Get work progress
  *
- * Mengembalikan jumlah soal yang sudah dikerjakan + ID soal yang selesai
+ * Mengembalikan jumlah soal yang sudah dikerjakan + ID soal yang selesai + jawaban terpilih + pembahasan
  */
 export const getQuestionPackagesByIdWorkProgressOptions = (options: Options<GetQuestionPackagesByIdWorkProgressData>) => queryOptions<GetQuestionPackagesByIdWorkProgressResponse, GetQuestionPackagesByIdWorkProgressError, GetQuestionPackagesByIdWorkProgressResponse, ReturnType<typeof getQuestionPackagesByIdWorkProgressQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {

@@ -410,6 +410,7 @@ export type QuestionpackagePackageResponse = {
 };
 
 export type QuestionpackageSubmitAnswerInput = {
+    answer_id?: number;
     question_id?: number;
 };
 
@@ -433,6 +434,15 @@ export type QuestionpackageWorkAnswerResponse = {
 export type QuestionpackageWorkProgressResponse = {
     completed_count?: number;
     completed_ids?: Array<number>;
+    explanations?: {
+        [key: string]: string;
+    };
+    is_correct?: {
+        [key: string]: boolean;
+    };
+    selected_answers?: {
+        [key: string]: number;
+    };
     total_count?: number;
 };
 

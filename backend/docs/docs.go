@@ -3996,7 +3996,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan jumlah soal yang sudah dikerjakan + ID soal yang selesai",
+                "description": "Mengembalikan jumlah soal yang sudah dikerjakan + ID soal yang selesai + jawaban terpilih + pembahasan",
                 "consumes": [
                     "application/json"
                 ],
@@ -6187,6 +6187,9 @@ const docTemplate = `{
         "questionpackage.SubmitAnswerInput": {
             "type": "object",
             "properties": {
+                "answer_id": {
+                    "type": "integer"
+                },
                 "question_id": {
                     "type": "integer"
                 }
@@ -6240,6 +6243,24 @@ const docTemplate = `{
                 "completed_ids": {
                     "type": "array",
                     "items": {
+                        "type": "integer"
+                    }
+                },
+                "explanations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "is_correct": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
+                "selected_answers": {
+                    "type": "object",
+                    "additionalProperties": {
                         "type": "integer"
                     }
                 },

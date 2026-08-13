@@ -1164,7 +1164,7 @@ export const getQuestionPackagesById = <ThrowOnError extends boolean = false>(op
 /**
  * Get work progress
  *
- * Mengembalikan jumlah soal yang sudah dikerjakan + ID soal yang selesai
+ * Mengembalikan jumlah soal yang sudah dikerjakan + ID soal yang selesai + jawaban terpilih + pembahasan
  */
 export const getQuestionPackagesByIdWorkProgress = <ThrowOnError extends boolean = false>(options: Options<GetQuestionPackagesByIdWorkProgressData, ThrowOnError>): RequestResult<GetQuestionPackagesByIdWorkProgressResponses, GetQuestionPackagesByIdWorkProgressErrors, ThrowOnError> => (options.client ?? client).get<GetQuestionPackagesByIdWorkProgressResponses, GetQuestionPackagesByIdWorkProgressErrors, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],

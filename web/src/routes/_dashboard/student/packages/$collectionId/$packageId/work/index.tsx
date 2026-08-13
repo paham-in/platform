@@ -56,6 +56,9 @@ function WorkPage() {
   const total = questions.length
   const completedCount = progress?.completed_count ?? 0
   const completedIds = new Set(progress?.completed_ids ?? [])
+  const selectedAnswers = progress?.selected_answers ?? {}
+  const explanations = progress?.explanations ?? {}
+  const isCorrectMap = progress?.is_correct ?? {}
 
   // Sync currentIndex with URL search params
   const search = Route.useSearch()
@@ -71,11 +74,20 @@ function WorkPage() {
     navigate({ search: (prev) => ({ ...prev, q: currentIndex }), replace: true })
   }, [currentIndex])
 
-  // Reset local state when question changes
+  // Restore from progress API when navigating to an already-answered question
   useEffect(() => {
-    setSelectedAnswerId(null)
-    setRevealed(false)
-  }, [currentIndex])
+    const questionId = currentQuestion?.id
+    if (questionId && selectedAnswers[questionId] != null) {
+      setSelectedAnswerId(selectedAnswers[questionId])
+      setRevealed(true)
+      setIsCorrect(isCorrectMap[questionId] ?? false)
+      setExplanation(explanations[questionId] ?? "")
+    } else {
+      setSelectedAnswerId(null)
+      setRevealed(false)
+      setExplanation("")
+    }
+  }, [currentIndex, currentQuestion?.id, selectedAnswers, explanations, isCorrectMap])
 
   const handleSelectAnswer = (answerId: number) => {
     if (revealed) return
@@ -86,7 +98,7 @@ function WorkPage() {
     if (selectedAnswerId === null || !currentQuestion) return
     submitMutation.mutate({
       path: { id: Number(packageId) },
-      body: { question_id: currentQuestion.id },
+      body: { question_id: currentQuestion.id, answer_id: selectedAnswerId },
     })
   }
 
@@ -124,126 +136,147 @@ function WorkPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
-      <div className="mb-4 flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/student/packages/$collectionId/$packageId", params: { collectionId, packageId } })}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <span className="text-sm text-muted-foreground">Kembali ke paket</span>
-      </div>
-
-      <div className="mb-6">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-medium">Soal {currentIndex + 1} dari {total}</span>
-          <span className="text-sm text-muted-foreground">{completedCount} / {total} selesai</span>
-        </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full bg-primary transition-all"
-            style={{ width: `${(completedCount / total) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      <Card className="mb-4">
-        <CardContent className="p-6">
-          <div className="mb-6">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-              {currentIndex + 1}
-            </span>
-            <div className="mt-3">
-              {currentQuestion.question ? (
-                <RichContent html={currentQuestion.question} className="prose-sm" />
-              ) : (
-                <span className="text-muted-foreground">(kosong)</span>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            {(currentQuestion.answers ?? []).map((answer, idx) => {
-              const isSelected = selectedAnswerId === answer.id
-              const showResult = revealed && isSelected
-              return (
-                <button
-                  key={answer.id}
-                  onClick={() => handleSelectAnswer(answer.id!)}
-                  disabled={revealed}
-                  className={`flex w-full items-center gap-3 rounded-lg border-2 p-4 text-left transition-colors ${
-                    isSelected
-                      ? "border-primary bg-primary/5"
-                      : "border-muted hover:border-primary/50"
-                  } ${
-                    showResult && isCorrect ? "border-green-500 bg-green-50 dark:bg-green-950" : ""
-                  } ${
-                    showResult && !isCorrect ? "border-red-500 bg-red-50 dark:bg-red-950" : ""
-                  } ${revealed ? "cursor-default" : "cursor-pointer"}`}
-                >
-                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
-                    isSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground"
-                  }`}>
-                    {String.fromCharCode(65 + idx)}
-                  </span>
-                  <div className="flex-1">
-                    <RichContent html={answer.content ?? ""} className="prose-sm" />
-                  </div>
-                  {showResult && isCorrect && <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />}
-                  {showResult && !isCorrect && <XCircle className="h-5 w-5 shrink-0 text-red-600" />}
-                </button>
-              )
-            })}
-          </div>
-
-          {revealed && explanation && (
-            <div className={`mt-6 rounded-lg border p-4 ${isCorrect ? "border-green-500 bg-green-50 dark:bg-green-950" : "border-red-500 bg-red-50 dark:bg-red-950"}`}>
-              <p className="mb-2 text-sm font-semibold">Pembahasan</p>
-              <RichContent html={explanation} className="prose-sm" />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          onClick={() => goToQuestion(currentIndex - 1)}
-          disabled={currentIndex === 0}
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" /> Sebelumnya
-        </Button>
-
-        {!revealed ? (
-          <Button onClick={handleSubmit} disabled={selectedAnswerId === null || submitMutation.isPending}>
-            {submitMutation.isPending ? "Menyimpan..." : "Kirim Jawaban"}
+    <main className="flex gap-6 p-6">
+      {/* Left column: question content */}
+      <div className="flex-1 min-w-0">
+        <div className="mb-4 flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/student/packages/$collectionId/$packageId", params: { collectionId, packageId } })}>
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-        ) : (
-          <Button onClick={() => goToQuestion(currentIndex + 1)} disabled={currentIndex === total - 1}>
-            Selanjutnya <ArrowRight className="ml-1 h-4 w-4" />
-          </Button>
-        )}
-      </div>
+          <span className="text-sm text-muted-foreground">Kembali ke paket</span>
+        </div>
 
-      {/* Quick nav dots */}
-      <div className="mt-6 flex flex-wrap justify-center gap-1">
-        {questions.map((q, idx) => {
-          const isCompleted = completedIds.has(q.id!)
-          const isCurrent = idx === currentIndex
-          return (
-            <button
-              key={q.id}
-              onClick={() => goToQuestion(idx)}
-              className={`h-2.5 w-2.5 rounded-full transition-colors ${
-                isCurrent
-                  ? "bg-primary"
-                  : isCompleted
-                  ? "bg-green-500"
-                  : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-              }`}
-              title={`Soal ${idx + 1}`}
+        <div className="mb-6">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm font-medium">Soal {currentIndex + 1} dari {total}</span>
+            <span className="text-sm text-muted-foreground">{completedCount} / {total} selesai</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full bg-primary transition-all"
+              style={{ width: `${(completedCount / total) * 100}%` }}
             />
-          )
-        })}
+          </div>
+        </div>
+
+        <Card className="mb-4">
+          <CardContent className="p-6">
+            <div className="mb-6">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                {currentIndex + 1}
+              </span>
+              <div className="mt-3">
+                {currentQuestion.question ? (
+                  <RichContent html={currentQuestion.question} className="prose-sm" />
+                ) : (
+                  <span className="text-muted-foreground">(kosong)</span>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {(currentQuestion.answers ?? []).map((answer, idx) => {
+                const isSelected = selectedAnswerId === answer.id
+                const showResult = revealed && isSelected
+                return (
+                  <button
+                    key={answer.id}
+                    onClick={() => handleSelectAnswer(answer.id!)}
+                    disabled={revealed}
+                    className={`flex w-full items-center gap-3 rounded-lg border-2 p-4 text-left transition-colors ${
+                      isSelected
+                        ? "border-primary bg-primary/5"
+                        : "border-muted hover:border-primary/50"
+                    } ${
+                      showResult && isCorrect ? "border-green-500 bg-green-50 dark:bg-green-950" : ""
+                    } ${
+                      showResult && !isCorrect ? "border-red-500 bg-red-50 dark:bg-red-950" : ""
+                    } ${revealed ? "cursor-default" : "cursor-pointer"}`}
+                  >
+                    <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
+                      isSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground"
+                    }`}>
+                      {String.fromCharCode(65 + idx)}
+                    </span>
+                    <div className="flex-1">
+                      <RichContent html={answer.content ?? ""} className="prose-sm" />
+                    </div>
+                    {showResult && isCorrect && <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />}
+                    {showResult && !isCorrect && <XCircle className="h-5 w-5 shrink-0 text-red-600" />}
+                  </button>
+                )
+              })}
+            </div>
+
+            {revealed && explanation && (
+              <div className={`mt-6 rounded-lg border p-4 ${isCorrect ? "border-green-500 bg-green-50 dark:bg-green-950" : "border-red-500 bg-red-50 dark:bg-red-950"}`}>
+                <p className="mb-2 text-sm font-semibold">Pembahasan</p>
+                <RichContent html={explanation} className="prose-sm" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            onClick={() => goToQuestion(currentIndex - 1)}
+            disabled={currentIndex === 0}
+          >
+            <ArrowLeft className="mr-1 h-4 w-4" /> Sebelumnya
+          </Button>
+
+          {!revealed ? (
+            <Button onClick={handleSubmit} disabled={selectedAnswerId === null || submitMutation.isPending}>
+              {submitMutation.isPending ? "Menyimpan..." : "Kirim Jawaban"}
+            </Button>
+          ) : (
+            <Button onClick={() => goToQuestion(currentIndex + 1)} disabled={currentIndex === total - 1}>
+              Selanjutnya <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Right column: question navigator */}
+      <aside className="w-64 shrink-0">
+        <div className="sticky top-6">
+          <Card>
+            <CardContent className="p-4">
+              <p className="mb-3 text-sm font-medium text-muted-foreground">
+                {completedCount} / {total} selesai
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {questions.map((q, idx) => {
+                  const isCompleted = completedIds.has(q.id!)
+                  const isCurrent = idx === currentIndex
+                  let buttonVariant: "default" | "outline" = "outline"
+                  if (isCurrent) {
+                    buttonVariant = "default"
+                  } else if (isCompleted) {
+                    buttonVariant = "outline"
+                  }
+                  return (
+                    <Button
+                      key={q.id}
+                      variant={buttonVariant}
+                      size="icon"
+                      onClick={() => goToQuestion(idx)}
+                      className={`h-9 w-9 text-sm ${
+                        isCompleted && !isCurrent
+                          ? "border-green-500 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950"
+                          : ""
+                      }`}
+                    >
+                      {idx + 1}
+                    </Button>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </aside>
     </main>
   )
 }

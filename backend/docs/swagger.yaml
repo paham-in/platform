@@ -647,6 +647,8 @@ definitions:
     type: object
   questionpackage.SubmitAnswerInput:
     properties:
+      answer_id:
+        type: integer
       question_id:
         type: integer
     type: object
@@ -683,6 +685,18 @@ definitions:
         items:
           type: integer
         type: array
+      explanations:
+        additionalProperties:
+          type: string
+        type: object
+      is_correct:
+        additionalProperties:
+          type: boolean
+        type: object
+      selected_answers:
+        additionalProperties:
+          type: integer
+        type: object
       total_count:
         type: integer
     type: object
@@ -3735,7 +3749,7 @@ paths:
       consumes:
       - application/json
       description: Mengembalikan jumlah soal yang sudah dikerjakan + ID soal yang
-        selesai
+        selesai + jawaban terpilih + pembahasan
       parameters:
       - description: Package ID
         in: path
