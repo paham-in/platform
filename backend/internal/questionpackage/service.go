@@ -326,3 +326,46 @@ func (s *Service) toCollectionResponse(g models.QuestionPackageCollection) Colle
 		CreatedAt:    g.CreatedAt.Format("2006-01-02 15:04"),
 	}
 }
+
+// SubmitAnswer menyimpan jawaban student untuk 1 soal.
+func (s *Service) SubmitAnswer(userID, packageID, questionID uint) (bool, string, error) {
+	q, err := s.repo.GetQuestionWithAnswers(questionID)
+	if err != nil {
+		return false, "", errors.New("soal tidak ditemukan")
+	}
+	if q.PackageID != packageID {
+		return false, "", errors.New("soal bukan milik paket ini")
+	}
+	isCorrect := false
+	for _, a := range q.Answers {
+		if a.IsCorrect {
+			isCorrect = true
+			break
+		}
+	}
+	if err := s.repo.SaveProgress(userID, packageID, questionID, isCorrect); err != nil {
+		return false, "", err
+	}
+	return isCorrect, s.storage.RewriteContentImages(q.Explanation), nil
+}
+
+// GetStudentProgress mengembalikan daftar ID soal yang sudah dikerjakan.
+func (s *Service) GetStudentProgress(userID, packageID uint) ([]uint, error) {
+	return s.repo.GetCompletedQuestionIDs(userID, packageID)
+}
+
+// ListQuestionsForPackage mengembalikan soal + jawaban (untuk grading di backend).
+func (s *Service) ListQuestionsForPackage(packageID uint) ([]models.QuestionbankQuestion, error) {
+	questions, err := s.repo.ListByPackage(packageID)
+	if err != nil {
+		return nil, err
+	}
+	// Rewrite images di service, bukan handler — handler tidak punya storage.
+	for i := range questions {
+		questions[i].Question = s.storage.RewriteContentImages(questions[i].Question)
+		for j := range questions[i].Answers {
+			questions[i].Answers[j].Content = s.storage.RewriteContentImages(questions[i].Answers[j].Content)
+		}
+	}
+	return questions, nil
+}

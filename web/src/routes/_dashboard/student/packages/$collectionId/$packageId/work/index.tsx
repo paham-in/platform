@@ -86,7 +86,7 @@ function WorkPage() {
     if (selectedAnswerId === null || !currentQuestion) return
     submitMutation.mutate({
       path: { id: Number(packageId) },
-      body: { question_id: selectedAnswerId },
+      body: { question_id: currentQuestion.id },
     })
   }
 

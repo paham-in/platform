@@ -1,6 +1,8 @@
 package questionpackage
 
 import (
+	"errors"
+
 	"bimbel2/backend/internal/models"
 
 	"gorm.io/gorm"
@@ -72,6 +74,77 @@ func (r *Repository) Delete(id uint) error {
 		}
 		return tx.Unscoped().Delete(&models.QuestionPackage{}, id).Error
 	})
+}
+
+// GetProgress mengembalikan daftar progress student untuk 1 paket.
+// completedOnly=true → cuma soal yang sudah dikerjakan (deleted_at IS NULL).
+func (r *Repository) GetProgress(userID, packageID uint, completedOnly bool) ([]models.StudentQuestionProgress, error) {
+	var progress []models.StudentQuestionProgress
+	q := r.db.Where("user_id = ? AND package_id = ?", userID, packageID)
+	if completedOnly {
+		q = q.Where("deleted_at IS NULL")
+	}
+	if err := q.Order("created_at asc").Find(&progress).Error; err != nil {
+		return nil, err
+	}
+	return progress, nil
+}
+
+// SaveProgress upsert jawaban student. Kalau record untuk (user, package, question)
+// sudah ada → update IsCorrect + restore deleted_at. Kalau belum → create.
+func (r *Repository) SaveProgress(userID, packageID, questionID uint, isCorrect bool) error {
+	var existing models.StudentQuestionProgress
+	err := r.db.Unscoped().Where("user_id = ? AND package_id = ? AND question_id = ?", userID, packageID, questionID).First(&existing).Error
+	if err == nil {
+		// sudah ada → update + restore kalau soft-deleted
+		return r.db.Model(&existing).Updates(map[string]any{
+			"is_correct": isCorrect,
+			"deleted_at": nil,
+		}).Error
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	// belum ada → create
+	return r.db.Create(&models.StudentQuestionProgress{
+		UserID:     userID,
+		PackageID:  packageID,
+		QuestionID: questionID,
+		IsCorrect:  isCorrect,
+	}).Error
+}
+
+// GetCompletedQuestionIDs mengembalikan ID soal yang sudah dikerjakan (non-deleted).
+func (r *Repository) GetCompletedQuestionIDs(userID, packageID uint) ([]uint, error) {
+	var ids []uint
+	if err := r.db.Model(&models.StudentQuestionProgress{}).
+		Where("user_id = ? AND package_id = ? AND deleted_at IS NULL", userID, packageID).
+		Pluck("question_id", &ids).Error; err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
+// GetQuestionWithAnswers mengambil 1 soal + jawabannya (untuk grading).
+func (r *Repository) GetQuestionWithAnswers(questionID uint) (models.QuestionbankQuestion, error) {
+	var q models.QuestionbankQuestion
+	if err := r.db.Preload("Answers", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sort_order asc")
+	}).First(&q, questionID).Error; err != nil {
+		return q, err
+	}
+	return q, nil
+}
+
+// ListByPackage mengembalikan semua soal dalam paket + jawabannya.
+func (r *Repository) ListByPackage(packageID uint) ([]models.QuestionbankQuestion, error) {
+	var questions []models.QuestionbankQuestion
+	if err := r.db.Preload("Answers", func(db *gorm.DB) *gorm.DB {
+		return db.Order("sort_order asc")
+	}).Where("package_id = ?", packageID).Order("created_at asc").Find(&questions).Error; err != nil {
+		return nil, err
+	}
+	return questions, nil
 }
 
 // ListCollections mengembalikan koleksi paket soal. classIDs non-nil membatasi ke koleksi

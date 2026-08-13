@@ -349,6 +349,149 @@ func (h *Handler) MyCollection(c *fiber.Ctx) error {
 	return c.JSON(collection)
 }
 
+// WorkQuestions mengembalikan daftar soal untuk dikerjakan student (tanpa jawaban).
+// @Summary      Get work questions
+// @Description  Mengembalikan soal dalam paket untuk dikerjakan student (tanpa kunci jawaban)
+// @Tags         QuestionPackage
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Package ID"
+// @Success      200 {array} WorkQuestionResponse
+// @Failure      403 {object} ErrorResponse
+// @Router       /question-packages/{id}/work/questions [get]
+func (h *Handler) WorkQuestions(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	// Cek akses saja (tidak perlu paket penuh, cuma pastikan student boleh).
+	if _, err := h.svc.GetVisible(uint(id), h.scopeClassIDs(c)); err != nil {
+		if errors.Is(err, ErrNoAccess) {
+			return c.Status(403).JSON(ErrorResponse{Error: "paket ini belum tersedia untukmu"})
+		}
+		return c.Status(404).JSON(ErrorResponse{Error: "paket tidak ditemukan"})
+	}
+	questions, err := h.svc.ListQuestionsForPackage(uint(id))
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil soal"})
+	}
+	result := make([]WorkQuestionResponse, len(questions))
+	for i, q := range questions {
+		answers := make([]WorkAnswerResponse, len(q.Answers))
+		for j, a := range q.Answers {
+			answers[j] = WorkAnswerResponse{
+				ID:      a.ID,
+				Content: a.Content, // sudah di-rewrite di service
+			}
+		}
+		result[i] = WorkQuestionResponse{
+			ID:       q.ID,
+			Question: q.Question,
+			Answers:  answers,
+		}
+	}
+	return c.JSON(result)
+}
+
+// WorkQuestionResponse — soal untuk student (dengan opsi jawaban, tanpa kunci).
+type WorkQuestionResponse struct {
+	ID       uint                       `json:"id"`
+	Question string                     `json:"question"`
+	Answers  []WorkAnswerResponse       `json:"answers"`
+}
+
+type WorkAnswerResponse struct {
+	ID      uint   `json:"id"`
+	Content string `json:"content"`
+}
+
+// SubmitAnswer menyimpan jawaban student.
+// @Summary      Submit answer
+// @Description  Menyimpan jawaban student dan mengembalikan hasil + pembahasan
+// @Tags         QuestionPackage
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path int           true "Package ID"
+// @Param        body  body SubmitAnswerInput true "Data jawaban"
+// @Success      200 {object} SubmitAnswerResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /question-packages/{id}/work/submit [post]
+func (h *Handler) SubmitAnswer(c *fiber.Ctx) error {
+	packageID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	userID := c.Locals("user_id").(uint)
+	var input SubmitAnswerInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	if input.QuestionID == 0 {
+		return c.Status(400).JSON(ErrorResponse{Error: "question_id wajib diisi"})
+	}
+	isCorrect, explanation, err := h.svc.SubmitAnswer(userID, uint(packageID), input.QuestionID)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(SubmitAnswerResponse{
+		IsCorrect:    isCorrect,
+		Explanation:  explanation,
+	})
+}
+
+type SubmitAnswerInput struct {
+	QuestionID uint `json:"question_id"`
+}
+
+type SubmitAnswerResponse struct {
+	IsCorrect   bool   `json:"is_correct"`
+	Explanation string `json:"explanation"`
+}
+
+// GetWorkProgress mengembalikan progress student di paket.
+// @Summary      Get work progress
+// @Description  Mengembalikan jumlah soal yang sudah dikerjakan + ID soal yang selesai
+// @Tags         QuestionPackage
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Package ID"
+// @Success      200 {object} WorkProgressResponse
+// @Failure      403 {object} ErrorResponse
+// @Router       /question-packages/{id}/work/progress [get]
+func (h *Handler) GetWorkProgress(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	pkg, err := h.svc.GetVisible(uint(id), h.scopeClassIDs(c))
+	if err != nil {
+		if errors.Is(err, ErrNoAccess) {
+			return c.Status(403).JSON(ErrorResponse{Error: "paket ini belum tersedia untukmu"})
+		}
+		return c.Status(404).JSON(ErrorResponse{Error: "paket tidak ditemukan"})
+	}
+	userID := c.Locals("user_id").(uint)
+	completedIDs, err := h.svc.GetStudentProgress(userID, uint(id))
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil progress"})
+	}
+	total := len(pkg.Questions)
+	return c.JSON(WorkProgressResponse{
+		TotalCount:     total,
+		CompletedCount: len(completedIDs),
+		CompletedIDs:   completedIDs,
+	})
+}
+
+type WorkProgressResponse struct {
+	TotalCount     int    `json:"total_count"`
+	CompletedCount int    `json:"completed_count"`
+	CompletedIDs   []uint `json:"completed_ids"`
+}
+
 func Routes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	repo := NewRepository(db)
 	svc := NewService(repo, store)
@@ -374,4 +517,8 @@ func AuthRoutes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	auth.Get("/question-packages/:id", h.MyPackage)
 	auth.Get("/question-package-collections", h.MyCollections)
 	auth.Get("/question-package-collections/:id", h.MyCollection)
+
+	auth.Get("/question-packages/:id/work/questions", h.WorkQuestions)
+	auth.Post("/question-packages/:id/work/submit", h.SubmitAnswer)
+	auth.Get("/question-packages/:id/work/progress", h.GetWorkProgress)
 }
