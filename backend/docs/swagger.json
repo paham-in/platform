@@ -470,37 +470,6 @@
                 }
             }
         },
-        "/admin/dev/cron/payment-proof-cleanup": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Jalankan manual job hapus bukti pembayaran yang sudah di-approve dan lewat masa simpan (development)",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Dev"
-                ],
-                "summary": "Run payment proof cleanup job",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/devreset.RunJobResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/devreset.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/admin/dev/cron/session-cleanup": {
             "post": {
                 "security": [
@@ -994,56 +963,6 @@
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/material.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/admin/payment-proofs/{id}/approve": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Admin menyetujui bukti pembayaran. Setelah approve, proof bisa",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin"
-                ],
-                "summary": "Approve payment proof",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "PaymentProof ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/paymentproof.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/paymentproof.ErrorResponse"
                         }
                     }
                 }
@@ -3640,91 +3559,6 @@
                 }
             }
         },
-        "/invoices/{invoice_id}/proof": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Mengembalikan daftar bukti pembayaran untuk invoice, termasuk URL presigned untuk yang sudah approved.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Student"
-                ],
-                "summary": "List payment proofs",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Invoice ID",
-                        "name": "invoice_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/paymentproof.ProofDetail"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Student unggah bukti transfer pembayaran untuk invoice yang masih pending. File disimpan di storage private, bisa dilihat admin via presigned URL.",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Student"
-                ],
-                "summary": "Upload payment proof",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Invoice ID",
-                        "name": "invoice_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "Foto bukti transfer (jpg, png, gif, webp, max 5MB)",
-                        "name": "image",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/paymentproof.UploadResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/paymentproof.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/logout": {
             "post": {
                 "security": [
@@ -4145,6 +3979,147 @@
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/question-packages/{id}/work/progress": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan jumlah soal yang sudah dikerjakan + ID soal yang selesai",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionPackage"
+                ],
+                "summary": "Get work progress",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Package ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.WorkProgressResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/question-packages/{id}/work/questions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan soal dalam paket untuk dikerjakan student (tanpa kunci jawaban)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionPackage"
+                ],
+                "summary": "Get work questions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Package ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/questionpackage.WorkQuestionResponse"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/question-packages/{id}/work/submit": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menyimpan jawaban student dan mengembalikan hasil + pembahasan",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QuestionPackage"
+                ],
+                "summary": "Submit answer",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Package ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Data jawaban",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.SubmitAnswerInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/questionpackage.SubmitAnswerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/questionpackage.ErrorResponse"
                         }
@@ -5835,49 +5810,6 @@
                 }
             }
         },
-        "paymentproof.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "paymentproof.ProofDetail": {
-            "type": "object",
-            "properties": {
-                "approved_at": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "url": {
-                    "description": "presigned, kosong untuk pending",
-                    "type": "string"
-                }
-            }
-        },
-        "paymentproof.UploadResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
         "program.ClassInfo": {
             "type": "object",
             "properties": {
@@ -6249,6 +6181,25 @@
                 }
             }
         },
+        "questionpackage.SubmitAnswerInput": {
+            "type": "object",
+            "properties": {
+                "question_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "questionpackage.SubmitAnswerResponse": {
+            "type": "object",
+            "properties": {
+                "explanation": {
+                    "type": "string"
+                },
+                "is_correct": {
+                    "type": "boolean"
+                }
+            }
+        },
         "questionpackage.UpdateInput": {
             "type": "object",
             "properties": {
@@ -6263,6 +6214,51 @@
                 },
                 "subject_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "questionpackage.WorkAnswerResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "questionpackage.WorkProgressResponse": {
+            "type": "object",
+            "properties": {
+                "completed_count": {
+                    "type": "integer"
+                },
+                "completed_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "total_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "questionpackage.WorkQuestionResponse": {
+            "type": "object",
+            "properties": {
+                "answers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/questionpackage.WorkAnswerResponse"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "question": {
+                    "type": "string"
                 }
             }
         },
