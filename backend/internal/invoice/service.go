@@ -3,6 +3,7 @@ package invoice
 import (
 	"errors"
 	"regexp"
+	"time"
 
 	"bimbel2/backend/internal/models"
 
@@ -110,16 +111,40 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 		if invoice.ClassID == nil {
 			return nil
 		}
-		// hapus akses lama untuk kombinasi (user, class) supaya expiry selalu ikut end_date invoice
+
+		// Perpanjangan: kalau akses lama masih aktif saat invoice mulai
+		// (expiry >= start_date), expiry baru = expiry lama + durasi invoice.
+		// Kalau akses sudah habis, mulai dari end_date invoice seperti biasa.
+		var existing models.StudentClass
+		if err := tx.Where("user_id = ? AND class_id = ? AND expiry >= ?",
+			invoice.UserID, *invoice.ClassID, invoice.StartDate).
+			Order("expiry desc").First(&existing).Error; err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+
+		// hapus akses lama utk kombinasi (user, class), lalu buat ulang dgn expiry baru
 		if err := tx.Where("user_id = ? AND class_id = ?", invoice.UserID, *invoice.ClassID).
 			Delete(&models.StudentClass{}).Error; err != nil {
 			return err
 		}
 		if newStatus == "paid" {
+			expiry := invoice.EndDate
+			if existing.ID != 0 {
+				durationDays, err := daysBetween(invoice.StartDate, invoice.EndDate)
+				if err != nil {
+					return err
+				}
+				expiry, err = addDays(existing.Expiry, durationDays)
+				if err != nil {
+					return err
+				}
+			}
 			return tx.Create(&models.StudentClass{
 				UserID:  invoice.UserID,
 				ClassID: *invoice.ClassID,
-				Expiry:  invoice.EndDate,
+				Expiry:  expiry,
 			}).Error
 		}
 		return nil
@@ -138,6 +163,29 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 
 func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
+}
+
+// daysBetween mengembalikan jumlah hari antara dua tanggal YYYY-MM-DD
+// (end - start) — dipakai utk menghitung durasi invoice saat perpanjangan.
+func daysBetween(start, end string) (int, error) {
+	s, err := time.Parse("2006-01-02", start)
+	if err != nil {
+		return 0, err
+	}
+	e, err := time.Parse("2006-01-02", end)
+	if err != nil {
+		return 0, err
+	}
+	return int(e.Sub(s).Hours() / 24), nil
+}
+
+// addDays menambah N hari ke tanggal YYYY-MM-DD.
+func addDays(date string, days int) (string, error) {
+	t, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		return "", err
+	}
+	return t.AddDate(0, 0, days).Format("2006-01-02"), nil
 }
 
 func toResponse(i models.Invoice) InvoiceResponse {

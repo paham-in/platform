@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { format, addDays, addMonths } from "date-fns"
+import { format, addDays, addMonths, parseISO, differenceInCalendarDays } from "date-fns"
 import { BookMarked, GraduationCap, School } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Button } from "@/components/ui/button"
@@ -51,6 +51,22 @@ function StudentSubscribe() {
   const privatePrice = cls?.price_per_session ?? 0
   const groupPrice = cls?.group_price ?? 0
 
+  // Tanggal masa aktif baru (sebelum memperhitungkan perpanjangan dari akses lama)
+  const today = new Date()
+  const end = addDays(addMonths(today, months), -1)
+  const todayStr = format(today, "yyyy-MM-dd")
+  const endStr = format(end, "yyyy-MM-dd")
+
+  // Perpanjangan: kalau akses kelas ini masih aktif, expiry baru = expiry lama
+  // + durasi invoice (mirror logika backend invoice.ToggleStatus).
+  const myClass = myClasses.find((c) => String(c.class_id) === classId)
+  const currentExpiry = myClass?.expiry
+  const hasActiveAccess = !!currentExpiry && currentExpiry >= todayStr
+  const durationDays = differenceInCalendarDays(end, today)
+  const resultExpiry = hasActiveAccess
+    ? format(addDays(parseISO(currentExpiry), durationDays), "yyyy-MM-dd")
+    : endStr
+
   const subscribe = useMutation({
     ...postSubscribeMutation(),
     onSuccess: () => {
@@ -63,13 +79,11 @@ function StudentSubscribe() {
 
   const handleSubscribe = () => {
     if (!cls || contentPrice <= 0) return
-    const today = new Date()
-    const end = addMonths(today, months)
     subscribe.mutate({
       body: {
         amount: contentPrice * months,
-        start_date: format(today, "yyyy-MM-dd"),
-        end_date: format(addDays(end, -1), "yyyy-MM-dd"),
+        start_date: todayStr,
+        end_date: endStr,
         note: `Langganan konten ${cls.name} — ${months} bulan`,
         class_id: cls.id,
       },
@@ -139,6 +153,11 @@ function StudentSubscribe() {
                         </SelectContent>
                       </Select>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      Akses berlaku s.d.{" "}
+                      <span className="font-medium text-foreground">{format(parseISO(resultExpiry), "dd MMM yyyy")}</span>
+                      {hasActiveAccess && " (perpanjangan dari akses saat ini)"}
+                    </p>
                   </>
                 ) : (
                   <p className="text-sm text-muted-foreground">Harga untuk kelas ini belum ditentukan.</p>
