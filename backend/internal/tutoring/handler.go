@@ -15,14 +15,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
-
-type MessageResponse struct {
-	Message string `json:"message"`
-}
-
 type Handler struct {
 	svc     *Service
 	storage *storage.ObjectStorage
@@ -53,10 +45,10 @@ func hasRole(c *fiber.Ctx, role string) bool {
 // @Param        date        query string false "Filter guru free di tanggal ini (YYYY-MM-DD)"
 // @Param        start_time  query string false "Waktu mulai (HH:mm) — wajib bila date diisi"
 // @Param        end_time    query string false "Waktu selesai (HH:mm) — wajib bila date diisi"
-// @Success      200 {array} TeacherResponse
+// @Success      200 {array} ListTeachersResponse
 // @Router       /tutoring/teachers [get]
 func (h *Handler) ListTeachers(c *fiber.Ctx) error {
-	var filter TeacherFilter
+	var filter ListTeachersRequest
 	if v := c.Query("subject_id"); v != "" {
 		id, err := strconv.ParseUint(v, 10, 64)
 		if err != nil {
@@ -83,7 +75,7 @@ func (h *Handler) ListTeachers(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {array} BookingResponse
+// @Success      200 {array} ListBookingsResponse
 // @Router       /tutoring/bookings [get]
 func (h *Handler) ListBookings(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
@@ -110,8 +102,8 @@ func (h *Handler) ListBookings(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body body CreateBookingInput true "Booking data"
-// @Success      201 {object} BookingResponse
+// @Param        body body CreateBookingRequest true "Booking data"
+// @Success      201 {object} CreateBookingResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /tutoring/bookings [post]
 func (h *Handler) CreateBooking(c *fiber.Ctx) error {
@@ -119,7 +111,7 @@ func (h *Handler) CreateBooking(c *fiber.Ctx) error {
 		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk murid"})
 	}
 
-	var input CreateBookingInput
+	var input CreateBookingRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -139,7 +131,7 @@ func (h *Handler) CreateBooking(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {array} BookingResponse
+// @Success      200 {array} AdminListBookingsResponse
 // @Router       /admin/tutoring/bookings [get]
 func (h *Handler) AdminListBookings(c *fiber.Ctx) error {
 	bookings, err := h.svc.ListAllBookings()
@@ -156,12 +148,12 @@ func (h *Handler) AdminListBookings(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body body AdminCreateBookingInput true "Booking data"
-// @Success      201 {object} BookingResponse
+// @Param        body body AdminCreateBookingRequest true "Booking data"
+// @Success      201 {object} AdminCreateBookingResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /admin/tutoring/bookings [post]
 func (h *Handler) AdminCreateBooking(c *fiber.Ctx) error {
-	var input AdminCreateBookingInput
+	var input AdminCreateBookingRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -186,7 +178,7 @@ func (h *Handler) AdminCreateBooking(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int true "Booking ID"
-// @Success      200 {object} MessageResponse
+// @Success      200 {object} AdminDeleteBookingResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /admin/tutoring/bookings/{id} [delete]
 func (h *Handler) AdminDeleteBooking(c *fiber.Ctx) error {
@@ -197,7 +189,7 @@ func (h *Handler) AdminDeleteBooking(c *fiber.Ctx) error {
 	if err := h.svc.AdminDeleteBooking(uint(id)); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
-	return c.JSON(MessageResponse{Message: "booking berhasil dihapus"})
+	return c.JSON(newAdminDeleteBookingResponse())
 }
 
 // AssignTeacher assigns a teacher to a booking without one (admin only)
@@ -208,8 +200,8 @@ func (h *Handler) AdminDeleteBooking(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path int true "Booking ID"
-// @Param        body body AssignTeacherInput true "Teacher ID"
-// @Success      200 {object} BookingResponse
+// @Param        body body AssignTeacherRequest true "Teacher ID"
+// @Success      200 {object} AssignTeacherResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /admin/tutoring/bookings/{id}/assign [patch]
 func (h *Handler) AssignTeacher(c *fiber.Ctx) error {
@@ -217,7 +209,7 @@ func (h *Handler) AssignTeacher(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	var input AssignTeacherInput
+	var input AssignTeacherRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -261,12 +253,12 @@ func (h *Handler) GroupInfo(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {array} TutoringSessionResponse
+// @Success      200 {array} ListSessionsResponse
 // @Router       /tutoring/sessions [get]
 func (h *Handler) ListSessions(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
 
-	var sessions []TutoringSessionResponse
+	var sessions []ListSessionsResponse
 	var err error
 	if hasRole(c, "teacher") || hasRole(c, "admin") {
 		sessions, err = h.svc.ListTeacherSessions(userID)
@@ -307,8 +299,8 @@ func (h *Handler) ListSessions(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path int       true "Session ID"
-// @Param        body body RescheduleSessionInput true "Jadwal baru"
-// @Success      200  {object} TutoringSessionResponse
+// @Param        body body UpdateSessionRequest true "Jadwal baru"
+// @Success      200  {object} UpdateSessionResponse
 // @Failure      400  {object} ErrorResponse
 // @Router       /tutoring/sessions/{id} [patch]
 func (h *Handler) UpdateSession(c *fiber.Ctx) error {
@@ -319,7 +311,7 @@ func (h *Handler) UpdateSession(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	var input RescheduleSessionInput
+	var input UpdateSessionRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -339,7 +331,7 @@ func (h *Handler) UpdateSession(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int true "Session ID"
-// @Success      200 {object} TutoringSessionResponse
+// @Success      200 {object} CancelSessionResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /tutoring/sessions/{id}/cancel [post]
 func (h *Handler) CancelSession(c *fiber.Ctx) error {
@@ -367,7 +359,7 @@ func (h *Handler) CancelSession(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Param        id    path int  true "Session ID"
 // @Param        image formData file true "Foto bukti"
-// @Success      200  {object} TutoringSessionResponse
+// @Success      200  {object} UploadSessionEvidenceResponse
 // @Failure      400  {object} ErrorResponse
 // @Router       /tutoring/sessions/{id}/evidence [post]
 func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
@@ -445,7 +437,7 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        status query string false "Filter status: review atau done"
-// @Success      200 {array} TutoringSessionResponse
+// @Success      200 {array} AdminListEvidenceResponse
 // @Router       /admin/tutoring/evidence [get]
 func (h *Handler) AdminListEvidence(c *fiber.Ctx) error {
 	status := c.Query("status", "")
@@ -475,8 +467,8 @@ func (h *Handler) AdminListEvidence(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path int  true "Session ID"
-// @Param        body body ReviewEvidenceInput true "Aksi: approve atau reject"
-// @Success      200 {object} TutoringSessionResponse
+// @Param        body body AdminReviewEvidenceRequest true "Aksi: approve atau reject"
+// @Success      200 {object} AdminReviewEvidenceResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /admin/tutoring/evidence/{id} [patch]
 func (h *Handler) AdminReviewEvidence(c *fiber.Ctx) error {
@@ -484,7 +476,7 @@ func (h *Handler) AdminReviewEvidence(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	var input ReviewEvidenceInput
+	var input AdminReviewEvidenceRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -525,8 +517,8 @@ func (h *Handler) AdminReviewEvidence(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int true "Booking ID"
-// @Param        body body object true "Status baru"
-// @Success      200 {object} BookingResponse
+// @Param        body body UpdateBookingStatusRequest true "Status baru"
+// @Success      200 {object} UpdateBookingStatusResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /tutoring/bookings/{id} [patch]
 func (h *Handler) UpdateBookingStatus(c *fiber.Ctx) error {
@@ -538,9 +530,7 @@ func (h *Handler) UpdateBookingStatus(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	var input struct {
-		Status string `json:"status"`
-	}
+	var input UpdateBookingStatusRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -560,7 +550,7 @@ func (h *Handler) UpdateBookingStatus(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int true "Booking ID"
-// @Success      200 {object} BookingResponse
+// @Success      200 {object} CancelBookingResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /tutoring/bookings/{id}/cancel [post]
 func (h *Handler) CancelBooking(c *fiber.Ctx) error {
@@ -583,7 +573,7 @@ func (h *Handler) CancelBooking(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {object} TeacherEarningsResponse
+// @Success      200 {object} MyEarningsResponse
 // @Router       /tutoring/earnings [get]
 func (h *Handler) MyEarnings(c *fiber.Ctx) error {
 	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
@@ -604,7 +594,7 @@ func (h *Handler) MyEarnings(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {array} AdminBookingReport
+// @Success      200 {array} AdminListReportResponse
 // @Router       /admin/tutoring/report [get]
 func (h *Handler) AdminListReport(c *fiber.Ctx) error {
 	reports, err := h.svc.ListAdminSessionReport()
@@ -621,7 +611,7 @@ func (h *Handler) AdminListReport(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {array} TutoringSessionResponse
+// @Success      200 {array} AdminListFeesResponse
 // @Router       /admin/tutoring/fees [get]
 func (h *Handler) AdminListFees(c *fiber.Ctx) error {
 	sessions, err := h.svc.ListTeacherFeeSessions()
@@ -647,7 +637,7 @@ func (h *Handler) AdminListFees(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int true "Session ID"
-// @Success      200 {object} TutoringSessionResponse
+// @Success      200 {object} AdminToggleFeePaidResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /admin/tutoring/fees/{id} [patch]
 func (h *Handler) AdminToggleFeePaid(c *fiber.Ctx) error {

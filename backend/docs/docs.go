@@ -2549,7 +2549,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/tutoring.BookingResponse"
+                                "$ref": "#/definitions/tutoring.AdminListBookingsResponse"
                             }
                         }
                     }
@@ -2579,7 +2579,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/tutoring.AdminCreateBookingInput"
+                            "$ref": "#/definitions/tutoring.AdminCreateBookingRequest"
                         }
                     }
                 ],
@@ -2587,7 +2587,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.BookingResponse"
+                            "$ref": "#/definitions/tutoring.AdminCreateBookingResponse"
                         }
                     },
                     "400": {
@@ -2630,7 +2630,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.MessageResponse"
+                            "$ref": "#/definitions/tutoring.AdminDeleteBookingResponse"
                         }
                     },
                     "400": {
@@ -2674,7 +2674,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/tutoring.AssignTeacherInput"
+                            "$ref": "#/definitions/tutoring.AssignTeacherRequest"
                         }
                     }
                 ],
@@ -2682,7 +2682,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.BookingResponse"
+                            "$ref": "#/definitions/tutoring.AssignTeacherResponse"
                         }
                     },
                     "400": {
@@ -2726,7 +2726,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                                "$ref": "#/definitions/tutoring.AdminListEvidenceResponse"
                             }
                         }
                     }
@@ -2765,7 +2765,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/tutoring.ReviewEvidenceInput"
+                            "$ref": "#/definitions/tutoring.AdminReviewEvidenceRequest"
                         }
                     }
                 ],
@@ -2773,7 +2773,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                            "$ref": "#/definitions/tutoring.AdminReviewEvidenceResponse"
                         }
                     },
                     "400": {
@@ -2809,7 +2809,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                                "$ref": "#/definitions/tutoring.AdminListFeesResponse"
                             }
                         }
                     }
@@ -2847,7 +2847,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                            "$ref": "#/definitions/tutoring.AdminToggleFeePaidResponse"
                         }
                     },
                     "400": {
@@ -2883,7 +2883,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/tutoring.AdminBookingReport"
+                                "$ref": "#/definitions/tutoring.AdminListReportResponse"
                             }
                         }
                     }
@@ -4619,7 +4619,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/tutoring.BookingResponse"
+                                "$ref": "#/definitions/tutoring.ListBookingsResponse"
                             }
                         }
                     }
@@ -4649,7 +4649,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/tutoring.CreateBookingInput"
+                            "$ref": "#/definitions/tutoring.CreateBookingRequest"
                         }
                     }
                 ],
@@ -4657,7 +4657,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.BookingResponse"
+                            "$ref": "#/definitions/tutoring.CreateBookingResponse"
                         }
                     },
                     "400": {
@@ -4701,7 +4701,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/tutoring.UpdateBookingStatusRequest"
                         }
                     }
                 ],
@@ -4709,7 +4709,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.BookingResponse"
+                            "$ref": "#/definitions/tutoring.UpdateBookingStatusResponse"
                         }
                     },
                     "400": {
@@ -4752,7 +4752,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.BookingResponse"
+                            "$ref": "#/definitions/tutoring.CancelBookingResponse"
                         }
                     },
                     "400": {
@@ -4786,7 +4786,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.TeacherEarningsResponse"
+                            "$ref": "#/definitions/tutoring.MyEarningsResponse"
                         }
                     }
                 }
@@ -4859,7 +4859,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                                "$ref": "#/definitions/tutoring.ListSessionsResponse"
                             }
                         }
                     }
@@ -4898,7 +4898,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/tutoring.RescheduleSessionInput"
+                            "$ref": "#/definitions/tutoring.UpdateSessionRequest"
                         }
                     }
                 ],
@@ -4906,7 +4906,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                            "$ref": "#/definitions/tutoring.UpdateSessionResponse"
                         }
                     },
                     "400": {
@@ -4949,7 +4949,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                            "$ref": "#/definitions/tutoring.CancelSessionResponse"
                         }
                     },
                     "400": {
@@ -4999,7 +4999,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tutoring.TutoringSessionResponse"
+                            "$ref": "#/definitions/tutoring.UploadSessionEvidenceResponse"
                         }
                     },
                     "400": {
@@ -5061,7 +5061,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/tutoring.TeacherResponse"
+                                "$ref": "#/definitions/tutoring.ListTeachersResponse"
                             }
                         }
                     }
@@ -6380,54 +6380,7 @@ const docTemplate = `{
                 }
             }
         },
-        "tutoring.AdminBookingReport": {
-            "type": "object",
-            "properties": {
-                "booking_id": {
-                    "type": "integer"
-                },
-                "cancelled_count": {
-                    "type": "integer"
-                },
-                "done_count": {
-                    "type": "integer"
-                },
-                "fee_per_session": {
-                    "type": "number"
-                },
-                "fee_unpaid_total": {
-                    "type": "number"
-                },
-                "invoice_status": {
-                    "type": "string"
-                },
-                "mode": {
-                    "type": "string"
-                },
-                "price_per_session": {
-                    "type": "number"
-                },
-                "refund_amount": {
-                    "type": "number"
-                },
-                "scheduled_count": {
-                    "type": "integer"
-                },
-                "session_count": {
-                    "type": "integer"
-                },
-                "student_id": {
-                    "type": "integer"
-                },
-                "student_name": {
-                    "type": "string"
-                },
-                "teacher_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "tutoring.AdminCreateBookingInput": {
+        "tutoring.AdminCreateBookingRequest": {
             "type": "object",
             "properties": {
                 "class_id": {
@@ -6471,15 +6424,7 @@ const docTemplate = `{
                 }
             }
         },
-        "tutoring.AssignTeacherInput": {
-            "type": "object",
-            "properties": {
-                "teacher_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "tutoring.BookingResponse": {
+        "tutoring.AdminCreateBookingResponse": {
             "type": "object",
             "properties": {
                 "class_id": {
@@ -6538,7 +6483,506 @@ const docTemplate = `{
                 }
             }
         },
-        "tutoring.CreateBookingInput": {
+        "tutoring.AdminDeleteBookingResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.AdminListBookingsResponse": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "group_token": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_status": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "session_count": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "subject_name": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.AdminListEvidenceResponse": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "evidence_url": {
+                    "type": "string"
+                },
+                "fee_amount": {
+                    "type": "number"
+                },
+                "fee_paid": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_paid": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.AdminListFeesResponse": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "evidence_url": {
+                    "type": "string"
+                },
+                "fee_amount": {
+                    "type": "number"
+                },
+                "fee_paid": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_paid": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.AdminListReportResponse": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "integer"
+                },
+                "cancelled_count": {
+                    "type": "integer"
+                },
+                "done_count": {
+                    "type": "integer"
+                },
+                "fee_per_session": {
+                    "type": "number"
+                },
+                "fee_unpaid_total": {
+                    "type": "number"
+                },
+                "invoice_status": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "price_per_session": {
+                    "type": "number"
+                },
+                "refund_amount": {
+                    "type": "number"
+                },
+                "scheduled_count": {
+                    "type": "integer"
+                },
+                "session_count": {
+                    "type": "integer"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.AdminReviewEvidenceRequest": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "approve/reject",
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.AdminReviewEvidenceResponse": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "evidence_url": {
+                    "type": "string"
+                },
+                "fee_amount": {
+                    "type": "number"
+                },
+                "fee_paid": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_paid": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.AdminToggleFeePaidResponse": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "evidence_url": {
+                    "type": "string"
+                },
+                "fee_amount": {
+                    "type": "number"
+                },
+                "fee_paid": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_paid": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.AssignTeacherRequest": {
+            "type": "object",
+            "properties": {
+                "teacher_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "tutoring.AssignTeacherResponse": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "group_token": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_status": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "session_count": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "subject_name": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.CancelBookingResponse": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "group_token": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_status": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "session_count": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "subject_name": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.CancelSessionResponse": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "evidence_url": {
+                    "type": "string"
+                },
+                "fee_amount": {
+                    "type": "number"
+                },
+                "fee_paid": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_paid": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.CreateBookingRequest": {
             "type": "object",
             "properties": {
                 "class_id": {
@@ -6585,6 +7029,65 @@ const docTemplate = `{
                 }
             }
         },
+        "tutoring.CreateBookingResponse": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "group_token": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_status": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "session_count": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "subject_name": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
         "tutoring.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -6625,72 +7128,116 @@ const docTemplate = `{
                 }
             }
         },
-        "tutoring.MessageResponse": {
+        "tutoring.ListBookingsResponse": {
             "type": "object",
             "properties": {
-                "message": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "created_at": {
                     "type": "string"
-                }
-            }
-        },
-        "tutoring.RescheduleSessionInput": {
-            "type": "object",
-            "properties": {
+                },
                 "date": {
                     "type": "string"
                 },
                 "end_time": {
                     "type": "string"
                 },
-                "start_time": {
+                "group_token": {
                     "type": "string"
-                }
-            }
-        },
-        "tutoring.ReviewEvidenceInput": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "description": "approve/reject",
-                    "type": "string"
-                }
-            }
-        },
-        "tutoring.SubjectInfo": {
-            "type": "object",
-            "properties": {
+                },
                 "id": {
                     "type": "integer"
                 },
-                "name": {
+                "invoice_status": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "session_count": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "subject_name": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                },
+                "teacher_name": {
                     "type": "string"
                 }
             }
         },
-        "tutoring.TeacherEarningsResponse": {
+        "tutoring.ListSessionsResponse": {
             "type": "object",
             "properties": {
-                "fee_paid_total": {
-                    "type": "number"
-                },
-                "fee_unpaid_total": {
-                    "type": "number"
-                },
-                "sessions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tutoring.TutoringSessionResponse"
-                    }
-                },
-                "total_fee": {
-                    "type": "number"
-                },
-                "total_sessions": {
+                "booking_id": {
                     "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "evidence_url": {
+                    "type": "string"
+                },
+                "fee_amount": {
+                    "type": "number"
+                },
+                "fee_paid": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_paid": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "teacher_name": {
+                    "type": "string"
                 }
             }
         },
-        "tutoring.TeacherResponse": {
+        "tutoring.ListTeachersResponse": {
             "type": "object",
             "properties": {
                 "avatar_url": {
@@ -6713,7 +7260,172 @@ const docTemplate = `{
                 }
             }
         },
-        "tutoring.TutoringSessionResponse": {
+        "tutoring.MyEarningsResponse": {
+            "type": "object",
+            "properties": {
+                "fee_paid_total": {
+                    "type": "number"
+                },
+                "fee_unpaid_total": {
+                    "type": "number"
+                },
+                "sessions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tutoring.ListSessionsResponse"
+                    }
+                },
+                "total_fee": {
+                    "type": "number"
+                },
+                "total_sessions": {
+                    "type": "integer"
+                }
+            }
+        },
+        "tutoring.SubjectInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.UpdateBookingStatusRequest": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.UpdateBookingStatusResponse": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "group_token": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_status": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "session_count": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "subject_name": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.UpdateSessionRequest": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.UpdateSessionResponse": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "evidence_url": {
+                    "type": "string"
+                },
+                "fee_amount": {
+                    "type": "number"
+                },
+                "fee_paid": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_paid": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.UploadSessionEvidenceResponse": {
             "type": "object",
             "properties": {
                 "booking_id": {

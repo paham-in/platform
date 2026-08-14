@@ -16,77 +16,6 @@ import (
 
 const maxGroupSlots = 5
 
-type BookingResponse struct {
-	ID            uint   `json:"id"`
-	TeacherID     *uint  `json:"teacher_id,omitempty"`
-	Teacher       string `json:"teacher_name"`
-	StudentID     uint   `json:"student_id"`
-	Student       string `json:"student_name"`
-	SubjectID     uint   `json:"subject_id"`
-	Subject       string `json:"subject_name"`
-	Date          string `json:"date"`
-	StartTime     string `json:"start_time"`
-	EndTime       string `json:"end_time"`
-	Status        string `json:"status"`
-	Mode          string `json:"mode"`
-	SessionCount  int    `json:"session_count"`
-	GroupToken    string `json:"group_token"`
-	Note          string `json:"note"`
-	ClassID       *uint  `json:"class_id,omitempty"`
-	CreatedAt     string `json:"created_at"`
-	InvoiceStatus string `json:"invoice_status,omitempty"`
-}
-
-type TutoringSessionResponse struct {
-	ID          uint    `json:"id"`
-	BookingID   uint    `json:"booking_id"`
-	Date        string  `json:"date"`
-	StartTime   string  `json:"start_time"`
-	EndTime     string  `json:"end_time"`
-	Status      string  `json:"status"`
-	StudentID   uint    `json:"student_id"`
-	Teacher     string  `json:"teacher_name"`
-	Student     string  `json:"student_name"`
-	Mode        string  `json:"mode"`
-	Note        string  `json:"note"`
-	EvidenceURL string  `json:"evidence_url,omitempty"`
-	FeePaid     bool    `json:"fee_paid,omitempty"`
-	FeeAmount   float64 `json:"fee_amount,omitempty"`
-	InvoicePaid bool    `json:"invoice_paid,omitempty"`
-}
-
-type GroupInfoResponse struct {
-	TeacherID    uint   `json:"teacher_id"`
-	TeacherName  string `json:"teacher_name"`
-	Mode         string `json:"mode"`
-	SessionCount int    `json:"session_count"`
-	Date         string `json:"date"`
-	StartTime    string `json:"start_time"`
-	EndTime      string `json:"end_time"`
-	Participants int    `json:"participants"`
-	MaxSlots     int    `json:"max_slots"`
-}
-
-type TeacherResponse struct {
-	ID        uint          `json:"id"`
-	Name      string        `json:"name"`
-	Email     string        `json:"email"`
-	AvatarURL string        `json:"avatar_url"`
-	Subjects  []SubjectInfo `json:"subjects"`
-}
-
-type TeacherFilter struct {
-	SubjectID *uint
-	Date      string // "YYYY-MM-DD" — jika diisi, hanya guru yang bebas di tanggal ini
-	StartTime string
-	EndTime   string
-}
-
-type SubjectInfo struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
-}
-
 type Service struct {
 	repo     *Repository
 	db       *gorm.DB
@@ -102,7 +31,7 @@ func (s *Service) sessionFee(price float64) float64 {
 	return price * s.settings.TeacherFeePercent() / 100
 }
 
-func (s *Service) ListTeachers(filter TeacherFilter) ([]TeacherResponse, error) {
+func (s *Service) ListTeachers(filter ListTeachersRequest) ([]ListTeachersResponse, error) {
 	var users []models.User
 	var err error
 	if filter.SubjectID != nil {
@@ -114,13 +43,9 @@ func (s *Service) ListTeachers(filter TeacherFilter) ([]TeacherResponse, error) 
 		return nil, err
 	}
 
-	res := make([]TeacherResponse, 0, len(users))
+	res := make([]ListTeachersResponse, 0, len(users))
 	for _, u := range users {
-		subjects := make([]SubjectInfo, len(u.Subjects))
-		for j, subj := range u.Subjects {
-			subjects[j] = SubjectInfo{ID: subj.ID, Name: subj.Name}
-		}
-		res = append(res, TeacherResponse{ID: u.ID, Name: u.Name, Email: u.Email, AvatarURL: u.AvatarURL, Subjects: subjects})
+		res = append(res, newListTeachersResponse(u))
 	}
 
 	// filter ketersediaan: hanya guru yang bebas (tanpa booking bentrok &
@@ -145,63 +70,43 @@ func (s *Service) ListTeachers(filter TeacherFilter) ([]TeacherResponse, error) 
 	return res, nil
 }
 
-func (s *Service) ListAllBookings() ([]BookingResponse, error) {
+func (s *Service) ListAllBookings() ([]AdminListBookingsResponse, error) {
 	bookings, err := s.repo.ListAllBookings()
 	if err != nil {
 		return nil, err
 	}
-	return toBookingResponses(bookings), nil
+	res := make([]AdminListBookingsResponse, len(bookings))
+	for i, b := range bookings {
+		res[i] = newAdminListBookingsResponse(b)
+	}
+	return res, nil
 }
 
-func (s *Service) ListTeacherBookings(teacherID uint) ([]BookingResponse, error) {
+func (s *Service) ListTeacherBookings(teacherID uint) ([]ListBookingsResponse, error) {
 	bookings, err := s.repo.ListBookingsByTeacher(teacherID)
 	if err != nil {
 		return nil, err
 	}
-	return toBookingResponses(bookings), nil
+	res := make([]ListBookingsResponse, len(bookings))
+	for i, b := range bookings {
+		res[i] = newListBookingsResponse(b)
+	}
+	return res, nil
 }
 
-func (s *Service) ListMyBookings(studentID uint) ([]BookingResponse, error) {
+func (s *Service) ListMyBookings(studentID uint) ([]ListBookingsResponse, error) {
 	bookings, err := s.repo.ListBookingsByStudent(studentID)
 	if err != nil {
 		return nil, err
 	}
-	return toBookingResponses(bookings), nil
+	res := make([]ListBookingsResponse, len(bookings))
+	for i, b := range bookings {
+		res[i] = newListBookingsResponse(b)
+	}
+	return res, nil
 }
 
-type CreateBookingInput struct {
-	TeacherID    *uint    `json:"teacher_id"` // nil = belum ada guru, ditangani admin
-	SubjectID    uint     `json:"subject_id"` // mapel yang murid mau (wajib)
-	Date         string   `json:"date"`
-	StartTime    string   `json:"start_time"`
-	EndTime      string   `json:"end_time"`
-	Mode         string   `json:"mode"`          // private/group
-	SessionCount int      `json:"session_count"` // jumlah pertemuan (default 1)
-	GroupToken   string   `json:"group_token"`   // isi utk join grup yang sudah ada
-	Note         string   `json:"note"`
-	ClassID      *uint    `json:"class_id,omitempty"`
-	MemberEmails []string `json:"member_emails"` // group: email member (wajib ≥1)
-}
-
-type AssignTeacherInput struct {
-	TeacherID uint `json:"teacher_id"`
-}
-
-type AdminCreateBookingInput struct {
-	StudentID    uint     `json:"student_id"`
-	TeacherID    uint     `json:"teacher_id"`
-	SubjectID    uint     `json:"subject_id"`
-	Date         string   `json:"date"`
-	StartTime    string   `json:"start_time"`
-	EndTime      string   `json:"end_time"`
-	Mode         string   `json:"mode"`          // private/group
-	SessionCount int      `json:"session_count"` // jumlah pertemuan (default 1)
-	Note         string   `json:"note"`
-	ClassID      *uint    `json:"class_id,omitempty"`
-	MemberEmails []string `json:"member_emails"` // group: email member (wajib ≥1)
-}
-
-func (s *Service) CreateBooking(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
+func (s *Service) CreateBooking(studentID uint, input CreateBookingRequest) (*CreateBookingResponse, error) {
 	if input.Mode == "" {
 		input.Mode = "private"
 	}
@@ -227,7 +132,7 @@ func (s *Service) CreateBooking(studentID uint, input CreateBookingInput) (*Book
 	return s.createOrganizer(studentID, input)
 }
 
-func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
+func (s *Service) createOrganizer(studentID uint, input CreateBookingRequest) (*CreateBookingResponse, error) {
 	// kelas booking wajib diisi — ambil dari langganan aktif kalau tidak dikirim
 	if input.ClassID == nil {
 		classID, err := s.resolveStudentClassID(studentID)
@@ -269,7 +174,7 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 		if err != nil {
 			return nil, err
 		}
-		var resp *BookingResponse
+		var resp *CreateBookingResponse
 		err = s.db.Transaction(func(tx *gorm.DB) error {
 			base := models.Booking{
 				TeacherID:    input.TeacherID,
@@ -300,7 +205,7 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 			if err != nil {
 				return err
 			}
-			r := toBookingResponse(*created)
+			r := newCreateBookingResponse(*created)
 			resp = &r
 			return nil
 		})
@@ -335,7 +240,7 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingInput) (*Bo
 	if err != nil {
 		return nil, err
 	}
-	r := toBookingResponse(*created)
+	r := newCreateBookingResponse(*created)
 	return &r, nil
 }
 
@@ -388,7 +293,7 @@ func (s *Service) resolveGroupMembers(organizerID uint, emails []string) ([]uint
 
 // createNoTeacherBooking membuat booking tanpa guru untuk diproses admin.
 // Private & group sama-sama boleh tanpa guru; admin yang menetapkan nanti.
-func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
+func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingRequest) (*CreateBookingResponse, error) {
 	total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
 	if err != nil {
 		return nil, err
@@ -419,7 +324,7 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingInpu
 		base.Mode = "group"
 		base.GroupToken = token
 
-		var resp *BookingResponse
+		var resp *CreateBookingResponse
 		err = s.db.Transaction(func(tx *gorm.DB) error {
 			organizer := base
 			organizer.StudentID = studentID
@@ -437,7 +342,7 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingInpu
 			if err != nil {
 				return err
 			}
-			r := toBookingResponse(*created)
+			r := newCreateBookingResponse(*created)
 			resp = &r
 			return nil
 		})
@@ -457,7 +362,7 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingInpu
 	if err != nil {
 		return nil, err
 	}
-	r := toBookingResponse(*created)
+	r := newCreateBookingResponse(*created)
 	return &r, nil
 }
 
@@ -480,7 +385,7 @@ func (s *Service) validateSubjectProgram(subjectID, classID uint) error {
 // AdminCreateBooking daftarkan les privat manual atas nama murid.
 // Langsung status confirmed + generate sesi & invoice (admin tinggal tandai lunas).
 // Semua write (booking + sesi + invoice) dalam satu transaksi — atomicity.
-func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingResponse, error) {
+func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCreateBookingResponse, error) {
 	if input.Mode == "" {
 		input.Mode = "private"
 	}
@@ -533,7 +438,7 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 		if err != nil {
 			return nil, err
 		}
-		var resp *BookingResponse
+		var resp *AdminCreateBookingResponse
 		err = s.db.Transaction(func(tx *gorm.DB) error {
 			base := models.Booking{
 				TeacherID:    &input.TeacherID,
@@ -568,7 +473,7 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 			if err != nil {
 				return err
 			}
-			r := toBookingResponse(*created)
+			r := newAdminCreateBookingResponse(*created)
 			resp = &r
 			return nil
 		})
@@ -585,7 +490,7 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 	}
 	input.SessionCount = total
 
-	var resp *BookingResponse
+	var resp *AdminCreateBookingResponse
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		booking := models.Booking{
 			TeacherID:    &input.TeacherID,
@@ -614,7 +519,7 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingInput) (*BookingRes
 		if err != nil {
 			return err
 		}
-		r := toBookingResponse(*created)
+		r := newAdminCreateBookingResponse(*created)
 		resp = &r
 		return nil
 	})
@@ -638,7 +543,7 @@ func (s *Service) AdminDeleteBooking(id uint) error {
 	return s.repo.DeleteBookingCascade(id)
 }
 
-func (s *Service) joinGroup(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
+func (s *Service) joinGroup(studentID uint, input CreateBookingRequest) (*CreateBookingResponse, error) {
 	organizer, err := s.repo.GetBookingByToken(input.GroupToken)
 	if err != nil {
 		return nil, errors.New("grup tidak ditemukan")
@@ -700,7 +605,7 @@ func (s *Service) joinGroup(studentID uint, input CreateBookingInput) (*BookingR
 	if err != nil {
 		return nil, err
 	}
-	r := toBookingResponse(*created)
+	r := newCreateBookingResponse(*created)
 	return &r, nil
 }
 
@@ -790,7 +695,7 @@ func hasOverlap(start1, end1, start2, end2 int) bool {
 	return start1 < end2 && start2 < end1
 }
 
-func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*BookingResponse, error) {
+func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*UpdateBookingStatusResponse, error) {
 	valid := map[string]bool{"confirmed": true, "rejected": true}
 	if !valid[status] {
 		return nil, errors.New("status harus confirmed atau rejected")
@@ -854,7 +759,7 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Booki
 	if err != nil {
 		return nil, err
 	}
-	r := toBookingResponse(*updated)
+	r := newUpdateBookingStatusResponse(*updated)
 	return &r, nil
 }
 
@@ -864,7 +769,7 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Booki
 // lunas dihapus. Booking yang sudah lunas / punya pertemuan berjalan tidak bisa
 // dibatalkan sendiri — hubungi admin. Grup: hanya booking murid yang bersangkutan
 // yang dibatalkan, anggota lain tidak terpengaruh.
-func (s *Service) CancelBooking(id, studentID uint) (*BookingResponse, error) {
+func (s *Service) CancelBooking(id, studentID uint) (*CancelBookingResponse, error) {
 	booking, err := s.repo.GetBooking(id)
 	if err != nil {
 		return nil, errors.New("booking tidak ditemukan")
@@ -916,14 +821,14 @@ func (s *Service) CancelBooking(id, studentID uint) (*BookingResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	r := toBookingResponse(*updated)
+	r := newCancelBookingResponse(*updated)
 	return &r, nil
 }
 
 // AssignTeacher menetapkan guru ke booking tanpa guru (admin). Status tetap pending,
 // guru yang dipilih lalu approve sendiri. Validasi konflik jadwal. Kalau booking
 // bagian grup, guru diterapkan ke seluruh anggota ber-token sama.
-func (s *Service) AssignTeacher(id, teacherID uint) (*BookingResponse, error) {
+func (s *Service) AssignTeacher(id, teacherID uint) (*AssignTeacherResponse, error) {
 	booking, err := s.repo.GetBooking(id)
 	if err != nil {
 		return nil, errors.New("booking tidak ditemukan")
@@ -974,7 +879,7 @@ func (s *Service) AssignTeacher(id, teacherID uint) (*BookingResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	r := toBookingResponse(*updated)
+	r := newAssignTeacherResponse(*updated)
 	return &r, nil
 }
 
@@ -1103,91 +1008,36 @@ func (s *Service) ListGroupInfo(token string) (*GroupInfoResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	teacherName := ""
-	teacherID := uint(0)
-	if organizer.TeacherID != nil {
-		teacherID = *organizer.TeacherID
-	}
-	if organizer.Teacher != nil {
-		teacherName = organizer.Teacher.Name
-	}
-	return &GroupInfoResponse{
-		TeacherID:    teacherID,
-		TeacherName:  teacherName,
-		Mode:         organizer.Mode,
-		SessionCount: organizer.SessionCount,
-		Date:         organizer.Date,
-		StartTime:    organizer.StartTime,
-		EndTime:      organizer.EndTime,
-		Participants: int(count),
-		MaxSlots:     maxGroupSlots,
-	}, nil
+	resp := newGroupInfoResponse(*organizer, int(count))
+	return &resp, nil
 }
 
 // ListTeacherSessions mengembalikan semua sesi pertemuan milik guru.
-func (s *Service) ListTeacherSessions(teacherID uint) ([]TutoringSessionResponse, error) {
+func (s *Service) ListTeacherSessions(teacherID uint) ([]ListSessionsResponse, error) {
 	sessions, err := s.repo.ListSessionsByTeacher(teacherID)
 	if err != nil {
 		return nil, err
 	}
-	return toSessionResponses(sessions), nil
-}
-
-func toSessionResponses(sessions []models.TutoringSession) []TutoringSessionResponse {
-	res := make([]TutoringSessionResponse, len(sessions))
+	res := make([]ListSessionsResponse, len(sessions))
 	for i, v := range sessions {
-		teacherName := ""
-		studentName := ""
-		mode := ""
-		note := ""
-		if v.Booking != nil {
-			if v.Booking.Teacher != nil {
-				teacherName = v.Booking.Teacher.Name
-			}
-			if v.Booking.Student != nil {
-				studentName = v.Booking.Student.Name
-			}
-			mode = v.Booking.Mode
-			note = v.Booking.Note
-		}
-		res[i] = TutoringSessionResponse{
-			ID:          v.ID,
-			BookingID:   v.BookingID,
-			Date:        v.Date,
-			StartTime:   v.StartTime,
-			EndTime:     v.EndTime,
-			Status:      v.Status,
-			StudentID:   v.Booking.StudentID,
-			Teacher:     teacherName,
-			Student:     studentName,
-			Mode:        mode,
-			Note:        note,
-			EvidenceURL: v.EvidenceURL,
-			FeePaid:     v.FeePaid,
-		}
+		res[i] = newListSessionsResponse(v)
 	}
-	return res
+	return res, nil
 }
 
-func (s *Service) ListMySessions(studentID uint) ([]TutoringSessionResponse, error) {
+func (s *Service) ListMySessions(studentID uint) ([]ListSessionsResponse, error) {
 	sessions, err := s.repo.ListSessionsByUser(studentID)
 	if err != nil {
 		return nil, err
 	}
-	return toSessionResponses(sessions), nil
+	res := make([]ListSessionsResponse, len(sessions))
+	for i, v := range sessions {
+		res[i] = newListSessionsResponse(v)
+	}
+	return res, nil
 }
 
 const evidenceWindowDays = 7
-
-type RescheduleSessionInput struct {
-	Date      string `json:"date"`
-	StartTime string `json:"start_time"`
-	EndTime   string `json:"end_time"`
-}
-
-type ReviewEvidenceInput struct {
-	Action string `json:"action"` // approve/reject
-}
 
 // getOwnedSession mengambil sesi milik guru dan memastikan guru pemilik booking-nya.
 func (s *Service) getOwnedSession(sessionID, teacherID uint) (*models.TutoringSession, error) {
@@ -1202,7 +1052,7 @@ func (s *Service) getOwnedSession(sessionID, teacherID uint) (*models.TutoringSe
 }
 
 // RescheduleSession memindahkan sesi ke waktu lain oleh guru (tanpa approval murid).
-func (s *Service) RescheduleSession(sessionID, teacherID uint, input RescheduleSessionInput) (*TutoringSessionResponse, error) {
+func (s *Service) RescheduleSession(sessionID, teacherID uint, input UpdateSessionRequest) (*UpdateSessionResponse, error) {
 	session, err := s.getOwnedSession(sessionID, teacherID)
 	if err != nil {
 		return nil, err
@@ -1237,12 +1087,12 @@ func (s *Service) RescheduleSession(sessionID, teacherID uint, input RescheduleS
 	if err != nil {
 		return nil, err
 	}
-	res := toSessionResponses([]models.TutoringSession{*updated})
-	return &res[0], nil
+	r := newUpdateSessionResponse(*updated)
+	return &r, nil
 }
 
 // CancelSession membatalkan sesi oleh guru (scheduled → cancelled).
-func (s *Service) CancelSession(sessionID, teacherID uint) (*TutoringSessionResponse, error) {
+func (s *Service) CancelSession(sessionID, teacherID uint) (*CancelSessionResponse, error) {
 	session, err := s.getOwnedSession(sessionID, teacherID)
 	if err != nil {
 		return nil, err
@@ -1257,8 +1107,8 @@ func (s *Service) CancelSession(sessionID, teacherID uint) (*TutoringSessionResp
 	if err != nil {
 		return nil, err
 	}
-	res := toSessionResponses([]models.TutoringSession{*updated})
-	return &res[0], nil
+	r := newCancelSessionResponse(*updated)
+	return &r, nil
 }
 
 // checkEvidenceEligible memvalidasi sesi milik guru, berstatus scheduled, dan
@@ -1300,7 +1150,7 @@ func (s *Service) ValidateEvidenceUpload(sessionID, teacherID uint) error {
 
 // UploadEvidence menyimpan foto bukti kehadiran guru dan menandai sesi "review"
 // (menunggu validasi admin). Jendela upload: mulai jam sesi mulai sampai H+7 setelah sesi berakhir.
-func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (*TutoringSessionResponse, error) {
+func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (*UploadSessionEvidenceResponse, error) {
 	if _, err := s.checkEvidenceEligible(sessionID, teacherID); err != nil {
 		return nil, err
 	}
@@ -1314,19 +1164,20 @@ func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (
 	if err != nil {
 		return nil, err
 	}
-	res := toSessionResponses([]models.TutoringSession{*updated})
-	return &res[0], nil
+	r := newUploadSessionEvidenceResponse(*updated)
+	return &r, nil
 }
 
 // ListEvidence mengembalikan sesi yang punya bukti, difilter status ("" = semua).
 // Plus info fee & status invoice utk halaman admin gabungan validasi + fee guru.
-func (s *Service) ListEvidence(status string) ([]TutoringSessionResponse, error) {
+func (s *Service) ListEvidence(status string) ([]AdminListEvidenceResponse, error) {
 	sessions, err := s.repo.ListSessionsWithEvidence(status)
 	if err != nil {
 		return nil, err
 	}
-	res := toSessionResponses(sessions)
+	res := make([]AdminListEvidenceResponse, len(sessions))
 	for i, v := range sessions {
+		res[i] = newAdminListEvidenceResponse(v)
 		paid := v.Booking != nil && v.Booking.Invoice != nil && v.Booking.Invoice.Status == "paid"
 		res[i].InvoicePaid = paid
 		// fee_amount cuma relevan utk sesi selesai yg muridnya sudah lunas
@@ -1339,7 +1190,7 @@ func (s *Service) ListEvidence(status string) ([]TutoringSessionResponse, error)
 }
 
 // ApproveEvidence menyetujui bukti → sesi selesai.
-func (s *Service) ApproveEvidence(sessionID uint) (*TutoringSessionResponse, error) {
+func (s *Service) ApproveEvidence(sessionID uint) (*AdminReviewEvidenceResponse, error) {
 	session, err := s.repo.GetSession(sessionID)
 	if err != nil {
 		return nil, errors.New("sesi tidak ditemukan")
@@ -1354,8 +1205,8 @@ func (s *Service) ApproveEvidence(sessionID uint) (*TutoringSessionResponse, err
 	if err != nil {
 		return nil, err
 	}
-	res := toSessionResponses([]models.TutoringSession{*updated})
-	return &res[0], nil
+	r := newAdminReviewEvidenceResponse(*updated)
+	return &r, nil
 }
 
 // ValidateEvidenceReject memvalidasi sesi punya bukti yang menunggu validasi
@@ -1374,7 +1225,7 @@ func (s *Service) ValidateEvidenceReject(sessionID uint) (string, error) {
 
 // RejectEvidence menolak bukti → sesi kembali terjadwal, bukti dihapus.
 // Mengembalikan objectName bukti lama supaya handler bisa menghapus file storage.
-func (s *Service) RejectEvidence(sessionID uint) (*TutoringSessionResponse, string, error) {
+func (s *Service) RejectEvidence(sessionID uint) (*AdminReviewEvidenceResponse, string, error) {
 	session, err := s.repo.GetSession(sessionID)
 	if err != nil {
 		return nil, "", errors.New("sesi tidak ditemukan")
@@ -1393,87 +1244,37 @@ func (s *Service) RejectEvidence(sessionID uint) (*TutoringSessionResponse, stri
 	if err != nil {
 		return nil, "", err
 	}
-	res := toSessionResponses([]models.TutoringSession{*updated})
-	return &res[0], oldObject, nil
-}
-
-type AdminBookingReport struct {
-	BookingID       uint    `json:"booking_id"`
-	StudentID       uint    `json:"student_id"`
-	Teacher         string  `json:"teacher_name"`
-	Student         string  `json:"student_name"`
-	Mode            string  `json:"mode"`
-	SessionCount    int     `json:"session_count"`
-	DoneCount       int     `json:"done_count"`
-	CancelledCount  int     `json:"cancelled_count"`
-	ScheduledCount  int     `json:"scheduled_count"`
-	PricePerSession float64 `json:"price_per_session"`
-	FeePerSession   float64 `json:"fee_per_session"`
-	FeeUnpaidTotal  float64 `json:"fee_unpaid_total"`
-	RefundAmount    float64 `json:"refund_amount"`
-	InvoiceStatus   string  `json:"invoice_status"`
+	r := newAdminReviewEvidenceResponse(*updated)
+	return &r, oldObject, nil
 }
 
 // ListAdminSessionReport mengagregasi jumlah pertemuan per booking + nominal refund.
-func (s *Service) ListAdminSessionReport() ([]AdminBookingReport, error) {
+func (s *Service) ListAdminSessionReport() ([]AdminListReportResponse, error) {
 	bookings, err := s.repo.ListAllBookingsWithSessions()
 	if err != nil {
 		return nil, err
 	}
-	reports := make([]AdminBookingReport, 0, len(bookings))
+	reports := make([]AdminListReportResponse, 0, len(bookings))
 	for _, b := range bookings {
-		perSession := s.perSessionPrice(b.ClassID, b.Mode)
-		rep := AdminBookingReport{
-			BookingID:       b.ID,
-			StudentID:       b.StudentID,
-			Mode:            b.Mode,
-			SessionCount:    b.SessionCount,
-			PricePerSession: perSession,
-			FeePerSession:   s.sessionFee(perSession),
-			InvoiceStatus:   "pending",
-		}
-		if b.Teacher != nil {
-			rep.Teacher = b.Teacher.Name
-		}
-		if b.Student != nil {
-			rep.Student = b.Student.Name
-		}
-		if b.Invoice != nil {
-			rep.InvoiceStatus = b.Invoice.Status
-		}
-		for _, sess := range b.Sessions {
-			switch sess.Status {
-			case "done":
-				rep.DoneCount++
-				if !sess.FeePaid {
-					rep.FeeUnpaidTotal += rep.FeePerSession
-				}
-			case "cancelled":
-				rep.CancelledCount++
-			case "scheduled", "review":
-				rep.ScheduledCount++
-			}
-		}
-		rep.RefundAmount = float64(rep.CancelledCount) * perSession
-		reports = append(reports, rep)
+		reports = append(reports, s.newAdminListReportResponse(b))
 	}
 	return reports, nil
 }
 
 // ListTeacherFeeSessions mengembalikan sesi terlaksana (done) dari booking yang
 // invoice-nya sudah lunas, utk pencatatan fee guru.
-func (s *Service) ListTeacherFeeSessions() ([]TutoringSessionResponse, error) {
+func (s *Service) ListTeacherFeeSessions() ([]AdminListFeesResponse, error) {
 	sessions, err := s.repo.ListSessionsDone()
 	if err != nil {
 		return nil, err
 	}
-	result := make([]TutoringSessionResponse, 0, len(sessions))
+	result := make([]AdminListFeesResponse, 0, len(sessions))
 	for _, v := range sessions {
 		// hanya sesi yang muridnya sudah bayar
 		if v.Booking == nil || v.Booking.Invoice == nil || v.Booking.Invoice.Status != "paid" {
 			continue
 		}
-		res := toSessionResponses([]models.TutoringSession{v})[0]
+		res := newAdminListFeesResponse(v)
 		perSession := s.perSessionPrice(v.Booking.ClassID, v.Booking.Mode)
 		res.FeeAmount = s.sessionFee(perSession)
 		result = append(result, res)
@@ -1482,7 +1283,7 @@ func (s *Service) ListTeacherFeeSessions() ([]TutoringSessionResponse, error) {
 }
 
 // ToggleSessionFeePaid membalik status pembayaran fee guru pada sesi.
-func (s *Service) ToggleSessionFeePaid(sessionID uint) (*TutoringSessionResponse, error) {
+func (s *Service) ToggleSessionFeePaid(sessionID uint) (*AdminToggleFeePaidResponse, error) {
 	if _, err := s.repo.ToggleSessionFeePaid(sessionID); err != nil {
 		return nil, errors.New("sesi tidak ditemukan")
 	}
@@ -1490,43 +1291,18 @@ func (s *Service) ToggleSessionFeePaid(sessionID uint) (*TutoringSessionResponse
 	if err != nil {
 		return nil, err
 	}
-	res := toSessionResponses([]models.TutoringSession{*updated})
-	return &res[0], nil
-}
-
-type TeacherEarningsResponse struct {
-	TotalSessions  int                       `json:"total_sessions"`
-	TotalFee       float64                   `json:"total_fee"`
-	FeePaidTotal   float64                   `json:"fee_paid_total"`
-	FeeUnpaidTotal float64                   `json:"fee_unpaid_total"`
-	Sessions       []TutoringSessionResponse `json:"sessions"`
+	r := newAdminToggleFeePaidResponse(*updated)
+	return &r, nil
 }
 
 // ListTeacherEarnings mengembalikan riwayat sesi selesai milik guru + estimasi fee.
-func (s *Service) ListTeacherEarnings(teacherID uint) (*TeacherEarningsResponse, error) {
+func (s *Service) ListTeacherEarnings(teacherID uint) (*MyEarningsResponse, error) {
 	sessions, err := s.repo.ListSessionsByTeacher(teacherID)
 	if err != nil {
 		return nil, err
 	}
-	resp := &TeacherEarningsResponse{}
-	for _, v := range sessions {
-		if v.Status != "done" || v.Booking == nil {
-			continue
-		}
-		perSession := s.perSessionPrice(v.Booking.ClassID, v.Booking.Mode)
-		fee := s.sessionFee(perSession)
-		sv := toSessionResponses([]models.TutoringSession{v})[0]
-		sv.FeeAmount = fee
-		resp.Sessions = append(resp.Sessions, sv)
-		resp.TotalSessions++
-		resp.TotalFee += fee
-		if v.FeePaid {
-			resp.FeePaidTotal += fee
-		} else {
-			resp.FeeUnpaidTotal += fee
-		}
-	}
-	return resp, nil
+	resp := s.newMyEarningsResponse(sessions)
+	return &resp, nil
 }
 
 func generateToken() (string, error) {
@@ -1535,51 +1311,4 @@ func generateToken() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(b), nil
-}
-
-func toBookingResponse(b models.Booking) BookingResponse {
-	studentName := ""
-	teacherName := ""
-	subjectName := ""
-	if b.Student != nil {
-		studentName = b.Student.Name
-	}
-	if b.Teacher != nil {
-		teacherName = b.Teacher.Name
-	}
-	if b.Subject != nil {
-		subjectName = b.Subject.Name
-	}
-	invoiceStatus := ""
-	if b.Invoice != nil {
-		invoiceStatus = b.Invoice.Status
-	}
-	return BookingResponse{
-		ID:            b.ID,
-		TeacherID:     b.TeacherID,
-		Teacher:       teacherName,
-		StudentID:     b.StudentID,
-		Student:       studentName,
-		SubjectID:     b.SubjectID,
-		Subject:       subjectName,
-		Date:          b.Date,
-		StartTime:     b.StartTime,
-		EndTime:       b.EndTime,
-		Status:        b.Status,
-		Mode:          b.Mode,
-		SessionCount:  b.SessionCount,
-		GroupToken:    b.GroupToken,
-		Note:          b.Note,
-		ClassID:       b.ClassID,
-		CreatedAt:     b.CreatedAt.Format("2006-01-02"),
-		InvoiceStatus: invoiceStatus,
-	}
-}
-
-func toBookingResponses(bookings []models.Booking) []BookingResponse {
-	res := make([]BookingResponse, len(bookings))
-	for i, v := range bookings {
-		res[i] = toBookingResponse(v)
-	}
-	return res
 }
