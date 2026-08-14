@@ -49,7 +49,7 @@ function EditMaterial() {
   const { chapterId, materialId } = useParams({ from: "/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit" });
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const { data: material, isLoading } = useQuery(getAdminMaterialsByIdOptions({ path: { id: Number(materialId) } }));
+  const { data: material, isLoading, isError } = useQuery(getAdminMaterialsByIdOptions({ path: { id: Number(materialId) } }));
 
   // subject gallery = subject dari chapter ini (buat GalleryPicker di editor).
   const { data: chapters = [] } = useQuery({
@@ -166,6 +166,21 @@ function EditMaterial() {
             </CardContent>
           </Card>
         </div>
+      </main>
+    );
+  }
+
+  if (isError) {
+    return (
+      <main className="p-6">
+        <Card>
+          <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
+            <p className="text-muted-foreground">Materi tidak ditemukan atau kamu tidak punya akses ke materi ini.</p>
+            <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId }}>
+              <Button variant="outline">Kembali ke Daftar Materi</Button>
+            </Link>
+          </CardContent>
+        </Card>
       </main>
     );
   }

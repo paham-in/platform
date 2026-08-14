@@ -1,6 +1,7 @@
 package material
 
 import (
+	"errors"
 	"strings"
 
 	"bimbel2/backend/internal/models"
@@ -16,9 +17,47 @@ func NewService(repo *Repository, store *storage.ObjectStorage) *Service {
 	return &Service{repo: repo, storage: store}
 }
 
+// Access mewakili hak akses pemanggil terhadap materi.
+// CallerID = id user yang login; IsAdmin = punya role admin;
+// IsStaff = admin atau teacher (boleh lihat draft miliknya / belum ber-pemilik).
+type Access struct {
+	CallerID uint
+	IsAdmin  bool
+	IsStaff  bool
+}
+
+var (
+	// ErrNotFound dipakai juga utk akses baca yang ditolak (hindari
+	// membocorkan keberadaan materi milik guru lain).
+	ErrNotFound = errors.New("materi tidak ditemukan")
+	// ErrNotOwner dipakai utk tulis materi milik guru lain.
+	ErrNotOwner = errors.New("bukan materi kamu")
+)
+
+// canView: published boleh dilihat semua; draft hanya admin, penulisnya, atau
+// materi tanpa pemilik (author_id=0 — materi lama yang belum di-claim).
+func (s *Service) canView(m *models.Material, a Access) bool {
+	if a.IsAdmin || m.Status == "published" {
+		return true
+	}
+	if !a.IsStaff {
+		return false
+	}
+	return m.AuthorID == a.CallerID || m.AuthorID == 0
+}
+
+// canManage: admin selalu; selain admin hanya penulisnya atau materi tanpa pemilik.
+func (s *Service) canManage(m *models.Material, a Access) bool {
+	if a.IsAdmin {
+		return true
+	}
+	return m.AuthorID == a.CallerID || m.AuthorID == 0
+}
+
 type MaterialResponse struct {
 	ID          uint   `json:"id"`
 	ChapterID   uint   `json:"chapter_id"`
+	AuthorID    uint   `json:"author_id,omitempty"`
 	ClassID     uint   `json:"class_id"`
 	ChapterName string `json:"chapter_name"`
 	Title       string `json:"title"`
@@ -32,16 +71,28 @@ type MaterialResponse struct {
 	Order       int    `json:"order"`
 }
 
-func (s *Service) List() ([]MaterialResponse, error) {
-	materials, err := s.repo.List()
+func (s *Service) List(a Access) ([]MaterialResponse, error) {
+	var materials []models.Material
+	var err error
+	if a.IsAdmin {
+		materials, err = s.repo.List()
+	} else {
+		materials, err = s.repo.ListScoped(a.CallerID)
+	}
 	if err != nil {
 		return nil, err
 	}
 	return s.toResponses(materials), nil
 }
 
-func (s *Service) ListByChapter(chapterID uint) ([]MaterialResponse, error) {
-	materials, err := s.repo.ListByChapter(chapterID)
+func (s *Service) ListByChapter(chapterID uint, a Access) ([]MaterialResponse, error) {
+	var materials []models.Material
+	var err error
+	if a.IsAdmin {
+		materials, err = s.repo.ListByChapter(chapterID)
+	} else {
+		materials, err = s.repo.ListByChapterScoped(chapterID, a.CallerID)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -67,10 +118,13 @@ func (s *Service) ListPublishedByChapter(chapterID uint, includePremium bool, cl
 	return s.toResponses(materials), nil
 }
 
-func (s *Service) Get(id uint) (*MaterialResponse, error) {
+func (s *Service) Get(id uint, a Access) (*MaterialResponse, error) {
 	material, err := s.repo.Get(id)
 	if err != nil {
-		return nil, err
+		return nil, ErrNotFound
+	}
+	if !s.canView(material, a) {
+		return nil, ErrNotFound
 	}
 	r := s.toResponse(*material)
 	return &r, nil
@@ -88,10 +142,11 @@ type CreateInput struct {
 	Order       int    `json:"order"`
 }
 
-func (s *Service) Create(input CreateInput) (*MaterialResponse, error) {
+func (s *Service) Create(input CreateInput, authorID uint) (*MaterialResponse, error) {
 	slug := strings.ToLower(strings.ReplaceAll(input.Title, " ", "-"))
 	material := models.Material{
 		ChapterID:   input.ChapterID,
+		AuthorID:    authorID,
 		Title:       input.Title,
 		Slug:        slug,
 		Description: input.Description,
@@ -131,7 +186,14 @@ type UpdateInput struct {
 	Order       *int    `json:"order"`
 }
 
-func (s *Service) Update(id uint, input UpdateInput) (*MaterialResponse, error) {
+func (s *Service) Update(id uint, input UpdateInput, a Access) (*MaterialResponse, error) {
+	material, err := s.repo.Get(id)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	if !s.canManage(material, a) {
+		return nil, ErrNotOwner
+	}
 	updates := map[string]any{}
 	if input.Title != nil {
 		updates["title"] = *input.Title
@@ -161,13 +223,24 @@ func (s *Service) Update(id uint, input UpdateInput) (*MaterialResponse, error) 
 	if input.ChapterID != nil {
 		updates["chapter_id"] = *input.ChapterID
 	}
+	if !a.IsAdmin && material.AuthorID == 0 {
+		// materi lama tanpa pemilik di-claim oleh guru pertama yang mengeditnya
+		updates["author_id"] = a.CallerID
+	}
 	if err := s.repo.Update(id, updates); err != nil {
 		return nil, err
 	}
-	return s.Get(id)
+	return s.Get(id, a)
 }
 
-func (s *Service) Delete(id uint) error {
+func (s *Service) Delete(id uint, a Access) error {
+	material, err := s.repo.Get(id)
+	if err != nil {
+		return ErrNotFound
+	}
+	if !s.canManage(material, a) {
+		return ErrNotOwner
+	}
 	return s.repo.Delete(id)
 }
 
@@ -179,6 +252,7 @@ func (s *Service) toResponse(m models.Material) MaterialResponse {
 	return MaterialResponse{
 		ID:          m.ID,
 		ChapterID:   m.ChapterID,
+		AuthorID:    m.AuthorID,
 		ClassID:     m.Chapter.ClassID,
 		ChapterName: chapterName,
 		Title:       m.Title,

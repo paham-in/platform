@@ -117,6 +117,8 @@ function ChapterMaterials() {
   const [searchInput, setSearchInput] = useState(search ?? "");
   const { data: user } = useQuery(getMeOptions());
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_materials;
+  // materi bisa dikelola kalau punya izin kelola DAN (admin, materi sendiri, atau materi tanpa pemilik)
+  const canEdit = (m: { author_id?: number }) => user?.roles?.includes("admin") || m.author_id === user?.id || !m.author_id;
   const { data: materials = [], isLoading, isError } = useQuery(
     getAdminMaterialsOptions({ query: { chapter_id: Number(chapterId) } })
   );
@@ -387,7 +389,7 @@ function ChapterMaterials() {
                               <Eye className="h-4 w-4" /> Lihat
                             </DropdownMenuItem>
                           </Link>
-                          {canManage && (
+                          {canManage && canEdit(m) && (
                             <>
                               <DropdownMenuItem onClick={() => {
                                 setPendingStatus({ id: m.id!, status: m.status === "published" ? "draft" : "published", name: m.title! });

@@ -16,7 +16,7 @@ Namun masih ada **1 temuan kritis, 2 temuan tinggi, dan beberapa temuan sedang**
 |---|----------|-----------|--------|
 | 1 | **Kritis** | Stored XSS: konten forum/materi di-render via `innerHTML` tanpa sanitasi | 🔴 Masih terbuka (S1) |
 | 2 | — | Admin tidak bisa approve/reject booking — **by design** (hanya guru terkait). Masalah aslinya: UI admin menampilkan tombol "Tolak" yang pasti gagal → **tombol sudah dihapus** | ✅ Clarified & fixed 2026-08-14 |
-| 3 | **Tinggi** | Draft & materi milik guru lain bisa dibaca + diubah/dihapus lintas-teacher | 🔴 Masih terbuka (S4, diperluas) |
+| 3 | **Tinggi** | Draft & materi milik guru lain bisa dibaca + diubah/dihapus lintas-teacher | ✅ **Fixed 2026-08-14** (S4/A7) — akses per-author di service material |
 | 4 | **Tinggi** | Goroutine background job tanpa `recover` → satu panic = seluruh server crash | 🆕 Baru |
 | 5 | **Tinggi** | `EvidenceCleanup` non-atomic → bukti bisa "stuck" permanen (broken link) | 🆕 Baru |
 | 6 | Sedang | Token sesi di `localStorage` + token OAuth lewat query-string URL (S2) | 🔴 Masih terbuka |
@@ -118,16 +118,20 @@ Password admin (dari env) tercetak di log server setiap kali akun admin baru di-
 
 ---
 
-### A7. SEDANG — S4 diperluas: teacher bisa **menulis** materi milik guru lain
+### A7. SEDANG — S4 diperluas: teacher bisa **menulis** materi milik guru lain — ✅ FIXED (2026-08-14)
 
-Selain baca draft (S4 lama, masih terbuka — `material/handler.go:54-103` tidak filter `author_id`):
+Sebelumnya: `material.Service.Update`/`Delete`/`Get`/`List*` tanpa filter `author_id`, dan `AuthorID` **tidak pernah diisi** saat create (seluruh materi lama `author_id = 0`).
 
-- `middleware.ContentManager` (auth.go:88-127): GET selalu diizinkan untuk semua teacher; POST/PATCH/DELETE hanya butuh flag `CanManageMaterials` — **tanpa cek kepemilikan**.
-- `material.Service.Update` / `Delete` (service.go:134-174) juga tanpa filter `author_id`.
+**Perbaikan (backend `internal/material`):**
+- `Create` sekarang menerima `authorID` dari session (`callerAccess(c).CallerID`) — kolom `author_id` mulai terisi.
+- Service punya `Access{CallerID, IsAdmin, IsStaff}` + `canView`/`canManage`:
+  - **Baca**: published boleh semua; draft hanya admin, penulisnya, atau materi tanpa pemilik (`author_id=0`). Guru lain → 404.
+  - **Tulis** (update/hapus): hanya admin, penulisnya, atau materi tanpa pemilik. Guru lain → 403 `bukan materi kamu`.
+  - **List**: non-admin hanya melihat published + miliknya + tanpa pemilik (`ListScoped`/`ListByChapterScoped`).
+- **Materi lama (`author_id=0`)** tetap bisa dikelola guru berizin, dan **di-claim otomatis** (jadi milik guru tersebut) saat pertama kali diedit — sesuai keputusan bisnis.
+- Handler: `callerAccess(c)` + pemetaan error 403/404; halaman edit frontend menampilkan state error kalau akses ditolak; aksi edit/publish/hapus di UI materi di-gate per kepemilikan (`author_id` ditambahkan ke tipe client).
 
-Artinya: guru A yang punya izin kelola materi bisa **mengubah/menghapus materi guru B** (dan membaca draft-nya) via `/admin/materials/:id`. Ini lebih parah dari yang dilaporkan sebelumnya (dulu cuma "baca draft bocor").
-
-**Fix saran:** di service `Update`/`Delete`/`Get`, tambahkan scope `WHERE author_id = ?` untuk non-admin (ambil `user_id` dari context). Untuk list, filter yang sama.
+**⚠️ Belum dicover:** `questionpackage`/`questionbank` juga **tidak punya kolom `AuthorID`** — guru dengan izin kelola paket soal masih bisa mengubah/menghapus paket soal guru lain. Pola fix sama dengan material, perlu diterapkan menyusul.
 
 ---
 
@@ -161,7 +165,7 @@ Error pada update sliding diabaikan (ok), tapi 4 query/request untuk setiap hala
 | S1 | Stored XSS via `innerHTML` | 🔴 **Masih terbuka** | `rich-content.tsx:16` masih `ref.current.innerHTML = html;`; backend hanya `stripHTML` (regex) untuk preview + normalisasi URL gambar, tanpa sanitasi whitelist |
 | S2 | Token localStorage + URL query-string | 🔴 **Masih terbuka** | `main.tsx:10`, `auth.callback.tsx:16`, `oauth.go:113` (redirect `?token=`) |
 | S3 | Admin tidak bisa reject/confirm booking | ✅ **Bukan bug — by design** (klarisifikasi 2026-08-14) | Hanya guru terkait yang boleh approve/reject (`tutoring/service.go:712`). Yang bermasalah justru UI-nya: tombol "Tolak" di `admin/tutoring/index.tsx` muncul untuk booking pending tanpa guru — endpoint-nya teacher-only sehingga **selalu gagal**. Tombol + mutation mati sudah dihapus dari UI admin |
-| S4 | Draft materi bocor via admin endpoint | 🔴 **Masih terbuka (malah lebih luas)** | Lihat A7 |
+| S4 | Draft materi bocor via admin endpoint | ✅ **Fixed 2026-08-14** | Akses per-author di service material (lihat A7) |
 | S5 | CORS `*` + tanpa rate limiter | 🔴 **Masih terbuka** | `main.go:70` `app.Use(cors.New())`; tidak ada import limiter |
 | S6 | OAuth `state` cookie tanpa SameSite | 🔴 **Masih terbuka** | `oauth.go:53-59` — `HTTPOnly` saja, tanpa `SameSite`/`Secure` eksplisit |
 | S7 | Dev-reset di `.env` | ⚠️ Tergantung env produksi | `DEV_RESET_ENABLED` — pastikan off di produksi |

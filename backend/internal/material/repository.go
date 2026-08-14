@@ -30,6 +30,25 @@ func (r *Repository) ListByChapter(chapterID uint) ([]models.Material, error) {
 	return materials, nil
 }
 
+// ListScoped utk non-admin: published + materi milik caller + materi tanpa pemilik.
+func (r *Repository) ListScoped(callerID uint) ([]models.Material, error) {
+	var materials []models.Material
+	q := r.db.Preload("Chapter").Where("status = ? OR author_id = ? OR author_id = 0", "published", callerID)
+	if err := q.Order("\"order\" asc, title asc").Find(&materials).Error; err != nil {
+		return nil, err
+	}
+	return materials, nil
+}
+
+func (r *Repository) ListByChapterScoped(chapterID, callerID uint) ([]models.Material, error) {
+	var materials []models.Material
+	q := r.db.Preload("Chapter").Where("chapter_id = ? AND (status = ? OR author_id = ? OR author_id = 0)", chapterID, "published", callerID)
+	if err := q.Order("\"order\" asc, title asc").Find(&materials).Error; err != nil {
+		return nil, err
+	}
+	return materials, nil
+}
+
 func (r *Repository) Get(id uint) (*models.Material, error) {
 	var material models.Material
 	if err := r.db.Preload("Chapter").First(&material, id).Error; err != nil {

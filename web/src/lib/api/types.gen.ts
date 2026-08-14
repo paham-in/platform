@@ -238,6 +238,7 @@ export type MaterialErrorResponse = {
 };
 
 export type MaterialMaterialResponse = {
+    author_id?: number;
     chapter_id?: number;
     chapter_name?: string;
     class_id?: number;

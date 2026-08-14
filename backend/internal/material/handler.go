@@ -1,6 +1,7 @@
 package material
 
 import (
+	"errors"
 	"strconv"
 
 	"bimbel2/backend/internal/middleware"
@@ -10,18 +11,21 @@ import (
 	"gorm.io/gorm"
 )
 
-// isStaff true kalau user punya role admin atau teacher (boleh lihat draft).
-func isStaff(c *fiber.Ctx) bool {
-	roles, ok := c.Locals("roles").([]string)
-	if !ok {
-		return false
-	}
+// callerAccess mengambil identitas & role pemanggil dari context middleware.
+func callerAccess(c *fiber.Ctx) Access {
+	callerID, _ := c.Locals("user_id").(uint)
+	a := Access{CallerID: callerID}
+	roles, _ := c.Locals("roles").([]string)
 	for _, r := range roles {
-		if r == "teacher" || r == "admin" {
-			return true
+		switch r {
+		case "admin":
+			a.IsAdmin = true
+			a.IsStaff = true
+		case "teacher":
+			a.IsStaff = true
 		}
 	}
-	return false
+	return a
 }
 
 type ErrorResponse struct {
@@ -57,14 +61,14 @@ func (h *Handler) AdminListMaterials(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(400).JSON(ErrorResponse{Error: "chapter_id tidak valid"})
 		}
-		materials, err := h.svc.ListByChapter(uint(chapterID))
+		materials, err := h.svc.ListByChapter(uint(chapterID), callerAccess(c))
 		if err != nil {
 			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 		}
 		return c.JSON(materials)
 	}
 
-	materials, err := h.svc.List()
+	materials, err := h.svc.List(callerAccess(c))
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
@@ -88,7 +92,7 @@ func (h *Handler) AdminGetMaterial(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
 
-	material, err := h.svc.Get(uint(id))
+	material, err := h.svc.Get(uint(id), callerAccess(c))
 	if err != nil {
 		return c.Status(404).JSON(ErrorResponse{Error: "materi tidak ditemukan"})
 	}
@@ -118,7 +122,7 @@ func (h *Handler) AdminCreateMaterial(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "chapter_id wajib diisi"})
 	}
 
-	material, err := h.svc.Create(input)
+	material, err := h.svc.Create(input, callerAccess(c).CallerID)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
 	}
@@ -148,8 +152,14 @@ func (h *Handler) AdminUpdateMaterial(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 
-	material, err := h.svc.Update(uint(id), input)
+	material, err := h.svc.Update(uint(id), input, callerAccess(c))
 	if err != nil {
+		if errors.Is(err, ErrNotOwner) {
+			return c.Status(403).JSON(ErrorResponse{Error: err.Error()})
+		}
+		if errors.Is(err, ErrNotFound) {
+			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+		}
 		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(material)
@@ -171,7 +181,13 @@ func (h *Handler) AdminDeleteMaterial(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
 
-	if err := h.svc.Delete(uint(id)); err != nil {
+	if err := h.svc.Delete(uint(id), callerAccess(c)); err != nil {
+		if errors.Is(err, ErrNotOwner) {
+			return c.Status(403).JSON(ErrorResponse{Error: err.Error()})
+		}
+		if errors.Is(err, ErrNotFound) {
+			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+		}
 		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(MessageResponse{Message: "berhasil dihapus"})
@@ -240,15 +256,11 @@ func (h *Handler) GetMaterial(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
 
-	material, err := h.svc.Get(uint(id))
+	material, err := h.svc.Get(uint(id), callerAccess(c))
 	if err != nil {
 		return c.Status(404).JSON(ErrorResponse{Error: "materi tidak ditemukan"})
 	}
 
-	// draft hanya boleh dilihat oleh staff (admin/teacher)
-	if material.Status != "published" && !isStaff(c) {
-		return c.Status(403).JSON(ErrorResponse{Error: "materi tidak tersedia"})
-	}
 	// premium butuh akses kelas tempat materi ini berada
 	if !material.IsFree && !middleware.CanAccessClass(c, h.db, material.ClassID) {
 		return c.Status(403).JSON(ErrorResponse{Error: "materi ini berbayar — berlangganan dulu"})
