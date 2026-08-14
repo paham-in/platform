@@ -6,6 +6,7 @@ import (
 
 	"bimbel2/backend/internal/middleware"
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/storage"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -300,18 +301,20 @@ func (h *Handler) AdminDeleteQuestion(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "berhasil dihapus"})
 }
 
-func AdminRoutes(admin fiber.Router, db *gorm.DB) {
+func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	repo := NewRepository(db)
 	svc := NewService(repo)
+	svc.SetStorage(store)
 	h := NewHandler(svc, db)
 
 	admin.Get("/questions", h.AdminListQuestions)
 	admin.Delete("/questions/:id", h.AdminDeleteQuestion)
 }
 
-func Routes(app fiber.Router, db *gorm.DB) {
+func Routes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	repo := NewRepository(db)
 	svc := NewService(repo)
+	svc.SetStorage(store)
 	h := NewHandler(svc, db)
 
 	app.Get("/questions", middleware.OptionalSessionResolver(db), h.ListQuestions)

@@ -55,8 +55,35 @@ func (r *Repository) Create(q *models.ForumQuestion) error {
 	return r.db.Create(q).Error
 }
 
-func (r *Repository) Delete(id uint) error {
-	return r.db.Delete(&models.ForumQuestion{}, id).Error
+// DeleteHard menghapus pertanyaan beserta jawaban & gambarnya secara HARD
+// delete dalam satu transaksi. Mengembalikan nama file gambar yang ikut
+// terhapus supaya caller bisa membersihkan object storage setelah commit.
+// Semua pakai Unscoped supaya baris yang sudah soft-deleted pun ikut dibersihkan.
+func (r *Repository) DeleteHard(id uint) ([]string, error) {
+	var fileNames []string
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		// kumpulkan nama file gambar dulu (sebelum barisnya dihapus).
+		if err := tx.Unscoped().Model(&models.ForumQuestionImage{}).
+			Where("question_id = ?", id).
+			Pluck("file_name", &fileNames).Error; err != nil {
+			return err
+		}
+		// hapus anak dulu (FK constraint), lalu pertanyaannya.
+		if err := tx.Unscoped().Where("question_id = ?", id).Delete(&models.ForumAnswer{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Unscoped().Where("question_id = ?", id).Delete(&models.ForumQuestionImage{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Unscoped().Delete(&models.ForumQuestion{}, id).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fileNames, nil
 }
 
 func (r *Repository) GetUserByID(id uint) (*models.User, error) {
@@ -67,14 +94,4 @@ func (r *Repository) GetUserByID(id uint) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *Repository) GetQuestionImages(questionID uint) ([]models.ForumQuestionImage, error) {
-	var images []models.ForumQuestionImage
-	if err := r.db.Where("question_id = ?", questionID).Find(&images).Error; err != nil {
-		return nil, err
-	}
-	return images, nil
-}
 
-func (r *Repository) DeleteQuestionImage(fileName string) error {
-	return r.db.Where("file_name = ?", fileName).Delete(&models.ForumQuestionImage{}).Error
-}

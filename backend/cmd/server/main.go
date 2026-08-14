@@ -82,7 +82,7 @@ func main() {
 	user.Routes(app, db)
 	user.OAuthRoutes(app, db, cfg)
 	subject.Routes(app, db)
-	forum.Routes(app, db)
+	forum.Routes(app, db, objectStorage)
 	answer.PublicRoutes(app, db)
 	push.PublicRoutes(app, db, cfg.VapidPublicKey)
 	if objectStorage != nil {
@@ -130,7 +130,7 @@ func main() {
 
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)
-	forum.AdminRoutes(admin, db)
+	forum.AdminRoutes(admin, db, objectStorage)
 	invoice.AdminRoutes(admin, db)
 	program.AdminRoutes(admin, db)
 	studentclass.AdminRoutes(admin, db)
