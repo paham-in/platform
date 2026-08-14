@@ -15,10 +15,11 @@ import (
 
 type Handler struct {
 	svc *Service
+	db  *gorm.DB
 }
 
-func NewHandler(svc *Service) *Handler {
-	return &Handler{svc: svc}
+func NewHandler(svc *Service, db *gorm.DB) *Handler {
+	return &Handler{svc: svc, db: db}
 }
 
 type ErrorResponse struct {
@@ -118,6 +119,7 @@ func (h *Handler) ListAnswers(c *fiber.Ctx) error {
 // @Param        body body CreateAnswerInput true "Data jawaban"
 // @Success      201 {object} AnswerResponse
 // @Failure      400 {object} ErrorResponse
+// @Failure      403 {object} ErrorResponse
 // @Router       /questions/{question_id}/answers [post]
 func (h *Handler) CreateAnswer(c *fiber.Ctx) error {
 	userID := userIDFrom(c)
@@ -136,6 +138,11 @@ func (h *Handler) CreateAnswer(c *fiber.Ctx) error {
 	}
 	if input.Content == "" && input.VideoURL == "" {
 		return c.Status(400).JSON(ErrorResponse{Error: "content atau video_url wajib diisi"})
+	}
+	// hanya user yang sudah berlangganan (konten/les privat) yang boleh menjawab;
+	// admin/teacher otomatis lolos. Sisanya read-only.
+	if !middleware.CanAccessPremium(c, h.db) {
+		return c.Status(403).JSON(ErrorResponse{Error: "kamu perlu berlangganan untuk menjawab pertanyaan"})
 	}
 	if input.VideoURL != "" {
 		if !hasTeacherRole(c) {
@@ -196,7 +203,7 @@ func PublicRoutes(app fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	questionRepo := NewQuestionRepository(db)
 	svc := NewService(repo, questionRepo)
-	h := NewHandler(svc)
+	h := NewHandler(svc, db)
 
 	app.Get("/questions/:question_id/answers", middleware.OptionalSessionResolver(db), h.ListAnswers)
 }
@@ -206,7 +213,7 @@ func AuthRoutes(app fiber.Router, db *gorm.DB, pushSvc *push.Service) {
 	questionRepo := NewQuestionRepository(db)
 	svc := NewService(repo, questionRepo)
 	svc.SetPushService(pushSvc)
-	h := NewHandler(svc)
+	h := NewHandler(svc, db)
 
 	app.Post("/questions/:question_id/answers", h.CreateAnswer)
 	app.Delete("/questions/:question_id/answers/:id", h.DeleteAnswer)

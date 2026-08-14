@@ -18,8 +18,9 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
-import { Plus, Search, SearchX, Funnel, X, MessageSquare } from "lucide-react"
+import { Plus, Search, SearchX, Funnel, X, MessageSquare, Sparkles } from "lucide-react"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { useCanPostForum } from "@/hooks/use-can-post-forum"
 
 const forumSearchSchema = z.object({
   search: z.string().optional(),
@@ -43,9 +44,30 @@ function formatDate(iso?: string): string {
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
 }
 
+function NewQuestionAction({ locked, size }: { locked: boolean; size?: "default" | "sm" }) {
+  if (locked) {
+    return (
+      <Link to="/student/subscribe">
+        <Button size={size}>
+          <Sparkles className="mr-1 h-4 w-4" /> Berlangganan untuk Bertanya
+        </Button>
+      </Link>
+    )
+  }
+  return (
+    <Link to="/student/forum/new">
+      <Button size={size}>
+        <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
+      </Button>
+    </Link>
+  )
+}
+
 function ForumPage() {
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam, subject: subjectParam } = Route.useSearch()
+  const canPost = useCanPostForum()
+  const locked = canPost === false
   const { data: questions = [], isLoading } = useQuery(getQuestionsOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
@@ -124,13 +146,9 @@ function ForumPage() {
 
   return (
     <main className="p-6">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold tracking-tight">Forum Tanya Jawab</h1>
-        <Link to="/student/forum/new">
-          <Button>
-            <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
-          </Button>
-        </Link>
+        <NewQuestionAction locked={locked} />
       </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-2">
@@ -202,11 +220,7 @@ function ForumPage() {
                 <X className="mr-1 h-4 w-4" /> Bersihkan filter
               </Button>
             ) : (
-              <Link to="/student/forum/new">
-                <Button size="sm">
-                  <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
-                </Button>
-              </Link>
+              <NewQuestionAction locked={locked} size="sm" />
             )}
           </EmptyContent>
         </Empty>

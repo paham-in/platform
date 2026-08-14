@@ -21,10 +21,11 @@ type MessageResponse struct {
 
 type Handler struct {
 	svc *Service
+	db  *gorm.DB
 }
 
-func NewHandler(svc *Service) *Handler {
-	return &Handler{svc: svc}
+func NewHandler(svc *Service, db *gorm.DB) *Handler {
+	return &Handler{svc: svc, db: db}
 }
 
 func userIDFrom(c *fiber.Ctx) uint {
@@ -165,6 +166,7 @@ func (h *Handler) GetQuestion(c *fiber.Ctx) error {
 // @Param        body body CreateQuestionInput true "Data pertanyaan"
 // @Success      201 {object} QuestionResponse
 // @Failure      400 {object} ErrorResponse
+// @Failure      403 {object} ErrorResponse
 // @Router       /questions [post]
 func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 	userID := userIDFrom(c)
@@ -178,6 +180,11 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 	}
 	if input.Content == "" {
 		return c.Status(400).JSON(ErrorResponse{Error: "content wajib diisi"})
+	}
+	// hanya user yang sudah berlangganan (konten/les privat) yang boleh bertanya;
+	// admin/teacher otomatis lolos. Sisanya read-only.
+	if !middleware.CanAccessPremium(c, h.db) {
+		return c.Status(403).JSON(ErrorResponse{Error: "kamu perlu berlangganan untuk membuat pertanyaan"})
 	}
 
 	question, err := h.svc.Create(userID, input.Content, input.SubjectID)
@@ -288,7 +295,7 @@ func (h *Handler) AdminDeleteQuestion(c *fiber.Ctx) error {
 func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	svc := NewService(repo)
-	h := NewHandler(svc)
+	h := NewHandler(svc, db)
 
 	admin.Get("/questions", h.AdminListQuestions)
 	admin.Delete("/questions/:id", h.AdminDeleteQuestion)
@@ -297,7 +304,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 func Routes(app fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	svc := NewService(repo)
-	h := NewHandler(svc)
+	h := NewHandler(svc, db)
 
 	app.Get("/questions", middleware.OptionalSessionResolver(db), h.ListQuestions)
 	app.Get("/questions/:id", middleware.OptionalSessionResolver(db), h.GetQuestion)

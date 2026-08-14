@@ -3444,6 +3444,10 @@ export type PostQuestionsErrors = {
      * Bad Request
      */
     400: ForumErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ForumErrorResponse;
 };
 
 export type PostQuestionsError = PostQuestionsErrors[keyof PostQuestionsErrors];
@@ -3549,6 +3553,10 @@ export type PostQuestionsByQuestionIdAnswersErrors = {
      * Bad Request
      */
     400: AnswerErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: AnswerErrorResponse;
 };
 
 export type PostQuestionsByQuestionIdAnswersError = PostQuestionsByQuestionIdAnswersErrors[keyof PostQuestionsByQuestionIdAnswersErrors];

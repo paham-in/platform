@@ -4174,6 +4174,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/forum.ErrorResponse"
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/forum.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -4339,6 +4345,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/answer.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/answer.ErrorResponse"
                         }

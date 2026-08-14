@@ -3846,6 +3846,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/forum.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/forum.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create question
@@ -3950,6 +3954,10 @@ paths:
             $ref: '#/definitions/answer.AnswerResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/answer.ErrorResponse'
+        "403":
+          description: Forbidden
           schema:
             $ref: '#/definitions/answer.ErrorResponse'
       security:
