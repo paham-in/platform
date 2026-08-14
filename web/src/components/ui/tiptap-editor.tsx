@@ -69,7 +69,7 @@ export function TiptapEditor({
   editable?: boolean;
   allowImages?: boolean;
   subjectId?: number;
-  galleryFolder?: "materials" | "questions";
+  galleryFolder?: "materials" | "quiz_questions";
 }) {
   const [mathOpen, setMathOpen] = useState(false)
   const [editLatex, setEditLatex] = useState<string | null>(null)

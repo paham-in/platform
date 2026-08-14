@@ -101,7 +101,7 @@ function EditQuestion() {
 
         <div className="space-y-2">
           <Label>Pertanyaan</Label>
-          <TiptapEditor content={questionText} onChange={setQuestionText} subjectId={subjectId} galleryFolder="questions" />
+          <TiptapEditor content={questionText} onChange={setQuestionText} subjectId={subjectId} galleryFolder="quiz_questions" />
         </div>
 
         <div className="space-y-3">
@@ -118,7 +118,7 @@ function EditQuestion() {
                     setAnswers(next)
                   }}
                   subjectId={subjectId}
-                  galleryFolder="questions"
+                  galleryFolder="quiz_questions"
                 />
               </div>
               <label className="mt-1 flex items-center gap-1.5 text-sm">
@@ -145,7 +145,7 @@ function EditQuestion() {
 
         <div className="space-y-2">
           <Label>Pembahasan (opsional)</Label>
-          <TiptapEditor content={explanation} onChange={setExplanation} subjectId={subjectId} galleryFolder="questions" />
+          <TiptapEditor content={explanation} onChange={setExplanation} subjectId={subjectId} galleryFolder="quiz_questions" />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">

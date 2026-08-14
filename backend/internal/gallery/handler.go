@@ -93,7 +93,7 @@ func (h *Handler) canAccessSubject(c *fiber.Ctx, subjectID uint) error {
 // @Param        subject_id path int true "Subject ID"
 // @Param        image formData file true "File gambar"
 // @Param        title formData string false "Judul gambar"
-// @Param        folder formData string false "Folder penyimpanan: materials (default) atau questions"
+// @Param        folder formData string false "Folder penyimpanan: materials (default) atau quiz_questions"
 // @Success      201 {object} GalleryImageResponse
 // @Failure      400 {object} GalleryErrorResponse
 // @Router       /admin/subjects/{subject_id}/images [post]
@@ -155,12 +155,12 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 		return c.Status(500).JSON(GalleryErrorResponse{Error: "gagal mengompres gambar"})
 	}
 
-	// Folder ditentukan saat upload (materials untuk editor materi, questions
+	// Folder ditentukan saat upload (materials untuk editor materi, quiz_questions
 	// untuk editor paket soal). Gallery shared per subject — gambar bisa
 	// disisipkan di materi maupun soal, jadi content-image regex di storage
 	// menerima kedua prefix.
 	folder := c.FormValue("folder", "materials")
-	if folder != "materials" && folder != "questions" {
+	if folder != "materials" && folder != "quiz_questions" {
 		return c.Status(400).JSON(GalleryErrorResponse{Error: "folder tidak valid"})
 	}
 
@@ -204,7 +204,7 @@ func (h *Handler) Upload(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Param        subject_id path int true "Subject ID"
 // @Param        q query string false "Filter by title"
-// @Param        folder query string false "Filter folder: materials atau questions"
+// @Param        folder query string false "Filter folder: materials atau quiz_questions"
 // @Success      200 {array} GalleryImageResponse
 // @Router       /admin/subjects/{subject_id}/images [get]
 func (h *Handler) List(c *fiber.Ctx) error {
@@ -228,9 +228,9 @@ func (h *Handler) List(c *fiber.Ctx) error {
 		query = query.Where("title ILIKE ?", "%"+q+"%")
 	}
 	// Filter isi galeri per folder: editor materi cuma lihat public/materials/,
-	// editor soal cuma public/questions/. Kosong = semua (backward compatible).
+	// editor soal cuma public/quiz_questions/. Kosong = semua (backward compatible).
 	if folder != "" {
-		if folder != "materials" && folder != "questions" {
+		if folder != "materials" && folder != "quiz_questions" {
 			return c.Status(400).JSON(GalleryErrorResponse{Error: "folder tidak valid"})
 		}
 		query = query.Where("file_name LIKE ?", "public/"+folder+"/%")

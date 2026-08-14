@@ -8,11 +8,13 @@ import (
 
 // ContentImageRe mencocokkan referensi gambar storage di dalam HTML content.
 // Bentuk tersimpan: `public/materials/<uuid>.<ext>` (gambar materi),
-// `public/questions/<uuid>.<ext>` (gambar paket soal), atau
-// `forum/<uuid>.<ext>` (legacy). Bisa juga berawalan URL (presigned lama /
-// public base) — prefix URL ikut di-capture untuk dinormalisasi. Query string
-// presigned (X-Amz-*) ikut dikonsumsi supaya tidak tersisa saat strip.
-var ContentImageRe = regexp.MustCompile(`(?:https?://[^"'\s]+/)?((?:public/(?:materials|questions)|forum)/[0-9a-fA-F-]+\.(?:jpg|jpeg|png|gif|webp))(?:\?[^"'\s]*)?`)
+// `public/quiz_questions/<uuid>.<ext>` (gambar paket soal), atau
+// `forum/<uuid>.<ext>` (legacy). `public/questions/<uuid>.<ext>` juga masih
+// diterima sebagai legacy (gambar paket soal lama). Bisa juga berawalan URL
+// (presigned lama / public base) — prefix URL ikut di-capture untuk
+// dinormalisasi. Query string presigned (X-Amz-*) ikut dikonsumsi supaya
+// tidak tersisa saat strip.
+var ContentImageRe = regexp.MustCompile(`(?:https?://[^"'\s]+/)?((?:public/(?:materials|quiz_questions|questions)|forum)/[0-9a-fA-F-]+\.(?:jpg|jpeg|png|gif|webp))(?:\?[^"'\s]*)?`)
 
 // SanitizeContentImages menormalkan presigned URL → objectName (group 1).
 // Dipakai pas simpan: content dari editor bisa kebawa URL fresh (karena serve
