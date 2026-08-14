@@ -42,7 +42,7 @@ function StudentDashboard() {
                 { icon: BookMarked, label: "Materi", desc: "Jelajahi materi pelajaran", to: "/student/materials" as const },
                 { icon: ListChecks, label: "Paket Soal", desc: "Latihan soal per kelas", to: "/student/packages" as const },
                 { icon: GraduationCap, label: "Les Privat", desc: "Booking & jadwal les", to: "/student/tutoring" as const },
-                { icon: MessageSquare, label: "Tanya Jawab", desc: "Bertanya di forum", to: "/student/forum" as const },
+                { icon: MessageSquare, label: "Forum", desc: "Bertanya di forum", to: "/student/forum" as const },
                 { icon: Calendar, label: "Kalender", desc: "Lihat jadwal belajarmu", to: "/student/calendar" as const },
                 { icon: CreditCard, label: "Pembayaran", desc: "Langganan & invoice", to: "/student/payments" as const },
               ].map((a) => (

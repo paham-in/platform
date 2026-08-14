@@ -11,7 +11,7 @@ paham.in menyusun materi belajar secara hierarkis — **Kelas → Mata Pelajaran
 ### 🎓 Murid
 - **Dashboard** — ringkasan aktivitas belajar
 - **Materi** — jelajahi materi per kelas/subjek, dengan pencarian dan filter
-- **Tanya Jawab** — ajukan pertanyaan, unggah gambar, lihat pertanyaan milik sendiri
+- **Forum** — ajukan pertanyaan, unggah gambar, lihat pertanyaan milik sendiri
 - **Les Privat** — cari guru berdasarkan mata pelajaran, lihat jadwal tersedia, booking slot
 - **Pembayaran** — riwayat invoice dan status pembayaran sendiri
 
@@ -21,7 +21,7 @@ paham.in menyusun materi belajar secara hierarkis — **Kelas → Mata Pelajaran
 - **Chapter** — kelola chapter dan cover
 - **Bank Soal** — buat & kelola soal per chapter, lengkap dengan pembahasan
 - **Paket Soal** — kumpulkan soal dari bank soal menjadi paket
-- **Tanya Jawab** — jawab pertanyaan murid, filter yang belum terjawab
+- **Forum** — jawab pertanyaan murid, filter yang belum terjawab
 - **Les Privat** — atur jadwal tersedia, setujui/tolak permintaan booking
 - **Pengaturan** — atur mata pelajaran yang diajarkan
 

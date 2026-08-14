@@ -22,7 +22,7 @@ import {
 const features = [
   { icon: BookOpen, title: "Materi Interaktif", desc: "Konten belajar dengan editor WYSIWIG yang kaya akan format, gambar, dan tabel." },
   { icon: Video, title: "Video Pembelajaran", desc: "Embed video YouTube langsung di materi. Belajar lewat video tanpa ganti platform." },
-  { icon: MessageSquare, title: "Forum Tanya-Jawab", desc: "Fiturnya kayak Brainly! Siswa tanya, guru jawab. Dapatkan penjelasan lengkap." },
+  { icon: MessageSquare, title: "Forum", desc: "Fiturnya kayak Brainly! Siswa tanya, guru jawab. Dapatkan penjelasan lengkap." },
   { icon: Users, title: "Multi Role", desc: "Tiga peran: Murid, Guru, dan Admin. Masing-masing punya akses sesuai kebutuhan." },
   { icon: BarChart3, title: "Dashboard Personal", desc: "Pantau progress belajar, materi yang sudah dibaca, dan aktivitas terbaru." },
   { icon: Shield, title: "Moderasi Aktif", desc: "Konten terjaga kualitasnya dengan moderasi dari guru dan admin." },
@@ -31,7 +31,7 @@ const features = [
 const steps = [
   { icon: UserPlus, title: "Daftar Akun", desc: "Buat akun gratis sebagai Murid atau Guru. Hanya perlu email dan nama.", step: "1" },
   { icon: BookOpen, title: "Pilih Materi", desc: "Jelajahi mata pelajaran yang tersedia. Mulai belajar dari materi dan video.", step: "2" },
-  { icon: MessageSquare, title: "Tanya & Jawab", desc: "Ada soal sulit? Ajukan pertanyaan di forum, guru kami siap membantu.", step: "3" },
+  { icon: MessageSquare, title: "Forum", desc: "Ada soal sulit? Ajukan pertanyaan di forum, guru kami siap membantu.", step: "3" },
   { icon: Award, title: "Raih Prestasi", desc: "Pantau progress-mu di dashboard. Capai target belajar setiap minggu.", step: "4" },
 ]
 
@@ -43,7 +43,7 @@ const testimonials = [
 
 const heroFeatures = [
   { icon: BookOpen, label: "Materi Terstruktur", desc: "Belajar dengan materi yang rapi dan mudah dipahami" },
-  { icon: MessageSquare, label: "Tanya Jawab", desc: "Tanya langsung ke guru, dapatkan jawaban cepat" },
+  { icon: MessageSquare, label: "Forum", desc: "Tanya langsung ke guru, dapatkan jawaban cepat" },
   { icon: GraduationCap, label: "Guru Berpengalaman", desc: "Diajar oleh guru-guru terbaik di bidangnya" },
 ]
 

@@ -147,7 +147,7 @@ function ForumPage() {
   return (
     <main className="p-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold tracking-tight">Forum Tanya Jawab</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Forum</h1>
         <NewQuestionAction locked={locked} />
       </div>
 
