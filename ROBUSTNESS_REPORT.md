@@ -131,7 +131,12 @@ Sebelumnya: `material.Service.Update`/`Delete`/`Get`/`List*` tanpa filter `autho
 - **Materi lama (`author_id=0`)** tetap bisa dikelola guru berizin, dan **di-claim otomatis** (jadi milik guru tersebut) saat pertama kali diedit — sesuai keputusan bisnis.
 - Handler: `callerAccess(c)` + pemetaan error 403/404; halaman edit frontend menampilkan state error kalau akses ditolak; aksi edit/publish/hapus di UI materi di-gate per kepemilikan (`author_id` ditambahkan ke tipe client).
 
-**⚠️ Belum dicover:** `questionpackage`/`questionbank` juga **tidak punya kolom `AuthorID`** — guru dengan izin kelola paket soal masih bisa mengubah/menghapus paket soal guru lain. Pola fix sama dengan material, perlu diterapkan menyusul.
+**✅ Paket soal — FIXED (2026-08-14):** pola yang sama diterapkan ke `questionpackage`/`questionbank`:
+- `QuizPackage` + `QuizCollection` dapat kolom `AuthorID` (diisi dari session saat create; data lama `0/NULL` = tanpa pemilik).
+- Paket: `List` non-admin hanya published + miliknya + tanpa pemilik; `Get` draft hanya owner/admin/tanpa pemilik; `Update`/`Delete` hanya owner/admin (claim otomatis saat edit paket tanpa pemilik).
+- Koleksi: `Update`/`Delete` hanya owner/admin (claim sama); list koleksi tetap shared untuk semua staff (koleksi = bundel per kelas, seperti chapter).
+- Soal (`questionbank`): create/update/delete/list soal di-gate ke **kepemilikan paket** — guru tidak bisa menambah/mengubah/menghapus soal di paket milik guru lain.
+- Frontend: `author_id` ditambahkan ke tipe client; aksi edit/publish/hapus disembunyikan untuk koleksi/paket milik guru lain (tetap bisa lihat).
 
 ---
 

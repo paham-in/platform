@@ -1,6 +1,7 @@
 package questionbank
 
 import (
+	"errors"
 	"strconv"
 
 	"bimbel2/backend/internal/storage"
@@ -25,6 +26,23 @@ func NewHandler(svc *Service) *Handler {
 	return &Handler{svc: svc}
 }
 
+// callerAccess mengambil identitas & role pemanggil dari context middleware.
+func callerAccess(c *fiber.Ctx) Access {
+	callerID, _ := c.Locals("user_id").(uint)
+	a := Access{CallerID: callerID}
+	roles, _ := c.Locals("roles").([]string)
+	for _, r := range roles {
+		switch r {
+		case "admin":
+			a.IsAdmin = true
+			a.IsStaff = true
+		case "teacher":
+			a.IsStaff = true
+		}
+	}
+	return a
+}
+
 // ListQuestions mengembalikan daftar soal dalam paket
 // @Summary      List package questions
 // @Description  Mengembalikan daftar soal dalam sebuah paket soal
@@ -41,8 +59,11 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id paket tidak valid"})
 	}
-	questions, err := h.svc.ListByPackage(uint(packageID))
+	questions, err := h.svc.ListByPackage(uint(packageID), callerAccess(c))
 	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+		}
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
 	return c.JSON(questions)
@@ -76,8 +97,14 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 		input.UserID = userID
 	}
 
-	question, err := h.svc.Create(uint(packageID), input)
+	question, err := h.svc.Create(uint(packageID), input, callerAccess(c))
 	if err != nil {
+		if errors.Is(err, ErrNotOwner) {
+			return c.Status(403).JSON(ErrorResponse{Error: err.Error()})
+		}
+		if errors.Is(err, ErrNotFound) {
+			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+		}
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.Status(201).JSON(question)
@@ -111,8 +138,14 @@ func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 
-	question, err := h.svc.Update(uint(id), input)
+	question, err := h.svc.Update(uint(id), input, callerAccess(c))
 	if err != nil {
+		if errors.Is(err, ErrNotOwner) {
+			return c.Status(403).JSON(ErrorResponse{Error: err.Error()})
+		}
+		if errors.Is(err, ErrNotFound) {
+			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+		}
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(question)
@@ -140,7 +173,13 @@ func (h *Handler) DeleteQuestion(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "id soal tidak valid"})
 	}
 
-	if err := h.svc.Delete(uint(id)); err != nil {
+	if err := h.svc.Delete(uint(id), callerAccess(c)); err != nil {
+		if errors.Is(err, ErrNotOwner) {
+			return c.Status(403).JSON(ErrorResponse{Error: err.Error()})
+		}
+		if errors.Is(err, ErrNotFound) {
+			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+		}
 		return c.Status(400).JSON(ErrorResponse{Error: "gagal menghapus soal"})
 	}
 	return c.JSON(MessageResponse{Message: "soal berhasil dihapus"})

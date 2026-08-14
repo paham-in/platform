@@ -33,7 +33,48 @@ func NewService(repo *Repository, store *storage.ObjectStorage) *Service {
 	return &Service{repo: repo, storage: store}
 }
 
-func (s *Service) ListByPackage(packageID uint) ([]QuestionResponse, error) {
+// Access mewakili hak akses pemanggil terhadap paket soal.
+type Access struct {
+	CallerID uint
+	IsAdmin  bool
+	IsStaff  bool
+}
+
+var (
+	// ErrNotFound dipakai juga utk akses baca yang ditolak (hindari bocorkan keberadaan).
+	ErrNotFound = errors.New("paket soal tidak ditemukan")
+	// ErrNotOwner utk tulis paket milik guru lain.
+	ErrNotOwner = errors.New("bukan paket soal kamu")
+)
+
+// canViewPackage: published boleh dilihat semua; draft hanya admin, penulisnya,
+// atau paket tanpa pemilik (author_id=0 — data lama yang belum di-claim).
+func (s *Service) canViewPackage(p *models.QuizPackage, a Access) bool {
+	if a.IsAdmin || p.Status == "published" {
+		return true
+	}
+	if !a.IsStaff {
+		return false
+	}
+	return p.AuthorID == a.CallerID || p.AuthorID == 0
+}
+
+// canManagePackage: admin selalu; selain admin hanya penulisnya atau tanpa pemilik.
+func (s *Service) canManagePackage(p *models.QuizPackage, a Access) bool {
+	if a.IsAdmin {
+		return true
+	}
+	return p.AuthorID == a.CallerID || p.AuthorID == 0
+}
+
+func (s *Service) ListByPackage(packageID uint, a Access) ([]QuestionResponse, error) {
+	pkg, err := s.repo.GetPackage(packageID)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	if !s.canViewPackage(pkg, a) {
+		return nil, ErrNotFound
+	}
 	questions, err := s.repo.ListByPackage(packageID)
 	if err != nil {
 		return nil, err
@@ -62,7 +103,14 @@ type CreateInput struct {
 	Explanation string                    `json:"explanation"`
 }
 
-func (s *Service) Create(packageID uint, input CreateInput) (*QuestionResponse, error) {
+func (s *Service) Create(packageID uint, input CreateInput, a Access) (*QuestionResponse, error) {
+	pkg, err := s.repo.GetPackage(packageID)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	if !s.canManagePackage(pkg, a) {
+		return nil, ErrNotOwner
+	}
 	if input.Question == "" {
 		return nil, errors.New("pertanyaan wajib diisi")
 	}
@@ -107,7 +155,18 @@ type UpdateInput struct {
 	Explanation *string                    `json:"explanation"`
 }
 
-func (s *Service) Update(id uint, input UpdateInput) (*QuestionResponse, error) {
+func (s *Service) Update(id uint, input UpdateInput, a Access) (*QuestionResponse, error) {
+	q, err := s.repo.Get(id)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	pkg, err := s.repo.GetPackage(q.PackageID)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	if !s.canManagePackage(pkg, a) {
+		return nil, ErrNotOwner
+	}
 	updates := map[string]any{}
 	if input.Question != nil {
 		updates["question"] = storage.SanitizeContentImages(*input.Question)
@@ -136,7 +195,18 @@ func (s *Service) Update(id uint, input UpdateInput) (*QuestionResponse, error) 
 	return s.Get(id)
 }
 
-func (s *Service) Delete(id uint) error {
+func (s *Service) Delete(id uint, a Access) error {
+	q, err := s.repo.Get(id)
+	if err != nil {
+		return ErrNotFound
+	}
+	pkg, err := s.repo.GetPackage(q.PackageID)
+	if err != nil {
+		return ErrNotFound
+	}
+	if !s.canManagePackage(pkg, a) {
+		return ErrNotOwner
+	}
 	return s.repo.Delete(id)
 }
 

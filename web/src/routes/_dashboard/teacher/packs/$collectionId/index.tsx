@@ -31,6 +31,8 @@ function CollectionPackages() {
   const qc = useQueryClient();
   const { data: user } = useQuery(getMeOptions());
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_question_packages;
+  // paket bisa dikelola kalau punya izin DAN (admin, paket sendiri, atau paket tanpa pemilik)
+  const canEdit = (p: { author_id?: number }) => user?.roles?.includes("admin") || p.author_id === user?.id || !p.author_id;
   const { data: collections = [] } = useQuery(getAdminQuestionPackageCollectionsOptions());
   const { data: allPackages = [], isLoading } = useQuery(getAdminQuestionPackagesOptions());
   const [createOpen, setCreateOpen] = useState(false);
@@ -149,21 +151,25 @@ function CollectionPackages() {
                               <ListChecks className="h-4 w-4" /> Soal
                             </DropdownMenuItem>
                           </Link>
-                          <DropdownMenuItem onClick={() => {
-                            setPendingStatus({ id: pkg.id!, status: pkg.status === "published" ? "draft" : "published", name: pkg.name ?? "" });
-                            setConfirmOpen(true);
-                          }}>
-                            {pkg.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {pkg.status === "published" ? "Jadikan Draft" : "Publikasikan"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setEditTarget(pkg)}>
-                            <Pencil className="h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => setDeleteConfirm({ id: pkg.id!, name: pkg.name ?? "" })}
-                          >
-                            <Trash2 className="h-4 w-4" /> Hapus
-                          </DropdownMenuItem>
+                          {canManage && canEdit(pkg) && (
+                            <>
+                              <DropdownMenuItem onClick={() => {
+                                setPendingStatus({ id: pkg.id!, status: pkg.status === "published" ? "draft" : "published", name: pkg.name ?? "" });
+                                setConfirmOpen(true);
+                              }}>
+                                {pkg.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {pkg.status === "published" ? "Jadikan Draft" : "Publikasikan"}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setEditTarget(pkg)}>
+                                <Pencil className="h-4 w-4" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => setDeleteConfirm({ id: pkg.id!, name: pkg.name ?? "" })}
+                              >
+                                <Trash2 className="h-4 w-4" /> Hapus
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

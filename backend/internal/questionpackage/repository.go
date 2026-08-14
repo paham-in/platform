@@ -24,6 +24,17 @@ func (r *Repository) List() ([]models.QuizPackage, error) {
 	return packages, nil
 }
 
+// ListScoped utk non-admin: published + milik caller + tanpa pemilik.
+func (r *Repository) ListScoped(callerID uint) ([]models.QuizPackage, error) {
+	var packages []models.QuizPackage
+	q := r.db.Preload("Questions").Preload("Subject").Preload("Collection").
+		Where("status = ? OR author_id = ? OR author_id = 0 OR author_id IS NULL", "published", callerID)
+	if err := q.Order("created_at desc").Find(&packages).Error; err != nil {
+		return nil, err
+	}
+	return packages, nil
+}
+
 func (r *Repository) Get(id uint) (*models.QuizPackage, error) {
 	var pkg models.QuizPackage
 	if err := r.db.Preload("Questions").Preload("Subject").Preload("Collection").First(&pkg, id).Error; err != nil {

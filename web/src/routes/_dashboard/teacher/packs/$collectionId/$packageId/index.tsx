@@ -30,6 +30,8 @@ function PackageQuestions() {
   const { data: user } = useQuery(getMeOptions())
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_question_packages
   const { data: pkg } = useQuery(getAdminQuestionPackagesByIdOptions({ path: { id: Number(packageId) } }))
+  // paket bisa dikelola kalau punya izin DAN (admin, paket sendiri, atau paket tanpa pemilik)
+  const canEditPkg = !!pkg && (user?.roles?.includes("admin") || pkg.author_id === user?.id || !pkg.author_id)
   const { data: questions = [], isLoading } = useQuery(getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) } }))
   const [searchInput, setSearchInput] = useState(search ?? "")
   const [page, setPage] = useState(1)
@@ -87,7 +89,7 @@ function PackageQuestions() {
               <p className="text-sm text-muted-foreground">{pkg.description || "Tidak ada deskripsi"} · {pkg.questions?.length ?? 0} soal</p>
             )}
           </div>
-          {canManage && (
+          {canManage && canEditPkg && (
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setEditTarget(pkg ?? null)}><Pencil className="mr-1 h-4 w-4" /> Edit Paket</Button>
               <Link to="/teacher/packs/$collectionId/$packageId/import" params={{ collectionId, packageId }}>
@@ -181,7 +183,7 @@ function PackageQuestions() {
                           <DropdownMenuItem onClick={() => setPreviewTarget(q)}>
                             <Eye className="h-4 w-4" /> Preview
                           </DropdownMenuItem>
-                          {canManage && (
+                          {canManage && canEditPkg && (
                             <>
                               <Link to="/teacher/packs/$collectionId/$packageId/questions/$questionId/edit" params={{ collectionId, packageId, questionId: String(q.id!) }}>
                                 <DropdownMenuItem>

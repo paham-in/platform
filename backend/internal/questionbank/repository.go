@@ -15,6 +15,15 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
+// GetPackage mengambil paket pemilik soal (utk cek kepemilikan di service).
+func (r *Repository) GetPackage(id uint) (*models.QuizPackage, error) {
+	var pkg models.QuizPackage
+	if err := r.db.First(&pkg, id).Error; err != nil {
+		return nil, err
+	}
+	return &pkg, nil
+}
+
 func (r *Repository) ListByPackage(packageID uint) ([]models.QuizQuestion, error) {
 	var questions []models.QuizQuestion
 	if err := r.db.Preload("User").Preload("Answers", func(db *gorm.DB) *gorm.DB {

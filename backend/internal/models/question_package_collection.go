@@ -8,6 +8,7 @@ import "gorm.io/gorm"
 type QuizCollection struct {
 	gorm.Model
 	Name        string        `gorm:"size:200;not null" json:"name"`
+	AuthorID    uint          `gorm:"index" json:"author_id,omitempty"`
 	ClassID     uint          `gorm:"not null;index" json:"class_id"`
 	// tanpa default di tag GORM: kalau default:true, GORM mengganti nilai zero
 	// (false) dengan true saat Create, jadi koleksi premium tak pernah tersimpan.

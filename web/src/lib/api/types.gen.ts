@@ -369,6 +369,7 @@ export type QuestionpackageCollectionCreateInput = {
 };
 
 export type QuestionpackageCollectionResponse = {
+    author_id?: number;
     class_id?: number;
     class_name?: string;
     created_at?: string;
@@ -409,6 +410,7 @@ export type QuestionpackagePackageQuestionResponse = {
 };
 
 export type QuestionpackagePackageResponse = {
+    author_id?: number;
     collection_id?: number;
     collection_name?: string;
     created_at?: string;

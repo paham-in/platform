@@ -20,6 +20,8 @@ const TIER_LABEL = {
 function CollectionsPage() {
   const { data: user } = useQuery(getMeOptions());
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_question_packages;
+  // koleksi bisa dikelola kalau punya izin DAN (admin, koleksi sendiri, atau koleksi tanpa pemilik)
+  const canEdit = (c: { author_id?: number }) => user?.roles?.includes("admin") || c.author_id === user?.id || !c.author_id;
   const { data: collections = [], isLoading } = useQuery(getAdminQuestionPackageCollectionsOptions());
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<QuestionpackageCollectionResponse | null>(null);
@@ -88,7 +90,7 @@ function CollectionsPage() {
                       {collection.package_count ?? 0} paket
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      {canManage && (
+                      {canManage && canEdit(collection) && (
                         <DropdownMenu>
                           <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
                             <MoreVertical className="h-4 w-4" />

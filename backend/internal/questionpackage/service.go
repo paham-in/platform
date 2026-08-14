@@ -17,6 +17,7 @@ type PackageQuestionResponse struct {
 type PackageResponse struct {
 	ID            uint                     `json:"id"`
 	Name          string                   `json:"name"`
+	AuthorID      uint                     `json:"author_id,omitempty"`
 	Description   string                   `json:"description"`
 	SubjectID     uint                     `json:"subject_id"`
 	SubjectName   string                   `json:"subject_name"`
@@ -32,6 +33,7 @@ type PackageResponse struct {
 type CollectionResponse struct {
 	ID           uint              `json:"id"`
 	Name         string            `json:"name"`
+	AuthorID     uint              `json:"author_id,omitempty"`
 	ClassID      uint              `json:"class_id"`
 	ClassName    string            `json:"class_name"`
 	IsFree       bool              `json:"is_free"`
@@ -50,6 +52,51 @@ func NewService(repo *Repository, store *storage.ObjectStorage) *Service {
 	return &Service{repo: repo, storage: store}
 }
 
+// Access mewakili hak akses pemanggil terhadap paket soal.
+type Access struct {
+	CallerID uint
+	IsAdmin  bool
+	IsStaff  bool
+}
+
+var (
+	// ErrNotFound dipakai juga utk akses baca yang ditolak (hindari bocorkan keberadaan).
+	ErrNotFound = errors.New("paket soal tidak ditemukan")
+	// ErrNotOwner utk tulis paket milik guru lain.
+	ErrNotOwner = errors.New("bukan paket soal kamu")
+	// ErrCollectionNotFound dipakai juga utk akses baca koleksi yang ditolak.
+	ErrCollectionNotFound = errors.New("koleksi tidak ditemukan")
+	// ErrCollectionNotOwner utk tulis koleksi milik guru lain.
+	ErrCollectionNotOwner = errors.New("bukan koleksi kamu")
+)
+
+// canViewPackage: published boleh dilihat semua; draft hanya admin, penulisnya,
+// atau paket tanpa pemilik (author_id=0 — data lama yang belum di-claim).
+func (s *Service) canViewPackage(p *models.QuizPackage, a Access) bool {
+	if a.IsAdmin || p.Status == "published" {
+		return true
+	}
+	if !a.IsStaff {
+		return false
+	}
+	return p.AuthorID == a.CallerID || p.AuthorID == 0
+}
+
+// canManagePackage: admin selalu; selain admin hanya penulisnya atau tanpa pemilik.
+func (s *Service) canManagePackage(p *models.QuizPackage, a Access) bool {
+	if a.IsAdmin {
+		return true
+	}
+	return p.AuthorID == a.CallerID || p.AuthorID == 0
+}
+
+func (s *Service) canManageCollection(c *models.QuizCollection, a Access) bool {
+	if a.IsAdmin {
+		return true
+	}
+	return c.AuthorID == a.CallerID || c.AuthorID == 0
+}
+
 type CreateInput struct {
 	Name         string `json:"name"`
 	Description  string `json:"description"`
@@ -58,7 +105,7 @@ type CreateInput struct {
 	Status       string `json:"status"`
 }
 
-func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
+func (s *Service) Create(input CreateInput, authorID uint) (*PackageResponse, error) {
 	if input.Name == "" {
 		return nil, errors.New("nama paket wajib diisi")
 	}
@@ -71,6 +118,7 @@ func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
 
 	pkg := models.QuizPackage{
 		Name:         input.Name,
+		AuthorID:     authorID,
 		Description:  input.Description,
 		SubjectID:    input.SubjectID,
 		CollectionID: &input.CollectionID,
@@ -99,10 +147,17 @@ type UpdateInput struct {
 	Status        *string `json:"status"`
 }
 
-func (s *Service) Update(id uint, input UpdateInput) (*PackageResponse, error) {
+func (s *Service) Update(id uint, input UpdateInput, a Access) (*PackageResponse, error) {
 	pkg, err := s.repo.Get(id)
 	if err != nil {
-		return nil, err
+		return nil, ErrNotFound
+	}
+	if !s.canManagePackage(pkg, a) {
+		return nil, ErrNotOwner
+	}
+	if !a.IsAdmin && pkg.AuthorID == 0 {
+		// paket lama tanpa pemilik di-claim oleh guru pertama yang mengubahnya
+		pkg.AuthorID = a.CallerID
 	}
 	if input.Name != nil {
 		pkg.Name = *input.Name
@@ -130,8 +185,14 @@ func (s *Service) Update(id uint, input UpdateInput) (*PackageResponse, error) {
 	return &r, nil
 }
 
-func (s *Service) List() ([]PackageResponse, error) {
-	packages, err := s.repo.List()
+func (s *Service) List(a Access) ([]PackageResponse, error) {
+	var packages []models.QuizPackage
+	var err error
+	if a.IsAdmin {
+		packages, err = s.repo.List()
+	} else {
+		packages, err = s.repo.ListScoped(a.CallerID)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -157,10 +218,13 @@ func (s *Service) ListVisible(classIDs []uint) ([]PackageResponse, error) {
 	return result, nil
 }
 
-func (s *Service) Get(id uint) (*PackageResponse, error) {
+func (s *Service) Get(id uint, a Access) (*PackageResponse, error) {
 	pkg, err := s.repo.Get(id)
 	if err != nil {
-		return nil, err
+		return nil, ErrNotFound
+	}
+	if !s.canViewPackage(pkg, a) {
+		return nil, ErrNotFound
 	}
 	r := s.toResponse(*pkg)
 	return &r, nil
@@ -199,7 +263,14 @@ func (s *Service) GetVisible(id uint, classIDs []uint) (*PackageResponse, error)
 	return &r, nil
 }
 
-func (s *Service) Delete(id uint) error {
+func (s *Service) Delete(id uint, a Access) error {
+	pkg, err := s.repo.Get(id)
+	if err != nil {
+		return ErrNotFound
+	}
+	if !s.canManagePackage(pkg, a) {
+		return ErrNotOwner
+	}
 	return s.repo.Delete(id)
 }
 
@@ -210,7 +281,7 @@ type CollectionCreateInput struct {
 	Description string `json:"description"`
 }
 
-func (s *Service) CreateCollection(input CollectionCreateInput) (*CollectionResponse, error) {
+func (s *Service) CreateCollection(input CollectionCreateInput, authorID uint) (*CollectionResponse, error) {
 	if input.Name == "" {
 		return nil, errors.New("nama koleksi wajib diisi")
 	}
@@ -220,6 +291,7 @@ func (s *Service) CreateCollection(input CollectionCreateInput) (*CollectionResp
 
 	collection := models.QuizCollection{
 		Name:        input.Name,
+		AuthorID:    authorID,
 		ClassID:     input.ClassID,
 		IsFree:      input.IsFree,
 		Description: input.Description,
@@ -242,10 +314,17 @@ type CollectionUpdateInput struct {
 	Description *string `json:"description"`
 }
 
-func (s *Service) UpdateCollection(id uint, input CollectionUpdateInput) (*CollectionResponse, error) {
+func (s *Service) UpdateCollection(id uint, input CollectionUpdateInput, a Access) (*CollectionResponse, error) {
 	collection, err := s.repo.GetCollection(id, nil)
 	if err != nil {
-		return nil, err
+		return nil, ErrCollectionNotFound
+	}
+	if !s.canManageCollection(collection, a) {
+		return nil, ErrCollectionNotOwner
+	}
+	if !a.IsAdmin && collection.AuthorID == 0 {
+		// koleksi lama tanpa pemilik di-claim oleh guru pertama yang mengubahnya
+		collection.AuthorID = a.CallerID
 	}
 	if input.Name != nil {
 		collection.Name = *input.Name
@@ -270,7 +349,14 @@ func (s *Service) UpdateCollection(id uint, input CollectionUpdateInput) (*Colle
 	return &r, nil
 }
 
-func (s *Service) DeleteCollection(id uint) error {
+func (s *Service) DeleteCollection(id uint, a Access) error {
+	collection, err := s.repo.GetCollection(id, nil)
+	if err != nil {
+		return ErrCollectionNotFound
+	}
+	if !s.canManageCollection(collection, a) {
+		return ErrCollectionNotOwner
+	}
 	return s.repo.DeleteCollection(id)
 }
 
@@ -314,6 +400,7 @@ func (s *Service) toResponse(pkg models.QuizPackage) PackageResponse {
 	return PackageResponse{
 		ID:             pkg.ID,
 		Name:           pkg.Name,
+		AuthorID:       pkg.AuthorID,
 		Description:    pkg.Description,
 		SubjectID:      pkg.SubjectID,
 		SubjectName:    pkg.Subject.Name,
@@ -334,6 +421,7 @@ func (s *Service) toCollectionResponse(g models.QuizCollection) CollectionRespon
 	return CollectionResponse{
 		ID:           g.ID,
 		Name:         g.Name,
+		AuthorID:     g.AuthorID,
 		ClassID:      g.ClassID,
 		ClassName:    g.Class.Name,
 		IsFree:       g.IsFree,

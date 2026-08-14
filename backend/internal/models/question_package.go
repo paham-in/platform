@@ -5,6 +5,7 @@ import "gorm.io/gorm"
 type QuizPackage struct {
 	gorm.Model
 	Name         string         `gorm:"size:200;not null" json:"name"`
+	AuthorID     uint           `gorm:"index" json:"author_id,omitempty"`
 	Description  string         `gorm:"size:500" json:"description"`
 	SubjectID    uint           `gorm:"not null;default:0;index" json:"subject_id"`
 	IsFree       bool           `gorm:"default:true;not null" json:"is_free"`

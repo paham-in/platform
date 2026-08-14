@@ -28,6 +28,23 @@ func NewHandler(svc *Service, db *gorm.DB) *Handler {
 	return &Handler{svc: svc, db: db}
 }
 
+// callerAccess mengambil identitas & role pemanggil dari context middleware.
+func callerAccess(c *fiber.Ctx) Access {
+	callerID, _ := c.Locals("user_id").(uint)
+	a := Access{CallerID: callerID}
+	roles, _ := c.Locals("roles").([]string)
+	for _, r := range roles {
+		switch r {
+		case "admin":
+			a.IsAdmin = true
+			a.IsStaff = true
+		case "teacher":
+			a.IsStaff = true
+		}
+	}
+	return a
+}
+
 // scopeClassIDs mengembalikan class_id yang boleh diakses utk scoping konten.
 // admin/teacher → nil (semua); student → kelas aktif, [] kosong kalau tak punya
 // (supaya cuma koleksi free yang muncul).
@@ -57,7 +74,7 @@ func (h *Handler) scopeClassIDs(c *fiber.Ctx) []uint {
 // @Success      200 {array} PackageResponse
 // @Router       /admin/question-packages [get]
 func (h *Handler) ListPackages(c *fiber.Ctx) error {
-	packages, err := h.svc.List()
+	packages, err := h.svc.List(callerAccess(c))
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
@@ -80,7 +97,7 @@ func (h *Handler) GetPackage(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	pkg, err := h.svc.Get(uint(id))
+	pkg, err := h.svc.Get(uint(id), callerAccess(c))
 	if err != nil {
 		return c.Status(404).JSON(ErrorResponse{Error: "paket tidak ditemukan"})
 	}
@@ -103,7 +120,7 @@ func (h *Handler) CreatePackage(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
-	pkg, err := h.svc.Create(input)
+	pkg, err := h.svc.Create(input, callerAccess(c).CallerID)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
@@ -131,8 +148,14 @@ func (h *Handler) UpdatePackage(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
-	pkg, err := h.svc.Update(uint(id), input)
+	pkg, err := h.svc.Update(uint(id), input, callerAccess(c))
 	if err != nil {
+		if errors.Is(err, ErrNotOwner) {
+			return c.Status(403).JSON(ErrorResponse{Error: err.Error()})
+		}
+		if errors.Is(err, ErrNotFound) {
+			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+		}
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(pkg)
@@ -154,7 +177,13 @@ func (h *Handler) DeletePackage(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	if err := h.svc.Delete(uint(id)); err != nil {
+	if err := h.svc.Delete(uint(id), callerAccess(c)); err != nil {
+		if errors.Is(err, ErrNotOwner) {
+			return c.Status(403).JSON(ErrorResponse{Error: err.Error()})
+		}
+		if errors.Is(err, ErrNotFound) {
+			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+		}
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus paket"})
 	}
 	return c.JSON(MessageResponse{Message: "paket berhasil dihapus"})
@@ -193,7 +222,7 @@ func (h *Handler) AdminCreateCollection(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
-	collection, err := h.svc.CreateCollection(input)
+	collection, err := h.svc.CreateCollection(input, callerAccess(c).CallerID)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
@@ -221,8 +250,14 @@ func (h *Handler) AdminUpdateCollection(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
-	collection, err := h.svc.UpdateCollection(uint(id), input)
+	collection, err := h.svc.UpdateCollection(uint(id), input, callerAccess(c))
 	if err != nil {
+		if errors.Is(err, ErrCollectionNotOwner) {
+			return c.Status(403).JSON(ErrorResponse{Error: err.Error()})
+		}
+		if errors.Is(err, ErrCollectionNotFound) {
+			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+		}
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(collection)
@@ -244,7 +279,13 @@ func (h *Handler) AdminDeleteCollection(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	if err := h.svc.DeleteCollection(uint(id)); err != nil {
+	if err := h.svc.DeleteCollection(uint(id), callerAccess(c)); err != nil {
+		if errors.Is(err, ErrCollectionNotOwner) {
+			return c.Status(403).JSON(ErrorResponse{Error: err.Error()})
+		}
+		if errors.Is(err, ErrCollectionNotFound) {
+			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+		}
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus koleksi"})
 	}
 	return c.JSON(MessageResponse{Message: "koleksi berhasil dihapus"})
