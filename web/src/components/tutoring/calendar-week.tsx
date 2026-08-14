@@ -1,11 +1,12 @@
 import { addDays, addWeeks, format, isSameDay, parseISO, startOfWeek } from "date-fns"
 import { id } from "date-fns/locale"
 import { useEffect, useRef, useState } from "react"
-import { Calendar as CalendarIcon, CalendarClock, ChevronLeft, ChevronRight, Clock, Upload, XCircle } from "lucide-react"
+import { Calendar as CalendarIcon, CalendarClock, ChevronLeft, ChevronRight, Clock, RotateCw, Upload, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 
 export type CalendarEvent = {
@@ -30,14 +31,20 @@ function toMinutes(t: string) {
   return h * 60 + m
 }
 
-function statusMeta(status?: string) {
+// isTeacher dipakai utk label yang hanya relevan utk guru — mis. status "review"
+// (Menunggu Validasi). Dari sisi murid, sesi yang buktinya sedang divalidasi
+// tetap tampil sebagai "Selesai".
+function statusMeta(status?: string, isTeacher = true) {
   switch (status) {
     case "done":
       return { label: "Selesai", className: "border-zinc-600 bg-zinc-500 text-white" }
     case "cancelled":
       return { label: "Dibatalkan", className: "border-zinc-500 bg-zinc-400 text-white" }
     case "review":
-      return { label: "Menunggu Validasi", className: "border-amber-600 bg-amber-500 text-white" }
+      // utk murid, sesi dengan bukti yang sedang divalidasi = sesi yang sudah selesai
+      return isTeacher
+        ? { label: "Menunggu Validasi", className: "border-amber-600 bg-amber-500 text-white" }
+        : { label: "Selesai", className: "border-zinc-600 bg-zinc-500 text-white" }
     case "pending":
       return { label: "Menunggu", className: "border-amber-600 bg-amber-500 text-white" }
     case "confirmed":
@@ -74,6 +81,7 @@ export function CalendarWeek({
 
   const isTeacher = !!onUploadEvidence || !!onReschedule || !!onCancelSession
   const canAct = selected?.status === "scheduled" && isTeacher
+  const canRetake = selected?.status === "review" && !!selected.evidenceUrl && isTeacher
 
   // garis "sekarang" maju tiap menit
   useEffect(() => {
@@ -155,7 +163,7 @@ export function CalendarWeek({
                       onClick={() => setSelected(ev)}
                       className={cn(
                         "absolute inset-x-1 z-10 cursor-pointer overflow-hidden rounded-md border px-4 py-1.5 text-left text-xs leading-tight transition-colors hover:brightness-95",
-                        statusMeta(ev.status).className,
+                        statusMeta(ev.status, isTeacher).className,
                         ev.subtitle === "Kelompok" && "border-l-[3px] border-l-blue-500",
                       )}
                       style={{
@@ -197,8 +205,8 @@ export function CalendarWeek({
               </div>
               {selected.status && (
                 <div>
-                  <span className={cn("rounded-full border px-2.5 py-0.5 text-xs font-medium", statusMeta(selected.status).className)}>
-                    {statusMeta(selected.status).label}
+                  <span className={cn("rounded-full border px-2.5 py-0.5 text-xs font-medium", statusMeta(selected.status, isTeacher).className)}>
+                    {statusMeta(selected.status, isTeacher).label}
                   </span>
                 </div>
               )}
@@ -217,7 +225,7 @@ export function CalendarWeek({
                 </div>
               )}
 
-              {canAct && (
+              {(canAct || canRetake) && (
                 <div className="grid gap-2 border-t pt-3">
                   <Button
                     size="sm"
@@ -225,8 +233,10 @@ export function CalendarWeek({
                     disabled={uploading}
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    <Upload className="h-4 w-4" /> {uploading ? "Mengunggah…" : "Upload Bukti Kehadiran"}
+                    {uploading ? <Spinner /> : canRetake ? <RotateCw className="h-4 w-4" /> : <Upload className="h-4 w-4" />}{" "}
+                    {uploading ? "Mengunggah…" : canRetake ? "Ganti Bukti Kehadiran" : "Upload Bukti Kehadiran"}
                   </Button>
+                  {canRetake && <p className="text-xs text-muted-foreground">Foto lama akan otomatis diganti setelah upload baru berhasil.</p>}
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -240,23 +250,29 @@ export function CalendarWeek({
                         try {
                           await onUploadEvidence?.(selected.id, f)
                           setSelected(null)
+                        } catch {
+                          // toast error sudah ditangani di halaman; dialog tetap terbuka agar bisa coba ulang
                         } finally {
                           setUploading(false)
                         }
                       }
                     }}
                   />
-                  <Button size="sm" variant="outline" onClick={() => {
-                    setReschedDate(selected.date)
-                    setReschedStart(selected.start)
-                    setReschedEnd(selected.end)
-                    setRescheduleOpen(true)
-                  }}>
-                    <CalendarClock className="h-4 w-4" /> Reschedule
-                  </Button>
-                  <Button size="sm" variant="outline" className="text-red-600 hover:text-red-600" onClick={() => setCancelOpen(true)}>
-                    <XCircle className="h-4 w-4" /> Batalkan Sesi
-                  </Button>
+                  {canAct && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => {
+                        setReschedDate(selected.date)
+                        setReschedStart(selected.start)
+                        setReschedEnd(selected.end)
+                        setRescheduleOpen(true)
+                      }}>
+                        <CalendarClock className="h-4 w-4" /> Reschedule
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-red-600 hover:text-red-600" onClick={() => setCancelOpen(true)}>
+                        <XCircle className="h-4 w-4" /> Batalkan Sesi
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
             </div>

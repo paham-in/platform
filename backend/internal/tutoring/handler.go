@@ -420,11 +420,16 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengunggah file"})
 	}
 
-	session, err := h.svc.UploadEvidence(uint(id), userID, objectName)
+	session, oldObject, err := h.svc.UploadEvidence(uint(id), userID, objectName)
 	if err != nil {
 		// file sudah ter-upload tapi simpan DB gagal — hapus biar tidak orphan.
 		_ = h.storage.Delete(c.Context(), objectName)
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	// ganti foto (retake): hapus file bukti lama dari storage — best-effort,
+	// karena DB sudah konsisten menunjuk file baru.
+	if oldObject != "" && h.storage != nil {
+		_ = h.storage.Delete(c.Context(), oldObject)
 	}
 	return c.JSON(session)
 }

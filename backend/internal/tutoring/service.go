@@ -1118,8 +1118,8 @@ func (s *Service) checkEvidenceEligible(sessionID, teacherID uint) (*models.Tuto
 	if err != nil {
 		return nil, err
 	}
-	if session.Status != "scheduled" {
-		return nil, errors.New("hanya sesi terjadwal yang bisa diisi bukti kehadiran")
+	if session.Status != "scheduled" && session.Status != "review" {
+		return nil, errors.New("hanya sesi terjadwal atau menunggu validasi yang bisa diisi bukti kehadiran")
 	}
 	start, err := time.ParseInLocation("2006-01-02 15:04", session.Date+" "+session.StartTime, time.Local)
 	if err != nil {
@@ -1150,22 +1150,29 @@ func (s *Service) ValidateEvidenceUpload(sessionID, teacherID uint) error {
 
 // UploadEvidence menyimpan foto bukti kehadiran guru dan menandai sesi "review"
 // (menunggu validasi admin). Jendela upload: mulai jam sesi mulai sampai H+7 setelah sesi berakhir.
-func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (*UploadSessionEvidenceResponse, error) {
-	if _, err := s.checkEvidenceEligible(sessionID, teacherID); err != nil {
-		return nil, err
+// Sesi berstatus "review" boleh di-upload ulang (ganti foto); objectName foto lama
+// dikembalikan supaya handler bisa menghapus file lamanya dari storage.
+func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (*UploadSessionEvidenceResponse, string, error) {
+	session, err := s.checkEvidenceEligible(sessionID, teacherID)
+	if err != nil {
+		return nil, "", err
+	}
+	oldObject := ""
+	if session.EvidenceURL != "" {
+		oldObject = session.EvidenceURL
 	}
 	if err := s.repo.UpdateSession(sessionID, map[string]interface{}{
 		"evidence_url": objectName,
 		"status":       "review",
 	}); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	updated, err := s.repo.GetSession(sessionID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	r := newUploadSessionEvidenceResponse(*updated)
-	return &r, nil
+	return &r, oldObject, nil
 }
 
 // ListEvidence mengembalikan sesi yang punya bukti, difilter status ("" = semua).

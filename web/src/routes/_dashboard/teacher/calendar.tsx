@@ -87,7 +87,7 @@ function TeacherCalendarPage() {
         events={events}
         weekStart={weekStart}
         onWeekStartChange={handleWeekStartChange}
-        onUploadEvidence={(id, file) => upload.mutate({ path: { id }, body: { image: file } })}
+        onUploadEvidence={(id, file) => upload.mutateAsync({ path: { id }, body: { image: file } })}
         onReschedule={(id, date, start, end) => reschedule.mutate({ path: { id }, body: { date, start_time: start, end_time: end } })}
         onCancelSession={(id) => cancel.mutate({ path: { id } })}
       />
