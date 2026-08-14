@@ -328,12 +328,12 @@ func (h *Handler) MyCollection(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	collection, err := h.svc.GetCollection(uint(id))
+	classIDs := h.scopeClassIDs(c)
+	collection, err := h.svc.GetCollection(uint(id), classIDs)
 	if err != nil {
 		return c.Status(404).JSON(ErrorResponse{Error: "koleksi tidak ditemukan"})
 	}
 
-	classIDs := h.scopeClassIDs(c)
 	allowed := collection.IsFree || classIDs == nil // staff → semua
 	if !allowed {
 		for _, cid := range classIDs {

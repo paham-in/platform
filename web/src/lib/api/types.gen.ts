@@ -387,6 +387,7 @@ export type QuestionpackageCreateInput = {
     collection_id?: number;
     description?: string;
     name?: string;
+    status?: string;
     subject_id?: number;
 };
 
@@ -412,6 +413,7 @@ export type QuestionpackagePackageResponse = {
     is_free?: boolean;
     name?: string;
     questions?: Array<QuestionpackagePackageQuestionResponse>;
+    status?: string;
     subject_id?: number;
     subject_name?: string;
 };
@@ -431,6 +433,7 @@ export type QuestionpackageUpdateInput = {
     collection_id?: number;
     description?: string;
     name?: string;
+    status?: string;
     subject_id?: number;
 };
 

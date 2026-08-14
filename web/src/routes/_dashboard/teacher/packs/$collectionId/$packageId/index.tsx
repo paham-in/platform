@@ -71,7 +71,18 @@ function PackageQuestions() {
         </div>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{pkg?.name ?? "Paket Soal"}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">{pkg?.name ?? "Paket Soal"}</h1>
+              {pkg && (
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  pkg.status === "published"
+                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                    : "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                }`}>
+                  {pkg.status === "published" ? "Tayang" : "Draf"}
+                </span>
+              )}
+            </div>
             {pkg && (
               <p className="text-sm text-muted-foreground">{pkg.description || "Tidak ada deskripsi"} · {pkg.questions?.length ?? 0} soal</p>
             )}

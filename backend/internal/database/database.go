@@ -123,6 +123,12 @@ func Migrate(db *gorm.DB) {
 	if db.Migrator().HasTable(&models.QuizPackage{}) && !db.Migrator().HasColumn(&models.QuizPackage{}, "is_free") {
 		db.Exec("ALTER TABLE quiz_packages ADD COLUMN is_free BOOLEAN NOT NULL DEFAULT TRUE")
 	}
+	// migrate content -- paket soal bisa dibuat draft dulu sebelum dipublish.
+	// Baris existing (yang sudah tampil ke murid) ikut DEFAULT 'published' supaya
+	// tidak hilang dari tampilan murid; paket baru dibuat draft via service.
+	if db.Migrator().HasTable(&models.QuizPackage{}) && !db.Migrator().HasColumn(&models.QuizPackage{}, "status") {
+		db.Exec("ALTER TABLE quiz_packages ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'published'")
+	}
 
 	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.QuizStudentProgress{})
 

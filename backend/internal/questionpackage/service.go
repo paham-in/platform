@@ -21,6 +21,7 @@ type PackageResponse struct {
 	SubjectID     uint                     `json:"subject_id"`
 	SubjectName   string                   `json:"subject_name"`
 	IsFree        bool                     `json:"is_free"`
+	Status        string                   `json:"status"`
 	CollectionID  uint                     `json:"collection_id"`
 	CollectionName string                  `json:"collection_name"`
 	Questions     []PackageQuestionResponse `json:"questions"`
@@ -50,10 +51,11 @@ func NewService(repo *Repository, store *storage.ObjectStorage) *Service {
 }
 
 type CreateInput struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	SubjectID   uint   `json:"subject_id"`
-	CollectionID uint  `json:"collection_id"`
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	SubjectID    uint   `json:"subject_id"`
+	CollectionID uint   `json:"collection_id"`
+	Status       string `json:"status"`
 }
 
 func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
@@ -73,6 +75,11 @@ func (s *Service) Create(input CreateInput) (*PackageResponse, error) {
 		SubjectID:    input.SubjectID,
 		CollectionID: &input.CollectionID,
 	}
+	if input.Status == "" {
+		pkg.Status = "draft"
+	} else {
+		pkg.Status = input.Status
+	}
 	if err := s.repo.Create(&pkg); err != nil {
 		return nil, err
 	}
@@ -89,6 +96,7 @@ type UpdateInput struct {
 	Description   *string `json:"description"`
 	SubjectID     *uint   `json:"subject_id"`
 	CollectionID  *uint   `json:"collection_id"`
+	Status        *string `json:"status"`
 }
 
 func (s *Service) Update(id uint, input UpdateInput) (*PackageResponse, error) {
@@ -107,6 +115,9 @@ func (s *Service) Update(id uint, input UpdateInput) (*PackageResponse, error) {
 	}
 	if input.CollectionID != nil {
 		pkg.CollectionID = input.CollectionID
+	}
+	if input.Status != nil {
+		pkg.Status = *input.Status
 	}
 	if err := s.repo.Update(pkg); err != nil {
 		return nil, err
@@ -132,7 +143,8 @@ func (s *Service) List() ([]PackageResponse, error) {
 }
 
 // ListVisible untuk akses murid/user. classIDs non-nil membatasi koleksi premium ke
-// kelas tertentu (nil = semua, staff); paket tanpa koleksi tidak pernah dikembalikan.
+// kelas tertentu (nil = semua, staff); paket tanpa koleksi atau ber-status draft
+// tidak pernah dikembalikan.
 func (s *Service) ListVisible(classIDs []uint) ([]PackageResponse, error) {
 	packages, err := s.repo.ListVisible(classIDs)
 	if err != nil {
@@ -165,6 +177,10 @@ func (s *Service) GetVisible(id uint, classIDs []uint) (*PackageResponse, error)
 		return nil, err
 	}
 	if pkg.CollectionID == nil {
+		return nil, ErrNoAccess
+	}
+	// draft hanya untuk staff (classIDs nil); murid tidak boleh melihatnya.
+	if pkg.Status != "published" && classIDs != nil {
 		return nil, ErrNoAccess
 	}
 	if classIDs != nil && !pkg.Collection.IsFree {
@@ -211,7 +227,7 @@ func (s *Service) CreateCollection(input CollectionCreateInput) (*CollectionResp
 	if err := s.repo.CreateCollection(&collection); err != nil {
 		return nil, err
 	}
-	created, err := s.repo.GetCollection(collection.ID)
+	created, err := s.repo.GetCollection(collection.ID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +243,7 @@ type CollectionUpdateInput struct {
 }
 
 func (s *Service) UpdateCollection(id uint, input CollectionUpdateInput) (*CollectionResponse, error) {
-	collection, err := s.repo.GetCollection(id)
+	collection, err := s.repo.GetCollection(id, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +262,7 @@ func (s *Service) UpdateCollection(id uint, input CollectionUpdateInput) (*Colle
 	if err := s.repo.UpdateCollection(collection); err != nil {
 		return nil, err
 	}
-	updated, err := s.repo.GetCollection(id)
+	updated, err := s.repo.GetCollection(id, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -272,8 +288,8 @@ func (s *Service) ListCollections(classIDs []uint) ([]CollectionResponse, error)
 	return result, nil
 }
 
-func (s *Service) GetCollection(id uint) (*CollectionResponse, error) {
-	collection, err := s.repo.GetCollection(id)
+func (s *Service) GetCollection(id uint, classIDs []uint) (*CollectionResponse, error) {
+	collection, err := s.repo.GetCollection(id, classIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -302,6 +318,7 @@ func (s *Service) toResponse(pkg models.QuizPackage) PackageResponse {
 		SubjectID:      pkg.SubjectID,
 		SubjectName:    pkg.Subject.Name,
 		IsFree:         pkg.IsFree,
+		Status:         pkg.Status,
 		CollectionID:   collectionID,
 		CollectionName: collectionName,
 		Questions:      questions,

@@ -611,6 +611,8 @@ definitions:
         type: string
       name:
         type: string
+      status:
+        type: string
       subject_id:
         type: integer
     type: object
@@ -651,6 +653,8 @@ definitions:
         items:
           $ref: '#/definitions/questionpackage.PackageQuestionResponse'
         type: array
+      status:
+        type: string
       subject_id:
         type: integer
       subject_name:
@@ -681,6 +685,8 @@ definitions:
       description:
         type: string
       name:
+        type: string
+      status:
         type: string
       subject_id:
         type: integer

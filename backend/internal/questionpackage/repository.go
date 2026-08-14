@@ -32,13 +32,13 @@ func (r *Repository) Get(id uint) (*models.QuizPackage, error) {
 	return &pkg, nil
 }
 
-// ListVisible untuk akses murid/user. Paket tanpa koleksi tidak pernah dikembalikan
-// (belum dipublish ke murid). classIDs non-nil membatasi koleksi premium ke kelas
+// ListVisible untuk akses murid/user. Paket tanpa koleksi atau ber-status draft
+// tidak pernah dikembalikan. classIDs non-nil membatasi koleksi premium ke kelas
 // tertentu (nil = semua kelas, staff). Koleksi free selalu ikut.
 func (r *Repository) ListVisible(classIDs []uint) ([]models.QuizPackage, error) {
 	var packages []models.QuizPackage
 	q := r.db.Preload("Questions").Preload("Subject").Preload("Collection").
-		Where("collection_id IS NOT NULL")
+		Where("collection_id IS NOT NULL AND status = ?", "published")
 	if classIDs != nil {
 		q = q.Where("collection_id IN (SELECT id FROM quiz_collections WHERE is_free = ? OR class_id IN ?)", true, classIDs)
 	}
@@ -162,10 +162,18 @@ func (r *Repository) ListByPackage(packageID uint) ([]models.QuizQuestion, error
 
 // ListCollections mengembalikan koleksi paket soal. classIDs non-nil membatasi ke koleksi
 // free (semua kelas) + koleksi premium di kelas yang diakses student; nil = semua
-// kelas (staff).
+// kelas (staff). Paket di dalam koleksi ikut difilter: student hanya melihat paket
+// published, staff melihat semua (termasuk draft).
 func (r *Repository) ListCollections(classIDs []uint) ([]models.QuizCollection, error) {
 	var collections []models.QuizCollection
-	q := r.db.Preload("Class").Preload("Packages.Subject")
+	q := r.db.Preload("Class")
+	if classIDs != nil {
+		q = q.Preload("Packages", func(db *gorm.DB) *gorm.DB {
+			return db.Where("status = ?", "published")
+		}).Preload("Packages.Subject")
+	} else {
+		q = q.Preload("Packages.Subject")
+	}
 	if classIDs != nil {
 		q = q.Where("is_free = ? OR class_id IN ?", true, classIDs)
 	}
@@ -175,9 +183,19 @@ func (r *Repository) ListCollections(classIDs []uint) ([]models.QuizCollection, 
 	return collections, nil
 }
 
-func (r *Repository) GetCollection(id uint) (*models.QuizCollection, error) {
+// GetCollection mengambil detail koleksi. classIDs non-nil (student) → paket di
+// dalamnya difilter ke published saja; nil (staff) → semua paket.
+func (r *Repository) GetCollection(id uint, classIDs []uint) (*models.QuizCollection, error) {
 	var collection models.QuizCollection
-	if err := r.db.Preload("Class").Preload("Packages.Subject").Preload("Packages.Questions").First(&collection, id).Error; err != nil {
+	q := r.db.Preload("Class")
+	if classIDs != nil {
+		q = q.Preload("Packages", func(db *gorm.DB) *gorm.DB {
+			return db.Where("status = ?", "published")
+		}).Preload("Packages.Subject").Preload("Packages.Questions")
+	} else {
+		q = q.Preload("Packages.Subject").Preload("Packages.Questions")
+	}
+	if err := q.First(&collection, id).Error; err != nil {
 		return nil, err
 	}
 	return &collection, nil

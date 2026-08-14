@@ -37,7 +37,8 @@ export function CreatePackageDialog({ onClose, collectionId, collectionName }: C
 
   const save = () => {
     if (!name.trim() || !subjectId) return
-    createPackage({ body: { name, description, subject_id: Number(subjectId), collection_id: collectionId } })
+    // paket baru dibuat draft dulu; dipublish dari daftar saat sudah siap
+    createPackage({ body: { name, description, subject_id: Number(subjectId), collection_id: collectionId, status: "draft" } })
   }
 
   return (

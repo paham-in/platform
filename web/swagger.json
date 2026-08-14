@@ -5963,6 +5963,9 @@
                 "name": {
                     "type": "string"
                 },
+                "status": {
+                    "type": "string"
+                },
                 "subject_id": {
                     "type": "integer"
                 }
@@ -6025,6 +6028,9 @@
                         "$ref": "#/definitions/questionpackage.PackageQuestionResponse"
                     }
                 },
+                "status": {
+                    "type": "string"
+                },
                 "subject_id": {
                     "type": "integer"
                 },
@@ -6071,6 +6077,9 @@
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 },
                 "subject_id": {

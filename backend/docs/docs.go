@@ -5966,6 +5966,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "status": {
+                    "type": "string"
+                },
                 "subject_id": {
                     "type": "integer"
                 }
@@ -6028,6 +6031,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/questionpackage.PackageQuestionResponse"
                     }
                 },
+                "status": {
+                    "type": "string"
+                },
                 "subject_id": {
                     "type": "integer"
                 },
@@ -6074,6 +6080,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 },
                 "subject_id": {
