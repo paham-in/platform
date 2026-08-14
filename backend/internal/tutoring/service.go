@@ -726,12 +726,21 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Updat
 	}
 
 	if status == "rejected" {
-		for _, b := range targets {
-			if b.Status == "pending" {
-				if err := s.repo.UpdateBookingStatus(b.ID, "rejected"); err != nil {
-					return nil, err
+		// status semua anggota grup di-update dalam satu transaksi — kalau satu
+		// member gagal, tidak ada yang ke-commit separuh (sama seperti path confirmed).
+		err := s.db.Transaction(func(tx *gorm.DB) error {
+			for _, b := range targets {
+				if b.Status != "pending" {
+					continue
+				}
+				if err := tx.Model(&models.Booking{}).Where("id = ?", b.ID).Update("status", "rejected").Error; err != nil {
+					return err
 				}
 			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
 		}
 	} else {
 		// status booking + sesi + invoice dalam satu transaksi — kalau satu

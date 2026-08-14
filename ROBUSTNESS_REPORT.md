@@ -21,7 +21,7 @@ Namun masih ada **1 temuan kritis, 2 temuan tinggi, dan beberapa temuan sedang**
 | 5 | **Tinggi** | `EvidenceCleanup` non-atomic → bukti bisa "stuck" permanen (broken link) | 🆕 Baru |
 | 6 | Sedang | Token sesi di `localStorage` + token OAuth lewat query-string URL (S2) | 🔴 Masih terbuka |
 | 7 | Sedang | CORS terbuka penuh + tidak ada rate limiter (S5) | 🔴 Masih terbuka |
-| 8 | Sedang | Reject booking **grup** tidak transaksional → bisa reject sebagian | 🆕 Baru |
+| 8 | Sedang | Reject booking **grup** tidak transaksional → bisa reject sebagian | ✅ **Fixed 2026-08-14** (A3) — path `rejected` dibungkus `s.db.Transaction` |
 | 9 | Sedang | Fee guru dihitung dinamis → berubah retroaktif saat persen fee diubah | 🆕 Baru |
 | 10 | Sedang | Uang (invoice, fee, harga) pakai `float64` | 🆕 Baru |
 | 11 | Sedang | Password admin di-log plaintext saat seed server | 🆕 Baru |
@@ -60,9 +60,9 @@ Namun masih ada **1 temuan kritis, 2 temuan tinggi, dan beberapa temuan sedang**
 
 ---
 
-### A3. SEDANG — Reject booking grup tidak transaksional
+### A3. SEDANG — Reject booking grup tidak transaksional — ✅ FIXED (2026-08-14)
 
-`backend/internal/tutoring/service.go:726-736` — path `confirmed` sudah pakai `s.db.Transaction`, tapi path `rejected` **tidak**:
+Sebelumnya `backend/internal/tutoring/service.go` — path `confirmed` sudah pakai `s.db.Transaction`, tapi path `rejected` **tidak**:
 
 ```go
 if status == "rejected" {
@@ -75,7 +75,8 @@ if status == "rejected" {
 ```
 
 - Booking grup (semua anggota ber-token sama) di-reject satu-per-satu. Kalau update ke-2 gagal → sebagian anggota rejected, sebagian masih pending → state tidak konsisten, dan retry dari user akan error "sudah diproses sebagian".
-- **Fix saran:** bungkus loop dengan `s.db.Transaction` seperti path `confirmed`.
+
+**Perbaikan:** path `rejected` sekarang membungkus loop-nya dengan `s.db.Transaction` (sama seperti path `confirmed`) — semua anggota grup di-update via `tx`, jadi kalau satu member gagal, tidak ada yang ke-commit separuh.
 
 ---
 
