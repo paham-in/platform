@@ -34,11 +34,18 @@ func (r *Repository) List() ([]models.Chapter, error) {
 }
 
 // ListScoped mengembalikan chapter. classIDs non-nil membatasi ke kelas
-// tertentu (hak akses student); nil = semua kelas (staff).
+// tertentu (hak akses student) — ditambah chapter yang punya materi free
+// published (selaras dengan filter materi: is_free selalu bisa diakses tanpa
+// langganan). classIDs kosong → hanya chapter bermateri free. nil = semua
+// kelas (staff).
 func (r *Repository) ListScoped(classIDs []uint) ([]models.Chapter, error) {
 	q := r.db.Preload("Class").Preload("Subject")
 	if classIDs != nil {
-		q = q.Where("class_id IN ?", classIDs)
+		q = q.Where(`class_id IN ? OR EXISTS (
+			SELECT 1 FROM materials
+			WHERE materials.chapter_id = chapters.id
+			  AND materials.is_free = ? AND materials.status = ? AND materials.deleted_at IS NULL
+		)`, classIDs, true, "published")
 	}
 	var chapters []models.Chapter
 	if err := q.Order("\"order\" asc, title asc").Find(&chapters).Error; err != nil {
@@ -52,7 +59,11 @@ func (r *Repository) ListByClassSubjectScoped(classID, subjectID uint, classIDs 
 	q := r.db.Preload("Class").Preload("Subject").
 		Where("class_id = ? AND subject_id = ?", classID, subjectID)
 	if classIDs != nil {
-		q = q.Where("class_id IN ?", classIDs)
+		q = q.Where(`(class_id IN ? OR EXISTS (
+			SELECT 1 FROM materials
+			WHERE materials.chapter_id = chapters.id
+			  AND materials.is_free = ? AND materials.status = ? AND materials.deleted_at IS NULL
+		))`, classIDs, true, "published")
 	}
 	var chapters []models.Chapter
 	if err := q.Order("\"order\" asc, title asc").Find(&chapters).Error; err != nil {

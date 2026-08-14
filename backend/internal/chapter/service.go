@@ -49,7 +49,8 @@ func (s *Service) List() ([]ChapterResponse, error) {
 }
 
 // ListScoped daftar chapter yang bisa diakses user. classIDs nil = semua
-// kelas (staff); non-nil = hanya kelas yang di-langgan student.
+// kelas (staff); non-nil = kelas yang di-langgan student + chapter yang punya
+// materi free published (free selalu bisa diakses tanpa langganan).
 func (s *Service) ListScoped(classIDs []uint) ([]ChapterResponse, error) {
 	chapters, err := s.repo.ListScoped(classIDs)
 	if err != nil {
@@ -59,7 +60,7 @@ func (s *Service) ListScoped(classIDs []uint) ([]ChapterResponse, error) {
 }
 
 // ListByClassSubjectScoped daftar chapter dengan filter class+subject,
-// tetap menghormati batas akses classIDs.
+// tetap menghormati batas akses classIDs (sama seperti ListScoped).
 func (s *Service) ListByClassSubjectScoped(classID, subjectID uint, classIDs []uint) ([]ChapterResponse, error) {
 	chapters, err := s.repo.ListByClassSubjectScoped(classID, subjectID, classIDs)
 	if err != nil {

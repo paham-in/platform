@@ -423,6 +423,15 @@ func (h *Handler) SubmitAnswer(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
+	// Cek akses dulu — konsisten dengan endpoint kerja lainnya (WorkQuestions,
+	// GetWorkProgress). Tanpa ini user tanpa langganan bisa submit & menerima
+	// pembahasan paket premium.
+	if _, err := h.svc.GetVisible(uint(packageID), h.scopeClassIDs(c)); err != nil {
+		if errors.Is(err, ErrNoAccess) {
+			return c.Status(403).JSON(ErrorResponse{Error: "paket ini belum tersedia untukmu"})
+		}
+		return c.Status(404).JSON(ErrorResponse{Error: "paket tidak ditemukan"})
+	}
 	userID := c.Locals("user_id").(uint)
 	var input SubmitAnswerInput
 	if err := c.BodyParser(&input); err != nil {
