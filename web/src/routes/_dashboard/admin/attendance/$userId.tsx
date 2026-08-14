@@ -1,16 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { getAdminTutoringEvidenceOptions, getAdminTutoringEvidenceQueryKey, patchAdminTutoringEvidenceByIdMutation, patchAdminTutoringFeesByIdMutation, getAdminUsersOptions, getAdminTutoringReportOptions, getAdminTutoringReportQueryKey } from "@/lib/api/@tanstack/react-query.gen"
-import { Check, ChevronLeft, X, ClipboardCheck } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { getAdminTutoringEvidenceOptions, getAdminUsersOptions, getAdminTutoringReportOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { Check, CheckCircle2, ChevronLeft, ClipboardCheck, MoreVertical, X, XCircle } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { toast } from "sonner"
+import { ApproveEvidenceDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
+import type { TutoringTutoringSessionResponse } from "@/lib/api/types.gen"
 import { useState } from "react"
 
 const attendanceDetailSearchSchema = z.object({
@@ -39,12 +39,13 @@ function feeBadge(paid?: boolean) {
 function AttendanceDetail() {
   const { userId } = Route.useParams()
   const navigate = useNavigate({ from: Route.fullPath })
-  const qc = useQueryClient()
   const { status } = Route.useSearch()
   const { data: sessions = [], isLoading } = useQuery(getAdminTutoringEvidenceOptions({ query: { status } }))
   const { data: users = [] } = useQuery(getAdminUsersOptions())
   const { data: reports = [] } = useQuery(getAdminTutoringReportOptions())
-  const [rejectTarget, setRejectTarget] = useState<number | null>(null)
+  const [approveTarget, setApproveTarget] = useState<TutoringTutoringSessionResponse | null>(null)
+  const [rejectTarget, setRejectTarget] = useState<TutoringTutoringSessionResponse | null>(null)
+  const [feeTarget, setFeeTarget] = useState<TutoringTutoringSessionResponse | null>(null)
 
   const user = users.find((u) => u.id === Number(userId))
   const studentSessions = sessions.filter((s) => s.student_id === Number(userId))
@@ -69,38 +70,6 @@ function AttendanceDetail() {
     { label: "Estimasi Refund", value: fmtRp(summary.refund), className: "text-red-600" },
     { label: "Fee Guru Belum Dibayar", value: fmtRp(summary.feeUnpaid), className: "text-amber-600" },
   ]
-
-  const invalidate = () => {
-    qc.invalidateQueries({ queryKey: getAdminTutoringEvidenceQueryKey() })
-    qc.invalidateQueries({ queryKey: getAdminTutoringReportQueryKey() })
-  }
-
-  const approve = useMutation({
-    ...patchAdminTutoringEvidenceByIdMutation(),
-    onSuccess: () => {
-      toast.success("Bukti disetujui — sesi selesai")
-      invalidate()
-    },
-    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal menyetujui bukti"),
-  })
-
-  const reject = useMutation({
-    ...patchAdminTutoringEvidenceByIdMutation(),
-    onSuccess: () => {
-      toast.success("Bukti ditolak — sesi kembali terjadwal")
-      invalidate()
-    },
-    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal menolak bukti"),
-  })
-
-  const toggleFee = useMutation({
-    ...patchAdminTutoringFeesByIdMutation(),
-    onSuccess: () => {
-      toast.success("Status fee guru diperbarui")
-      invalidate()
-    },
-    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal mengubah status fee"),
-  })
 
   const setFilter = (s: "review" | "done" | undefined) => {
     navigate({ search: (prev) => ({ ...prev, status: s }), replace: true })
@@ -203,34 +172,42 @@ function AttendanceDetail() {
                         {feeBadge(s.fee_paid)}
                       </div>
                     ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
+                      <span className="text-xs text-muted-foreground">
+                        {s.status === "done" ? "Tunggu invoice lunas" : s.status === "review" ? "Menunggu validasi" : "Belum terlaksana"}
+                      </span>
                     )}
                   </TableCell>
                   <TableCell className="pr-6">
-                    {s.status === "review" ? (
-                      <div className="flex gap-2">
-                        <Button size="sm" className="bg-green-600 text-white hover:bg-green-700" onClick={() => approve.mutate({ path: { id: s.id! }, body: { action: "approve" } })} disabled={approve.isPending}>
-                          {approve.isPending && <Spinner className="h-3 w-3" />}
-                          <Check className="h-4 w-4" /> Setujui
-                        </Button>
-                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-600" onClick={() => setRejectTarget(s.id!)} disabled={reject.isPending}>
-                          {reject.isPending && <Spinner className="h-3 w-3" />}
-                          <X className="h-4 w-4" /> Tolak
-                        </Button>
-                      </div>
-                    ) : s.status === "done" && s.invoice_paid ? (
-                      <Button
-                        size="sm"
-                        variant={s.fee_paid ? "outline" : "default"}
-                        onClick={() => toggleFee.mutate({ path: { id: s.id! } })}
-                        disabled={toggleFee.isPending}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            disabled={s.status !== "review" && !(s.status === "done" && s.invoice_paid)}
+                          />
+                        }
                       >
-                        {toggleFee.isPending && <Spinner className="h-3 w-3" />}
-                        {s.fee_paid ? "Tandai Belum" : "Tandai Sudah"}
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
+                        <MoreVertical className="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {s.status === "review" ? (
+                          <>
+                            <DropdownMenuItem onClick={() => setApproveTarget(s)}>
+                              <Check className="h-4 w-4 text-green-600" /> Setujui
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setRejectTarget(s)}>
+                              <X className="h-4 w-4 text-destructive" /> Tolak
+                            </DropdownMenuItem>
+                          </>
+                        ) : s.status === "done" && s.invoice_paid ? (
+                          <DropdownMenuItem onClick={() => setFeeTarget(s)}>
+                            {s.fee_paid ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                            {s.fee_paid ? "Tandai Belum" : "Tandai Sudah"}
+                          </DropdownMenuItem>
+                        ) : null}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -239,29 +216,9 @@ function AttendanceDetail() {
         </CardContent>
       </Card>
 
-      <AlertDialog open={rejectTarget !== null} onOpenChange={(o) => { if (!o) setRejectTarget(null) }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Tolak bukti kehadiran ini?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Sesi akan kembali ke status Terjadwal dan foto bukti dihapus. Guru bisa mengunggah ulang.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 text-white hover:bg-red-700"
-              onClick={() => {
-                if (rejectTarget !== null) reject.mutate({ path: { id: rejectTarget }, body: { action: "reject" } })
-                setRejectTarget(null)
-              }}
-            >
-              {reject.isPending && <Spinner className="h-3 w-3" />}
-              Ya, tolak
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {approveTarget && <ApproveEvidenceDialog session={approveTarget} onClose={() => setApproveTarget(null)} />}
+      {rejectTarget && <RejectEvidenceDialog session={rejectTarget} onClose={() => setRejectTarget(null)} />}
+      {feeTarget && <ToggleFeeDialog session={feeTarget} onClose={() => setFeeTarget(null)} />}
     </main>
   )
 }
