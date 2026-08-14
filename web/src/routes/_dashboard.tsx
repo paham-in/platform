@@ -115,7 +115,6 @@ const sidebarGroups: SidebarGroup[] = [
         icon: Calendar,
         items: [
           { label: "Permintaan Booking", to: "/teacher/tutoring/requests" },
-          { label: "Jadwal Slot", to: "/teacher/tutoring/schedule" },
           { label: "Pendapatan Les", to: "/teacher/tutoring/earnings" },
         ],
       },

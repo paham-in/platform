@@ -17,14 +17,6 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) ListAvailability(teacherID uint) ([]models.Availability, error) {
-	var slots []models.Availability
-	if err := r.db.Where("teacher_id = ?", teacherID).Order("day_of_week, start_time").Find(&slots).Error; err != nil {
-		return nil, err
-	}
-	return slots, nil
-}
-
 func (r *Repository) ListTeachers() ([]models.User, error) {
 	var users []models.User
 	if err := r.db.
@@ -57,12 +49,79 @@ func (r *Repository) ListTeachersBySubject(subjectID uint) ([]models.User, error
 	return users, nil
 }
 
-func (r *Repository) CreateAvailability(slot *models.Availability) error {
-	return r.db.Create(slot).Error
-}
+// ListBusyTeacherIDs mengembalikan himpunan teacher_id yang sibuk pada
+// (date, start, end): punya booking pending/confirmed yang rentang mingguannya
+// mencakup tanggal tersebut dan jamnya overlap, atau punya sesi di tanggal itu.
+// Dipakai utk menyusun daftar guru "available" di form booking murid & admin.
+func (r *Repository) ListBusyTeacherIDs(date, startTime, endTime string) (map[uint]bool, error) {
+	busy := map[uint]bool{}
 
-func (r *Repository) DeleteAvailability(id, teacherID uint) error {
-	return r.db.Where("id = ? AND teacher_id = ?", id, teacherID).Delete(&models.Availability{}).Error
+	newStart, err1 := timeToMinutes(startTime)
+	newEnd, err2 := timeToMinutes(endTime)
+	if err1 != nil || err2 != nil {
+		return nil, errors.New("format waktu tidak valid")
+	}
+	dateObj, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		return nil, errors.New("format tanggal tidak valid")
+	}
+
+	// booking pending/confirmed: sesi berulang mingguan mulai booking.Date.
+	// Booking yang belum confirmed belum punya row sesi, tapi tetap memblokir.
+	var bookings []models.Booking
+	if err := r.db.Where("status IN ?", []string{"pending", "confirmed"}).Find(&bookings).Error; err != nil {
+		return nil, err
+	}
+	for _, b := range bookings {
+		if b.TeacherID == nil {
+			continue
+		}
+		bDate, err := time.Parse("2006-01-02", b.Date)
+		if err != nil {
+			continue
+		}
+		days := int(dateObj.Sub(bDate) / (24 * time.Hour))
+		if days < 0 || days%7 != 0 || days/7 >= b.SessionCount {
+			continue
+		}
+		bStart, e1 := timeToMinutes(b.StartTime)
+		bEnd, e2 := timeToMinutes(b.EndTime)
+		if e1 != nil || e2 != nil {
+			continue
+		}
+		if hasOverlap(newStart, newEnd, bStart, bEnd) {
+			busy[*b.TeacherID] = true
+		}
+	}
+
+	// sesi yang sudah di-expand (confirmed / admin) di tanggal persis.
+	type sessionRow struct {
+		TeacherID *uint
+		StartTime string
+		EndTime   string
+	}
+	var rows []sessionRow
+	if err := r.db.Table("tutoring_sessions").
+		Select("bookings.teacher_id AS teacher_id, tutoring_sessions.start_time AS start_time, tutoring_sessions.end_time AS end_time").
+		Joins("JOIN bookings ON bookings.id = tutoring_sessions.booking_id").
+		Where("tutoring_sessions.date = ? AND tutoring_sessions.status <> ?", date, "cancelled").
+		Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		if row.TeacherID == nil {
+			continue
+		}
+		sStart, e1 := timeToMinutes(row.StartTime)
+		sEnd, e2 := timeToMinutes(row.EndTime)
+		if e1 != nil || e2 != nil {
+			continue
+		}
+		if hasOverlap(newStart, newEnd, sStart, sEnd) {
+			busy[*row.TeacherID] = true
+		}
+	}
+	return busy, nil
 }
 
 func (r *Repository) ListBookingsByTeacher(teacherID uint) ([]models.Booking, error) {
@@ -129,10 +188,6 @@ func (r *Repository) ListBookingsByTeacherAndDate(teacherID uint, date string, s
 
 func (r *Repository) UpdateBookingStatus(id uint, status string) error {
 	return r.db.Model(&models.Booking{}).Where("id = ?", id).Update("status", status).Error
-}
-
-func (r *Repository) UpdateBookingTeacher(id, teacherID uint) error {
-	return r.db.Model(&models.Booking{}).Where("id = ?", id).Update("teacher_id", teacherID).Error
 }
 
 // DeleteBookingCascade menghapus booking + sesi + invoice terkait dalam satu transaksi.

@@ -47,13 +47,23 @@ function modeBadge(mode?: string) {
 
 function AssignTeacherDialog({ booking, onClose }: { booking: TutoringBookingResponse; onClose: () => void }) {
   const qc = useQueryClient()
-  const { data: teachers = [] } = useQuery(getTutoringTeachersOptions())
+  const { data: teachers = [] } = useQuery({
+    ...getTutoringTeachersOptions({
+      query: {
+        subject_id: booking.subject_id,
+        date: booking.date,
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+      },
+    }),
+    enabled: !!booking.subject_id && !!booking.date && !!booking.start_time && !!booking.end_time,
+  })
   const [teacher, setTeacher] = useState<TutoringTeacherResponse | undefined>()
 
   const { mutate: assign, isPending } = useMutation({
     ...patchAdminTutoringBookingsByIdAssignMutation(),
     onSuccess: () => {
-      toast.success("Guru ditetapkan — menunggu persetujuan guru")
+      toast.success("Guru ditetapkan — booking otomatis disetujui")
       qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
       onClose()
     },
@@ -71,6 +81,10 @@ function AssignTeacherDialog({ booking, onClose }: { booking: TutoringBookingRes
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Pilih Guru</p>
+            <p className="text-xs text-muted-foreground">
+              Hanya guru yang free di {booking.date} {booking.start_time}–{booking.end_time} yang ditampilkan.
+            </p>
+            <p className="text-xs text-muted-foreground">Guru yang dipilih otomatis disetujui — tanpa perlu approve lagi.</p>
             <Combobox
               autoHighlight
               items={teachers}

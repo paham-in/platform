@@ -24,16 +24,6 @@ import { id } from "date-fns/locale"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
-const DAY_OPTIONS = [
-  { label: "Minggu", value: "0" },
-  { label: "Senin", value: "1" },
-  { label: "Selasa", value: "2" },
-  { label: "Rabu", value: "3" },
-  { label: "Kamis", value: "4" },
-  { label: "Jumat", value: "5" },
-  { label: "Sabtu", value: "6" },
-]
-
 const SESSION_MINUTES = 90
 
 // 07:00 s/d 20:30, tiap 30 menit — biar durasi 90 menit (1 sesi les) bisa dipilih.
@@ -69,7 +59,6 @@ function NewBooking() {
   const { data: classes = [] } = useQuery(getClassesOptions())
 
   const [subjectId, setSubjectId] = useState("")
-  const [day, setDay] = useState("")
   const [start, setStart] = useState("")
   const [end, setEnd] = useState("")
   const [teacher, setTeacher] = useState<TutoringTeacherResponse | undefined>()
@@ -83,7 +72,6 @@ function NewBooking() {
 
   const myClass = classes.find((c) => c.id === Number(classId))
   const pricePerSession = mode === "group" ? (myClass?.group_price ?? 0) : (myClass?.price_per_session ?? 0)
-  const dayNum = day === "" ? 0 : Number(day)
 
   // jam selesai hanya yang durasinya kelipatan 90 menit (1 sesi les)
   const endOptions = start === ""
@@ -100,7 +88,7 @@ function NewBooking() {
     })
   )
 
-  const hasSlot = day !== "" && start !== "" && end !== ""
+  const hasSlot = start !== "" && end !== "" && date !== ""
   const canSearch = subjectId !== "" && hasSlot
   const perWeek = hasSlot ? perWeekFor(start, end) : null
   const totalSessions = perWeek ? sessionCount * perWeek : 0
@@ -108,7 +96,7 @@ function NewBooking() {
   const { data: teachers = [], isLoading: teachersLoading } = useQuery({
     ...getTutoringTeachersOptions({
       query: canSearch
-        ? { subject_id: Number(subjectId), day_of_week: Number(day), start_time: start, end_time: end }
+        ? { subject_id: Number(subjectId), date, start_time: start, end_time: end }
         : undefined,
     }),
     enabled: canSearch,
@@ -126,9 +114,9 @@ function NewBooking() {
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
   const changeSubject = (v: string | null) => { setSubjectId(v ?? ""); setTeacher(undefined); setDate("") }
-  const changeDay = (v: string | null) => { setDay(v ?? ""); setTeacher(undefined); setDate("") }
   const changeStart = (v: string | null) => { setStart(v ?? ""); setEnd(""); setTeacher(undefined); setDate("") }
   const changeEnd = (v: string | null) => { setEnd(v ?? ""); setTeacher(undefined); setDate("") }
+  const changeDate = (d: Date | undefined) => { setDate(d ? format(d, "yyyy-MM-dd") : ""); setTeacher(undefined) }
 
   const { mutate: createBooking, isPending } = useMutation({
     ...postTutoringBookingsMutation(),
@@ -179,7 +167,7 @@ function NewBooking() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Booking Baru</h2>
-          <p className="text-sm text-muted-foreground">Isi mapel & jam dulu, lalu pilih guru — atau kirim tanpa guru.</p>
+          <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam dulu, lalu pilih guru — atau kirim tanpa guru.</p>
         </div>
         <Link to="/student/tutoring"><Button variant="outline">Batal</Button></Link>
       </div>
@@ -200,20 +188,37 @@ function NewBooking() {
             </Select>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="new-day">Hari</Label>
-              <Select items={DAY_OPTIONS} value={day} onValueChange={changeDay}>
-                <SelectTrigger id="new-day" className="w-full" size="sm">
-                  <SelectValue placeholder="Pilih hari" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DAY_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-1.5">
+            <Label>Tanggal Mulai</Label>
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    data-empty={!date}
+                    className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+                  />
+                }
+              >
+                <CalendarIcon />
+                {date ? format(new Date(date + "T00:00:00"), "EEE, dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  disabled={(d) => {
+                    const today = new Date(); today.setHours(0, 0, 0, 0)
+                    return d < today
+                  }}
+                  selected={date ? new Date(date + "T00:00:00") : undefined}
+                  onSelect={changeDate}
+                />
+              </PopoverContent>
+            </Popover>
+            <p className="text-xs text-muted-foreground">Pertemuan berikutnya berjalan mingguan di hari & jam yang sama.</p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="new-start">Jam Mulai</Label>
               <Select items={startOptions.map((t) => ({ label: t, value: t }))} value={start} onValueChange={changeStart}>
@@ -247,7 +252,7 @@ function NewBooking() {
             <Label>Pilih Guru</Label>
             {!canSearch ? (
               <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                Pilih mapel, hari, dan jam untuk menampilkan guru yang tersedia.
+                Pilih mapel, tanggal, dan jam untuk menampilkan guru yang tersedia.
               </p>
             ) : teachersLoading ? (
               <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
@@ -259,7 +264,7 @@ function NewBooking() {
                 </EmptyHeader>
                 <EmptyContent className="gap-1">
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => { setDay(""); setStart(""); setEnd("") }}>Cari Slot Lain</Button>
+                    <Button variant="outline" size="sm" onClick={() => { setStart(""); setEnd(""); setDate("") }}>Cari Jam Lain</Button>
                     <Button size="sm" onClick={() => setTeacher(undefined)}>Kirim Tanpa Guru</Button>
                   </div>
                   <p className="px-4 text-xs text-muted-foreground">Kirim tanpa guru: admin yang carikan guru buat kamu.</p>
@@ -300,38 +305,6 @@ function NewBooking() {
                 )}
               </>
             )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Tanggal Mulai</Label>
-            <Popover>
-              <PopoverTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    data-empty={!date}
-                    className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
-                  />
-                }
-              >
-                <CalendarIcon />
-                {date ? format(new Date(date + "T00:00:00"), "EEE, dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  disabled={(d) => {
-                    if (day === "") return true
-                    const today = new Date(); today.setHours(0, 0, 0, 0)
-                    if (d < today) return true
-                    return d.getDay() !== dayNum
-                  }}
-                  selected={date ? new Date(date + "T00:00:00") : undefined}
-                  onSelect={(d) => setDate(d ? format(d, "yyyy-MM-dd") : "")}
-                />
-              </PopoverContent>
-            </Popover>
-            <p className="text-xs text-muted-foreground">Pertemuan berikutnya berjalan mingguan di hari & jam yang sama.</p>
           </div>
 
           <div className="space-y-1.5">

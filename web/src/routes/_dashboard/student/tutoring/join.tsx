@@ -65,14 +65,16 @@ function JoinGroup() {
           <Users className="h-7 w-7 text-blue-600" />
         </div>
         <h2 className="text-xl font-bold">Gabung Les Kelompok</h2>
-        <p className="text-sm text-muted-foreground">Kamu diundang bergabung ke grup belajar dengan {group.teacher_name}.</p>
+        <p className="text-sm text-muted-foreground">
+          Kamu diundang bergabung ke grup belajar {group.teacher_name ? `dengan ${group.teacher_name}` : "— guru akan ditentukan admin"}.
+        </p>
       </div>
 
       <Card>
         <CardContent className="space-y-4 p-5">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Guru</span>
-            <span className="font-medium">{group.teacher_name}</span>
+            <span className="font-medium">{group.teacher_name || "Menunggu admin"}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Jumlah Pertemuan</span>

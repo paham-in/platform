@@ -139,10 +139,6 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.Invoice{}).Error; err != nil {
 		return err
 	}
-	// jadwal les privat (teacher)
-	if err := tx.Unscoped().Where("teacher_id = ?", id).Delete(&models.Availability{}).Error; err != nil {
-		return err
-	}
 	// booking les privat (sebagai teacher atau student) — hapus dulu sesi &
 	// invoice yang merujuk booking-nya (FK constraint), lalu booking itu sendiri.
 	var bid []uint

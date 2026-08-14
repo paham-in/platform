@@ -907,19 +907,6 @@ definitions:
       teacher_id:
         type: integer
     type: object
-  tutoring.AvailabilityResponse:
-    properties:
-      day_of_week:
-        type: integer
-      end_time:
-        type: string
-      id:
-        type: integer
-      start_time:
-        type: string
-      teacher_id:
-        type: integer
-    type: object
   tutoring.BookingResponse:
     properties:
       class_id:
@@ -957,15 +944,6 @@ definitions:
       teacher_id:
         type: integer
       teacher_name:
-        type: string
-    type: object
-  tutoring.CreateAvailabilityInput:
-    properties:
-      day_of_week:
-        type: integer
-      end_time:
-        type: string
-      start_time:
         type: string
     type: object
   tutoring.CreateBookingInput:
@@ -1079,10 +1057,6 @@ definitions:
         type: integer
       name:
         type: string
-      slots:
-        items:
-          $ref: '#/definitions/tutoring.AvailabilityResponse'
-        type: array
       subjects:
         items:
           $ref: '#/definitions/tutoring.SubjectInfo'
@@ -2816,35 +2790,6 @@ paths:
       summary: Subject images usage
       tags:
       - Admin Gallery
-  /admin/tutoring/availability:
-    get:
-      consumes:
-      - application/json
-      description: Mengembalikan slot kosong guru tertentu (utk dialog booking manual)
-      parameters:
-      - description: Teacher ID
-        in: query
-        name: teacher_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/tutoring.AvailabilityResponse'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/tutoring.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: List teacher availability
-      tags:
-      - Admin Tutoring
   /admin/tutoring/bookings:
     get:
       consumes:
@@ -4160,81 +4105,6 @@ paths:
       summary: Subscribe
       tags:
       - Student
-  /tutoring/availability:
-    get:
-      consumes:
-      - application/json
-      description: Returns availability slots. Teachers see their own; students pass
-        ?teacher_id=
-      parameters:
-      - description: Teacher ID (for students)
-        in: query
-        name: teacher_id
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/tutoring.AvailabilityResponse'
-            type: array
-      security:
-      - BearerAuth: []
-      summary: List availability
-      tags:
-      - Tutoring
-    post:
-      consumes:
-      - application/json
-      description: Menambah slot waktu kosong guru
-      parameters:
-      - description: Slot data
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/tutoring.CreateAvailabilityInput'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/tutoring.AvailabilityResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/tutoring.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Create availability
-      tags:
-      - Tutoring
-  /tutoring/availability/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Menghapus slot waktu kosong guru
-      parameters:
-      - description: Slot ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/tutoring.MessageResponse'
-      security:
-      - BearerAuth: []
-      summary: Delete availability
-      tags:
-      - Tutoring
   /tutoring/bookings:
     get:
       consumes:
@@ -4479,22 +4349,23 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar guru yang tersedia untuk dibooking murid.
-        Bisa difilter by subject_id dan slot waktu (day_of_week + start_time + end_time).
+      description: Mengembalikan daftar guru. Bisa difilter by subject_id, dan kalau
+        isi date+start_time+end_time, hanya guru yang free (tanpa booking/sesi bentrok)
+        di jadwal itu.
       parameters:
       - description: Filter guru yang mengajar mapel ini
         in: query
         name: subject_id
         type: integer
-      - description: Filter slot di hari ini (0=Sun..6=Sat)
+      - description: Filter guru free di tanggal ini (YYYY-MM-DD)
         in: query
-        name: day_of_week
-        type: integer
-      - description: Filter slot yang contain waktu mulai (HH:mm)
+        name: date
+        type: string
+      - description: Waktu mulai (HH:mm) — wajib bila date diisi
         in: query
         name: start_time
         type: string
-      - description: Filter slot yang contain waktu selesai (HH:mm)
+      - description: Waktu selesai (HH:mm) — wajib bila date diisi
         in: query
         name: end_time
         type: string

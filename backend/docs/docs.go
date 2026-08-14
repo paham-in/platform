@@ -2525,52 +2525,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/tutoring/availability": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Mengembalikan slot kosong guru tertentu (utk dialog booking manual)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin Tutoring"
-                ],
-                "summary": "List teacher availability",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Teacher ID",
-                        "name": "teacher_id",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/tutoring.AvailabilityResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/admin/tutoring/bookings": {
             "get": {
                 "security": [
@@ -4635,125 +4589,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/tutoring/availability": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns availability slots. Teachers see their own; students pass ?teacher_id=",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tutoring"
-                ],
-                "summary": "List availability",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Teacher ID (for students)",
-                        "name": "teacher_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/tutoring.AvailabilityResponse"
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Menambah slot waktu kosong guru",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tutoring"
-                ],
-                "summary": "Create availability",
-                "parameters": [
-                    {
-                        "description": "Slot data",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.CreateAvailabilityInput"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.AvailabilityResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/tutoring/availability/{id}": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Menghapus slot waktu kosong guru",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tutoring"
-                ],
-                "summary": "Delete availability",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Slot ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.MessageResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/tutoring/bookings": {
             "get": {
                 "security": [
@@ -5134,7 +4969,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan daftar guru yang tersedia untuk dibooking murid. Bisa difilter by subject_id dan slot waktu (day_of_week + start_time + end_time).",
+                "description": "Mengembalikan daftar guru. Bisa difilter by subject_id, dan kalau isi date+start_time+end_time, hanya guru yang free (tanpa booking/sesi bentrok) di jadwal itu.",
                 "consumes": [
                     "application/json"
                 ],
@@ -5153,20 +4988,20 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "Filter slot di hari ini (0=Sun..6=Sat)",
-                        "name": "day_of_week",
+                        "type": "string",
+                        "description": "Filter guru free di tanggal ini (YYYY-MM-DD)",
+                        "name": "date",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter slot yang contain waktu mulai (HH:mm)",
+                        "description": "Waktu mulai (HH:mm) — wajib bila date diisi",
                         "name": "start_time",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter slot yang contain waktu selesai (HH:mm)",
+                        "description": "Waktu selesai (HH:mm) — wajib bila date diisi",
                         "name": "end_time",
                         "in": "query"
                     }
@@ -6585,26 +6420,6 @@ const docTemplate = `{
                 }
             }
         },
-        "tutoring.AvailabilityResponse": {
-            "type": "object",
-            "properties": {
-                "day_of_week": {
-                    "type": "integer"
-                },
-                "end_time": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "start_time": {
-                    "type": "string"
-                },
-                "teacher_id": {
-                    "type": "integer"
-                }
-            }
-        },
         "tutoring.BookingResponse": {
             "type": "object",
             "properties": {
@@ -6660,20 +6475,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "teacher_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "tutoring.CreateAvailabilityInput": {
-            "type": "object",
-            "properties": {
-                "day_of_week": {
-                    "type": "integer"
-                },
-                "end_time": {
-                    "type": "string"
-                },
-                "start_time": {
                     "type": "string"
                 }
             }
@@ -6844,12 +6645,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "slots": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tutoring.AvailabilityResponse"
-                    }
                 },
                 "subjects": {
                     "type": "array",

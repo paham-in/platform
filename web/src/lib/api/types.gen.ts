@@ -578,14 +578,6 @@ export type TutoringAssignTeacherInput = {
     teacher_id?: number;
 };
 
-export type TutoringAvailabilityResponse = {
-    day_of_week?: number;
-    end_time?: string;
-    id?: number;
-    start_time?: string;
-    teacher_id?: number;
-};
-
 export type TutoringBookingResponse = {
     class_id?: number;
     created_at?: string;
@@ -605,12 +597,6 @@ export type TutoringBookingResponse = {
     subject_name?: string;
     teacher_id?: number;
     teacher_name?: string;
-};
-
-export type TutoringCreateAvailabilityInput = {
-    day_of_week?: number;
-    end_time?: string;
-    start_time?: string;
 };
 
 export type TutoringCreateBookingInput = {
@@ -696,7 +682,6 @@ export type TutoringTeacherResponse = {
     email?: string;
     id?: number;
     name?: string;
-    slots?: Array<TutoringAvailabilityResponse>;
     subjects?: Array<TutoringSubjectInfo>;
 };
 
@@ -2418,36 +2403,6 @@ export type DeleteAdminSubjectsBySubjectIdImagesByIdResponses = {
 
 export type DeleteAdminSubjectsBySubjectIdImagesByIdResponse = DeleteAdminSubjectsBySubjectIdImagesByIdResponses[keyof DeleteAdminSubjectsBySubjectIdImagesByIdResponses];
 
-export type GetAdminTutoringAvailabilityData = {
-    body?: never;
-    path?: never;
-    query: {
-        /**
-         * Teacher ID
-         */
-        teacher_id: number;
-    };
-    url: '/admin/tutoring/availability';
-};
-
-export type GetAdminTutoringAvailabilityErrors = {
-    /**
-     * Bad Request
-     */
-    400: TutoringErrorResponse;
-};
-
-export type GetAdminTutoringAvailabilityError = GetAdminTutoringAvailabilityErrors[keyof GetAdminTutoringAvailabilityErrors];
-
-export type GetAdminTutoringAvailabilityResponses = {
-    /**
-     * OK
-     */
-    200: Array<TutoringAvailabilityResponse>;
-};
-
-export type GetAdminTutoringAvailabilityResponse = GetAdminTutoringAvailabilityResponses[keyof GetAdminTutoringAvailabilityResponses];
-
 export type GetAdminTutoringBookingsData = {
     body?: never;
     path?: never;
@@ -3760,76 +3715,6 @@ export type PostSubscribeResponses = {
 
 export type PostSubscribeResponse = PostSubscribeResponses[keyof PostSubscribeResponses];
 
-export type GetTutoringAvailabilityData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Teacher ID (for students)
-         */
-        teacher_id?: number;
-    };
-    url: '/tutoring/availability';
-};
-
-export type GetTutoringAvailabilityResponses = {
-    /**
-     * OK
-     */
-    200: Array<TutoringAvailabilityResponse>;
-};
-
-export type GetTutoringAvailabilityResponse = GetTutoringAvailabilityResponses[keyof GetTutoringAvailabilityResponses];
-
-export type PostTutoringAvailabilityData = {
-    /**
-     * Slot data
-     */
-    body: TutoringCreateAvailabilityInput;
-    path?: never;
-    query?: never;
-    url: '/tutoring/availability';
-};
-
-export type PostTutoringAvailabilityErrors = {
-    /**
-     * Bad Request
-     */
-    400: TutoringErrorResponse;
-};
-
-export type PostTutoringAvailabilityError = PostTutoringAvailabilityErrors[keyof PostTutoringAvailabilityErrors];
-
-export type PostTutoringAvailabilityResponses = {
-    /**
-     * Created
-     */
-    201: TutoringAvailabilityResponse;
-};
-
-export type PostTutoringAvailabilityResponse = PostTutoringAvailabilityResponses[keyof PostTutoringAvailabilityResponses];
-
-export type DeleteTutoringAvailabilityByIdData = {
-    body?: never;
-    path: {
-        /**
-         * Slot ID
-         */
-        id: number;
-    };
-    query?: never;
-    url: '/tutoring/availability/{id}';
-};
-
-export type DeleteTutoringAvailabilityByIdResponses = {
-    /**
-     * OK
-     */
-    200: TutoringMessageResponse;
-};
-
-export type DeleteTutoringAvailabilityByIdResponse = DeleteTutoringAvailabilityByIdResponses[keyof DeleteTutoringAvailabilityByIdResponses];
-
 export type GetTutoringBookingsData = {
     body?: never;
     path?: never;
@@ -4078,15 +3963,15 @@ export type GetTutoringTeachersData = {
          */
         subject_id?: number;
         /**
-         * Filter slot di hari ini (0=Sun..6=Sat)
+         * Filter guru free di tanggal ini (YYYY-MM-DD)
          */
-        day_of_week?: number;
+        date?: string;
         /**
-         * Filter slot yang contain waktu mulai (HH:mm)
+         * Waktu mulai (HH:mm) — wajib bila date diisi
          */
         start_time?: string;
         /**
-         * Filter slot yang contain waktu selesai (HH:mm)
+         * Waktu selesai (HH:mm) — wajib bila date diisi
          */
         end_time?: string;
     };

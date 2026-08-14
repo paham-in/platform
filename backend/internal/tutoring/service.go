@@ -16,14 +16,6 @@ import (
 
 const maxGroupSlots = 5
 
-type AvailabilityResponse struct {
-	ID        uint   `json:"id"`
-	TeacherID uint   `json:"teacher_id"`
-	DayOfWeek int    `json:"day_of_week"`
-	StartTime string `json:"start_time"`
-	EndTime   string `json:"end_time"`
-}
-
 type BookingResponse struct {
 	ID            uint   `json:"id"`
 	TeacherID     *uint  `json:"teacher_id,omitempty"`
@@ -76,17 +68,16 @@ type GroupInfoResponse struct {
 }
 
 type TeacherResponse struct {
-	ID        uint                   `json:"id"`
-	Name      string                 `json:"name"`
-	Email     string                 `json:"email"`
-	AvatarURL string                 `json:"avatar_url"`
-	Subjects  []SubjectInfo          `json:"subjects"`
-	Slots     []AvailabilityResponse `json:"slots,omitempty"`
+	ID        uint          `json:"id"`
+	Name      string        `json:"name"`
+	Email     string        `json:"email"`
+	AvatarURL string        `json:"avatar_url"`
+	Subjects  []SubjectInfo `json:"subjects"`
 }
 
 type TeacherFilter struct {
 	SubjectID *uint
-	DayOfWeek *int
+	Date      string // "YYYY-MM-DD" — jika diisi, hanya guru yang bebas di tanggal ini
 	StartTime string
 	EndTime   string
 }
@@ -111,47 +102,6 @@ func (s *Service) sessionFee(price float64) float64 {
 	return price * s.settings.TeacherFeePercent() / 100
 }
 
-func (s *Service) ListAvailability(teacherID uint) ([]AvailabilityResponse, error) {
-	slots, err := s.repo.ListAvailability(teacherID)
-	if err != nil {
-		return nil, err
-	}
-	res := make([]AvailabilityResponse, len(slots))
-	for i, v := range slots {
-		res[i] = AvailabilityResponse{ID: v.ID, TeacherID: v.TeacherID, DayOfWeek: v.DayOfWeek, StartTime: v.StartTime, EndTime: v.EndTime}
-	}
-	return res, nil
-}
-
-type CreateAvailabilityInput struct {
-	DayOfWeek int    `json:"day_of_week"`
-	StartTime string `json:"start_time"`
-	EndTime   string `json:"end_time"`
-}
-
-func (s *Service) CreateAvailability(teacherID uint, input CreateAvailabilityInput) (*AvailabilityResponse, error) {
-	if input.DayOfWeek < 0 || input.DayOfWeek > 6 {
-		return nil, errors.New("day_of_week harus 0-6")
-	}
-	if input.StartTime >= input.EndTime {
-		return nil, errors.New("start_time harus sebelum end_time")
-	}
-	slot := models.Availability{
-		TeacherID: teacherID,
-		DayOfWeek: input.DayOfWeek,
-		StartTime: input.StartTime,
-		EndTime:   input.EndTime,
-	}
-	if err := s.repo.CreateAvailability(&slot); err != nil {
-		return nil, err
-	}
-	return &AvailabilityResponse{ID: slot.ID, TeacherID: slot.TeacherID, DayOfWeek: slot.DayOfWeek, StartTime: slot.StartTime, EndTime: slot.EndTime}, nil
-}
-
-func (s *Service) DeleteAvailability(id, teacherID uint) error {
-	return s.repo.DeleteAvailability(id, teacherID)
-}
-
 func (s *Service) ListTeachers(filter TeacherFilter) ([]TeacherResponse, error) {
 	var users []models.User
 	var err error
@@ -170,33 +120,27 @@ func (s *Service) ListTeachers(filter TeacherFilter) ([]TeacherResponse, error) 
 		for j, subj := range u.Subjects {
 			subjects[j] = SubjectInfo{ID: subj.ID, Name: subj.Name}
 		}
-		t := TeacherResponse{ID: u.ID, Name: u.Name, Email: u.Email, AvatarURL: u.AvatarURL, Subjects: subjects}
+		res = append(res, TeacherResponse{ID: u.ID, Name: u.Name, Email: u.Email, AvatarURL: u.AvatarURL, Subjects: subjects})
+	}
 
-		// slot filter: hanya guru yang punya availability contain request.
-		if filter.DayOfWeek != nil || filter.StartTime != "" || filter.EndTime != "" {
-			slots, err := s.repo.ListAvailability(u.ID)
-			if err != nil {
+	// filter ketersediaan: hanya guru yang bebas (tanpa booking bentrok &
+	// tanpa sesi) di tanggal+jam yang diminta.
+	if filter.Date != "" {
+		if filter.StartTime == "" || filter.EndTime == "" {
+			return nil, errors.New("start_time dan end_time wajib diisi saat filter date")
+		}
+		busy, err := s.repo.ListBusyTeacherIDs(filter.Date, filter.StartTime, filter.EndTime)
+		if err != nil {
+			return nil, err
+		}
+		filtered := res[:0]
+		for _, t := range res {
+			if busy[t.ID] {
 				continue
 			}
-			matched := make([]AvailabilityResponse, 0, len(slots))
-			for _, slot := range slots {
-				if filter.DayOfWeek != nil && slot.DayOfWeek != *filter.DayOfWeek {
-					continue
-				}
-				if filter.StartTime != "" && slot.StartTime > filter.StartTime {
-					continue
-				}
-				if filter.EndTime != "" && slot.EndTime < filter.EndTime {
-					continue
-				}
-				matched = append(matched, AvailabilityResponse{ID: slot.ID, TeacherID: slot.TeacherID, DayOfWeek: slot.DayOfWeek, StartTime: slot.StartTime, EndTime: slot.EndTime})
-			}
-			if len(matched) == 0 {
-				continue // guru tanpa slot yang cocok
-			}
-			t.Slots = matched
+			filtered = append(filtered, t)
 		}
-		res = append(res, t)
+		res = filtered
 	}
 	return res, nil
 }
@@ -443,28 +387,69 @@ func (s *Service) resolveGroupMembers(organizerID uint, emails []string) ([]uint
 }
 
 // createNoTeacherBooking membuat booking tanpa guru untuk diproses admin.
-// Kelompok butuh guru (grup berbagi jadwal), jadi ditolak.
+// Private & group sama-sama boleh tanpa guru; admin yang menetapkan nanti.
 func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingInput) (*BookingResponse, error) {
-	if input.Mode == "group" {
-		return nil, errors.New("kelompok butuh guru — pilih guru dari daftar")
-	}
 	total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
 	if err != nil {
 		return nil, err
 	}
-	booking := models.Booking{
+
+	base := models.Booking{
 		TeacherID:    nil,
-		StudentID:    studentID,
 		SubjectID:    input.SubjectID,
 		Date:         input.Date,
 		StartTime:    input.StartTime,
 		EndTime:      input.EndTime,
 		Status:       "pending",
-		Mode:         "private",
 		SessionCount: total,
 		Note:         input.Note,
 		ClassID:      input.ClassID,
 	}
+
+	// grup tanpa guru: organizer + member ber-token sama, semua tanpa guru.
+	if input.Mode == "group" {
+		memberIDs, err := s.resolveGroupMembers(studentID, input.MemberEmails)
+		if err != nil {
+			return nil, err
+		}
+		token, err := generateToken()
+		if err != nil {
+			return nil, errors.New("gagal membuat token grup")
+		}
+		base.Mode = "group"
+		base.GroupToken = token
+
+		var resp *BookingResponse
+		err = s.db.Transaction(func(tx *gorm.DB) error {
+			organizer := base
+			organizer.StudentID = studentID
+			if err := tx.Create(&organizer).Error; err != nil {
+				return err
+			}
+			for _, mID := range memberIDs {
+				m := base
+				m.StudentID = mID
+				if err := tx.Create(&m).Error; err != nil {
+					return err
+				}
+			}
+			created, err := s.repo.GetBookingWithDB(tx, organizer.ID)
+			if err != nil {
+				return err
+			}
+			r := toBookingResponse(*created)
+			resp = &r
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+
+	base.Mode = "private"
+	booking := base
+	booking.StudentID = studentID
 	if err := s.repo.CreateBooking(&booking); err != nil {
 		return nil, err
 	}
@@ -683,9 +668,11 @@ func (s *Service) joinGroup(studentID uint, input CreateBookingInput) (*BookingR
 		return nil, errors.New("grup sudah penuh (maks 5 siswa)")
 	}
 
-	// peserta wajib memakai slot yang sama dgn organizer
-	if organizer.TeacherID == nil || input.TeacherID == nil ||
-		*organizer.TeacherID != *input.TeacherID ||
+	// peserta wajib memakai slot yang sama dgn organizer (guru boleh sama-sama
+	// kosong — grup menunggu admin assign, lalu token menyebar ke semua anggota)
+	sameTeacher := (organizer.TeacherID == nil && input.TeacherID == nil) ||
+		(organizer.TeacherID != nil && input.TeacherID != nil && *organizer.TeacherID == *input.TeacherID)
+	if !sameTeacher ||
 		organizer.Date != input.Date ||
 		organizer.StartTime != input.StartTime ||
 		organizer.EndTime != input.EndTime {
@@ -717,33 +704,11 @@ func (s *Service) joinGroup(studentID uint, input CreateBookingInput) (*BookingR
 	return &r, nil
 }
 
-// validateAvailability memastikan (tanggal, jam) masuk dalam slot kosong guru.
-func (s *Service) validateAvailability(teacherID uint, date, startTime, endTime string) error {
-	dateObj, err := time.Parse("2006-01-02", date)
-	if err != nil {
-		return errors.New("format tanggal tidak valid")
-	}
-	weekday := int(dateObj.Weekday())
-	slots, err := s.repo.ListAvailability(teacherID)
-	if err != nil {
-		return err
-	}
-	for _, slot := range slots {
-		if slot.DayOfWeek == weekday && slot.StartTime <= startTime && slot.EndTime >= endTime {
-			return nil
-		}
-	}
-	return errors.New("jadwal tidak tersedia untuk slot waktu tersebut")
-}
-
-// checkBookingConflict mengecek keseluruhan bentrokan jadwal guru: slot kosong
-// (availability), booking existing pada date+time, dan sesi pertemuan yang sudah
-// di-expand dari booking berulang (multi-week). Dipanggil saat create/assign
-// booking — termasuk path admin yang langsung confirmed + generate sesi.
+// checkBookingConflict mengecek keseluruhan bentrokan jadwal guru: booking
+// existing pada date+time, dan sesi pertemuan yang sudah di-expand dari booking
+// berulang (multi-week). Dipanggil saat create/assign booking — termasuk path
+// admin yang langsung confirmed + generate sesi.
 func (s *Service) checkBookingConflict(teacherID uint, date, startTime, endTime string) error {
-	if err := s.validateAvailability(teacherID, date, startTime, endTime); err != nil {
-		return err
-	}
 	if err := s.checkTeacherConflict(teacherID, date, startTime, endTime, ""); err != nil {
 		return err
 	}
@@ -894,7 +859,8 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Booki
 }
 
 // AssignTeacher menetapkan guru ke booking tanpa guru (admin). Status tetap pending,
-// guru yang dipilih lalu approve sendiri. Validasi slot + konflik jadwal.
+// guru yang dipilih lalu approve sendiri. Validasi konflik jadwal. Kalau booking
+// bagian grup, guru diterapkan ke seluruh anggota ber-token sama.
 func (s *Service) AssignTeacher(id, teacherID uint) (*BookingResponse, error) {
 	booking, err := s.repo.GetBooking(id)
 	if err != nil {
@@ -909,9 +875,39 @@ func (s *Service) AssignTeacher(id, teacherID uint) (*BookingResponse, error) {
 	if err := s.checkBookingConflict(teacherID, booking.Date, booking.StartTime, booking.EndTime); err != nil {
 		return nil, err
 	}
-	if err := s.repo.UpdateBookingTeacher(id, teacherID); err != nil {
+
+	// guru ditetapkan admin → otomatis disetujui, tanpa perlu approve guru lagi.
+	targets := []models.Booking{*booking}
+	if booking.GroupToken != "" {
+		group, err := s.repo.ListBookingsByGroupToken(booking.GroupToken)
+		if err != nil {
+			return nil, err
+		}
+		targets = group
+	}
+
+	// set guru + confirm + buat sesi & invoice utk semua target dalam satu transaksi.
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		for _, b := range targets {
+			if b.Status != "pending" {
+				continue
+			}
+			if err := tx.Model(&models.Booking{}).Where("id = ?", b.ID).Update("teacher_id", teacherID).Error; err != nil {
+				return err
+			}
+			if err := tx.Model(&models.Booking{}).Where("id = ?", b.ID).Update("status", "confirmed").Error; err != nil {
+				return err
+			}
+			if err := s.createSessionsAndInvoice(tx, b); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
+
 	updated, err := s.repo.GetBooking(id)
 	if err != nil {
 		return nil, err
@@ -1158,7 +1154,7 @@ func (s *Service) RescheduleSession(sessionID, teacherID uint, input RescheduleS
 	if input.StartTime >= input.EndTime {
 		return nil, errors.New("start_time harus sebelum end_time")
 	}
-	if err := s.validateAvailability(teacherID, input.Date, input.StartTime, input.EndTime); err != nil {
+	if err := s.checkTeacherConflict(teacherID, input.Date, input.StartTime, input.EndTime, ""); err != nil {
 		return nil, err
 	}
 	conflict, err := s.repo.SessionConflict(teacherID, input.Date, input.StartTime, input.EndTime, sessionID)

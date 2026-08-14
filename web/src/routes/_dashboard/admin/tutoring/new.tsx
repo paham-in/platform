@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ArrowLeft, CalendarIcon, CheckCircle2, Loader2, UserX, X } from "lucide-react"
+import { ArrowLeft, CalendarIcon, Loader2, UserX, X } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
@@ -30,12 +30,10 @@ import {
   getAdminStudentClassesQueryKey,
   getAdminStudentsOptions,
   getTutoringTeachersOptions,
-  getAdminTutoringAvailabilityOptions,
   getAdminClassesOptions,
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 
-const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
 const countOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12]
 const modeOptions = [
   { label: "Private", value: "private" },
@@ -66,7 +64,6 @@ function AdminTutoringNew() {
   const [subjectId, setSubjectId] = useState("")
   const [teacher, setTeacher] = useState<TutoringTeacherResponse | undefined>()
   const [sessionCount, setSessionCount] = useState(1)
-  const [selectedSlot, setSelectedSlot] = useState<{ day: number; start: string; end: string } | null>(null)
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
   const [date, setDate] = useState("")
@@ -85,13 +82,6 @@ function AdminTutoringNew() {
     enabled: !!subjectId,
   })
 
-  const { data: slots = [], isLoading: slotsLoading } = useQuery({
-    ...getAdminTutoringAvailabilityOptions({
-      query: { teacher_id: teacher?.id ?? 0 },
-    }),
-    enabled: !!teacher?.id,
-  })
-
   const { mutateAsync: createBooking } = useMutation(postAdminTutoringBookingsMutation())
 
   // ganti murid → reset kelas supaya admin pilih ulang (tidak bawa pilihan murid sebelumnya)
@@ -106,7 +96,7 @@ function AdminTutoringNew() {
   const perWeek = timesValid ? perWeekFor(startTime, endTime) : null
   const totalSessions = perWeek ? sessionCount * perWeek : 0
   const canSubmit =
-    !!student && classId && subjectId && teacher && selectedSlot && timesValid && perWeek !== null && date && !submitting &&
+    !!student && classId && subjectId && teacher && timesValid && perWeek !== null && date && !submitting &&
     (mode === "private" || members.length > 0)
 
   const memberEmails = mode === "group"
@@ -118,7 +108,7 @@ function AdminTutoringNew() {
     : undefined
 
   const save = async () => {
-    if (!student || !teacher || !selectedSlot || !timesValid || !date || !classId || !subjectId) return
+    if (!student || !teacher || !timesValid || !date || !classId || !subjectId) return
     if (mode === "group" && (memberEmails ?? []).length === 0) return
     setSubmitting(true)
     try {
@@ -304,7 +294,6 @@ function AdminTutoringNew() {
               onValueChange={(v) => {
                 setSubjectId(v ?? "")
                 setTeacher(undefined)
-                setSelectedSlot(null)
                 setStartTime("")
                 setEndTime("")
                 setDate("")
@@ -343,7 +332,6 @@ function AdminTutoringNew() {
                 value={teacher}
                 onValueChange={(v) => {
                   setTeacher(v ?? undefined)
-                  setSelectedSlot(null)
                   setStartTime("")
                   setEndTime("")
                   setDate("")
@@ -369,47 +357,6 @@ function AdminTutoringNew() {
           </div>
 
           {teacher && (
-            <div className="space-y-2">
-              <Label>Slot Hari</Label>
-              {slotsLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : slots.length === 0 ? (
-                <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                  Guru ini belum punya slot jadwal.
-                </p>
-              ) : (
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  {slots.map((s) => {
-                    const active = selectedSlot?.day === s.day_of_week && selectedSlot?.start === s.start_time
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        aria-pressed={active}
-                        onClick={() => {
-                          setSelectedSlot({ day: s.day_of_week!, start: s.start_time!, end: s.end_time! })
-                          setStartTime("")
-                          setEndTime("")
-                          setDate("")
-                        }}
-                        className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${active ? "border-primary bg-primary/5 text-primary ring-1 ring-primary" : "hover:bg-muted/50"}`}
-                      >
-                        <span>
-                          <span className="font-medium">{dayNames[s.day_of_week!]}</span>
-                          <span className="ml-2 text-muted-foreground">{s.start_time} - {s.end_time}</span>
-                        </span>
-                        {active && <CheckCircle2 className="h-4 w-4 shrink-0" />}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {selectedSlot && (
             <>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -418,11 +365,8 @@ function AdminTutoringNew() {
                     id="admin-booking-start"
                     type="time"
                     value={startTime}
-                    min={selectedSlot.start}
-                    max={selectedSlot.end}
                     onChange={(e) => setStartTime(e.target.value)}
                   />
-                  <p className="text-xs text-muted-foreground">Slot {selectedSlot.start} – {selectedSlot.end}</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="admin-booking-end">Jam Selesai</Label>
@@ -430,17 +374,12 @@ function AdminTutoringNew() {
                     id="admin-booking-end"
                     type="time"
                     value={endTime}
-                    min={selectedSlot.start}
-                    max={selectedSlot.end}
                     onChange={(e) => setEndTime(e.target.value)}
                   />
                 </div>
               </div>
               {startTime !== "" && endTime !== "" && !(startTime < endTime) && (
                 <p className="text-xs text-destructive">Jam selesai harus setelah jam mulai.</p>
-              )}
-              {timesValid && (startTime < selectedSlot.start || endTime > selectedSlot.end) && (
-                <p className="text-xs text-destructive">Jam harus dalam slot {selectedSlot.start} – {selectedSlot.end}.</p>
               )}
               {timesValid && perWeek === null && (
                 <p className="text-xs text-destructive">Durasi les harus kelipatan {SESSION_MINUTES} menit (1,5 jam).</p>
@@ -467,8 +406,7 @@ function AdminTutoringNew() {
                       mode="single"
                       disabled={(d) => {
                         const today = new Date(); today.setHours(0, 0, 0, 0)
-                        if (d < today) return true
-                        return d.getDay() !== selectedSlot.day
+                        return d < today
                       }}
                       selected={date ? new Date(date + "T00:00:00") : undefined}
                       onSelect={(d) => setDate(d ? format(d, "yyyy-MM-dd") : "")}

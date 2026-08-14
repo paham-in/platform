@@ -44,15 +44,15 @@ func hasRole(c *fiber.Ctx, role string) bool {
 
 // ListTeachers returns all teachers (role teacher) for booking
 // @Summary      List teachers
-// @Description  Mengembalikan daftar guru yang tersedia untuk dibooking murid. Bisa difilter by subject_id dan slot waktu (day_of_week + start_time + end_time).
+// @Description  Mengembalikan daftar guru. Bisa difilter by subject_id, dan kalau isi date+start_time+end_time, hanya guru yang free (tanpa booking/sesi bentrok) di jadwal itu.
 // @Tags         Tutoring
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        subject_id   query int    false "Filter guru yang mengajar mapel ini"
-// @Param        day_of_week  query int    false "Filter slot di hari ini (0=Sun..6=Sat)"
-// @Param        start_time   query string false "Filter slot yang contain waktu mulai (HH:mm)"
-// @Param        end_time     query string false "Filter slot yang contain waktu selesai (HH:mm)"
+// @Param        subject_id  query int    false "Filter guru yang mengajar mapel ini"
+// @Param        date        query string false "Filter guru free di tanggal ini (YYYY-MM-DD)"
+// @Param        start_time  query string false "Waktu mulai (HH:mm) — wajib bila date diisi"
+// @Param        end_time    query string false "Waktu selesai (HH:mm) — wajib bila date diisi"
 // @Success      200 {array} TeacherResponse
 // @Router       /tutoring/teachers [get]
 func (h *Handler) ListTeachers(c *fiber.Ctx) error {
@@ -65,111 +65,15 @@ func (h *Handler) ListTeachers(c *fiber.Ctx) error {
 		uid := uint(id)
 		filter.SubjectID = &uid
 	}
-	if v := c.Query("day_of_week"); v != "" {
-		d, err := strconv.Atoi(v)
-		if err != nil {
-			return c.Status(400).JSON(ErrorResponse{Error: "day_of_week tidak valid"})
-		}
-		filter.DayOfWeek = &d
-	}
+	filter.Date = c.Query("date")
 	filter.StartTime = c.Query("start_time")
 	filter.EndTime = c.Query("end_time")
 
 	teachers, err := h.svc.ListTeachers(filter)
 	if err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
-	}
-	return c.JSON(teachers)
-}
-
-// ListAvailability returns availability slots (teacher: own, student: by teacher_id)
-// @Summary      List availability
-// @Description  Returns availability slots. Teachers see their own; students pass ?teacher_id=
-// @Tags         Tutoring
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        teacher_id query int false "Teacher ID (for students)"
-// @Success      200 {array} AvailabilityResponse
-// @Router       /tutoring/availability [get]
-func (h *Handler) ListAvailability(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
-
-	if hasRole(c, "teacher") || hasRole(c, "admin") {
-		slots, err := h.svc.ListAvailability(userID)
-		if err != nil {
-			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
-		}
-		return c.JSON(slots)
-	}
-
-	// student or admin: filter by teacher_id
-	teacherIDStr := c.Query("teacher_id")
-	if teacherIDStr == "" {
-		return c.Status(400).JSON(ErrorResponse{Error: "teacher_id wajib diisi"})
-	}
-	tid, err := strconv.ParseUint(teacherIDStr, 10, 64)
-	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "teacher_id tidak valid"})
-	}
-	slots, err := h.svc.ListAvailability(uint(tid))
-	if err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
-	}
-	return c.JSON(slots)
-}
-
-// CreateAvailability adds a new time slot (teacher only)
-// @Summary      Create availability
-// @Description  Menambah slot waktu kosong guru
-// @Tags         Tutoring
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        body body CreateAvailabilityInput true "Slot data"
-// @Success      201 {object} AvailabilityResponse
-// @Failure      400 {object} ErrorResponse
-// @Router       /tutoring/availability [post]
-func (h *Handler) CreateAvailability(c *fiber.Ctx) error {
-	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
-		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
-	}
-
-	var input CreateAvailabilityInput
-	if err := c.BodyParser(&input); err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
-	}
-	userID := c.Locals("user_id").(uint)
-	slot, err := h.svc.CreateAvailability(userID, input)
-	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
-	return c.Status(201).JSON(slot)
-}
-
-// DeleteAvailability removes a time slot (teacher only)
-// @Summary      Delete availability
-// @Description  Menghapus slot waktu kosong guru
-// @Tags         Tutoring
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id path int true "Slot ID"
-// @Success      200 {object} MessageResponse
-// @Router       /tutoring/availability/{id} [delete]
-func (h *Handler) DeleteAvailability(c *fiber.Ctx) error {
-	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
-		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
-	}
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
-	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
-	}
-	userID := c.Locals("user_id").(uint)
-	if err := h.svc.DeleteAvailability(uint(id), userID); err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus slot"})
-	}
-	return c.JSON(MessageResponse{Message: "slot berhasil dihapus"})
+	return c.JSON(teachers)
 }
 
 // ListBookings returns bookings (teacher sees theirs, student sees theirs)
@@ -325,33 +229,6 @@ func (h *Handler) AssignTeacher(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(booking)
-}
-
-// AdminListAvailability returns availability slots for a teacher (admin only)
-// @Summary      List teacher availability
-// @Description  Mengembalikan slot kosong guru tertentu (utk dialog booking manual)
-// @Tags         Admin Tutoring
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        teacher_id query int true "Teacher ID"
-// @Success      200 {array} AvailabilityResponse
-// @Failure      400 {object} ErrorResponse
-// @Router       /admin/tutoring/availability [get]
-func (h *Handler) AdminListAvailability(c *fiber.Ctx) error {
-	teacherIDStr := c.Query("teacher_id")
-	if teacherIDStr == "" {
-		return c.Status(400).JSON(ErrorResponse{Error: "teacher_id wajib diisi"})
-	}
-	tid, err := strconv.ParseUint(teacherIDStr, 10, 64)
-	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "teacher_id tidak valid"})
-	}
-	slots, err := h.svc.ListAvailability(uint(tid))
-	if err != nil {
-		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
-	}
-	return c.JSON(slots)
 }
 
 // GroupInfo returns group info for a share link
@@ -769,7 +646,6 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage, 
 	admin.Get("/tutoring/bookings", h.AdminListBookings)
 	admin.Post("/tutoring/bookings", h.AdminCreateBooking)
 	admin.Delete("/tutoring/bookings/:id", h.AdminDeleteBooking)
-	admin.Get("/tutoring/availability", h.AdminListAvailability)
 	admin.Patch("/tutoring/bookings/:id/assign", h.AssignTeacher)
 	admin.Get("/tutoring/evidence", h.AdminListEvidence)
 	admin.Patch("/tutoring/evidence/:id", h.AdminReviewEvidence)
@@ -784,9 +660,6 @@ func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settin
 	h := NewHandler(svc, store)
 
 	auth.Get("/tutoring/teachers", h.ListTeachers)
-	auth.Get("/tutoring/availability", h.ListAvailability)
-	auth.Post("/tutoring/availability", h.CreateAvailability)
-	auth.Delete("/tutoring/availability/:id", h.DeleteAvailability)
 	auth.Get("/tutoring/bookings", h.ListBookings)
 	auth.Post("/tutoring/bookings", h.CreateBooking)
 	auth.Patch("/tutoring/bookings/:id", h.UpdateBookingStatus)
