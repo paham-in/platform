@@ -1,8 +1,6 @@
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { RichContent } from "@/components/ui/rich-content"
 import { YoutubeEmbed } from "@/components/ui/youtube-embed"
-import { useCanPostForum } from "@/hooks/use-can-post-forum"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import "katex/dist/katex.min.css"
 import {
@@ -12,9 +10,9 @@ import {
   deleteQuestionsByQuestionIdAnswersByIdMutation,
   getQuestionsByQuestionIdImagesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { createFileRoute, Link, useParams } from "@tanstack/react-router"
+import { createFileRoute, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Loader2, Sparkles, Trash2, MessageCircle } from "lucide-react"
+import { Loader2, Trash2, MessageCircle } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { AnswerForm } from "@/components/forum"
 import {
@@ -33,8 +31,6 @@ function ForumDetail() {
   const qc = useQueryClient()
   const { id } = useParams({ from: "/_dashboard/student/forum/$id" })
   const questionId = Number(id)
-  const canPost = useCanPostForum()
-  const locked = canPost === false
 
   const { data: question, isLoading } = useQuery(getQuestionsByIdOptions({ path: { id: questionId } }))
   const { data: answers = [] } = useQuery(
@@ -177,26 +173,8 @@ function ForumDetail() {
         ))}
       </section>
 
-      {/* Answer form — hide if owner; non-subscriber read-only */}
-      {!isOwner && (locked ? (
-        <section className="mt-10">
-          <Card>
-            <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
-              <p className="text-sm font-medium">Ingin menjawab pertanyaan ini?</p>
-              <p className="text-sm text-muted-foreground">
-                Berlangganan konten atau les privat untuk bisa menjawab pertanyaan di forum.
-              </p>
-              <Link to="/student/subscribe">
-                <Button size="sm">
-                  <Sparkles className="mr-1 h-4 w-4" /> Lihat Langganan
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </section>
-      ) : (
-        <AnswerForm questionId={questionId} />
-      ))}
+      {/* Answer form — only teachers can answer (gated inside AnswerForm) */}
+      {!isOwner && <AnswerForm questionId={questionId} />}
     </main>
   )
 }

@@ -15,11 +15,10 @@ import (
 
 type Handler struct {
 	svc *Service
-	db  *gorm.DB
 }
 
-func NewHandler(svc *Service, db *gorm.DB) *Handler {
-	return &Handler{svc: svc, db: db}
+func NewHandler(svc *Service) *Handler {
+	return &Handler{svc: svc}
 }
 
 type ErrorResponse struct {
@@ -139,18 +138,13 @@ func (h *Handler) CreateAnswer(c *fiber.Ctx) error {
 	if input.Content == "" && input.VideoURL == "" {
 		return c.Status(400).JSON(ErrorResponse{Error: "content atau video_url wajib diisi"})
 	}
-	// hanya user yang sudah berlangganan (konten/les privat) yang boleh menjawab;
-	// admin/teacher otomatis lolos. Sisanya read-only.
-	if !middleware.CanAccessPremium(c, h.db) {
-		return c.Status(403).JSON(ErrorResponse{Error: "kamu perlu berlangganan untuk menjawab pertanyaan"})
+	// hanya guru yang boleh menjawab — admin/student read-only supaya jawaban
+	// di forum benar-benar akurat.
+	if !hasTeacherRole(c) {
+		return c.Status(403).JSON(ErrorResponse{Error: "hanya guru yang bisa menjawab pertanyaan"})
 	}
-	if input.VideoURL != "" {
-		if !hasTeacherRole(c) {
-			return c.Status(403).JSON(ErrorResponse{Error: "hanya guru yang bisa menjawab dengan video"})
-		}
-		if !reYoutube.MatchString(input.VideoURL) {
-			return c.Status(400).JSON(ErrorResponse{Error: "format video_url tidak valid"})
-		}
+	if input.VideoURL != "" && !reYoutube.MatchString(input.VideoURL) {
+		return c.Status(400).JSON(ErrorResponse{Error: "format video_url tidak valid"})
 	}
 
 	answer, err := h.svc.Create(uint(questionID), userID, input.Content, input.VideoURL)
@@ -203,7 +197,7 @@ func PublicRoutes(app fiber.Router, db *gorm.DB) {
 	repo := NewRepository(db)
 	questionRepo := NewQuestionRepository(db)
 	svc := NewService(repo, questionRepo)
-	h := NewHandler(svc, db)
+	h := NewHandler(svc)
 
 	app.Get("/questions/:question_id/answers", middleware.OptionalSessionResolver(db), h.ListAnswers)
 }
@@ -213,7 +207,7 @@ func AuthRoutes(app fiber.Router, db *gorm.DB, pushSvc *push.Service) {
 	questionRepo := NewQuestionRepository(db)
 	svc := NewService(repo, questionRepo)
 	svc.SetPushService(pushSvc)
-	h := NewHandler(svc, db)
+	h := NewHandler(svc)
 
 	app.Post("/questions/:question_id/answers", h.CreateAnswer)
 	app.Delete("/questions/:question_id/answers/:id", h.DeleteAnswer)

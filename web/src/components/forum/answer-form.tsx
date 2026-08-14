@@ -20,8 +20,8 @@ interface AnswerFormProps {
 
 export function AnswerForm({ questionId }: AnswerFormProps) {
   const qc = useQueryClient()
-  const { data: me } = useQuery(getMeOptions())
-  const canVideo = (me?.roles as string[] | undefined)?.includes("teacher") ?? false
+  const { data: me, isLoading } = useQuery(getMeOptions())
+  const isTeacher = (me?.roles as string[] | undefined)?.includes("teacher") ?? false
   const [mode, setMode] = useState<"text" | "video">("text")
   const [content, setContent] = useState("")
   const [videoUrl, setVideoUrl] = useState("")
@@ -42,6 +42,16 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
     },
   })
 
+  // hanya guru yang boleh menjawab — admin/student read-only
+  if (isLoading) return null
+  if (!isTeacher) {
+    return (
+      <section className="mt-6">
+        <p className="text-sm text-muted-foreground">Jawaban hanya bisa diberikan oleh guru.</p>
+      </section>
+    )
+  }
+
   const activeContent = mode === "text" ? content.trim() : videoUrl.trim()
   const canSubmit = !!activeContent && !isPending
   const submit = () => {
@@ -55,29 +65,25 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
   return (
     <section className="mt-6 space-y-3">
       <h3 className="text-sm font-semibold">Tulis Jawaban</h3>
-      {canVideo ? (
-        <Tabs value={mode} onValueChange={(v) => setMode((v as "text" | "video") ?? "text")}>
-          <TabsList>
-            <TabsTrigger value="text">Teks</TabsTrigger>
-            <TabsTrigger value="video">Video YouTube</TabsTrigger>
-          </TabsList>
-          <TabsContent value="text">
-            <TiptapEditor content={content} onChange={setContent} allowImages={false} />
-          </TabsContent>
-          <TabsContent value="video">
-            <div className="space-y-2">
-              <Input
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=abc123"
-              />
-              {videoUrl && <YoutubeEmbed url={videoUrl} className="mt-2" />}
-            </div>
-          </TabsContent>
-        </Tabs>
-      ) : (
-        <TiptapEditor content={content} onChange={setContent} allowImages={false} />
-      )}
+      <Tabs value={mode} onValueChange={(v) => setMode((v as "text" | "video") ?? "text")}>
+        <TabsList>
+          <TabsTrigger value="text">Teks</TabsTrigger>
+          <TabsTrigger value="video">Video YouTube</TabsTrigger>
+        </TabsList>
+        <TabsContent value="text">
+          <TiptapEditor content={content} onChange={setContent} allowImages={false} />
+        </TabsContent>
+        <TabsContent value="video">
+          <div className="space-y-2">
+            <Input
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=abc123"
+            />
+            {videoUrl && <YoutubeEmbed url={videoUrl} className="mt-2" />}
+          </div>
+        </TabsContent>
+      </Tabs>
       <div className="flex justify-end">
         <Button onClick={submit} disabled={!canSubmit}>
           {isPending ? <Spinner /> : <Send className="mr-1 h-4 w-4" />}
