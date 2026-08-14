@@ -134,7 +134,7 @@ function NewMaterial() {
               <ArrowLeft className="h-4 w-4" /> Kembali
             </Link>
             <h1 className="mt-2 mb-1 text-2xl font-bold tracking-tight">Tambah Materi</h1>
-            <p className="text-sm text-muted-foreground">Buat materi teks atau video untuk chapter ini.</p>
+            <p className="text-sm text-muted-foreground">Buat materi teks atau video untuk bab ini.</p>
           </div>
 
           <Card>

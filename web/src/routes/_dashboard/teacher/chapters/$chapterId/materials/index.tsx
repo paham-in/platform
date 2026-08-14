@@ -258,7 +258,7 @@ function ChapterMaterials() {
       <main className="p-6">
         <div className="mb-2 flex items-center gap-2">
           <Link to="/teacher/chapters" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Chapter
+            <ArrowLeft className="h-4 w-4" /> BAB
           </Link>
           {chapter && (
             <>
@@ -425,7 +425,7 @@ function ChapterMaterials() {
                             </EmptyDescription>
                           ) : canManage ? (
                             <EmptyDescription>
-                              Buat materi pertama untuk chapter ini agar murid bisa mulai belajar.
+                              Buat materi pertama untuk bab ini agar murid bisa mulai belajar.
                             </EmptyDescription>
                           ) : null}
                         </EmptyHeader>

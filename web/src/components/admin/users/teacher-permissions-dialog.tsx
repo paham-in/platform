@@ -52,7 +52,7 @@ export function TeacherPermissionsDialog({ user, onClose }: TeacherPermissionsDi
             <span className="text-sm">
               <span className="font-medium">Kelola Materi</span>
               <span className="block text-xs text-muted-foreground">
-                Boleh membuat, mengubah, dan menghapus materi & chapter.
+                Boleh membuat, mengubah, dan menghapus materi & bab.
               </span>
             </span>
           </label>

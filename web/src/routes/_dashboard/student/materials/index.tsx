@@ -105,14 +105,14 @@ function MaterialsPage() {
   return (
     <main className="p-6">
       <h1 className="mb-1 text-2xl font-bold tracking-tight">Materi</h1>
-      <p className="mb-6 text-sm text-muted-foreground">Jelajahi materi dari semua chapter.</p>
+      <p className="mb-6 text-sm text-muted-foreground">Jelajahi materi dari semua bab.</p>
 
       <div className="mb-6 flex flex-wrap items-center gap-2">
         <div className="relative w-full max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            aria-label="Cari chapter"
-            placeholder="Cari chapter..."
+            aria-label="Cari bab"
+            placeholder="Cari bab..."
             className="pl-9 pr-9"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -157,14 +157,14 @@ function MaterialsPage() {
           <Empty className="sm:col-span-2 lg:col-span-3">
             <EmptyHeader>
               <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <BookOpen />}</EmptyMedia>
-              <EmptyTitle>{hasActiveFilter ? "Tidak ada chapter" : "Belum ada materi"}</EmptyTitle>
+              <EmptyTitle>{hasActiveFilter ? "Tidak ada bab" : "Belum ada materi"}</EmptyTitle>
               {hasActiveFilter ? (
                 <EmptyDescription>
-                  Tidak ada chapter yang cocok dengan pencarian atau filter saat ini.
+                  Tidak ada bab yang cocok dengan pencarian atau filter saat ini.
                 </EmptyDescription>
               ) : (
                 <EmptyDescription>
-                  Materi akan muncul di sini setelah guru menambahkan chapter.
+                  Materi akan muncul di sini setelah guru menambahkan bab.
                 </EmptyDescription>
               )}
             </EmptyHeader>

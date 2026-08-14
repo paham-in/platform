@@ -40,7 +40,7 @@ function ChapterDetail() {
       </Link>
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">{chapter?.title ?? "Chapter"}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{chapter?.title ?? "BAB"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {cls?.name ?? "-"} • {sub?.name ?? "-"}
         </p>
@@ -51,7 +51,7 @@ function ChapterDetail() {
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon"><FileText /></EmptyMedia>
-              <EmptyTitle>Belum ada materi di chapter ini</EmptyTitle>
+              <EmptyTitle>Belum ada materi di bab ini</EmptyTitle>
             </EmptyHeader>
           </Empty>
         )}

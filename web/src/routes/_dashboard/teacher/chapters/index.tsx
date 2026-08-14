@@ -145,20 +145,20 @@ function AdminChapters() {
   const { mutateAsync: createChapter } = useMutation({
     ...postAdminChaptersMutation(),
     onSuccess: () => qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() }),
-    onError: () => toast.error("Gagal menyimpan chapter."),
+    onError: () => toast.error("Gagal menyimpan bab."),
   });
   const { mutateAsync: updateChapter } = useMutation({
     ...patchAdminChaptersByIdMutation(),
     onSuccess: () => qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() }),
-    onError: () => toast.error("Gagal memperbarui chapter."),
+    onError: () => toast.error("Gagal memperbarui bab."),
   });
   const { mutate: deleteChapter } = useMutation({
     ...deleteAdminChaptersByIdMutation(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() });
-      toast.success("Chapter berhasil dihapus.");
+      toast.success("BAB berhasil dihapus.");
     },
-    onError: () => toast.error("Gagal menghapus chapter."),
+    onError: () => toast.error("Gagal menghapus bab."),
   });
 
   // subjects filtered by form.class_id
@@ -251,11 +251,11 @@ function AdminChapters() {
           },
         });
         if (coverFile && !(await uploadCover(editing.id!))) {
-          toast.error("Chapter tersimpan, tapi sampul gagal diunggah.");
+          toast.error("BAB tersimpan, tapi sampul gagal diunggah.");
           setDialogOpen(false);
           return;
         }
-        toast.success("Chapter berhasil diperbarui.");
+        toast.success("BAB berhasil diperbarui.");
       } else {
         const data = await createChapter({
           body: {
@@ -267,18 +267,18 @@ function AdminChapters() {
           },
         });
         if (coverFile && data?.id && !(await uploadCover(data.id))) {
-          toast.error("Chapter ditambahkan, tapi sampul gagal diunggah.");
+          toast.error("BAB ditambahkan, tapi sampul gagal diunggah.");
           setDialogOpen(false);
           return;
         }
-        toast.success("Chapter berhasil ditambahkan.");
+        toast.success("BAB berhasil ditambahkan.");
         setSearchInput("");
         navigate({ search: {}, replace: true });
         setPage(1);
       }
       setDialogOpen(false);
     } catch {
-      toast.error("Gagal menyimpan chapter. Coba lagi.");
+      toast.error("Gagal menyimpan bab. Coba lagi.");
     } finally {
       setSaving(false);
     }
@@ -297,7 +297,7 @@ function AdminChapters() {
       <main className="p-6">
         <Card>
           <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
-            <p className="text-muted-foreground">Gagal memuat daftar chapter.</p>
+            <p className="text-muted-foreground">Gagal memuat daftar bab.</p>
             <Button
               variant="outline"
               onClick={() => qc.invalidateQueries({ queryKey: getAdminChaptersQueryKey() })}
@@ -313,14 +313,14 @@ function AdminChapters() {
   return (
     <>
       <main className="p-6">
-        <h1 className="text-2xl font-bold tracking-tight">Chapter</h1>
+        <h1 className="text-2xl font-bold tracking-tight">BAB</h1>
         <div className="mb-4 mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-1 flex-wrap items-center gap-4">
             <div className="relative max-w-sm flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                aria-label="Cari chapter"
-                placeholder="Cari chapter..."
+                aria-label="Cari bab"
+                placeholder="Cari bab..."
                 className="pl-9 pr-9"
                 value={searchInput}
                 onChange={(e) => {
@@ -372,9 +372,9 @@ function AdminChapters() {
               </Button>
               <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>{editing ? "Ubah Chapter" : "Tambah Chapter"}</DialogTitle>
+                <DialogTitle>{editing ? "Ubah BAB" : "Tambah BAB"}</DialogTitle>
                 <DialogDescription className="sr-only">
-                  {editing ? "Ubah detail chapter." : "Buat chapter baru dalam hierarki kelas dan mata pelajaran."}
+                  {editing ? "Ubah detail bab." : "Buat bab baru dalam hierarki kelas dan mata pelajaran."}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 pt-4">
@@ -384,7 +384,7 @@ function AdminChapters() {
                     id="title"
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    placeholder="Judul chapter"
+                    placeholder="Judul bab"
                   />
                 </div>
                 <div className="space-y-2">
@@ -592,7 +592,7 @@ function AdminChapters() {
                         <EmptyHeader>
                           <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <BookOpen />}</EmptyMedia>
                           <EmptyTitle>
-                            {hasActiveFilter ? "Tidak ada chapter yang cocok dengan filter" : "Belum ada chapter"}
+                            {hasActiveFilter ? "Tidak ada bab yang cocok dengan filter" : "Belum ada bab"}
                           </EmptyTitle>
                         </EmptyHeader>
                         {hasActiveFilter && (
@@ -617,7 +617,7 @@ function AdminChapters() {
             <p className="text-sm text-muted-foreground">
               {filtered.length === 0
                 ? "Belum ada data"
-                : `Menampilkan ${(page - 1) * perPage + 1}–${Math.min(page * perPage, filtered.length)} dari ${filtered.length} chapter`}
+                : `Menampilkan ${(page - 1) * perPage + 1}–${Math.min(page * perPage, filtered.length)} dari ${filtered.length} bab`}
             </p>
             {totalPages > 1 && (
               <div className="flex gap-1">
@@ -651,7 +651,7 @@ function AdminChapters() {
             <DialogHeader>
               <DialogTitle>Sampul — {coverView.title}</DialogTitle>
               <DialogDescription className="sr-only">
-                Pratinjau sampul chapter {coverView.title}.
+                Pratinjau sampul bab {coverView.title}.
               </DialogDescription>
             </DialogHeader>
             <div className="overflow-hidden rounded-lg border">
@@ -665,7 +665,7 @@ function AdminChapters() {
         <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Hapus Chapter</AlertDialogTitle>
+              <AlertDialogTitle>Hapus BAB</AlertDialogTitle>
               <AlertDialogDescription>
                 Apakah kamu yakin ingin menghapus <strong>{deleteConfirm.title}</strong>? Aksi ini tidak dapat
                 dibatalkan.
