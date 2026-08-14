@@ -552,6 +552,30 @@ func (h *Handler) UpdateBookingStatus(c *fiber.Ctx) error {
 	return c.JSON(booking)
 }
 
+// CancelBooking membatalkan booking oleh murid pemiliknya
+// @Summary      Cancel booking
+// @Description  Murid membatalkan booking les privat miliknya sendiri. Bisa saat status pending (guru belum menyetujui) atau setelah disetujui selama invoice belum lunas.
+// @Tags         Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Booking ID"
+// @Success      200 {object} BookingResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /tutoring/bookings/{id}/cancel [post]
+func (h *Handler) CancelBooking(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	userID := c.Locals("user_id").(uint)
+	booking, err := h.svc.CancelBooking(uint(id), userID)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(booking)
+}
+
 // MyEarnings returns teacher's done sessions + fee estimate (teacher)
 // @Summary      My earnings
 // @Description  Riwayat sesi selesai milik guru + estimasi fee (persen dari harga sesi).
@@ -663,6 +687,7 @@ func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settin
 	auth.Get("/tutoring/bookings", h.ListBookings)
 	auth.Post("/tutoring/bookings", h.CreateBooking)
 	auth.Patch("/tutoring/bookings/:id", h.UpdateBookingStatus)
+	auth.Post("/tutoring/bookings/:id/cancel", h.CancelBooking)
 	auth.Get("/tutoring/groups/:token", h.GroupInfo)
 	auth.Get("/tutoring/sessions", h.ListSessions)
 	auth.Get("/tutoring/earnings", h.MyEarnings)

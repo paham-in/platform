@@ -142,7 +142,9 @@ func (r *Repository) ListAllBookings() ([]models.Booking, error) {
 
 func (r *Repository) ListBookingsByStudent(studentID uint) ([]models.Booking, error) {
 	var bookings []models.Booking
-	if err := r.db.Preload("Teacher").Where("student_id = ?", studentID).Order("date desc, start_time").Find(&bookings).Error; err != nil {
+	// Invoice di-preload supaya murid tahu status pembayarannya (mis. utk tahu
+	// booking confirmed belum bisa dibatalkan kalau sudah lunas).
+	if err := r.db.Preload("Teacher").Preload("Invoice").Where("student_id = ?", studentID).Order("date desc, start_time").Find(&bookings).Error; err != nil {
 		return nil, err
 	}
 	return bookings, nil

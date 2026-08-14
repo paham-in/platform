@@ -3824,6 +3824,36 @@ export type GetTutoringEarningsResponses = {
 
 export type GetTutoringEarningsResponse = GetTutoringEarningsResponses[keyof GetTutoringEarningsResponses];
 
+export type PostTutoringBookingsByIdCancelData = {
+    body?: never;
+    path: {
+        /**
+         * Booking ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/tutoring/bookings/{id}/cancel';
+};
+
+export type PostTutoringBookingsByIdCancelErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PostTutoringBookingsByIdCancelError = PostTutoringBookingsByIdCancelErrors[keyof PostTutoringBookingsByIdCancelErrors];
+
+export type PostTutoringBookingsByIdCancelResponses = {
+    /**
+     * OK
+     */
+    200: TutoringBookingResponse;
+};
+
+export type PostTutoringBookingsByIdCancelResponse = PostTutoringBookingsByIdCancelResponses[keyof PostTutoringBookingsByIdCancelResponses];
+
 export type GetTutoringGroupsByTokenData = {
     body?: never;
     path: {
