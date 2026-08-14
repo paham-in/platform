@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getAdminTutoringBookingsOptions, getAdminTutoringBookingsQueryKey, patchAdminTutoringBookingsByIdAssignMutation, patchTutoringBookingsByIdMutation, deleteAdminTutoringBookingsByIdMutation, getTutoringTeachersOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminTutoringBookingsOptions, getAdminTutoringBookingsQueryKey, patchAdminTutoringBookingsByIdAssignMutation, deleteAdminTutoringBookingsByIdMutation, getTutoringTeachersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringBookingResponse, TutoringTeacherResponse } from "@/lib/api/types.gen"
 import { Plus, Trash2, UserRound, Users, CalendarX2 } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -155,20 +155,10 @@ function DeleteBookingDialog({ booking, onClose }: { booking: TutoringBookingRes
 }
 
 function AdminTutoring() {
-  const qc = useQueryClient()
   const navigate = useNavigate({ from: Route.fullPath })
   const { data: bookings = [], isLoading } = useQuery(getAdminTutoringBookingsOptions())
   const [assignBooking, setAssignBooking] = useState<TutoringBookingResponse | null>(null)
   const [deleteBooking, setDeleteBooking] = useState<TutoringBookingResponse | null>(null)
-
-  const { mutate: reject, isPending: rejecting } = useMutation({
-    ...patchTutoringBookingsByIdMutation(),
-    onSuccess: () => {
-      toast.success("Booking ditolak")
-      qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
-    },
-    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal menolak booking"),
-  })
 
   return (
     <main className="p-6">
@@ -238,13 +228,7 @@ function AdminTutoring() {
                   <TableCell className="pr-6">
                     <div className="flex items-center justify-end gap-2">
                       {b.status === "pending" && !b.teacher_id ? (
-                        <>
-                          <Button size="sm" onClick={() => setAssignBooking(b)}>Assign Guru</Button>
-                          <Button size="sm" variant="outline" disabled={rejecting} onClick={() => reject({ path: { id: b.id! }, body: { status: "rejected" } })}>
-                            {rejecting && <Spinner className="h-3 w-3" />}
-                            Tolak
-                          </Button>
-                        </>
+                        <Button size="sm" onClick={() => setAssignBooking(b)}>Assign Guru</Button>
                       ) : null}
                       {b.invoice_status !== "paid" && (
                         <Button size="sm" variant="outline" onClick={() => setDeleteBooking(b)}>
