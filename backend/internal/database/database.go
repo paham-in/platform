@@ -112,6 +112,18 @@ func Migrate(db *gorm.DB) {
 		log.Println("Renamed table question_images → forum_question_images")
 	}
 
+	// migrate content -- add is_free flag SEBELUM AutoMigrate supaya baris existing
+	// ikut DEFAULT TRUE (konten lama jadi gratis). Model tidak lagi mendeklarasikan
+	// default di tag GORM (kalau default:true, GORM menimpa is_free=false saat Create
+	// jadi materi premium tak pernah tersimpan); nilai is_free selalu dikirim eksplisit.
+	// AutoMigrate lalu men-sync kolom (DROP DEFAULT di DB) tanpa menyentuh nilai baris.
+	if db.Migrator().HasTable(&models.Material{}) && !db.Migrator().HasColumn(&models.Material{}, "is_free") {
+		db.Exec("ALTER TABLE materials ADD COLUMN is_free BOOLEAN NOT NULL DEFAULT TRUE")
+	}
+	if db.Migrator().HasTable(&models.QuizPackage{}) && !db.Migrator().HasColumn(&models.QuizPackage{}, "is_free") {
+		db.Exec("ALTER TABLE quiz_packages ADD COLUMN is_free BOOLEAN NOT NULL DEFAULT TRUE")
+	}
+
 	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionImage{}, &models.SubjectImage{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.QuizStudentProgress{})
 
 	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
@@ -176,14 +188,6 @@ func Migrate(db *gorm.DB) {
 	// migrate existing users -- add payment_status
 	if !db.Migrator().HasColumn(&models.User{}, "payment_status") {
 		db.Exec("ALTER TABLE users ADD COLUMN payment_status VARCHAR(20) DEFAULT 'pending'")
-	}
-
-	// migrate content -- add is_free flag (default true = konten existing jadi gratis)
-	if !db.Migrator().HasColumn(&models.Material{}, "is_free") {
-		db.Exec("ALTER TABLE materials ADD COLUMN is_free BOOLEAN NOT NULL DEFAULT TRUE")
-	}
-	if !db.Migrator().HasColumn(&models.QuizPackage{}, "is_free") {
-		db.Exec("ALTER TABLE quiz_packages ADD COLUMN is_free BOOLEAN NOT NULL DEFAULT TRUE")
 	}
 
 	// migrate questions -- drop title, add plain_content

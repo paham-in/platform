@@ -13,7 +13,10 @@ type Material struct {
 	Content     string  `gorm:"type:text" json:"content"`
 	VideoURL    string  `gorm:"size:500" json:"video_url"`
 	Status      string  `gorm:"size:20;default:draft" json:"status"`
-	IsFree      bool    `gorm:"default:true;not null" json:"is_free"`
+	// tanpa default di tag GORM: kalau default:true, GORM mengganti nilai zero
+	// (false) dengan true saat Create, jadi materi premium tak pernah tersimpan.
+	// Default TRUE di kolom DB hanya berlaku utk migrasi konten lama.
+	IsFree      bool    `gorm:"not null" json:"is_free"`
 	Order       int     `gorm:"default:0" json:"order"`
 	Chapter     Chapter `gorm:"foreignKey:ChapterID" json:"-"`
 }
