@@ -187,6 +187,7 @@ definitions:
       content:
         type: string
       subject_id:
+        description: wajib — pertanyaan harus masuk ke mata pelajaran
         type: integer
     type: object
   forum.ErrorResponse:

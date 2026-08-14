@@ -123,6 +123,9 @@ export type ForumAnswerPreview = {
 
 export type ForumCreateQuestionInput = {
     content?: string;
+    /**
+     * wajib — pertanyaan harus masuk ke mata pelajaran
+     */
     subject_id?: number;
 };
 

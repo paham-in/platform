@@ -5322,6 +5322,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "subject_id": {
+                    "description": "wajib — pertanyaan harus masuk ke mata pelajaran",
                     "type": "integer"
                 }
             }

@@ -181,13 +181,21 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 	if input.Content == "" {
 		return c.Status(400).JSON(ErrorResponse{Error: "content wajib diisi"})
 	}
+	// subjek wajib — tiap pertanyaan harus masuk ke mata pelajaran tertentu.
+	if input.SubjectID == 0 {
+		return c.Status(400).JSON(ErrorResponse{Error: "subject_id wajib diisi"})
+	}
+	var subject models.Subject
+	if err := h.db.First(&subject, input.SubjectID).Error; err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "subjek tidak ditemukan"})
+	}
 	// hanya user yang sudah berlangganan (konten/les privat) yang boleh bertanya;
 	// admin/teacher otomatis lolos. Sisanya read-only.
 	if !middleware.CanAccessPremium(c, h.db) {
 		return c.Status(403).JSON(ErrorResponse{Error: "kamu perlu berlangganan untuk membuat pertanyaan"})
 	}
 
-	question, err := h.svc.Create(userID, input.Content, input.SubjectID)
+	question, err := h.svc.Create(userID, input.Content, &input.SubjectID)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menyimpan pertanyaan"})
 	}
@@ -253,7 +261,7 @@ type AnswerPreview struct {
 
 type CreateQuestionInput struct {
 	Content   string `json:"content"`
-	SubjectID *uint  `json:"subject_id,omitempty"`
+	SubjectID uint   `json:"subject_id"` // wajib — pertanyaan harus masuk ke mata pelajaran
 }
 
 // AdminDeleteQuestion menghapus pertanyaan (admin)

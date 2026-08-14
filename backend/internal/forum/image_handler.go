@@ -130,7 +130,9 @@ func (h *ImageHandler) UploadQuestionImage(c *fiber.Ctx) error {
 		ext = ".png"
 	}
 
-	objectName := h.storage.GenerateObjectName("img" + ext)
+	// gambar pendukung pertanyaan forum → folder khusus, jangan ikut
+	// public/materials (default GenerateObjectName).
+	objectName := h.storage.GenerateObjectNameIn("quiz_questions", "img"+ext)
 
 	err = h.storage.UploadReader(c.Context(), objectName, "image/jpeg", bytes.NewReader(compressed), int64(len(compressed)))
 	if err != nil {

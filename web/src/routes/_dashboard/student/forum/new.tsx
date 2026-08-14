@@ -142,7 +142,7 @@ function NewQuestion() {
         <h1 className="text-2xl font-bold tracking-tight">Pertanyaan Baru</h1>
 
         <div className="space-y-2">
-          <Label>Subjek (opsional)</Label>
+          <Label>Subjek (wajib)</Label>
           <Select items={subjectOptions} value={subjectId} onValueChange={(v) => setSubjectId(v ?? "")}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Pilih subjek" />
@@ -199,7 +199,7 @@ function NewQuestion() {
 
         <div className="flex justify-end gap-3">
           <Link to="/student/forum"><Button variant="outline">Batal</Button></Link>
-          <Button onClick={submit} disabled={!content || isPending || uploading}>
+          <Button onClick={submit} disabled={!content || !subjectId || isPending || uploading}>
             {(isPending || uploading) && <Spinner />}
             {uploading ? "Mengupload gambar..." : "Kirim"}
           </Button>
