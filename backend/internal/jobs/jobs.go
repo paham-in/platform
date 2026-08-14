@@ -39,9 +39,11 @@ func (r *Runner) SessionCleanup() (int64, error) {
 	return r.sessionRepo.DeleteExpired(time.Now())
 }
 
-// EvidenceCleanup menghapus bukti kehadiran approved yang melewati masa simpan
-// dari storage, lalu mengosongkan kolom evidence_url. Mengembalikan jumlah
-// bukti yang berhasil dihapus.
+// EvidenceCleanup menghapus bukti kehadiran approved yang melewati masa simpan.
+// Urutan: kosongkan evidence_url di DB dulu, baru hapus file dari storage.
+// Kalau hapus file gagal, yang tersisa hanya file orphan — DB sudah tidak
+// menunjuk ke file, jadi tidak ada broken link dan sesi tidak akan diproses
+// ulang (tidak stuck). Mengembalikan jumlah bukti yang berhasil dihapus.
 func (r *Runner) EvidenceCleanup() (int, error) {
 	if r.objectStorage == nil {
 		log.Println("[evidence-cleanup] storage tidak tersedia — cleanup dilewati")
@@ -55,12 +57,17 @@ func (r *Runner) EvidenceCleanup() (int, error) {
 	}
 	deleted := 0
 	for _, s := range sessions {
-		if err := r.objectStorage.Delete(context.Background(), s.EvidenceURL); err != nil {
-			log.Printf("[evidence-cleanup] gagal hapus %s: %v", s.EvidenceURL, err)
+		if s.EvidenceURL == "" {
 			continue
 		}
+		// DB dulu, file belakangan. (S3 DeleteObject idempotent — file yang sudah
+		// hilang bukan error, jadi tidak ada kasus "stuck" karena file tidak ada.)
 		if err := r.tutoringRepo.ClearSessionEvidence(s.ID); err != nil {
 			log.Printf("[evidence-cleanup] gagal kosongkan evidence sesi %d: %v", s.ID, err)
+			continue
+		}
+		if err := r.objectStorage.Delete(context.Background(), s.EvidenceURL); err != nil {
+			log.Printf("[evidence-cleanup] DB sudah dikosongkan, file %s gagal dihapus (orphan): %v", s.EvidenceURL, err)
 			continue
 		}
 		deleted++

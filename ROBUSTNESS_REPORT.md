@@ -18,7 +18,7 @@ Namun masih ada **1 temuan kritis, 2 temuan tinggi, dan beberapa temuan sedang**
 | 2 | — | Admin tidak bisa approve/reject booking — **by design** (hanya guru terkait). Masalah aslinya: UI admin menampilkan tombol "Tolak" yang pasti gagal → **tombol sudah dihapus** | ✅ Clarified & fixed 2026-08-14 |
 | 3 | **Tinggi** | Draft & materi milik guru lain bisa dibaca + diubah/dihapus lintas-teacher | ✅ **Fixed 2026-08-14** (S4/A7) — akses per-author di service material |
 | 4 | **Tinggi** | Goroutine background job tanpa `recover` → satu panic = seluruh server crash | ✅ **Fixed 2026-08-14** (A1) — pindah ke `robfig/cron/v3` dengan `cron.Recover` |
-| 5 | **Tinggi** | `EvidenceCleanup` non-atomic → bukti bisa "stuck" permanen (broken link) | 🆕 Baru |
+| 5 | **Tinggi** | `EvidenceCleanup` non-atomic → bukti bisa "stuck" permanen (broken link) | ✅ **Fixed 2026-08-14** (A2) — urutan dibalik: clear DB dulu, hapus file belakangan |
 | 6 | Sedang | Token sesi di `localStorage` + token OAuth lewat query-string URL (S2) | 🔴 Masih terbuka |
 | 7 | Sedang | CORS terbuka penuh + tidak ada rate limiter (S5) | 🔴 Masih terbuka |
 | 8 | Sedang | Reject booking **grup** tidak transaksional → bisa reject sebagian | ✅ **Fixed 2026-08-14** (A3) — path `rejected` dibungkus `s.db.Transaction` |
@@ -48,15 +48,18 @@ Sebelumnya `backend/internal/jobs/jobs.go` — `StartSessionCleanup()` dan `Star
 
 ---
 
-### A2. TINGGI — `EvidenceCleanup` non-atomic → bukti bisa "stuck" permanen
+### A2. TINGGI — `EvidenceCleanup` non-atomic → bukti bisa "stuck" permanen — ✅ FIXED (2026-08-14)
 
-`backend/internal/jobs/jobs.go:44-68` — urutan: **hapus file MinIO dulu**, lalu `ClearSessionEvidence` (update DB).
+Sebelumnya `backend/internal/jobs/jobs.go` — urutan: **hapus file storage dulu**, lalu `ClearSessionEvidence` (update DB).
 
 - Kalau update DB gagal setelah file terhapus → DB masih menunjuk `evidence_url` ke file yang sudah tidak ada → **broken image**.
 - Lebih parah: iterasi berikutnya `objectStorage.Delete` akan error (file sudah hilang) → `continue` → sesi itu **tidak akan pernah di-clear** → stuck selamanya.
 - Ini kebalikan dari pola yang sudah diperbaiki di N1–N3 (kompensasi/urut DB-dulu).
 
-**Fix saran:** balik urutannya (clear DB dulu, hapus file sesudahnya — file orphan lebih aman), atau pada error `Delete` yang berarti "not found" anggap sukses lalu lanjut clear DB. Tambahkan juga guard `evidence_url == ""`.
+**Perbaikan:** urutan dibalik — `ClearSessionEvidence` (DB) **dulu**, hapus file **belakangan**:
+- Kalau hapus file gagal → yang tersisa hanya file **orphan** (tidak direferensikan), DB sudah bersih → tidak ada broken link.
+- Sesi tidak pernah "stuck": begitu DB cleared, `evidence_url = ''` → keluar dari query iterasi berikutnya. (S3 `DeleteObject` idempotent, jadi kasus "file sudah hilang → error" tidak menghasilkan error sama sekali.)
+- Guard `evidence_url == ""` ditambahkan di loop sebagai defense-in-depth (query sudah memfilter `<> ''`).
 
 ---
 
