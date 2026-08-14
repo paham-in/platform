@@ -17,7 +17,7 @@ Namun masih ada **1 temuan kritis, 2 temuan tinggi, dan beberapa temuan sedang**
 | 1 | **Kritis** | Stored XSS: konten forum/materi di-render via `innerHTML` tanpa sanitasi | 🔴 Masih terbuka (S1) |
 | 2 | — | Admin tidak bisa approve/reject booking — **by design** (hanya guru terkait). Masalah aslinya: UI admin menampilkan tombol "Tolak" yang pasti gagal → **tombol sudah dihapus** | ✅ Clarified & fixed 2026-08-14 |
 | 3 | **Tinggi** | Draft & materi milik guru lain bisa dibaca + diubah/dihapus lintas-teacher | ✅ **Fixed 2026-08-14** (S4/A7) — akses per-author di service material |
-| 4 | **Tinggi** | Goroutine background job tanpa `recover` → satu panic = seluruh server crash | 🆕 Baru |
+| 4 | **Tinggi** | Goroutine background job tanpa `recover` → satu panic = seluruh server crash | ✅ **Fixed 2026-08-14** (A1) — pindah ke `robfig/cron/v3` dengan `cron.Recover` |
 | 5 | **Tinggi** | `EvidenceCleanup` non-atomic → bukti bisa "stuck" permanen (broken link) | 🆕 Baru |
 | 6 | Sedang | Token sesi di `localStorage` + token OAuth lewat query-string URL (S2) | 🔴 Masih terbuka |
 | 7 | Sedang | CORS terbuka penuh + tidak ada rate limiter (S5) | 🔴 Masih terbuka |
@@ -37,14 +37,14 @@ Namun masih ada **1 temuan kritis, 2 temuan tinggi, dan beberapa temuan sedang**
 
 ## A. Temuan Baru (belum pernah dilaporkan)
 
-### A1. TINGGI — Goroutine background job tanpa `recover` → crash seluruh server
+### A1. TINGGI — Goroutine background job tanpa `recover` → crash seluruh server — ✅ FIXED (2026-08-14)
 
-`backend/internal/jobs/jobs.go:72,100` — `StartSessionCleanup()` dan `StartEvidenceCleanup()` meluncurkan `go func()` **tanpa `defer recover()`**.
+Sebelumnya `backend/internal/jobs/jobs.go` — `StartSessionCleanup()` dan `StartEvidenceCleanup()` meluncurkan `go func()` **tanpa `defer recover()`**.
 
 - Panic apa pun di dalam goroutine (mis. GORM panic, nil pointer, dsb.) akan **mematikan seluruh proses Go** — bukan hanya job-nya.
 - Dampak: server down sampai di-restart; job yang di tengah jalan tidak ada retry otomatis.
 
-**Fix saran:** bungkus body tiap loop dengan `defer func() { if r := recover(); r != nil { log.Printf("panic job: %v", r) } }()` + `time.Sleep` lanjut.
+**Perbaikan:** scheduling manual (`time.Ticker` / `time.Sleep` sampai tengah malam) diganti `github.com/robfig/cron/v3` dengan chain `cron.Recover` — setiap panic di dalam job di-`recover` dan di-log otomatis, jadwal berikutnya tetap berjalan. Bonus: jadwal `@hourly` dan `0 0 * * *` (tengah malam) menggantikan kode sleep yang rapuh. `SessionCleanup`/`EvidenceCleanup` (dipanggil manual lewat endpoint devreset) tidak berubah.
 
 ---
 

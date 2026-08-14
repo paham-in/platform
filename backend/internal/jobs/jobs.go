@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/robfig/cron/v3"
+
 	"bimbel2/backend/internal/storage"
 	"bimbel2/backend/internal/tutoring"
 	"bimbel2/backend/internal/user"
@@ -68,15 +70,16 @@ func (r *Runner) EvidenceCleanup() (int, error) {
 }
 
 // StartSessionCleanup menjalankan cleanup sesi sekali saat boot, lalu tiap 1 jam.
+// Panic di dalam job di-recover otomatis oleh cron.Recover — satu job yang
+// panik tidak mematikan server, dan jadwal berikutnya tetap berjalan.
 func (r *Runner) StartSessionCleanup() {
-	go func() {
-		r.runSessionCleanup()
-		ticker := time.NewTicker(time.Hour)
-		defer ticker.Stop()
-		for range ticker.C {
-			r.runSessionCleanup()
-		}
-	}()
+	r.runSessionCleanup() // sekali saat boot, lalu tiap jam
+	c := cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)))
+	if _, err := c.AddFunc("@hourly", r.runSessionCleanup); err != nil {
+		log.Printf("[session-cleanup] gagal daftarkan jadwal: %v", err)
+		return
+	}
+	c.Start()
 }
 
 func (r *Runner) runSessionCleanup() {
@@ -90,21 +93,21 @@ func (r *Runner) runSessionCleanup() {
 	}
 }
 
-// StartEvidenceCleanup menjalankan cleanup bukti pertama saat tengah malam
-// berikutnya, lalu tiap 24 jam.
+// StartEvidenceCleanup menjalankan cleanup bukti tiap hari pukul 00:00.
+// Panic di dalam job di-recover otomatis oleh cron.Recover — satu job yang
+// panik tidak mematikan server, dan jadwal berikutnya tetap berjalan.
 func (r *Runner) StartEvidenceCleanup() {
 	if r.objectStorage == nil {
 		log.Println("[evidence-cleanup] storage tidak tersedia — cleanup dilewati")
 		return
 	}
-	go func() {
-		now := time.Now()
-		next := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, 1)
-		time.Sleep(time.Until(next))
-		for {
-			r.EvidenceCleanup()
-			time.Sleep(24 * time.Hour)
-		}
-	}()
+	c := cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)))
+	if _, err := c.AddFunc("0 0 * * *", func() {
+		r.EvidenceCleanup()
+	}); err != nil {
+		log.Printf("[evidence-cleanup] gagal daftarkan jadwal: %v", err)
+		return
+	}
+	c.Start()
 }
 
