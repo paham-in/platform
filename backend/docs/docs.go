@@ -2175,7 +2175,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/user.AdminUserResponse"
+                                "$ref": "#/definitions/user.AdminListUsersResponse"
                             }
                         }
                     },
@@ -2351,7 +2351,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter folder: materials atau questions",
+                        "description": "Filter folder: materials atau quiz_questions",
                         "name": "folder",
                         "in": "query"
                     }
@@ -2408,7 +2408,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Folder penyimpanan: materials (default) atau questions",
+                        "description": "Folder penyimpanan: materials (default) atau quiz_questions",
                         "name": "folder",
                         "in": "formData"
                     }
@@ -2928,7 +2928,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/user.AdminUserResponse"
+                                "$ref": "#/definitions/user.AdminListUsersResponse"
                             }
                         }
                     },
@@ -2964,7 +2964,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.AdminCreateStudentInput"
+                            "$ref": "#/definitions/user.AdminCreateUserRequest"
                         }
                     }
                 ],
@@ -2972,7 +2972,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/user.AdminUserResponse"
+                            "$ref": "#/definitions/user.AdminCreateUserResponse"
                         }
                     },
                     "400": {
@@ -3021,7 +3021,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.MessageResponse"
+                            "$ref": "#/definitions/user.AdminDeleteUserResponse"
                         }
                     },
                     "400": {
@@ -3079,7 +3079,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.MessageResponse"
+                            "$ref": "#/definitions/user.AdminUpdateEmailResponse"
                         }
                     },
                     "400": {
@@ -3137,7 +3137,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.AdminUserResponse"
+                            "$ref": "#/definitions/user.AdminMergeUserResponse"
                         }
                     },
                     "400": {
@@ -3192,12 +3192,6 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/user.MessageResponse"
-                        }
-                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -3239,7 +3233,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.SetTeacherPermissionsInput"
+                            "$ref": "#/definitions/user.AdminUpdateTeacherPermissionsRequest"
                         }
                     }
                 ],
@@ -3247,7 +3241,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.MessageResponse"
+                            "$ref": "#/definitions/user.AdminUpdateTeacherPermissionsResponse"
                         }
                     },
                     "400": {
@@ -3297,7 +3291,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.UpdateRoleRequest"
+                            "$ref": "#/definitions/user.AdminUpdateRoleRequest"
                         }
                     }
                 ],
@@ -3305,7 +3299,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.MessageResponse"
+                            "$ref": "#/definitions/user.AdminUpdateRoleResponse"
                         }
                     },
                     "400": {
@@ -3355,7 +3349,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/user.AdminUpdateTeacherSubjectsRequest"
                         }
                     }
                 ],
@@ -3363,7 +3357,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.AdminUserResponse"
+                            "$ref": "#/definitions/user.AdminUpdateTeacherSubjectsResponse"
                         }
                     },
                     "400": {
@@ -3538,7 +3532,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.MessageResponse"
+                            "$ref": "#/definitions/user.LogoutResponse"
                         }
                     },
                     "400": {
@@ -3660,7 +3654,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.UserResponse"
+                            "$ref": "#/definitions/user.MeResponse"
                         }
                     },
                     "401": {
@@ -3695,7 +3689,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/user.UpdateProfileRequest"
                         }
                     }
                 ],
@@ -3703,7 +3697,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.UserResponse"
+                            "$ref": "#/definitions/user.UpdateProfileResponse"
                         }
                     },
                     "400": {
@@ -4709,6 +4703,49 @@ const docTemplate = `{
                         "schema": {
                             "type": "object"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.BookingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tutoring/bookings/{id}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Murid membatalkan booking les privat miliknya sendiri. Bisa saat status pending (guru belum menyetujui) atau setelah disetujui selama invoice belum lunas.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Cancel booking",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Booking ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -6726,7 +6763,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.AdminCreateStudentInput": {
+        "user.AdminCreateUserRequest": {
             "type": "object",
             "properties": {
                 "email": {
@@ -6737,7 +6774,221 @@ const docTemplate = `{
                 }
             }
         },
-        "user.AdminUserResponse": {
+        "user.AdminCreateUserResponse": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "can_manage_materials": {
+                    "type": "boolean"
+                },
+                "can_manage_question_packages": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "has_google": {
+                    "type": "boolean"
+                },
+                "has_password": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.SubjectInfo"
+                    }
+                }
+            }
+        },
+        "user.AdminDeleteUserResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "user berhasil dihapus"
+                }
+            }
+        },
+        "user.AdminListUsersResponse": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "can_manage_materials": {
+                    "type": "boolean"
+                },
+                "can_manage_question_packages": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "has_google": {
+                    "type": "boolean"
+                },
+                "has_password": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.SubjectInfo"
+                    }
+                }
+            }
+        },
+        "user.AdminMergeUserResponse": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "can_manage_materials": {
+                    "type": "boolean"
+                },
+                "can_manage_question_packages": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "has_google": {
+                    "type": "boolean"
+                },
+                "has_password": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.SubjectInfo"
+                    }
+                }
+            }
+        },
+        "user.AdminUpdateEmailResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "email berhasil diubah"
+                }
+            }
+        },
+        "user.AdminUpdateRoleRequest": {
+            "type": "object",
+            "properties": {
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "[\"student\"",
+                        "\"teacher\"]"
+                    ]
+                }
+            }
+        },
+        "user.AdminUpdateRoleResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "role berhasil diubah"
+                }
+            }
+        },
+        "user.AdminUpdateTeacherPermissionsRequest": {
+            "type": "object",
+            "properties": {
+                "can_manage_materials": {
+                    "type": "boolean"
+                },
+                "can_manage_question_packages": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "user.AdminUpdateTeacherPermissionsResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "izin berhasil diubah"
+                }
+            }
+        },
+        "user.AdminUpdateTeacherSubjectsRequest": {
+            "type": "object",
+            "properties": {
+                "subject_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "user.AdminUpdateTeacherSubjectsResponse": {
             "type": "object",
             "properties": {
                 "avatar_url": {
@@ -6793,23 +7044,50 @@ const docTemplate = `{
                 }
             }
         },
-        "user.MessageResponse": {
+        "user.LogoutResponse": {
             "type": "object",
             "properties": {
                 "message": {
                     "type": "string",
-                    "example": "berhasil"
+                    "example": "berhasil logout"
                 }
             }
         },
-        "user.SetTeacherPermissionsInput": {
+        "user.MeResponse": {
             "type": "object",
             "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
                 "can_manage_materials": {
                     "type": "boolean"
                 },
                 "can_manage_question_packages": {
                     "type": "boolean"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "payment_status": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.SubjectInfo"
+                    }
                 }
             }
         },
@@ -6824,22 +7102,15 @@ const docTemplate = `{
                 }
             }
         },
-        "user.UpdateRoleRequest": {
+        "user.UpdateProfileRequest": {
             "type": "object",
             "properties": {
-                "roles": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "[\"student\"",
-                        "\"teacher\"]"
-                    ]
+                "name": {
+                    "type": "string"
                 }
             }
         },
-        "user.UserResponse": {
+        "user.UpdateProfileResponse": {
             "type": "object",
             "properties": {
                 "avatar_url": {

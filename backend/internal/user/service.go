@@ -16,51 +16,6 @@ import (
 // sessionDuration dipakai untuk sliding expiration: diperpanjang tiap token dipakai.
 const sessionDuration = models.SessionTTL // 7 hari
 
-type AuthResponse struct {
-	Token string       `json:"token"`
-	User  UserResponse `json:"user"`
-}
-
-type UserResponse struct {
-	ID                        uint          `json:"id"`
-	Name                      string        `json:"name"`
-	Email                     string        `json:"email"`
-	Roles                     []string      `json:"roles"`
-	AvatarURL                 string        `json:"avatar_url"`
-	PaymentStatus             string        `json:"payment_status"`
-	Subjects                  []SubjectInfo `json:"subjects"`
-	CanManageMaterials        bool          `json:"can_manage_materials"`
-	CanManageQuestionPackages bool          `json:"can_manage_question_packages"`
-}
-
-type AdminUserResponse struct {
-	ID                        uint          `json:"id"`
-	Name                      string        `json:"name"`
-	Email                     string        `json:"email"`
-	Roles                     []string      `json:"roles"`
-	AvatarURL                 string        `json:"avatar_url"`
-	PaymentStatus             string        `json:"payment_status"`
-	HasGoogle                 bool          `json:"has_google"`
-	HasPassword               bool          `json:"has_password"`
-	CreatedAt                 string        `json:"created_at"`
-	Subjects                  []SubjectInfo `json:"subjects"`
-	CanManageMaterials        bool          `json:"can_manage_materials"`
-	CanManageQuestionPackages bool          `json:"can_manage_question_packages"`
-}
-
-type SubjectInfo struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
-}
-
-type ErrorResponse struct {
-	Error string `json:"error" example:"error message"`
-}
-
-type MessageResponse struct {
-	Message string `json:"message" example:"berhasil"`
-}
-
 type Service struct {
 	userRepo    *UserRepository
 	sessionRepo *SessionRepository
@@ -81,7 +36,7 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 		if err != nil {
 			return nil, errInternal
 		}
-		return &AuthResponse{Token: token, User: toResponse(*user)}, nil
+		return &AuthResponse{Token: token, User: newMeResponse(*user)}, nil
 	}
 
 	// cari by email
@@ -95,7 +50,7 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 		if err != nil {
 			return nil, errInternal
 		}
-		return &AuthResponse{Token: token, User: toResponse(*user)}, nil
+		return &AuthResponse{Token: token, User: newMeResponse(*user)}, nil
 	}
 
 	// create new user + assign default role (student) + buat sesi login dalam
@@ -126,7 +81,7 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 	}); err != nil {
 		return nil, errInternal
 	}
-	return &AuthResponse{Token: token, User: toResponse(*user)}, nil
+	return &AuthResponse{Token: token, User: newMeResponse(*user)}, nil
 }
 
 // createSessionForLogin membuat sesi baru. Untuk user ber-role student,
@@ -195,47 +150,20 @@ func roleNames(u models.User) []string {
 	return names
 }
 
-func (s *Service) ListUsers(search string, role string) ([]AdminUserResponse, error) {
+func (s *Service) ListUsers(search string, role string) ([]AdminListUsersResponse, error) {
 	users, err := s.userRepo.List(search, role)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]AdminUserResponse, len(users))
+	result := make([]AdminListUsersResponse, len(users))
 	for i, u := range users {
-		result[i] = AdminUserResponse{
-			ID:    u.ID,
-			Name:  u.Name,
-			Email: u.Email,
-			Roles: roleNames(u), AvatarURL: u.AvatarURL,
-			PaymentStatus:             u.PaymentStatus,
-			HasGoogle:                 u.GoogleID != "",
-			CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
-			Subjects:                  subjectInfos(u.Subjects),
-			CanManageMaterials:        u.CanManageMaterials,
-			CanManageQuestionPackages: u.CanManageQuestionPackages,
-		}
+		result[i] = newAdminListUsersResponse(u)
 	}
 	return result, nil
 }
 
-func subjectInfos(subjects []models.Subject) []SubjectInfo {
-	res := make([]SubjectInfo, len(subjects))
-	for i, s := range subjects {
-		res[i] = SubjectInfo{ID: s.ID, Name: s.Name}
-	}
-	return res
-}
-
-// AdminCreateStudentInput adalah body request utk membuat akun murid manual
-// (misal murid yang belum punya akun sendiri). Akses kelas diatur terpisah
-// lewat student_classes setelah admin approve langganan.
-type AdminCreateStudentInput struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
 // AdminCreateStudent membuat user ber-role student.
-func (s *Service) AdminCreateStudent(input AdminCreateStudentInput) (*AdminUserResponse, error) {
+func (s *Service) AdminCreateStudent(input AdminCreateUserRequest) (*AdminCreateUserResponse, error) {
 	name := strings.TrimSpace(input.Name)
 	email := strings.TrimSpace(input.Email)
 	if name == "" {
@@ -262,7 +190,7 @@ func (s *Service) AdminCreateStudent(input AdminCreateStudentInput) (*AdminUserR
 	if err != nil {
 		return nil, errInternal
 	}
-	r := s.toAdminResponse(u)
+	r := newAdminCreateUserResponse(u)
 	return &r, nil
 }
 
@@ -272,7 +200,7 @@ func (s *Service) AdminCreateStudent(input AdminCreateStudentInput) (*AdminUserR
 // sudah ada: data dummy (booking, invoice, akses kelas, forum) dipindah ke akun
 // Google, lalu akun dummy dihapus. Admin melihat dua akun terpisah di Kelola
 // User karena murid login Google duluan sebelum email-nya di-set ke dummy.
-func (s *Service) MergeDummyUser(dummyID, targetID uint) (*AdminUserResponse, error) {
+func (s *Service) MergeDummyUser(dummyID, targetID uint) (*AdminMergeUserResponse, error) {
 	if dummyID == targetID {
 		return nil, errors.New("target harus akun Google yang berbeda")
 	}
@@ -307,7 +235,7 @@ func (s *Service) MergeDummyUser(dummyID, targetID uint) (*AdminUserResponse, er
 	if err != nil {
 		return nil, errNotFound
 	}
-	r := s.toAdminResponse(*merged)
+	r := newAdminMergeUserResponse(*merged)
 	return &r, nil
 }
 
@@ -322,40 +250,9 @@ func (s *Service) UpdateUserEmail(id uint, email string) error {
 	return s.userRepo.UpdateEmail(id, email)
 }
 
-func (s *Service) toAdminResponse(u models.User) AdminUserResponse {
-	return AdminUserResponse{
-		ID:                        u.ID,
-		Name:                      u.Name,
-		Email:                     u.Email,
-		Roles:                     roleNames(u),
-		AvatarURL:                 u.AvatarURL,
-		PaymentStatus:             u.PaymentStatus,
-		HasGoogle:                 u.GoogleID != "",
-		HasPassword:               u.Password != nil,
-		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
-		Subjects:                  subjectInfos(u.Subjects),
-		CanManageMaterials:        u.CanManageMaterials,
-		CanManageQuestionPackages: u.CanManageQuestionPackages,
-	}
-}
-
-// UpdateRoleRequest adalah body request untuk update role user
-type UpdateRoleRequest struct {
-	Roles []string `json:"roles" example:"[\"student\",\"teacher\"]"`
-}
-
-type SetTeacherSubjectsInput struct {
-	SubjectIDs []uint `json:"subject_ids"`
-}
-
-type SetTeacherPermissionsInput struct {
-	CanManageMaterials        *bool `json:"can_manage_materials"`
-	CanManageQuestionPackages *bool `json:"can_manage_question_packages"`
-}
-
 // SetTeacherPermissions mengubah izin kelola konten guru (materi / paket soal).
 // Hanya field non-nil yang di-update (PATCH semantics).
-func (s *Service) SetTeacherPermissions(id uint, input SetTeacherPermissionsInput) error {
+func (s *Service) SetTeacherPermissions(id uint, input AdminUpdateTeacherPermissionsRequest) error {
 	if _, err := s.userRepo.Get(id); err != nil {
 		return errNotFound
 	}
@@ -372,7 +269,7 @@ func (s *Service) SetTeacherPermissions(id uint, input SetTeacherPermissionsInpu
 	return s.userRepo.UpdatePermissions(id, updates)
 }
 
-func (s *Service) SetTeacherSubjects(id uint, input SetTeacherSubjectsInput) (*AdminUserResponse, error) {
+func (s *Service) SetTeacherSubjects(id uint, input AdminUpdateTeacherSubjectsRequest) (*AdminUpdateTeacherSubjectsResponse, error) {
 	if err := s.userRepo.SetTeacherSubjects(id, input.SubjectIDs); err != nil {
 		return nil, err
 	}
@@ -380,20 +277,8 @@ func (s *Service) SetTeacherSubjects(id uint, input SetTeacherSubjectsInput) (*A
 	if err != nil {
 		return nil, err
 	}
-	return &AdminUserResponse{
-		ID:                        u.ID,
-		Name:                      u.Name,
-		Email:                     u.Email,
-		Roles:                     roleNames(*u),
-		AvatarURL:                 u.AvatarURL,
-		PaymentStatus:             u.PaymentStatus,
-		HasGoogle:                 u.GoogleID != "",
-		HasPassword:               u.Password != nil,
-		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
-		Subjects:                  subjectInfos(u.Subjects),
-		CanManageMaterials:        u.CanManageMaterials,
-		CanManageQuestionPackages: u.CanManageQuestionPackages,
-	}, nil
+	r := newAdminUpdateTeacherSubjectsResponse(*u)
+	return &r, nil
 }
 
 func (s *Service) UpdateUserRole(id uint, roles []string) error {
@@ -425,11 +310,7 @@ func (s *Service) UpdatePaymentStatus(id uint, status string) error {
 	return s.userRepo.UpdatePaymentStatus(id, status)
 }
 
-type UpdateProfileInput struct {
-	Name *string `json:"name"`
-}
-
-func (s *Service) UpdateProfile(id uint, input UpdateProfileInput) (*UserResponse, error) {
+func (s *Service) UpdateProfile(id uint, input UpdateProfileRequest) (*UpdateProfileResponse, error) {
 	if input.Name != nil {
 		if err := s.userRepo.UpdateName(id, *input.Name); err != nil {
 			return nil, errInternal
@@ -440,24 +321,10 @@ func (s *Service) UpdateProfile(id uint, input UpdateProfileInput) (*UserRespons
 	if err != nil {
 		return nil, errNotFound
 	}
-	resp := toResponse(*user)
+	resp := newUpdateProfileResponse(*user)
 	return &resp, nil
 }
 
 func (s *Service) DeleteUser(id uint) error {
 	return s.userRepo.Delete(id)
-}
-
-func toResponse(u models.User) UserResponse {
-	return UserResponse{
-		ID:                        u.ID,
-		Name:                      u.Name,
-		Email:                     u.Email,
-		Roles:                     roleNames(u),
-		AvatarURL:                 u.AvatarURL,
-		PaymentStatus:             u.PaymentStatus,
-		Subjects:                  subjectInfos(u.Subjects),
-		CanManageMaterials:        u.CanManageMaterials,
-		CanManageQuestionPackages: u.CanManageQuestionPackages,
-	}
 }

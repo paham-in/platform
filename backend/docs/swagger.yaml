@@ -1102,14 +1102,155 @@ definitions:
       teacher_name:
         type: string
     type: object
-  user.AdminCreateStudentInput:
+  user.AdminCreateUserRequest:
     properties:
       email:
         type: string
       name:
         type: string
     type: object
-  user.AdminUserResponse:
+  user.AdminCreateUserResponse:
+    properties:
+      avatar_url:
+        type: string
+      can_manage_materials:
+        type: boolean
+      can_manage_question_packages:
+        type: boolean
+      created_at:
+        type: string
+      email:
+        type: string
+      has_google:
+        type: boolean
+      has_password:
+        type: boolean
+      id:
+        type: integer
+      name:
+        type: string
+      payment_status:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      subjects:
+        items:
+          $ref: '#/definitions/user.SubjectInfo'
+        type: array
+    type: object
+  user.AdminDeleteUserResponse:
+    properties:
+      message:
+        example: user berhasil dihapus
+        type: string
+    type: object
+  user.AdminListUsersResponse:
+    properties:
+      avatar_url:
+        type: string
+      can_manage_materials:
+        type: boolean
+      can_manage_question_packages:
+        type: boolean
+      created_at:
+        type: string
+      email:
+        type: string
+      has_google:
+        type: boolean
+      has_password:
+        type: boolean
+      id:
+        type: integer
+      name:
+        type: string
+      payment_status:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      subjects:
+        items:
+          $ref: '#/definitions/user.SubjectInfo'
+        type: array
+    type: object
+  user.AdminMergeUserResponse:
+    properties:
+      avatar_url:
+        type: string
+      can_manage_materials:
+        type: boolean
+      can_manage_question_packages:
+        type: boolean
+      created_at:
+        type: string
+      email:
+        type: string
+      has_google:
+        type: boolean
+      has_password:
+        type: boolean
+      id:
+        type: integer
+      name:
+        type: string
+      payment_status:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      subjects:
+        items:
+          $ref: '#/definitions/user.SubjectInfo'
+        type: array
+    type: object
+  user.AdminUpdateEmailResponse:
+    properties:
+      message:
+        example: email berhasil diubah
+        type: string
+    type: object
+  user.AdminUpdateRoleRequest:
+    properties:
+      roles:
+        example:
+        - '["student"'
+        - '"teacher"]'
+        items:
+          type: string
+        type: array
+    type: object
+  user.AdminUpdateRoleResponse:
+    properties:
+      message:
+        example: role berhasil diubah
+        type: string
+    type: object
+  user.AdminUpdateTeacherPermissionsRequest:
+    properties:
+      can_manage_materials:
+        type: boolean
+      can_manage_question_packages:
+        type: boolean
+    type: object
+  user.AdminUpdateTeacherPermissionsResponse:
+    properties:
+      message:
+        example: izin berhasil diubah
+        type: string
+    type: object
+  user.AdminUpdateTeacherSubjectsRequest:
+    properties:
+      subject_ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  user.AdminUpdateTeacherSubjectsResponse:
     properties:
       avatar_url:
         type: string
@@ -1146,18 +1287,36 @@ definitions:
         example: error message
         type: string
     type: object
-  user.MessageResponse:
+  user.LogoutResponse:
     properties:
       message:
-        example: berhasil
+        example: berhasil logout
         type: string
     type: object
-  user.SetTeacherPermissionsInput:
+  user.MeResponse:
     properties:
+      avatar_url:
+        type: string
       can_manage_materials:
         type: boolean
       can_manage_question_packages:
         type: boolean
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      payment_status:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      subjects:
+        items:
+          $ref: '#/definitions/user.SubjectInfo'
+        type: array
     type: object
   user.SubjectInfo:
     properties:
@@ -1166,17 +1325,12 @@ definitions:
       name:
         type: string
     type: object
-  user.UpdateRoleRequest:
+  user.UpdateProfileRequest:
     properties:
-      roles:
-        example:
-        - '["student"'
-        - '"teacher"]'
-        items:
-          type: string
-        type: array
+      name:
+        type: string
     type: object
-  user.UserResponse:
+  user.UpdateProfileResponse:
     properties:
       avatar_url:
         type: string
@@ -2571,7 +2725,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/user.AdminUserResponse'
+              $ref: '#/definitions/user.AdminListUsersResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -2678,7 +2832,7 @@ paths:
         in: query
         name: q
         type: string
-      - description: 'Filter folder: materials atau questions'
+      - description: 'Filter folder: materials atau quiz_questions'
         in: query
         name: folder
         type: string
@@ -2715,7 +2869,7 @@ paths:
         in: formData
         name: title
         type: string
-      - description: 'Folder penyimpanan: materials (default) atau questions'
+      - description: 'Folder penyimpanan: materials (default) atau quiz_questions'
         in: formData
         name: folder
         type: string
@@ -3054,7 +3208,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/user.AdminUserResponse'
+              $ref: '#/definitions/user.AdminListUsersResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -3076,14 +3230,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/user.AdminCreateStudentInput'
+          $ref: '#/definitions/user.AdminCreateUserRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/user.AdminUserResponse'
+            $ref: '#/definitions/user.AdminCreateUserResponse'
         "400":
           description: Bad Request
           schema:
@@ -3114,7 +3268,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.MessageResponse'
+            $ref: '#/definitions/user.AdminDeleteUserResponse'
         "400":
           description: Bad Request
           schema:
@@ -3152,7 +3306,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.MessageResponse'
+            $ref: '#/definitions/user.AdminUpdateEmailResponse'
         "400":
           description: Bad Request
           schema:
@@ -3190,7 +3344,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.AdminUserResponse'
+            $ref: '#/definitions/user.AdminMergeUserResponse'
         "400":
           description: Bad Request
           schema:
@@ -3224,10 +3378,6 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/user.MessageResponse'
         "400":
           description: Bad Request
           schema:
@@ -3253,14 +3403,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/user.SetTeacherPermissionsInput'
+          $ref: '#/definitions/user.AdminUpdateTeacherPermissionsRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.MessageResponse'
+            $ref: '#/definitions/user.AdminUpdateTeacherPermissionsResponse'
         "400":
           description: Bad Request
           schema:
@@ -3290,14 +3440,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/user.UpdateRoleRequest'
+          $ref: '#/definitions/user.AdminUpdateRoleRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.MessageResponse'
+            $ref: '#/definitions/user.AdminUpdateRoleResponse'
         "400":
           description: Bad Request
           schema:
@@ -3327,14 +3477,14 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/user.AdminUpdateTeacherSubjectsRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.AdminUserResponse'
+            $ref: '#/definitions/user.AdminUpdateTeacherSubjectsResponse'
         "400":
           description: Bad Request
           schema:
@@ -3443,7 +3593,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.MessageResponse'
+            $ref: '#/definitions/user.LogoutResponse'
         "400":
           description: Bad Request
           schema:
@@ -3520,7 +3670,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.UserResponse'
+            $ref: '#/definitions/user.MeResponse'
         "401":
           description: Unauthorized
           schema:
@@ -3540,14 +3690,14 @@ paths:
         name: body
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/user.UpdateProfileRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.UserResponse'
+            $ref: '#/definitions/user.UpdateProfileResponse'
         "400":
           description: Bad Request
           schema:
@@ -4199,6 +4349,35 @@ paths:
       security:
       - BearerAuth: []
       summary: Update booking status
+      tags:
+      - Tutoring
+  /tutoring/bookings/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Murid membatalkan booking les privat miliknya sendiri. Bisa saat
+        status pending (guru belum menyetujui) atau setelah disetujui selama invoice
+        belum lunas.
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.BookingResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel booking
       tags:
       - Tutoring
   /tutoring/earnings:

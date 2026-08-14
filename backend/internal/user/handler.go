@@ -26,7 +26,7 @@ func NewHandler(svc *Service) *Handler {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {object} MessageResponse
+// @Success      200 {object} LogoutResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /logout [post]
 func (h *Handler) Logout(c *fiber.Ctx) error {
@@ -39,7 +39,7 @@ func (h *Handler) Logout(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal logout"})
 	}
 
-	return c.JSON(MessageResponse{Message: "berhasil logout"})
+	return c.JSON(LogoutResponse{Message: "berhasil logout"})
 }
 
 // Me mengambil data user saat ini
@@ -49,7 +49,7 @@ func (h *Handler) Logout(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {object} UserResponse
+// @Success      200 {object} MeResponse
 // @Failure      401 {object} ErrorResponse
 // @Router       /me [get]
 func (h *Handler) Me(c *fiber.Ctx) error {
@@ -63,7 +63,7 @@ func (h *Handler) Me(c *fiber.Ctx) error {
 		return c.Status(401).JSON(ErrorResponse{Error: "session tidak valid"})
 	}
 
-	return c.JSON(toResponse(*user))
+	return c.JSON(newMeResponse(*user))
 }
 
 // AdminListUsers mengembalikan daftar semua user (admin only)
@@ -75,7 +75,7 @@ func (h *Handler) Me(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Param        search query    string false "Filter by name or email"
 // @Param        role    query    string false "Filter by role (student/teacher/admin)"
-// @Success      200 {array} AdminUserResponse
+// @Success      200 {array} AdminListUsersResponse
 // @Failure      500 {object} ErrorResponse
 // @Router       /admin/users [get]
 func (h *Handler) AdminListUsers(c *fiber.Ctx) error {
@@ -96,7 +96,7 @@ func (h *Handler) AdminListUsers(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {array} AdminUserResponse
+// @Success      200 {array} AdminListUsersResponse
 // @Failure      500 {object} ErrorResponse
 // @Router       /admin/students [get]
 func (h *Handler) AdminListStudents(c *fiber.Ctx) error {
@@ -116,7 +116,7 @@ func (h *Handler) AdminListStudents(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Param        id     path      int    true "Akun dummy user ID"
 // @Param        body   body      object true "Akun Google tujuan"
-// @Success      200  {object}  AdminUserResponse
+// @Success      200  {object}  AdminMergeUserResponse
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
 // @Router       /admin/users/{id}/merge [post]
@@ -125,9 +125,7 @@ func (h *Handler) AdminMergeUser(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	var input struct {
-		TargetID uint `json:"target_id"`
-	}
+	var input AdminMergeUserRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -149,8 +147,8 @@ func (h *Handler) AdminMergeUser(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path      int                      true "User ID"
-// @Param        body body      UpdateRoleRequest        true "Role baru"
-// @Success      200  {object}  MessageResponse
+// @Param        body body      AdminUpdateRoleRequest   true "Role baru"
+// @Success      200  {object}  AdminUpdateRoleResponse
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
 // @Router       /admin/users/{id}/role [patch]
@@ -160,9 +158,7 @@ func (h *Handler) AdminUpdateRole(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
 
-	var input struct {
-		Roles []string `json:"roles"`
-	}
+	var input AdminUpdateRoleRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -171,7 +167,7 @@ func (h *Handler) AdminUpdateRole(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 
-	return c.JSON(MessageResponse{Message: "role berhasil diubah"})
+	return c.JSON(AdminUpdateRoleResponse{Message: "role berhasil diubah"})
 }
 
 // AdminCreateUser membuat akun dummy student (admin only)
@@ -181,13 +177,13 @@ func (h *Handler) AdminUpdateRole(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body body      AdminCreateStudentInput true "Nama & email murid"
-// @Success      201  {object}  AdminUserResponse
+// @Param        body body      AdminCreateUserRequest  true "Nama & email murid"
+// @Success      201  {object}  AdminCreateUserResponse
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
 // @Router       /admin/users [post]
 func (h *Handler) AdminCreateUser(c *fiber.Ctx) error {
-	var input AdminCreateStudentInput
+	var input AdminCreateUserRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -210,7 +206,7 @@ func (h *Handler) AdminCreateUser(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Param        id   path      int    true "User ID"
 // @Param        body body      object true "Email baru"
-// @Success      200  {object}  MessageResponse
+// @Success      200  {object}  AdminUpdateEmailResponse
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
 // @Router       /admin/users/{id}/email [patch]
@@ -219,9 +215,7 @@ func (h *Handler) AdminUpdateEmail(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	var input struct {
-		Email string `json:"email"`
-	}
+	var input AdminUpdateEmailRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -231,7 +225,7 @@ func (h *Handler) AdminUpdateEmail(c *fiber.Ctx) error {
 		}
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengubah email"})
 	}
-	return c.JSON(MessageResponse{Message: "email berhasil diubah"})
+	return c.JSON(AdminUpdateEmailResponse{Message: "email berhasil diubah"})
 }
 
 // AdminUpdateTeacherSubjects mengubah mata pelajaran yang diajarkan guru (admin only)
@@ -242,8 +236,8 @@ func (h *Handler) AdminUpdateEmail(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path      int    true "User ID"
-// @Param        body body      object true "Daftar subject_ids"
-// @Success      200  {object}  AdminUserResponse
+// @Param        body body      AdminUpdateTeacherSubjectsRequest true "Daftar subject_ids"
+// @Success      200  {object}  AdminUpdateTeacherSubjectsResponse
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
 // @Router       /admin/users/{id}/subjects [patch]
@@ -253,7 +247,7 @@ func (h *Handler) AdminUpdateTeacherSubjects(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
 
-	var input SetTeacherSubjectsInput
+	var input AdminUpdateTeacherSubjectsRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -274,8 +268,8 @@ func (h *Handler) AdminUpdateTeacherSubjects(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path      int                       true "User ID"
-// @Param        body body      SetTeacherPermissionsInput true "Izin kelola konten"
-// @Success      200  {object}  MessageResponse
+// @Param        body body      AdminUpdateTeacherPermissionsRequest true "Izin kelola konten"
+// @Success      200  {object}  AdminUpdateTeacherPermissionsResponse
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
 // @Router       /admin/users/{id}/permissions [patch]
@@ -285,7 +279,7 @@ func (h *Handler) AdminUpdateTeacherPermissions(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
 
-	var input SetTeacherPermissionsInput
+	var input AdminUpdateTeacherPermissionsRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -294,7 +288,7 @@ func (h *Handler) AdminUpdateTeacherPermissions(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 
-	return c.JSON(MessageResponse{Message: "izin berhasil diubah"})
+	return c.JSON(AdminUpdateTeacherPermissionsResponse{Message: "izin berhasil diubah"})
 }
 
 // AdminDeleteUser menghapus user (admin only)
@@ -305,7 +299,7 @@ func (h *Handler) AdminUpdateTeacherPermissions(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path      int  true "User ID"
-// @Success      200  {object}  MessageResponse
+// @Success      200  {object}  AdminDeleteUserResponse
 // @Failure      400  {object}  ErrorResponse
 // @Failure      500  {object}  ErrorResponse
 // @Router       /admin/users/{id} [delete]
@@ -319,7 +313,7 @@ func (h *Handler) AdminDeleteUser(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus user"})
 	}
 
-	return c.JSON(MessageResponse{Message: "user berhasil dihapus"})
+	return c.JSON(AdminDeleteUserResponse{Message: "user berhasil dihapus"})
 }
 
 // UpdateProfile mengubah nama user saat ini
@@ -329,8 +323,8 @@ func (h *Handler) AdminDeleteUser(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body body object true "Data profile"
-// @Success      200 {object} UserResponse
+// @Param        body body UpdateProfileRequest true "Data profile"
+// @Success      200 {object} UpdateProfileResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /me [patch]
 func (h *Handler) UpdateProfile(c *fiber.Ctx) error {
@@ -339,14 +333,12 @@ func (h *Handler) UpdateProfile(c *fiber.Ctx) error {
 		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
 	}
 
-	var input struct {
-		Name *string `json:"name"`
-	}
+	var input UpdateProfileRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 
-	user, err := h.svc.UpdateProfile(userID, UpdateProfileInput{Name: input.Name})
+	user, err := h.svc.UpdateProfile(userID, input)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
@@ -362,25 +354,22 @@ func (h *Handler) UpdateProfile(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path     int    true "User ID"
-// @Param        body body    object true "Status"
-// @Success      200  {object} MessageResponse
-// @Failure      400  {object} ErrorResponse
+// @Param        body body    object true "Status"// @Success      200 {object} AdminTogglePaymentResponse
+// @Failure      400 {object} ErrorResponse
 // @Router       /admin/users/{id}/payment [patch]
 func (h *Handler) AdminTogglePayment(c *fiber.Ctx) error {
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
-	var input struct {
-		Status string `json:"status"`
-	}
+	var input AdminTogglePaymentRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 	if err := h.svc.UpdatePaymentStatus(uint(id), input.Status); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
-	return c.JSON(MessageResponse{Message: "status berhasil diubah"})
+	return c.JSON(AdminTogglePaymentResponse{Message: "status berhasil diubah"})
 }
 
 func extractToken(c *fiber.Ctx) string {
