@@ -332,6 +332,19 @@ func (r *Repository) ToggleSessionFeePaid(id uint) (bool, error) {
 	return !s.FeePaid, nil
 }
 
+// MarkSessionsTaken menandai/batal menandai sesi milik guru sebagai "fee sudah
+// diambil". Hanya sesi berstatus done dengan fee_paid = true yang diproses.
+func (r *Repository) MarkSessionsTaken(teacherID uint, ids []uint, taken bool) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	return r.db.
+		Model(&models.TutoringSession{}).
+		Where("booking_id IN (SELECT id FROM bookings WHERE teacher_id = ?)", teacherID).
+		Where("id IN ? AND status = ? AND fee_paid = ?", ids, "done", true).
+		Update("fee_taken", taken).Error
+}
+
 // ListSessionsWithEvidence mengembalikan sesi yang punya bukti kehadiran.
 // status opsional: "" = semua, atau "review"/"done".
 func (r *Repository) ListSessionsWithEvidence(status string) ([]models.TutoringSession, error) {

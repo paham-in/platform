@@ -569,6 +569,37 @@ func (h *Handler) MyEarnings(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
+// MarkEarningsTaken marks teacher's paid sessions as taken (bulk)
+// @Summary      Tandai fee sudah diambil
+// @Description  Guru menandai sesi yang feenya sudah dia ambil. Hanya sesi berstatus done dengan fee_paid = true yang diproses. Mengembalikan state earnings terbaru.
+// @Tags         Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body body MarkEarningsTakenRequest true "Sesi yang ditandai"
+// @Success      200 {object} MyEarningsResponse
+// @Failure      400 {object} ErrorResponse
+// @Failure      403 {object} ErrorResponse
+// @Router       /tutoring/earnings/taken [patch]
+func (h *Handler) MarkEarningsTaken(c *fiber.Ctx) error {
+	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
+		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
+	}
+	var req MarkEarningsTakenRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "body tidak valid"})
+	}
+	if len(req.SessionIDs) == 0 {
+		return c.Status(400).JSON(ErrorResponse{Error: "session_ids wajib diisi"})
+	}
+	userID := c.Locals("user_id").(uint)
+	resp, err := h.svc.MarkEarningsTaken(userID, req.SessionIDs, req.Taken)
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal memperbarui data"})
+	}
+	return c.JSON(resp)
+}
+
 // AdminListReport returns per-booking session summary + refund estimate (admin only)
 // @Summary      Tutoring session report
 // @Description  Rekap jumlah pertemuan terlaksana/batal per booking + estimasi refund.
@@ -662,6 +693,7 @@ func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settin
 	auth.Post("/tutoring/bookings/:id/cancel", h.CancelBooking)
 	auth.Get("/tutoring/sessions", h.ListSessions)
 	auth.Get("/tutoring/earnings", h.MyEarnings)
+	auth.Patch("/tutoring/earnings/taken", h.MarkEarningsTaken)
 	auth.Patch("/tutoring/sessions/:id", h.UpdateSession)
 	auth.Post("/tutoring/sessions/:id/cancel", h.CancelSession)
 	auth.Post("/tutoring/sessions/:id/evidence", h.UploadSessionEvidence)

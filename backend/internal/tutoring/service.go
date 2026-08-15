@@ -1239,6 +1239,15 @@ func (s *Service) ListTeacherEarnings(teacherID uint) (*MyEarningsResponse, erro
 	return &resp, nil
 }
 
+// MarkEarningsTaken menandai sesi milik guru sebagai fee sudah diambil
+// (atau membatalkannya) lalu mengembalikan state earnings terbaru.
+func (s *Service) MarkEarningsTaken(teacherID uint, ids []uint, taken bool) (*MyEarningsResponse, error) {
+	if err := s.repo.MarkSessionsTaken(teacherID, ids, taken); err != nil {
+		return nil, err
+	}
+	return s.ListTeacherEarnings(teacherID)
+}
+
 func generateToken() (string, error) {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {

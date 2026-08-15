@@ -65,3 +65,10 @@ type UpdateSessionRequest struct {
 type AdminReviewEvidenceRequest struct {
 	Action string `json:"action"` // approve/reject
 }
+
+// — handler: MarkEarningsTaken (PATCH /tutoring/earnings/taken) —
+
+type MarkEarningsTakenRequest struct {
+	SessionIDs []uint `json:"session_ids"` // sesi yang ditandai
+	Taken      bool   `json:"taken"`       // true = sudah diambil, false = batalkan
+}

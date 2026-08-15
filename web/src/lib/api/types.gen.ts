@@ -644,6 +644,7 @@ export type TutoringAdminListEvidenceResponse = {
     evidence_url?: string;
     fee_amount?: number;
     fee_paid?: boolean;
+    fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
     mode?: string;
@@ -662,6 +663,7 @@ export type TutoringAdminListFeesResponse = {
     evidence_url?: string;
     fee_amount?: number;
     fee_paid?: boolean;
+    fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
     mode?: string;
@@ -704,6 +706,7 @@ export type TutoringAdminReviewEvidenceResponse = {
     evidence_url?: string;
     fee_amount?: number;
     fee_paid?: boolean;
+    fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
     mode?: string;
@@ -722,6 +725,7 @@ export type TutoringAdminToggleFeePaidResponse = {
     evidence_url?: string;
     fee_amount?: number;
     fee_paid?: boolean;
+    fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
     mode?: string;
@@ -786,6 +790,7 @@ export type TutoringCancelSessionResponse = {
     evidence_url?: string;
     fee_amount?: number;
     fee_paid?: boolean;
+    fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
     mode?: string;
@@ -878,6 +883,7 @@ export type TutoringListSessionsResponse = {
     evidence_url?: string;
     fee_amount?: number;
     fee_paid?: boolean;
+    fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
     mode?: string;
@@ -897,8 +903,21 @@ export type TutoringListTeachersResponse = {
     subjects?: Array<TutoringSubjectInfo>;
 };
 
+export type TutoringMarkEarningsTakenRequest = {
+    /**
+     * sesi yang ditandai
+     */
+    session_ids?: Array<number>;
+    /**
+     * true = sudah diambil, false = batalkan
+     */
+    taken?: boolean;
+};
+
 export type TutoringMyEarningsResponse = {
+    fee_available_total?: number;
     fee_paid_total?: number;
+    fee_taken_total?: number;
     fee_unpaid_total?: number;
     sessions?: Array<TutoringListSessionsResponse>;
     total_fee?: number;
@@ -948,6 +967,7 @@ export type TutoringUpdateSessionResponse = {
     evidence_url?: string;
     fee_amount?: number;
     fee_paid?: boolean;
+    fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
     mode?: string;
@@ -966,6 +986,7 @@ export type TutoringUploadSessionEvidenceResponse = {
     evidence_url?: string;
     fee_amount?: number;
     fee_paid?: boolean;
+    fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
     mode?: string;
@@ -4238,6 +4259,38 @@ export type GetTutoringEarningsResponses = {
 };
 
 export type GetTutoringEarningsResponse = GetTutoringEarningsResponses[keyof GetTutoringEarningsResponses];
+
+export type PatchTutoringEarningsTakenData = {
+    /**
+     * Sesi yang ditandai
+     */
+    body: TutoringMarkEarningsTakenRequest;
+    path?: never;
+    query?: never;
+    url: '/tutoring/earnings/taken';
+};
+
+export type PatchTutoringEarningsTakenErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: TutoringErrorResponse;
+};
+
+export type PatchTutoringEarningsTakenError = PatchTutoringEarningsTakenErrors[keyof PatchTutoringEarningsTakenErrors];
+
+export type PatchTutoringEarningsTakenResponses = {
+    /**
+     * OK
+     */
+    200: TutoringMyEarningsResponse;
+};
+
+export type PatchTutoringEarningsTakenResponse = PatchTutoringEarningsTakenResponses[keyof PatchTutoringEarningsTakenResponses];
 
 export type GetTutoringSessionsData = {
     body?: never;

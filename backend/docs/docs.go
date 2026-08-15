@@ -4862,6 +4862,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/tutoring/earnings/taken": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Guru menandai sesi yang feenya sudah dia ambil. Hanya sesi berstatus done dengan fee_paid = true yang diproses. Mengembalikan state earnings terbaru.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Tandai fee sudah diambil",
+                "parameters": [
+                    {
+                        "description": "Sesi yang ditandai",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.MarkEarningsTakenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.MyEarningsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tutoring/sessions": {
             "get": {
                 "security": [
@@ -6724,6 +6775,9 @@ const docTemplate = `{
                 "fee_paid": {
                     "type": "boolean"
                 },
+                "fee_taken": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -6772,6 +6826,9 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "fee_paid": {
+                    "type": "boolean"
+                },
+                "fee_taken": {
                     "type": "boolean"
                 },
                 "id": {
@@ -6880,6 +6937,9 @@ const docTemplate = `{
                 "fee_paid": {
                     "type": "boolean"
                 },
+                "fee_taken": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -6928,6 +6988,9 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "fee_paid": {
+                    "type": "boolean"
+                },
+                "fee_taken": {
                     "type": "boolean"
                 },
                 "id": {
@@ -7104,6 +7167,9 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "fee_paid": {
+                    "type": "boolean"
+                },
+                "fee_taken": {
                     "type": "boolean"
                 },
                 "id": {
@@ -7325,6 +7391,9 @@ const docTemplate = `{
                 "fee_paid": {
                     "type": "boolean"
                 },
+                "fee_taken": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -7377,10 +7446,32 @@ const docTemplate = `{
                 }
             }
         },
+        "tutoring.MarkEarningsTakenRequest": {
+            "type": "object",
+            "properties": {
+                "session_ids": {
+                    "description": "sesi yang ditandai",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "taken": {
+                    "description": "true = sudah diambil, false = batalkan",
+                    "type": "boolean"
+                }
+            }
+        },
         "tutoring.MyEarningsResponse": {
             "type": "object",
             "properties": {
+                "fee_available_total": {
+                    "type": "number"
+                },
                 "fee_paid_total": {
+                    "type": "number"
+                },
+                "fee_taken_total": {
                     "type": "number"
                 },
                 "fee_unpaid_total": {
@@ -7513,6 +7604,9 @@ const docTemplate = `{
                 "fee_paid": {
                     "type": "boolean"
                 },
+                "fee_taken": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -7561,6 +7655,9 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "fee_paid": {
+                    "type": "boolean"
+                },
+                "fee_taken": {
                     "type": "boolean"
                 },
                 "id": {

@@ -1028,6 +1028,8 @@ definitions:
         type: number
       fee_paid:
         type: boolean
+      fee_taken:
+        type: boolean
       id:
         type: integer
       invoice_paid:
@@ -1060,6 +1062,8 @@ definitions:
       fee_amount:
         type: number
       fee_paid:
+        type: boolean
+      fee_taken:
         type: boolean
       id:
         type: integer
@@ -1131,6 +1135,8 @@ definitions:
         type: number
       fee_paid:
         type: boolean
+      fee_taken:
+        type: boolean
       id:
         type: integer
       invoice_paid:
@@ -1163,6 +1169,8 @@ definitions:
       fee_amount:
         type: number
       fee_paid:
+        type: boolean
+      fee_taken:
         type: boolean
       id:
         type: integer
@@ -1279,6 +1287,8 @@ definitions:
       fee_amount:
         type: number
       fee_paid:
+        type: boolean
+      fee_taken:
         type: boolean
       id:
         type: integer
@@ -1426,6 +1436,8 @@ definitions:
         type: number
       fee_paid:
         type: boolean
+      fee_taken:
+        type: boolean
       id:
         type: integer
       invoice_paid:
@@ -1460,9 +1472,24 @@ definitions:
           $ref: '#/definitions/tutoring.SubjectInfo'
         type: array
     type: object
+  tutoring.MarkEarningsTakenRequest:
+    properties:
+      session_ids:
+        description: sesi yang ditandai
+        items:
+          type: integer
+        type: array
+      taken:
+        description: true = sudah diambil, false = batalkan
+        type: boolean
+    type: object
   tutoring.MyEarningsResponse:
     properties:
+      fee_available_total:
+        type: number
       fee_paid_total:
+        type: number
+      fee_taken_total:
         type: number
       fee_unpaid_total:
         type: number
@@ -1549,6 +1576,8 @@ definitions:
         type: number
       fee_paid:
         type: boolean
+      fee_taken:
+        type: boolean
       id:
         type: integer
       invoice_paid:
@@ -1581,6 +1610,8 @@ definitions:
       fee_amount:
         type: number
       fee_paid:
+        type: boolean
+      fee_taken:
         type: boolean
       id:
         type: integer
@@ -4943,6 +4974,39 @@ paths:
       security:
       - BearerAuth: []
       summary: My earnings
+      tags:
+      - Tutoring
+  /tutoring/earnings/taken:
+    patch:
+      consumes:
+      - application/json
+      description: Guru menandai sesi yang feenya sudah dia ambil. Hanya sesi berstatus
+        done dengan fee_paid = true yang diproses. Mengembalikan state earnings terbaru.
+      parameters:
+      - description: Sesi yang ditandai
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tutoring.MarkEarningsTakenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.MyEarningsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Tandai fee sudah diambil
       tags:
       - Tutoring
   /tutoring/sessions:

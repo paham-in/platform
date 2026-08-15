@@ -14,4 +14,5 @@ type TutoringSession struct {
 	Status    string   `gorm:"size:20;default:scheduled" json:"status"` // scheduled/review/done/cancelled
 	EvidenceURL string `gorm:"size:500" json:"evidence_url"`       // foto bukti kehadiran
 	FeePaid   bool     `gorm:"default:false" json:"fee_paid"`      // fee guru sudah dibayar?
+	FeeTaken  bool     `gorm:"default:false" json:"fee_taken"`     // fee sudah diambil guru?
 }

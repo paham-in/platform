@@ -100,6 +100,7 @@ type sessionItem struct {
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
+	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
 	InvoicePaid bool    `json:"invoice_paid,omitempty"`
 }
@@ -133,6 +134,7 @@ func buildSessionItem(v models.TutoringSession) sessionItem {
 		Note:        note,
 		EvidenceURL: v.EvidenceURL,
 		FeePaid:     v.FeePaid,
+		FeeTaken:    v.FeeTaken,
 	}
 }
 
@@ -317,6 +319,7 @@ type ListSessionsResponse struct {
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
+	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
 	InvoicePaid bool    `json:"invoice_paid,omitempty"`
 }
@@ -341,6 +344,7 @@ type UpdateSessionResponse struct {
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
+	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
 	InvoicePaid bool    `json:"invoice_paid,omitempty"`
 }
@@ -365,6 +369,7 @@ type CancelSessionResponse struct {
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
+	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
 	InvoicePaid bool    `json:"invoice_paid,omitempty"`
 }
@@ -389,6 +394,7 @@ type UploadSessionEvidenceResponse struct {
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
+	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
 	InvoicePaid bool    `json:"invoice_paid,omitempty"`
 }
@@ -413,6 +419,7 @@ type AdminListEvidenceResponse struct {
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
+	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
 	InvoicePaid bool    `json:"invoice_paid,omitempty"`
 }
@@ -437,6 +444,7 @@ type AdminReviewEvidenceResponse struct {
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
+	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
 	InvoicePaid bool    `json:"invoice_paid,omitempty"`
 }
@@ -503,11 +511,13 @@ func newCancelBookingResponse(b models.Booking) CancelBookingResponse {
 // Sessions memakai bentuk ListSessionsResponse (item sesi di-reuse antar handler).
 
 type MyEarningsResponse struct {
-	TotalSessions  int                    `json:"total_sessions"`
-	TotalFee       float64                `json:"total_fee"`
-	FeePaidTotal   float64                `json:"fee_paid_total"`
-	FeeUnpaidTotal float64                `json:"fee_unpaid_total"`
-	Sessions       []ListSessionsResponse `json:"sessions"`
+	TotalSessions     int                    `json:"total_sessions"`
+	TotalFee          float64                `json:"total_fee"`
+	FeePaidTotal      float64                `json:"fee_paid_total"`
+	FeeUnpaidTotal    float64                `json:"fee_unpaid_total"`
+	FeeTakenTotal     float64                `json:"fee_taken_total"`
+	FeeAvailableTotal float64                `json:"fee_available_total"`
+	Sessions          []ListSessionsResponse `json:"sessions"`
 }
 
 func (s *Service) newMyEarningsResponse(sessions []models.TutoringSession) MyEarningsResponse {
@@ -525,6 +535,11 @@ func (s *Service) newMyEarningsResponse(sessions []models.TutoringSession) MyEar
 		resp.TotalFee += fee
 		if v.FeePaid {
 			resp.FeePaidTotal += fee
+			if v.FeeTaken {
+				resp.FeeTakenTotal += fee
+			} else {
+				resp.FeeAvailableTotal += fee
+			}
 		} else {
 			resp.FeeUnpaidTotal += fee
 		}
@@ -604,6 +619,7 @@ type AdminListFeesResponse struct {
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
+	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
 	InvoicePaid bool    `json:"invoice_paid,omitempty"`
 }
@@ -628,6 +644,7 @@ type AdminToggleFeePaidResponse struct {
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
+	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
 	InvoicePaid bool    `json:"invoice_paid,omitempty"`
 }
