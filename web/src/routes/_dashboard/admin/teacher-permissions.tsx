@@ -13,18 +13,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical, ShieldCheck, UserX } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Badge } from "@/components/ui/badge"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { TeacherPermissionsDialog } from "@/components/admin/users"
 
-// Badge izin: pill hijau kalau diizinkan; teks muted kalau tidak.
+// Badge izin: pill hijau kalau diizinkan; outline muted kalau tidak.
 function PermBadge({ granted, label }: { granted: boolean; label: string }) {
-  if (!granted) return <span className="text-sm text-muted-foreground">Tidak ada</span>
-  return (
-    <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
-      {label}
-    </span>
-  )
+  if (!granted) return <Badge variant="outline" className="text-muted-foreground">Tidak ada</Badge>
+  return <Badge variant="outline" className="border-transparent bg-green-100 text-green-700">{label}</Badge>
 }
 
 function AdminTeacherPermissions() {
