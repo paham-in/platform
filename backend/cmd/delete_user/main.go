@@ -65,9 +65,20 @@ func cleanupUser(db *gorm.DB, id uint) {
 	db.Unscoped().Model(&models.ForumQuestion{}).Where("user_id = ?", id).Pluck("id", &qids)
 	if len(qids) > 0 {
 		db.Unscoped().Where("question_id IN ?", qids).Delete(&models.ForumQuestionImage{})
+		var ansIDs []uint
+		db.Unscoped().Model(&models.ForumAnswer{}).Where("question_id IN ?", qids).Pluck("id", &ansIDs)
+		if len(ansIDs) > 0 {
+			db.Unscoped().Where("answer_id IN ?", ansIDs).Delete(&models.ForumAnswerImage{})
+		}
 		db.Unscoped().Where("question_id IN ?", qids).Delete(&models.ForumAnswer{})
 	}
 	db.Unscoped().Where("user_id = ?", id).Delete(&models.ForumQuestion{})
+	// jawaban yang user tulis di pertanyaan orang lain → gambarnya
+	var ownAnsIDs []uint
+	db.Unscoped().Model(&models.ForumAnswer{}).Where("user_id = ?", id).Pluck("id", &ownAnsIDs)
+	if len(ownAnsIDs) > 0 {
+		db.Unscoped().Where("answer_id IN ?", ownAnsIDs).Delete(&models.ForumAnswerImage{})
+	}
 	db.Unscoped().Where("user_id = ?", id).Delete(&models.ForumAnswer{})
 
 	// bank soal milik user → jawabannya

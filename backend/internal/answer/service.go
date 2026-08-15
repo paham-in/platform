@@ -1,6 +1,7 @@
 package answer
 
 import (
+	"context"
 	"errors"
 	"html"
 	"regexp"
@@ -8,6 +9,7 @@ import (
 
 	"bimbel2/backend/internal/models"
 	"bimbel2/backend/internal/push"
+	"bimbel2/backend/internal/storage"
 
 	"gorm.io/gorm"
 )
@@ -24,6 +26,7 @@ type Service struct {
 	repo         *Repository
 	questionRepo *QuestionRepository
 	pushSvc      *push.Service
+	store        *storage.ObjectStorage
 }
 
 func NewService(repo *Repository, questionRepo *QuestionRepository) *Service {
@@ -35,8 +38,32 @@ func (s *Service) SetPushService(p *push.Service) {
 	s.pushSvc = p
 }
 
+// SetStorage menginjeksi storage untuk membersihkan file gambar saat hapus jawaban.
+func (s *Service) SetStorage(store *storage.ObjectStorage) {
+	s.store = store
+}
+
 func (s *Service) ListByQuestion(questionID uint) ([]models.ForumAnswer, error) {
 	return s.repo.ListByQuestion(questionID)
+}
+
+// ListImages mengembalikan gambar pendukung semua jawaban di satu pertanyaan.
+func (s *Service) ListImages(questionID uint) ([]models.ForumAnswerImage, error) {
+	return s.repo.ListImages(questionID)
+}
+
+// GetAnswer mengambil jawaban berdasarkan ID (untuk cek kepemilikan upload gambar).
+func (s *Service) GetAnswer(id uint) (*models.ForumAnswer, error) {
+	return s.repo.GetByID(id)
+}
+
+// AddImage mencatat gambar pendukung milik sebuah jawaban.
+func (s *Service) AddImage(answerID uint, objectName string) (*models.ForumAnswerImage, error) {
+	rec := models.ForumAnswerImage{AnswerID: answerID, FileName: objectName}
+	if err := s.repo.db.Create(&rec).Error; err != nil {
+		return nil, err
+	}
+	return &rec, nil
 }
 
 func (s *Service) Delete(id, userID uint) error {
@@ -47,7 +74,26 @@ func (s *Service) Delete(id, userID uint) error {
 	if a.UserID != userID {
 		return errors.New("bukan pemilik jawaban")
 	}
-	return s.repo.Delete(id)
+
+	images, err := s.repo.ListImagesByAnswer(id)
+	if err != nil {
+		return err
+	}
+	if err := s.repo.Delete(id); err != nil {
+		return err
+	}
+	if err := s.repo.DeleteImageRows(id); err != nil {
+		return err
+	}
+
+	// hapus file gambar dari storage (best-effort — jangan gagalkan hapus
+	// jawaban kalau storage bermasalah).
+	if s.store != nil {
+		for _, img := range images {
+			_ = s.store.Delete(context.Background(), img.FileName)
+		}
+	}
+	return nil
 }
 
 func (s *Service) Create(questionID, userID uint, content, videoURL string) (*models.ForumAnswer, error) {

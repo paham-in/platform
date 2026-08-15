@@ -165,6 +165,13 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 		if err := tx.Unscoped().Where("question_id IN ?", qids).Delete(&models.ForumQuestionImage{}).Error; err != nil {
 			return err
 		}
+		var ansIDs []uint
+		tx.Model(&models.ForumAnswer{}).Unscoped().Where("question_id IN ?", qids).Pluck("id", &ansIDs)
+		if len(ansIDs) > 0 {
+			if err := tx.Unscoped().Where("answer_id IN ?", ansIDs).Delete(&models.ForumAnswerImage{}).Error; err != nil {
+				return err
+			}
+		}
 		if err := tx.Unscoped().Where("question_id IN ?", qids).Delete(&models.ForumAnswer{}).Error; err != nil {
 			return err
 		}
@@ -173,6 +180,13 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 		return err
 	}
 	// jawaban yang user tulis di pertanyaan orang lain
+	var ownAnsIDs []uint
+	tx.Model(&models.ForumAnswer{}).Unscoped().Where("user_id = ?", id).Pluck("id", &ownAnsIDs)
+	if len(ownAnsIDs) > 0 {
+		if err := tx.Unscoped().Where("answer_id IN ?", ownAnsIDs).Delete(&models.ForumAnswerImage{}).Error; err != nil {
+			return err
+		}
+	}
 	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.ForumAnswer{}).Error; err != nil {
 		return err
 	}

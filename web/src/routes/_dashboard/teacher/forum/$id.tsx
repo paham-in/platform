@@ -148,6 +148,19 @@ function ForumDetail() {
             <CardContent>
               {a.content && <RichContent html={a.content} />}
               {a.video_url && <YoutubeEmbed url={a.video_url} className="mt-3" />}
+              {a.images && a.images.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {a.images.map((url) => (
+                    <a key={url} href={url} target="_blank" rel="noreferrer">
+                      <img
+                        src={url}
+                        alt=""
+                        className="h-40 w-full rounded-lg border object-cover transition-opacity hover:opacity-80"
+                      />
+                    </a>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}

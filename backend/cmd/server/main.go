@@ -84,7 +84,7 @@ func main() {
 	subject.Routes(app, db)
 	class.PublicRoutes(app, db)
 	forum.Routes(app, db, objectStorage)
-	answer.PublicRoutes(app, db)
+	answer.PublicRoutes(app, db, objectStorage)
 	push.PublicRoutes(app, db, cfg.VapidPublicKey)
 	if objectStorage != nil {
 		forum.PublicRoutes(app, db, objectStorage)
@@ -100,7 +100,7 @@ func main() {
 		tutoring.Routes(auth, db, objectStorage, settingSvc)
 	pushSvc := push.NewService(db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
 	push.Routes(auth, db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
-	answer.AuthRoutes(auth, db, pushSvc)
+	answer.AuthRoutes(auth, db, objectStorage, pushSvc)
 	invoice.AuthRoutes(auth, db)
 	if objectStorage != nil {
 		forum.AuthRoutes(auth, db, objectStorage)

@@ -8,6 +8,7 @@ export type AnswerAnswerResponse = {
     content?: string;
     created_at?: string;
     id?: number;
+    images?: Array<string>;
     is_owner?: boolean;
     plain_content?: string;
     user_avatar?: string;
@@ -26,6 +27,12 @@ export type AnswerErrorResponse = {
 
 export type AnswerMessageResponse = {
     message?: string;
+};
+
+export type AnswerUploadResponse = {
+    file_name?: string;
+    id?: number;
+    url?: string;
 };
 
 export type ChapterChapterResponse = {
@@ -3925,6 +3932,49 @@ export type PostQuestionsByQuestionIdAnswersResponses = {
 };
 
 export type PostQuestionsByQuestionIdAnswersResponse = PostQuestionsByQuestionIdAnswersResponses[keyof PostQuestionsByQuestionIdAnswersResponses];
+
+export type PostQuestionsByQuestionIdAnswersByAnswerIdImagesData = {
+    body: {
+        /**
+         * File gambar
+         */
+        image: Blob | File;
+    };
+    path: {
+        /**
+         * Question ID
+         */
+        question_id: number;
+        /**
+         * Answer ID
+         */
+        answer_id: number;
+    };
+    query?: never;
+    url: '/questions/{question_id}/answers/{answer_id}/images';
+};
+
+export type PostQuestionsByQuestionIdAnswersByAnswerIdImagesErrors = {
+    /**
+     * Bad Request
+     */
+    400: AnswerErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: AnswerErrorResponse;
+};
+
+export type PostQuestionsByQuestionIdAnswersByAnswerIdImagesError = PostQuestionsByQuestionIdAnswersByAnswerIdImagesErrors[keyof PostQuestionsByQuestionIdAnswersByAnswerIdImagesErrors];
+
+export type PostQuestionsByQuestionIdAnswersByAnswerIdImagesResponses = {
+    /**
+     * Created
+     */
+    201: AnswerUploadResponse;
+};
+
+export type PostQuestionsByQuestionIdAnswersByAnswerIdImagesResponse = PostQuestionsByQuestionIdAnswersByAnswerIdImagesResponses[keyof PostQuestionsByQuestionIdAnswersByAnswerIdImagesResponses];
 
 export type DeleteQuestionsByQuestionIdAnswersByIdData = {
     body?: never;

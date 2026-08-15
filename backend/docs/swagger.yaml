@@ -8,6 +8,10 @@ definitions:
         type: string
       id:
         type: integer
+      images:
+        items:
+          type: string
+        type: array
       is_owner:
         type: boolean
       plain_content:
@@ -34,6 +38,15 @@ definitions:
   answer.MessageResponse:
     properties:
       message:
+        type: string
+    type: object
+  answer.UploadResponse:
+    properties:
+      file_name:
+        type: string
+      id:
+        type: integer
+      url:
         type: string
     type: object
   chapter.ChapterResponse:
@@ -4631,6 +4644,47 @@ paths:
       security:
       - BearerAuth: []
       summary: Create answer
+      tags:
+      - Forum
+  /questions/{question_id}/answers/{answer_id}/images:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Mengunggah gambar pendukung ke jawaban forum (hanya guru)
+      parameters:
+      - description: Question ID
+        in: path
+        name: question_id
+        required: true
+        type: integer
+      - description: Answer ID
+        in: path
+        name: answer_id
+        required: true
+        type: integer
+      - description: File gambar
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/answer.UploadResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/answer.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/answer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload answer image
       tags:
       - Forum
   /questions/{question_id}/answers/{id}:
