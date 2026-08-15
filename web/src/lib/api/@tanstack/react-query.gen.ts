@@ -1566,7 +1566,7 @@ export const getClassesQueryKey = (options?: Options<GetClassesData>) => createQ
 /**
  * List classes
  *
- * Mengembalikan daftar semua kelas untuk user yang sudah login
+ * Mengembalikan daftar semua kelas beserta harga layanan (konten, les privat, les kelompok)
  */
 export const getClassesOptions = (options?: Options<GetClassesData>) => queryOptions<GetClassesResponse, DefaultError, GetClassesResponse, ReturnType<typeof getClassesQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {

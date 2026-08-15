@@ -1,14 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useEffect, useRef, useState, type ReactNode } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
+import { getClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
 import Navbar from "@/sections/Navbar"
 import Footer from "@/sections/Footer"
 import {
   ArrowRight,
   BookOpen,
+  BookMarked,
   MessageSquare,
   GraduationCap,
   Video,
@@ -53,6 +57,33 @@ const stats = [
   { label: "Guru Berkualitas", value: "200+" },
   { label: "Pertanyaan Terjawab", value: "5.000+" },
 ]
+
+const fmtRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`
+
+// PriceRow: satu baris harga layanan (konten / les privat / les kelompok)
+// di dalam kartu kelas. Harga 0/kosong dianggap belum ditentukan.
+function PriceRow({
+  icon: Icon,
+  label,
+  value,
+  suffix,
+}: {
+  icon: typeof BookMarked
+  label: string
+  value?: number
+  suffix: string
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="flex items-center gap-2 text-muted-foreground">
+        <Icon className="h-4 w-4" /> {label}
+      </span>
+      <span className="font-medium">
+        {value && value > 0 ? `${fmtRp(value)} ${suffix}` : "—"}
+      </span>
+    </div>
+  )
+}
 
 // Reveal: satu IntersectionObserver per elemen, sembunyikan hanya saat JS aktif,
 // hormati prefers-reduced-motion (lihat CSS). Konten default visible kalau IO tak ada.
@@ -143,6 +174,7 @@ function CountUp({ value }: { value: string }) {
 }
 
 function LandingPage() {
+  const { data: classes = [], isLoading: classesLoading } = useQuery(getClassesOptions())
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -217,6 +249,50 @@ function LandingPage() {
                 </Reveal>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Kelas & Harga */}
+        <section id="classes" className="border-t py-20">
+          <div className="container mx-auto max-w-7xl px-4">
+            <Reveal className="mx-auto max-w-2xl text-center">
+              <h2 className="font-heading text-3xl font-bold tracking-tight text-balance sm:text-4xl">
+                Kelas & Harga
+              </h2>
+              <p className="mt-4 text-muted-foreground">
+                Pilih kelas sesuai jenjangmu. Materi, paket soal, dan forum lengkap untuk tiap kelas.
+              </p>
+            </Reveal>
+            {classesLoading ? (
+              <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-64 rounded-2xl" />
+                ))}
+              </div>
+            ) : classes.length > 0 ? (
+              <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {classes.map((cls, i) => (
+                  <Reveal key={cls.id ?? cls.slug ?? i} delay={i * 70}>
+                    <Card className="group flex h-full flex-col transition-all hover:-translate-y-1 hover:shadow-lg">
+                      <CardHeader>
+                        <CardTitle className="font-heading text-xl">{cls.name}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex-1 space-y-3 text-sm">
+                        <PriceRow icon={BookMarked} label="Konten" value={cls.content_price} suffix="/ bulan" />
+                        <PriceRow icon={GraduationCap} label="Les Privat" value={cls.price_per_session} suffix="/ pertemuan" />
+                        <PriceRow icon={Users} label="Les Kelompok" value={cls.group_price} suffix="/ pertemuan" />
+                      </CardContent>
+                      <CardFooter>
+                        <Link to="/login" className={cn(buttonVariants(), "group/cta w-full")}>
+                          Mulai Belajar
+                          <ArrowRight className="h-4 w-4 transition-transform group-hover/cta:translate-x-0.5" />
+                        </Link>
+                      </CardFooter>
+                    </Card>
+                  </Reveal>
+                ))}
+              </div>
+            ) : null}
           </div>
         </section>
 

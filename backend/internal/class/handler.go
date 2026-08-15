@@ -140,13 +140,12 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB) {
 	admin.Delete("/classes/:id", h.AdminDeleteClass)
 }
 
-// ListClasses mengembalikan daftar kelas (memerlukan login)
+// ListClasses mengembalikan daftar kelas (publik)
 // @Summary      List classes
-// @Description  Mengembalikan daftar semua kelas untuk user yang sudah login
+// @Description  Mengembalikan daftar semua kelas beserta harga layanan (konten, les privat, les kelompok)
 // @Tags         Classes
 // @Accept       json
 // @Produce      json
-// @Security     BearerAuth
 // @Success      200 {array} ClassResponse
 // @Router       /classes [get]
 func (h *Handler) ListClasses(c *fiber.Ctx) error {

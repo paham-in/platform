@@ -3450,12 +3450,7 @@ const docTemplate = `{
         },
         "/classes": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Mengembalikan daftar semua kelas untuk user yang sudah login",
+                "description": "Mengembalikan daftar semua kelas beserta harga layanan (konten, les privat, les kelompok)",
                 "consumes": [
                     "application/json"
                 ],

@@ -1006,13 +1006,9 @@ export const getChapters = <ThrowOnError extends boolean = false>(options?: Opti
 /**
  * List classes
  *
- * Mengembalikan daftar semua kelas untuk user yang sudah login
+ * Mengembalikan daftar semua kelas beserta harga layanan (konten, les privat, les kelompok)
  */
-export const getClasses = <ThrowOnError extends boolean = false>(options?: Options<GetClassesData, ThrowOnError>): RequestResult<GetClassesResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetClassesResponses, unknown, ThrowOnError>({
-    security: [{ name: 'Authorization', type: 'apiKey' }],
-    url: '/classes',
-    ...options
-});
+export const getClasses = <ThrowOnError extends boolean = false>(options?: Options<GetClassesData, ThrowOnError>): RequestResult<GetClassesResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetClassesResponses, unknown, ThrowOnError>({ url: '/classes', ...options });
 
 /**
  * My invoices
