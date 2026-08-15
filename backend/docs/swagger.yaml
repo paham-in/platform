@@ -5097,6 +5097,35 @@ paths:
       summary: List teachers
       tags:
       - Tutoring
+  /users/search:
+    get:
+      consumes:
+      - application/json
+      description: Mencari teman (user ber-role student) berdasarkan nama/email utk
+        booking grup
+      parameters:
+      - description: Kata kunci nama/email
+        in: query
+        name: q
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/user.AdminListUsersResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Search students
+      tags:
+      - Auth
 schemes:
 - http
 securityDefinitions:

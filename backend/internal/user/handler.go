@@ -107,6 +107,26 @@ func (h *Handler) AdminListStudents(c *fiber.Ctx) error {
 	return c.JSON(users)
 }
 
+// SearchStudents mencari user ber-role student (dipakai murid utk pilih teman)
+// @Summary      Search students
+// @Description  Mencari teman (user ber-role student) berdasarkan nama/email utk booking grup
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        q query string false "Kata kunci nama/email"
+// @Success      200 {array} AdminListUsersResponse
+// @Failure      500 {object} ErrorResponse
+// @Router       /users/search [get]
+func (h *Handler) SearchStudents(c *fiber.Ctx) error {
+	userID, _ := c.Locals("user_id").(uint)
+	users, err := h.svc.SearchStudents(c.Query("q", ""), userID)
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mencari teman"})
+	}
+	return c.JSON(users)
+}
+
 // AdminMergeUser menghubungkan akun dummy ke akun Google yang sudah ada (admin only)
 // @Summary      Hubungkan akun dummy ke akun Google
 // @Description  Memindahkan data akun dummy (booking, invoice, akses kelas, forum) ke akun Google tujuan, lalu menghapus akun dummy
@@ -397,6 +417,7 @@ func AuthRoutes(auth fiber.Router, db *gorm.DB) {
 	h := NewHandler(svc)
 
 	auth.Patch("/me", h.UpdateProfile)
+	auth.Get("/users/search", h.SearchStudents)
 }
 
 func OAuthRoutes(app fiber.Router, db *gorm.DB, cfg *config.Config) {

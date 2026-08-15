@@ -7,6 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Spinner } from "@/components/ui/spinner"
+import { Skeleton } from "@/components/ui/skeleton"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   getTutoringTeachersOptions,
@@ -15,24 +18,25 @@ import {
   getStudentClassesOptions,
   getClassesOptions,
   getSubjectsOptions,
+  getUsersSearchOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { TutoringListTeachersResponse } from "@/lib/api/types.gen"
-import { CalendarIcon, CheckCircle2, ChevronLeft, Loader2, Plus, X, UserX } from "lucide-react"
+import type { TutoringListTeachersResponse, UserAdminListUsersResponse } from "@/lib/api/types.gen"
+import { CalendarIcon, CheckCircle2, ChevronLeft, Search, Users, X, UserX } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { format } from "date-fns"
+import { addWeeks, format } from "date-fns"
 import { id } from "date-fns/locale"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 const SESSION_MINUTES = 90
 
+const fmtRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`
+
 // 07:00 s/d 20:30, tiap 30 menit — biar durasi 90 menit (1 sesi les) bisa dipilih.
 const TIME_OPTIONS = Array.from({ length: 28 }, (_, i) => {
   const total = 7 * 60 + i * 30
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`
 })
-
-const countOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12]
 
 const modeOptions = [
   { label: "Private", value: "private" },
@@ -67,11 +71,20 @@ function NewBooking() {
   const [classId, setClassId] = useState("")
   const [date, setDate] = useState("")
   const [note, setNote] = useState("")
-  const [memberEmails, setMemberEmails] = useState<string[]>([])
-  const [emailInput, setEmailInput] = useState("")
+  const [members, setMembers] = useState<UserAdminListUsersResponse[]>([])
+  const [friendOpen, setFriendOpen] = useState(false)
+  const [friendQuery, setFriendQuery] = useState("")
+  const [searchTerm, setSearchTerm] = useState("")
+  const [friendPending, setFriendPending] = useState<UserAdminListUsersResponse[]>([])
 
   const myClass = classes.find((c) => c.id === Number(classId))
   const pricePerSession = mode === "group" ? (myClass?.group_price ?? 0) : (myClass?.price_per_session ?? 0)
+
+  // debounce pencarian teman
+  useEffect(() => {
+    const t = setTimeout(() => setSearchTerm(friendQuery.trim()), 300)
+    return () => clearTimeout(t)
+  }, [friendQuery])
 
   // jam selesai hanya yang durasinya kelipatan 90 menit (1 sesi les)
   const endOptions = start === ""
@@ -92,6 +105,8 @@ function NewBooking() {
   const canSearch = subjectId !== "" && hasSlot
   const perWeek = hasSlot ? perWeekFor(start, end) : null
   const totalSessions = perWeek ? sessionCount * perWeek : 0
+  const startDate = date ? new Date(date + "T00:00:00") : null
+  const endDate = startDate ? addWeeks(startDate, sessionCount - 1) : null
 
   const { data: teachers = [], isLoading: teachersLoading } = useQuery({
     ...getTutoringTeachersOptions({
@@ -102,6 +117,11 @@ function NewBooking() {
     enabled: canSearch,
   })
 
+  const { data: searchResults = [], isLoading: searchLoading } = useQuery({
+    ...getUsersSearchOptions({ query: searchTerm ? { q: searchTerm } : undefined }),
+    enabled: searchTerm.length > 0,
+  })
+
   // auto-pilih kelas: preferensi kelas yang sudah diakses, else kelas pertama
   useEffect(() => {
     if (classId || classes.length === 0) return
@@ -110,6 +130,13 @@ function NewBooking() {
       .find((id) => classes.some((c) => String(c.id) === id))
     setClassId(preferred ?? String(classes[0].id ?? ""))
   }, [myClasses, classes, classId])
+
+  // daftar guru habis setelah guru dipilih (kuota/status berubah) → lepaskan pilihan
+  useEffect(() => {
+    if (canSearch && !teachersLoading && teachers.length === 0 && teacher) {
+      setTeacher(undefined)
+    }
+  }, [teachers, teachersLoading, canSearch, teacher])
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
@@ -130,7 +157,7 @@ function NewBooking() {
 
   const canSubmit =
     canSearch && !!date && !!classId && !isPending &&
-    (mode === "private" || memberEmails.length > 0)
+    (mode === "private" || members.length > 0)
 
   const handleBook = () => {
     if (!canSearch || !date || !classId) return
@@ -145,21 +172,20 @@ function NewBooking() {
         session_count: sessionCount,
         note,
         class_id: Number(classId),
-        member_emails: mode === "group" ? memberEmails : undefined,
+        member_emails: mode === "group" ? members.map((m) => m.email).filter((e): e is string => !!e) : undefined,
       },
     })
   }
 
-  const addMemberEmail = () => {
-    const e = emailInput.trim()
-    if (!e) return
-    if (memberEmails.includes(e)) {
-      setEmailInput("")
-      return
-    }
-    if (memberEmails.length + 1 > 4) return // max 4 member + organizer = 5
-    setMemberEmails([...memberEmails, e])
-    setEmailInput("")
+  const slotsLeft = 4 - members.length
+  const friendFull = members.length + friendPending.length >= 4
+  const friendIds = new Set(friendPending.map((m) => m.id))
+
+  const closeFriendDialog = () => {
+    setFriendOpen(false)
+    setFriendQuery("")
+    setSearchTerm("")
+    setFriendPending([])
   }
 
   return (
@@ -171,10 +197,11 @@ function NewBooking() {
         <h1 className="text-2xl font-bold tracking-tight">Booking Baru</h1>
         <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam dulu, lalu pilih guru — atau kirim tanpa guru.</p>
       </div>
-      <div className="mx-auto max-w-2xl space-y-6 py-2">
+      <div className="mx-auto max-w-2xl space-y-6">
 
-      <Card className="gap-0 pt-0 pb-0">
-        <CardContent className="space-y-4 p-5">
+      <Card>
+        <CardContent className="space-y-6">
+        <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="new-subject">Mata Pelajaran</Label>
             <Select items={subjectOptions} value={subjectId} onValueChange={changeSubject}>
@@ -187,197 +214,6 @@ function NewBooking() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Tanggal Mulai</Label>
-            <Popover>
-              <PopoverTrigger
-                render={
-                  <Button
-                    variant="outline"
-                    data-empty={!date}
-                    className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
-                  />
-                }
-              >
-                <CalendarIcon />
-                {date ? format(new Date(date + "T00:00:00"), "EEE, dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  disabled={(d) => {
-                    const today = new Date(); today.setHours(0, 0, 0, 0)
-                    return d < today
-                  }}
-                  selected={date ? new Date(date + "T00:00:00") : undefined}
-                  onSelect={changeDate}
-                />
-              </PopoverContent>
-            </Popover>
-            <p className="text-xs text-muted-foreground">Pertemuan berikutnya berjalan mingguan di hari & jam yang sama.</p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="new-start">Jam Mulai</Label>
-              <Select items={startOptions.map((t) => ({ label: t, value: t }))} value={start} onValueChange={changeStart}>
-                <SelectTrigger id="new-start" className="w-full" size="sm">
-                  <SelectValue placeholder="Pilih jam" />
-                </SelectTrigger>
-                <SelectContent>
-                  {startOptions.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">Durasi les kelipatan {SESSION_MINUTES} menit ({SESSION_MINUTES / 60} jam).</p>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-end">Jam Selesai</Label>
-              <Select items={endOptions.map((t) => ({ label: t, value: t }))} value={end} onValueChange={changeEnd}>
-                <SelectTrigger id="new-end" className="w-full" size="sm">
-                  <SelectValue placeholder="Pilih jam" />
-                </SelectTrigger>
-                <SelectContent>
-                  {endOptions.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Pilih Guru</Label>
-            {!canSearch ? (
-              <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                Pilih mapel, tanggal, dan jam untuk menampilkan guru yang tersedia.
-              </p>
-            ) : teachersLoading ? (
-              <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-            ) : teachers.length === 0 ? (
-              <Empty className="py-8">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon"><UserX /></EmptyMedia>
-                  <EmptyTitle>Tidak ada guru untuk mapel & jam ini</EmptyTitle>
-                </EmptyHeader>
-                <EmptyContent className="gap-1">
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => { setStart(""); setEnd(""); setDate("") }}>Cari Jam Lain</Button>
-                    <Button size="sm" onClick={() => setTeacher(undefined)}>Kirim Tanpa Guru</Button>
-                  </div>
-                  <p className="px-4 text-xs text-muted-foreground">Kirim tanpa guru: admin yang carikan guru buat kamu.</p>
-                </EmptyContent>
-              </Empty>
-            ) : (
-              <>
-                <div className="max-h-[300px] space-y-2 overflow-y-auto pr-1">
-                  {teachers.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setTeacher(t)}
-                      className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors ${teacher?.id === t.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-base font-bold text-primary">
-                        {t.avatar_url ? (
-                          <img src={t.avatar_url} alt={t.name} className="h-10 w-10 rounded-full object-cover" />
-                        ) : (
-                          t.name?.[0]
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{t.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">{t.email}</p>
-                      </div>
-                      {teacher?.id === t.id && <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />}
-                    </button>
-                  ))}
-                </div>
-                {teacher && (
-                  <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-sm">
-                    <span>Guru dipilih: <span className="font-medium">{teacher.name}</span></span>
-                    <button type="button" className="text-xs text-muted-foreground underline" onClick={() => setTeacher(undefined)}>
-                      Tanpa Guru
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Mode</Label>
-            <Select
-              items={modeOptions}
-              value={mode}
-              onValueChange={(v) => setMode(v === "group" ? "group" : "private")}
-            >
-              <SelectTrigger id="new-mode" className="w-full" size="sm">
-                <SelectValue placeholder="Pilih mode" />
-              </SelectTrigger>
-              <SelectContent>
-                {modeOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {mode === "group" ? "Maksimal 5 siswa termasuk kamu." : "Les sendiri berdua dengan guru."}
-            </p>
-          </div>
-
-          {mode === "group" && (
-            <div className="space-y-1.5">
-              <Label>Email Teman</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="email"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addMemberEmail() } }}
-                  placeholder="email.teman@contoh.com"
-                  className="flex-1"
-                />
-                <Button type="button" variant="outline" size="sm" onClick={addMemberEmail} disabled={!emailInput.trim()}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Semua member wajib punya akun dulu. Email belum terdaftar → booking ditolak.
-              </p>
-              {memberEmails.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {memberEmails.map((e) => (
-                    <span key={e} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs">
-                      {e}
-                      <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setMemberEmails(memberEmails.filter((x) => x !== e))}>
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
-                  <span className="text-xs text-muted-foreground">{memberEmails.length + 1}/5</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="space-y-1.5">
-            <Label>Jumlah Pertemuan</Label>
-            <div className="flex flex-wrap gap-1.5">
-              {countOptions.map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setSessionCount(n)}
-                  className={`rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${sessionCount === n ? "border-primary bg-primary/5 text-primary ring-1 ring-primary" : "hover:bg-muted/50"}`}
-                >
-                  {n}×
-                </button>
-              ))}
-            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -408,33 +244,346 @@ function NewBooking() {
           </div>
 
           <div className="space-y-1.5">
+            <Label htmlFor="new-date">Tanggal Mulai</Label>
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <Button
+                    id="new-date"
+                    variant="outline"
+                    data-empty={!date}
+                    className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+                  />
+                }
+              >
+                <CalendarIcon />
+                {date ? format(new Date(date + "T00:00:00"), "EEE, dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  disabled={(d) => {
+                    const today = new Date(); today.setHours(0, 0, 0, 0)
+                    return d < today
+                  }}
+                  selected={date ? new Date(date + "T00:00:00") : undefined}
+                  onSelect={changeDate}
+                />
+              </PopoverContent>
+            </Popover>
+            <p className="text-xs text-muted-foreground">Pertemuan berikutnya berjalan mingguan di hari & jam yang sama.</p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="new-start">Jam Mulai</Label>
+              <Select items={startOptions.map((t) => ({ label: t, value: t }))} value={start} onValueChange={changeStart}>
+                <SelectTrigger id="new-start" className="w-full" size="sm">
+                  <SelectValue placeholder="Pilih jam" />
+                </SelectTrigger>
+                <SelectContent>
+                  {startOptions.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Durasi les kelipatan {SESSION_MINUTES} menit ({SESSION_MINUTES / 60} jam).</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-end">Jam Selesai</Label>
+              <Select items={endOptions.map((t) => ({ label: t, value: t }))} value={end} onValueChange={changeEnd}>
+                <SelectTrigger id="new-end" className="w-full" size="sm">
+                  <SelectValue placeholder="Pilih jam" />
+                </SelectTrigger>
+                <SelectContent>
+                  {endOptions.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2 border-t pt-6">
+          <div className="flex items-center justify-between gap-2">
+            <Label>Pilih Guru</Label>
+            {canSearch && (
+              <span className="text-xs text-muted-foreground">
+                {format(new Date(date + "T00:00:00"), "EEE, dd MMM", { locale: id })} · {start}–{end}
+              </span>
+            )}
+          </div>
+            {!canSearch ? (
+              <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                Pilih mapel, tanggal, dan jam untuk menampilkan guru yang tersedia.
+              </p>
+            ) : teachersLoading ? (
+              <div className="space-y-2">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-lg border p-3">
+                    <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : teachers.length === 0 ? (
+              <Empty className="py-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon"><UserX /></EmptyMedia>
+                  <EmptyTitle>Tidak ada guru untuk mapel & jam ini</EmptyTitle>
+                </EmptyHeader>
+                <EmptyContent className="gap-1">
+                  <Button variant="outline" size="sm" onClick={() => { setStart(""); setEnd(""); setDate("") }}>Cari Jam Lain</Button>
+                  <p className="px-4 text-xs text-muted-foreground">Bisa langsung kirim tanpa guru — admin yang carikan guru buat kamu.</p>
+                </EmptyContent>
+              </Empty>
+            ) : (
+              <>
+                <div className="max-h-[300px] space-y-2 overflow-y-auto pr-1">
+                  {teachers.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      aria-pressed={teacher?.id === t.id}
+                      onClick={() => setTeacher(t)}
+                      className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 ${teacher?.id === t.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-base font-bold text-primary">
+                        {t.avatar_url ? (
+                          <img src={t.avatar_url} alt={t.name} className="h-10 w-10 rounded-full object-cover" />
+                        ) : (
+                          t.name?.[0]
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{t.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">{t.email}</p>
+                      </div>
+                      {teacher?.id === t.id && <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />}
+                    </button>
+                  ))}
+                </div>
+                {teacher && (
+                  <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-sm">
+                    <span>Guru dipilih: <span className="font-medium">{teacher.name}</span></span>
+                    <button type="button" className="text-xs text-muted-foreground underline" onClick={() => setTeacher(undefined)}>
+                      Tanpa Guru
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+        <div className="space-y-4 border-t pt-6">
+          <div className="space-y-1.5">
+            <Label htmlFor="new-mode">Mode</Label>
+            <Select
+              items={modeOptions}
+              value={mode}
+              onValueChange={(v) => setMode(v === "group" ? "group" : "private")}
+            >
+              <SelectTrigger id="new-mode" className="w-full" size="sm">
+                <SelectValue placeholder="Pilih mode" />
+              </SelectTrigger>
+              <SelectContent>
+                {modeOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {mode === "group" ? "Maksimal 5 siswa termasuk kamu." : "Les sendiri berdua dengan guru."}
+            </p>
+          </div>
+
+          {mode === "group" && (
+            <div className="space-y-1.5">
+              <Label>Teman Sekelompok</Label>
+              <Button type="button" variant="outline" className="w-full justify-start gap-2" onClick={() => setFriendOpen(true)}>
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span>{members.length === 0 ? "Tambah Teman" : "Kelola Teman"}</span>
+                <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs tabular-nums">{members.length + 1}/5</span>
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Pilih teman yang sudah punya akun paham.in — maksimal 4 teman (total 5 siswa termasuk kamu).
+              </p>
+              {members.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {members.map((m) => (
+                    <span key={m.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs">
+                      {m.name}
+                      <button type="button" aria-label={`Hapus ${m.name}`} className="text-muted-foreground hover:text-foreground" onClick={() => setMembers(members.filter((x) => x.id !== m.id))}>
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Label htmlFor="new-session-count">Jumlah Pertemuan</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="new-session-count"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={12}
+                value={sessionCount}
+                onChange={(e) => setSessionCount(Math.max(1, Number(e.target.value) || 1))}
+                onBlur={() => setSessionCount(Math.min(12, Math.max(1, sessionCount)))}
+                className="w-24 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
+              <span className="text-sm text-muted-foreground">kali</span>
+            </div>
+            {startDate && (
+              <p className="text-xs text-muted-foreground">
+                Sesi dijalankan setiap minggu mulai dari {format(startDate, "EEE, dd MMM yyyy", { locale: id })} sampai {format(endDate!, "EEE, dd MMM yyyy", { locale: id })} (estimasi).
+              </p>
+            )}
+          </div>
+
+          </div>
+
+        <div className="space-y-4 border-t pt-6">
+          <div className="space-y-1.5">
             <Label htmlFor="new-note">Catatan (opsional)</Label>
             <Input id="new-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Materi yang ingin dibahas..." />
           </div>
 
-          <div className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-muted/50 px-4 py-3">
             <div className="text-sm">
               <p className="font-medium">Total ({sessionCount}× pertemuan{perWeek ? ` · ${totalSessions} sesi` : ""})</p>
               <p className="text-xs text-muted-foreground">
-                Rp {pricePerSession.toLocaleString("id-ID")} / sesi ({SESSION_MINUTES} menit)
+                {fmtRp(pricePerSession)} / sesi ({SESSION_MINUTES} menit)
                 {myClass && (mode === "group" ? !myClass.group_price : !myClass.price_per_session) && (
                   <span className="ml-1 text-amber-600">(kelas tanpa harga)</span>
                 )}
               </p>
             </div>
-            <p className="text-lg font-bold">Rp {(pricePerSession * totalSessions).toLocaleString("id-ID")}</p>
+            <p className="text-lg font-bold tabular-nums">{fmtRp(pricePerSession * totalSessions)}</p>
           </div>
 
-          <div className="flex justify-end gap-2 border-t pt-4">
+          <div className="flex flex-wrap justify-end gap-2">
             <Link to="/student/tutoring"><Button variant="outline">Batal</Button></Link>
             <Button onClick={handleBook} disabled={!canSubmit}>
               {isPending && <Spinner />}
               Kirim Booking
             </Button>
           </div>
+        </div>
         </CardContent>
       </Card>
       </div>
+
+      <Dialog
+        open={friendOpen}
+        onOpenChange={(open) => { if (!open) closeFriendDialog() }}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Tambah Teman</DialogTitle>
+            <DialogDescription>
+              {slotsLeft > 0
+                ? `Cari dan pilih maksimal ${slotsLeft} teman lagi — total 5 siswa termasuk kamu.`
+                : "Kuota grup sudah penuh (5 siswa)."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <InputGroup>
+            <InputGroupAddon align="inline-start" aria-hidden="true">
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={friendQuery}
+              onChange={(e) => setFriendQuery(e.target.value)}
+              placeholder="Cari nama atau email teman"
+              autoFocus
+            />
+          </InputGroup>
+
+          <div className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
+            {friendQuery.trim() === "" ? (
+              <p className="px-2 py-8 text-center text-sm text-muted-foreground">
+                Ketik nama atau email untuk mencari teman.
+              </p>
+            ) : searchLoading ? (
+              <div className="space-y-1.5">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-lg border p-3">
+                    <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-4 w-36" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : searchResults.length === 0 ? (
+              <p className="px-2 py-8 text-center text-sm text-muted-foreground">
+                Tidak ada teman dengan nama/email "{searchTerm}".
+              </p>
+            ) : (
+              searchResults.map((u) => {
+                const selected = friendIds.has(u.id)
+                const disabled = friendFull && !selected
+                return (
+                  <button
+                    key={u.id}
+                    type="button"
+                    disabled={disabled}
+                    aria-pressed={selected}
+                    onClick={() =>
+                      setFriendPending((prev) =>
+                        selected
+                          ? prev.filter((x) => x.id !== u.id)
+                          : prev.length >= slotsLeft ? prev : [...prev, u]
+                      )
+                    }
+                    className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 ${selected ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                      {u.avatar_url ? (
+                        <img src={u.avatar_url} alt={u.name} className="h-9 w-9 rounded-full object-cover" />
+                      ) : (
+                        u.name?.[0]
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{u.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{u.email}</p>
+                    </div>
+                    {selected && <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />}
+                  </button>
+                )
+              })
+            )}
+          </div>
+
+          <DialogFooter className="sm:justify-between">
+            <span className="text-xs text-muted-foreground">Maksimal 4 teman per grup.</span>
+            <div className="flex gap-2">
+              <DialogClose render={<Button variant="outline" />}>Batal</DialogClose>
+              <Button
+                disabled={friendPending.length === 0}
+                onClick={() => {
+                  setMembers((prev) => [...prev, ...friendPending].slice(0, 4))
+                  closeFriendDialog()
+                }}
+              >
+                Tambah {friendPending.length > 0 ? `${friendPending.length} Teman` : "Teman"}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }

@@ -76,6 +76,24 @@ func (r *UserRepository) UpdateRole(id uint, roles []string) error {
 	})
 }
 
+// SearchStudents mencari user ber-role student berdasarkan nama/email, tanpa
+// user pemanggil. Dipakai murid untuk memilih teman di booking grup.
+func (r *UserRepository) SearchStudents(q string, excludeID uint, limit int) ([]models.User, error) {
+	query := r.db.Preload("Roles").Preload("Subjects").
+		Where("id <> ?", excludeID).
+		Where("EXISTS (SELECT 1 FROM user_roles JOIN roles ON roles.id = user_roles.role_id WHERE user_roles.user_id = users.id AND roles.name = 'student')")
+	if q != "" {
+		like := "%" + q + "%"
+		query = query.Where("name ILIKE ? OR email ILIKE ?", like, like)
+	}
+
+	var users []models.User
+	if err := query.Order("name asc").Limit(limit).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func (r *UserRepository) GetByGoogleID(googleID string) (*models.User, error) {
 	var user models.User
 	if err := r.db.Preload("Roles").Where("google_id = ?", googleID).First(&user).Error; err != nil {

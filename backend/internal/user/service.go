@@ -162,6 +162,20 @@ func (s *Service) ListUsers(search string, role string) ([]AdminListUsersRespons
 	return result, nil
 }
 
+// SearchStudents mencari teman (user ber-role student) untuk booking grup.
+// excludeID = user pemanggil, supaya tidak bisa memilih diri sendiri.
+func (s *Service) SearchStudents(q string, excludeID uint) ([]AdminListUsersResponse, error) {
+	users, err := s.userRepo.SearchStudents(strings.TrimSpace(q), excludeID, 20)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]AdminListUsersResponse, len(users))
+	for i, u := range users {
+		result[i] = newAdminListUsersResponse(u)
+	}
+	return result, nil
+}
+
 // AdminCreateStudent membuat user ber-role student.
 func (s *Service) AdminCreateStudent(input AdminCreateUserRequest) (*AdminCreateUserResponse, error) {
 	name := strings.TrimSpace(input.Name)

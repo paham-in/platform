@@ -802,10 +802,6 @@ export type TutoringCreateBookingRequest = {
     date?: string;
     end_time?: string;
     /**
-     * isi utk join grup yang sudah ada
-     */
-    group_token?: string;
-    /**
      * group: email member (wajib ≥1)
      */
     member_emails?: Array<string>;
@@ -852,18 +848,6 @@ export type TutoringCreateBookingResponse = {
 
 export type TutoringErrorResponse = {
     error?: string;
-};
-
-export type TutoringGroupInfoResponse = {
-    date?: string;
-    end_time?: string;
-    max_slots?: number;
-    mode?: string;
-    participants?: number;
-    session_count?: number;
-    start_time?: string;
-    teacher_id?: number;
-    teacher_name?: string;
 };
 
 export type TutoringListBookingsResponse = {
@@ -4255,36 +4239,6 @@ export type GetTutoringEarningsResponses = {
 
 export type GetTutoringEarningsResponse = GetTutoringEarningsResponses[keyof GetTutoringEarningsResponses];
 
-export type GetTutoringGroupsByTokenData = {
-    body?: never;
-    path: {
-        /**
-         * Group token
-         */
-        token: string;
-    };
-    query?: never;
-    url: '/tutoring/groups/{token}';
-};
-
-export type GetTutoringGroupsByTokenErrors = {
-    /**
-     * Not Found
-     */
-    404: TutoringErrorResponse;
-};
-
-export type GetTutoringGroupsByTokenError = GetTutoringGroupsByTokenErrors[keyof GetTutoringGroupsByTokenErrors];
-
-export type GetTutoringGroupsByTokenResponses = {
-    /**
-     * OK
-     */
-    200: TutoringGroupInfoResponse;
-};
-
-export type GetTutoringGroupsByTokenResponse = GetTutoringGroupsByTokenResponses[keyof GetTutoringGroupsByTokenResponses];
-
 export type GetTutoringSessionsData = {
     body?: never;
     path?: never;
@@ -4431,3 +4385,33 @@ export type GetTutoringTeachersResponses = {
 };
 
 export type GetTutoringTeachersResponse = GetTutoringTeachersResponses[keyof GetTutoringTeachersResponses];
+
+export type GetUsersSearchData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Kata kunci nama/email
+         */
+        q?: string;
+    };
+    url: '/users/search';
+};
+
+export type GetUsersSearchErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: UserErrorResponse;
+};
+
+export type GetUsersSearchError = GetUsersSearchErrors[keyof GetUsersSearchErrors];
+
+export type GetUsersSearchResponses = {
+    /**
+     * OK
+     */
+    200: Array<UserAdminListUsersResponse>;
+};
+
+export type GetUsersSearchResponse = GetUsersSearchResponses[keyof GetUsersSearchResponses];
