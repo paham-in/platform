@@ -39,7 +39,7 @@ export function AssignOrphanDialog({ classItem, programs, onClose }: AssignOrpha
           <div className="space-y-2">
             <Label htmlFor="orphan-program">Program tujuan</Label>
             <Select items={programOptions} value={programId} onValueChange={(v) => setProgramId(Number(v))}>
-              <SelectTrigger id="orphan-program" className="w-full" size="sm">
+              <SelectTrigger id="orphan-program" className="w-full">
                 <SelectValue placeholder="Pilih program..." />
               </SelectTrigger>
               <SelectContent>

@@ -105,7 +105,7 @@ export function GrantClassDialog({ onClose }: GrantClassDialogProps) {
               value={classId}
               onValueChange={(v) => setClassId(Number(v))}
             >
-              <SelectTrigger id="class-select" className="w-full" size="sm">
+              <SelectTrigger id="class-select" className="w-full">
                 <SelectValue placeholder={classOptions.length ? "Pilih kelas..." : "Tidak ada kelas"} />
               </SelectTrigger>
               <SelectContent>

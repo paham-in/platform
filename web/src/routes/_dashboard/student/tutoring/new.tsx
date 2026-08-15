@@ -205,7 +205,7 @@ function NewBooking() {
           <div className="space-y-1.5">
             <Label htmlFor="new-subject">Mata Pelajaran</Label>
             <Select items={subjectOptions} value={subjectId} onValueChange={changeSubject}>
-              <SelectTrigger id="new-subject" className="w-full" size="sm">
+              <SelectTrigger id="new-subject" className="w-full">
                 <SelectValue placeholder="Pilih mapel" />
               </SelectTrigger>
               <SelectContent>
@@ -224,7 +224,7 @@ function NewBooking() {
               </p>
             ) : (
               <Select items={classes.map((c) => ({ label: c.name, value: String(c.id) }))} value={classId} onValueChange={(v) => setClassId(v ?? "")}>
-                <SelectTrigger id="new-class" className="w-full" size="sm">
+                <SelectTrigger id="new-class" className="w-full">
                   <SelectValue placeholder="Pilih kelas" />
                 </SelectTrigger>
                 <SelectContent>
@@ -278,7 +278,7 @@ function NewBooking() {
             <div className="space-y-1.5">
               <Label htmlFor="new-start">Jam Mulai</Label>
               <Select items={startOptions.map((t) => ({ label: t, value: t }))} value={start} onValueChange={changeStart}>
-                <SelectTrigger id="new-start" className="w-full" size="sm">
+                <SelectTrigger id="new-start" className="w-full">
                   <SelectValue placeholder="Pilih jam" />
                 </SelectTrigger>
                 <SelectContent>
@@ -292,7 +292,7 @@ function NewBooking() {
             <div className="space-y-1.5">
               <Label htmlFor="new-end">Jam Selesai</Label>
               <Select items={endOptions.map((t) => ({ label: t, value: t }))} value={end} onValueChange={changeEnd}>
-                <SelectTrigger id="new-end" className="w-full" size="sm">
+                <SelectTrigger id="new-end" className="w-full">
                   <SelectValue placeholder="Pilih jam" />
                 </SelectTrigger>
                 <SelectContent>
@@ -387,7 +387,7 @@ function NewBooking() {
               value={mode}
               onValueChange={(v) => setMode(v === "group" ? "group" : "private")}
             >
-              <SelectTrigger id="new-mode" className="w-full" size="sm">
+              <SelectTrigger id="new-mode" className="w-full">
                 <SelectValue placeholder="Pilih mode" />
               </SelectTrigger>
               <SelectContent>

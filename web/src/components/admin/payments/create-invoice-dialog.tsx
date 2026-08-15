@@ -124,7 +124,7 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
               value={classId}
               onValueChange={(v) => setClassId(Number(v))}
             >
-              <SelectTrigger id="invoice-class-select" className="w-full" size="sm">
+              <SelectTrigger id="invoice-class-select" className="w-full">
                 <SelectValue placeholder={classOptions.length ? "Pilih kelas..." : "Tidak ada kelas"} />
               </SelectTrigger>
               <SelectContent>

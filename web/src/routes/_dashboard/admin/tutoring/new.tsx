@@ -199,7 +199,7 @@ function AdminTutoringNew() {
                     value={classId}
                     onValueChange={(v) => setClassId(v ?? "")}
                   >
-                    <SelectTrigger id="admin-booking-class" className="w-full" size="sm">
+                    <SelectTrigger id="admin-booking-class" className="w-full">
                       <SelectValue placeholder="Pilih kelas" />
                     </SelectTrigger>
                     <SelectContent>
@@ -226,7 +226,7 @@ function AdminTutoringNew() {
                 setMembers([])
               }}
             >
-              <SelectTrigger id="admin-booking-mode" className="w-full" size="sm">
+              <SelectTrigger id="admin-booking-mode" className="w-full">
                 <SelectValue placeholder="Pilih mode" />
               </SelectTrigger>
               <SelectContent>
@@ -299,7 +299,7 @@ function AdminTutoringNew() {
                 setDate("")
               }}
             >
-              <SelectTrigger id="admin-booking-subject" className="w-full" size="sm">
+              <SelectTrigger id="admin-booking-subject" className="w-full">
                 <SelectValue placeholder="Pilih mapel" />
               </SelectTrigger>
               <SelectContent>

@@ -115,7 +115,7 @@ function StudentSubscribe() {
               value={classId}
               onValueChange={(v) => setClassId(v ?? "")}
             >
-              <SelectTrigger id="subscribe-class" className="w-full" size="sm">
+              <SelectTrigger id="subscribe-class" className="w-full">
                 <SelectValue placeholder="Pilih kelas" />
               </SelectTrigger>
               <SelectContent>
@@ -143,7 +143,7 @@ function StudentSubscribe() {
                     <div className="space-y-1.5">
                       <Label htmlFor="subscribe-duration">Durasi</Label>
                       <Select items={DURATIONS} value={duration} onValueChange={(v) => setDuration(v ?? "1")}>
-                        <SelectTrigger id="subscribe-duration" className="w-full" size="sm">
+                        <SelectTrigger id="subscribe-duration" className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

@@ -120,7 +120,7 @@ export function SubjectFormDialog({ subject, onClose }: SubjectFormDialogProps) 
           <div className="space-y-2">
             <Label htmlFor="subject-program">Program</Label>
             <Select items={programOptions} value={programId} onValueChange={(v) => changeProgram(Number(v))}>
-              <SelectTrigger id="subject-program" className="w-full" size="sm">
+              <SelectTrigger id="subject-program" className="w-full">
                 <SelectValue placeholder={programs.length ? "Pilih program..." : "Tidak ada program"} />
               </SelectTrigger>
               <SelectContent>
