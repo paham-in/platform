@@ -10,12 +10,13 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { useState, useEffect } from "react"
-import { Search, SearchX, ChevronLeft, ChevronRight, Eye, Funnel, X, MessageSquare } from "lucide-react"
+import { Search, SearchX, ChevronLeft, ChevronRight, Eye, Funnel, X, MessageSquare, MoreVertical } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -152,7 +153,11 @@ function TeacherForum() {
                   </TableRow>
                 ))
               ) : paged.map((q) => (
-                <TableRow key={q.id}>
+                <TableRow
+                  key={q.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => navigate({ to: "/teacher/forum/$id", params: { id: String(q.id!) } })}
+                >
                   <TableCell className="pl-6 font-medium max-w-[300px] truncate">{q.plain_content}</TableCell>
                   <TableCell className="text-muted-foreground">{q.user_name}</TableCell>
                   <TableCell className="text-muted-foreground">{q.subject_name || "-"}</TableCell>
@@ -167,9 +172,19 @@ function TeacherForum() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{q.created_at}</TableCell>
                   <TableCell className="pr-6 text-right">
-                    <a href={`/teacher/forum/${q.id}`} target="_blank" rel="noreferrer">
-                      <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
-                    </a>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={<Button variant="outline" size="icon" />}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => navigate({ to: "/teacher/forum/$id", params: { id: String(q.id!) } })}>
+                          <Eye className="h-4 w-4" /> Lihat
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
