@@ -45,7 +45,7 @@ function PackageDetail() {
   const completed = progress?.completed_count ?? 0
 
   return (
-    <main className="w-full max-w-3xl p-6">
+    <main className="mx-auto w-full max-w-3xl p-6">
       <Link
         to="/student/packages/$collectionId"
         params={{ collectionId }}
