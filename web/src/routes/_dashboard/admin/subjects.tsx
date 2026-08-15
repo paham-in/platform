@@ -14,7 +14,7 @@ import {
   getAdminProgramsOptions,
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
-import type { SubjectSubjectResponse } from "@/lib/api/types.gen";
+import type { SubjectListSubjectsResponse } from "@/lib/api/types.gen";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
@@ -60,8 +60,8 @@ function AdminSubjects() {
   const [page, setPage] = useState(1);
   const activeFilterCount = classFilter === undefined ? 0 : 1;
   const hasActiveFilter = !!searchParam || classFilter !== undefined;
-  const [formTarget, setFormTarget] = useState<{ open: boolean; editing: SubjectSubjectResponse | null }>({ open: false, editing: null });
-  const [deleteConfirm, setDeleteConfirm] = useState<SubjectSubjectResponse | null>(null);
+  const [formTarget, setFormTarget] = useState<{ open: boolean; editing: SubjectListSubjectsResponse | null }>({ open: false, editing: null });
+  const [deleteConfirm, setDeleteConfirm] = useState<SubjectListSubjectsResponse | null>(null);
   const perPage = 5;
 
   const classOptions = [
@@ -86,7 +86,7 @@ function AdminSubjects() {
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
   const openAdd = () => setFormTarget({ open: true, editing: null });
-  const openEdit = (s: SubjectSubjectResponse) => setFormTarget({ open: true, editing: s });
+  const openEdit = (s: SubjectListSubjectsResponse) => setFormTarget({ open: true, editing: s });
 
   const classNames = (classIds: number[] | undefined) =>
     classIds

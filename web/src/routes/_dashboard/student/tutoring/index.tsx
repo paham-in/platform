@@ -19,7 +19,7 @@ import {
   getTutoringSessionsQueryKey,
   postTutoringBookingsByIdCancelMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { TutoringBookingResponse } from "@/lib/api/types.gen"
+import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Loader2, Plus, UserRound, Users, CalendarX2, CalendarDays } from "lucide-react"
 import { useState } from "react"
@@ -45,12 +45,12 @@ function modeBadge(mode?: string) {
 
 // canCancel: booking masih bisa dibatalkan murid — pending (guru belum acc)
 // atau confirmed tapi invoice belum lunas (murid batal sebelum bayar).
-function canCancel(b: TutoringBookingResponse) {
+function canCancel(b: TutoringListBookingsResponse) {
   if (b.status === "pending") return true
   return b.status === "confirmed" && b.invoice_status !== "paid"
 }
 
-function CancelBookingDialog({ booking, onClose }: { booking: TutoringBookingResponse; onClose: () => void }) {
+function CancelBookingDialog({ booking, onClose }: { booking: TutoringListBookingsResponse; onClose: () => void }) {
   const qc = useQueryClient()
 
   const { mutate: cancelBooking, isPending } = useMutation({
@@ -89,7 +89,7 @@ function CancelBookingDialog({ booking, onClose }: { booking: TutoringBookingRes
 function StudentTutoringIndex() {
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getTutoringBookingsOptions())
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getTutoringSessionsOptions())
-  const [cancelTarget, setCancelTarget] = useState<TutoringBookingResponse | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<TutoringListBookingsResponse | null>(null)
 
   if (bookingsLoading) return <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
 

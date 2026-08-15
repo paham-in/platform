@@ -16,7 +16,7 @@ import {
   getClassesOptions,
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { TutoringTeacherResponse } from "@/lib/api/types.gen"
+import type { TutoringListTeachersResponse } from "@/lib/api/types.gen"
 import { CalendarIcon, CheckCircle2, Loader2, Plus, X, UserX } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { format } from "date-fns"
@@ -61,7 +61,7 @@ function NewBooking() {
   const [subjectId, setSubjectId] = useState("")
   const [start, setStart] = useState("")
   const [end, setEnd] = useState("")
-  const [teacher, setTeacher] = useState<TutoringTeacherResponse | undefined>()
+  const [teacher, setTeacher] = useState<TutoringListTeachersResponse | undefined>()
   const [mode, setMode] = useState<"private" | "group">("private")
   const [sessionCount, setSessionCount] = useState(1)
   const [classId, setClassId] = useState("")

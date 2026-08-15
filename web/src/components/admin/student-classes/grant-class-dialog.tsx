@@ -18,7 +18,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox"
-import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import {
   postAdminStudentClassesMutation,
   getAdminStudentClassesQueryKey,
@@ -34,7 +34,7 @@ export function GrantClassDialog({ onClose }: GrantClassDialogProps) {
   const qc = useQueryClient()
   const { data: users = [] } = useQuery(getAdminStudentsOptions())
   const { data: programs = [] } = useQuery(getAdminProgramsOptions())
-  const [user, setUser] = useState<UserAdminUserResponse>()
+  const [user, setUser] = useState<UserAdminListUsersResponse>()
   const [classId, setClassId] = useState<number | undefined>()
   const [expiry, setExpiry] = useState<Date>()
   const classOptions = programs.flatMap((p) =>
@@ -86,7 +86,7 @@ export function GrantClassDialog({ onClose }: GrantClassDialogProps) {
               <ComboboxContent>
                 <ComboboxEmpty>Tidak ada murid ditemukan</ComboboxEmpty>
                 <ComboboxList>
-                  {(u: UserAdminUserResponse) => (
+                  {(u: UserAdminListUsersResponse) => (
                     <ComboboxItem key={u.id} value={u}>
                       <span className="flex min-w-0 flex-col">
                         <span className="truncate">{u.name}</span>

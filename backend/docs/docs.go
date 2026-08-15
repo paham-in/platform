@@ -2213,7 +2213,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/subject.CreateInput"
+                            "$ref": "#/definitions/subject.AdminCreateSubjectRequest"
                         }
                     }
                 ],
@@ -2221,7 +2221,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/subject.SubjectResponse"
+                            "$ref": "#/definitions/subject.AdminCreateSubjectResponse"
                         }
                     },
                     "400": {
@@ -2264,7 +2264,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/subject.MessageResponse"
+                            "$ref": "#/definitions/subject.AdminDeleteSubjectResponse"
                         }
                     }
                 }
@@ -2300,7 +2300,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/subject.UpdateInput"
+                            "$ref": "#/definitions/subject.AdminUpdateSubjectRequest"
                         }
                     }
                 ],
@@ -2308,7 +2308,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/subject.SubjectResponse"
+                            "$ref": "#/definitions/subject.AdminUpdateSubjectResponse"
                         }
                     },
                     "400": {
@@ -4537,7 +4537,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/subject.SubjectResponse"
+                                "$ref": "#/definitions/subject.ListSubjectsResponse"
                             }
                         }
                     }
@@ -5634,6 +5634,9 @@ const docTemplate = `{
         "material.MaterialResponse": {
             "type": "object",
             "properties": {
+                "author_id": {
+                    "type": "integer"
+                },
                 "chapter_id": {
                     "type": "integer"
                 },
@@ -5955,6 +5958,9 @@ const docTemplate = `{
         "questionpackage.CollectionResponse": {
             "type": "object",
             "properties": {
+                "author_id": {
+                    "type": "integer"
+                },
                 "class_id": {
                     "type": "integer"
                 },
@@ -6054,6 +6060,9 @@ const docTemplate = `{
         "questionpackage.PackageResponse": {
             "type": "object",
             "properties": {
+                "author_id": {
+                    "type": "integer"
+                },
                 "collection_id": {
                     "type": "integer"
                 },
@@ -6302,7 +6311,7 @@ const docTemplate = `{
                 }
             }
         },
-        "subject.CreateInput": {
+        "subject.AdminCreateSubjectRequest": {
             "type": "object",
             "properties": {
                 "class_ids": {
@@ -6319,25 +6328,7 @@ const docTemplate = `{
                 }
             }
         },
-        "subject.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string",
-                    "example": "error message"
-                }
-            }
-        },
-        "subject.MessageResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "berhasil"
-                }
-            }
-        },
-        "subject.SubjectResponse": {
+        "subject.AdminCreateSubjectResponse": {
             "type": "object",
             "properties": {
                 "class_ids": {
@@ -6363,7 +6354,16 @@ const docTemplate = `{
                 }
             }
         },
-        "subject.UpdateInput": {
+        "subject.AdminDeleteSubjectResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "berhasil dihapus"
+                }
+            }
+        },
+        "subject.AdminUpdateSubjectRequest": {
             "type": "object",
             "properties": {
                 "class_ids": {
@@ -6377,6 +6377,67 @@ const docTemplate = `{
                 },
                 "program_id": {
                     "type": "integer"
+                }
+            }
+        },
+        "subject.AdminUpdateSubjectResponse": {
+            "type": "object",
+            "properties": {
+                "class_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "material_count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "program_id": {
+                    "type": "integer"
+                },
+                "slug": {
+                    "type": "string"
+                }
+            }
+        },
+        "subject.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "error message"
+                }
+            }
+        },
+        "subject.ListSubjectsResponse": {
+            "type": "object",
+            "properties": {
+                "class_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "material_count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "program_id": {
+                    "type": "integer"
+                },
+                "slug": {
+                    "type": "string"
                 }
             }
         },

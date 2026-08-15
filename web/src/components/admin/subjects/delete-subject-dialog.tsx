@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Spinner } from "@/components/ui/spinner"
 import { deleteAdminSubjectsByIdMutation, getSubjectsQueryKey } from "@/lib/api/@tanstack/react-query.gen"
-import type { SubjectSubjectResponse } from "@/lib/api/types.gen"
+import type { SubjectListSubjectsResponse } from "@/lib/api/types.gen"
 
 interface DeleteSubjectDialogProps {
-  subject: SubjectSubjectResponse
+  subject: SubjectListSubjectsResponse
   onClose: () => void
 }
 

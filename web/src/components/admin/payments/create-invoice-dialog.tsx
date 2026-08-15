@@ -14,10 +14,10 @@ import { id } from "date-fns/locale"
 import { postAdminInvoicesMutation, getAdminInvoicesQueryKey, getAdminProgramsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { useQuery } from "@tanstack/react-query"
-import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 
 interface CreateInvoiceDialogProps {
-  user: UserAdminUserResponse
+  user: UserAdminListUsersResponse
   onClose: () => void
 }
 

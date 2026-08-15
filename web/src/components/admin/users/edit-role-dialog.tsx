@@ -6,13 +6,13 @@ import { Spinner } from "@/components/ui/spinner"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { patchAdminUsersByIdRoleMutation, getAdminUsersQueryKey } from "@/lib/api/@tanstack/react-query.gen"
-import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { RoleBadge, ROLE_LABELS } from "./role-badge"
 
 const ROLE_OPTIONS = ["student", "teacher", "admin"]
 
 interface EditRoleDialogProps {
-  user: UserAdminUserResponse
+  user: UserAdminListUsersResponse
   onClose: () => void
 }
 

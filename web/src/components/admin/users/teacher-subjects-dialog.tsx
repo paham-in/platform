@@ -10,12 +10,12 @@ import {
   patchAdminUsersByIdSubjectsMutation,
   getAdminUsersQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { BookX } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 interface TeacherSubjectsDialogProps {
-  user: UserAdminUserResponse
+  user: UserAdminListUsersResponse
   onClose: () => void
 }
 

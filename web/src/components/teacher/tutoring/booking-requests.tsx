@@ -7,7 +7,7 @@ import { getTutoringBookingsOptions, getTutoringBookingsQueryKey, patchTutoringB
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Loader2, CheckCircle2, UserRound, Users, XCircle, Inbox, History } from "lucide-react"
 import { toast } from "sonner"
-import type { TutoringBookingResponse } from "@/lib/api/types.gen"
+import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
 
 function statusBadge(s: string) {
   const styles: Record<string, string> = {
@@ -30,8 +30,8 @@ function modeBadge(mode?: string) {
 }
 
 // Kelompokkan booking satu grup jadi satu baris.
-function groupBookings(bookings: TutoringBookingResponse[]): TutoringBookingResponse[][] {
-  const groups: TutoringBookingResponse[][] = []
+function groupBookings(bookings: TutoringListBookingsResponse[]): TutoringListBookingsResponse[][] {
+  const groups: TutoringListBookingsResponse[][] = []
   const index = new Map<string, number>()
   for (const b of bookings) {
     if (b.mode === "group" && b.group_token) {

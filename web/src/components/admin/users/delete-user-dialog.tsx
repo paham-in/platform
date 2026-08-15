@@ -11,10 +11,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { deleteAdminUsersByIdMutation, getAdminUsersQueryKey } from "@/lib/api/@tanstack/react-query.gen"
-import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 
 interface DeleteUserDialogProps {
-  user: UserAdminUserResponse
+  user: UserAdminListUsersResponse
   onClose: () => void
 }
 

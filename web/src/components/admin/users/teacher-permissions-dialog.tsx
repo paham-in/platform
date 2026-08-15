@@ -9,10 +9,10 @@ import {
   patchAdminUsersByIdPermissionsMutation,
   getAdminUsersQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 
 interface TeacherPermissionsDialogProps {
-  user: UserAdminUserResponse
+  user: UserAdminListUsersResponse
   onClose: () => void
 }
 

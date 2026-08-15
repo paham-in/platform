@@ -6,10 +6,10 @@ import { Spinner } from "@/components/ui/spinner"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { patchAdminUsersByIdEmailMutation, getAdminUsersQueryKey } from "@/lib/api/@tanstack/react-query.gen"
-import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 
 interface EditEmailDialogProps {
-  user: UserAdminUserResponse
+  user: UserAdminListUsersResponse
   onClose: () => void
 }
 

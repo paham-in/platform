@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
-import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { Search, SearchX, MoreVertical, Shield, Plus, Trash2, ChevronLeft, ChevronRight, Funnel, X, Link2, UserX } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
@@ -56,11 +56,11 @@ function AdminUsers() {
   const activeFilterCount = roleFilter ? 1 : 0
   const hasActiveFilter = !!search || !!roleFilter
   const [createOpen, setCreateOpen] = useState(false)
-  const [editing, setEditing] = useState<UserAdminUserResponse | null>(null)
+  const [editing, setEditing] = useState<UserAdminListUsersResponse | null>(null)
   const [page, setPage] = useState(1)
   const perPage = 5
-  const [deleteConfirm, setDeleteConfirm] = useState<UserAdminUserResponse | null>(null)
-  const [connectGoogle, setConnectGoogle] = useState<UserAdminUserResponse | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<UserAdminListUsersResponse | null>(null)
+  const [connectGoogle, setConnectGoogle] = useState<UserAdminListUsersResponse | null>(null)
 
   const setRole = (v: string) => {
     navigate({ search: (prev) => ({ ...prev, role: v === "all" ? undefined : (v as "student" | "teacher" | "admin") }), replace: true })

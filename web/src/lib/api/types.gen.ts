@@ -514,21 +514,13 @@ export type StudentclassUserRef = {
     name?: string;
 };
 
-export type SubjectCreateInput = {
+export type SubjectAdminCreateSubjectRequest = {
     class_ids?: Array<number>;
     name?: string;
     program_id?: number;
 };
 
-export type SubjectErrorResponse = {
-    error?: string;
-};
-
-export type SubjectMessageResponse = {
-    message?: string;
-};
-
-export type SubjectSubjectResponse = {
+export type SubjectAdminCreateSubjectResponse = {
     class_ids?: Array<number>;
     id?: number;
     material_count?: number;
@@ -537,30 +529,39 @@ export type SubjectSubjectResponse = {
     slug?: string;
 };
 
-export type SubjectUpdateInput = {
+export type SubjectAdminDeleteSubjectResponse = {
+    message?: string;
+};
+
+export type SubjectAdminUpdateSubjectRequest = {
     class_ids?: Array<number>;
     name?: string;
     program_id?: number;
 };
 
-export type TutoringAdminBookingReport = {
-    booking_id?: number;
-    cancelled_count?: number;
-    done_count?: number;
-    fee_per_session?: number;
-    fee_unpaid_total?: number;
-    invoice_status?: string;
-    mode?: string;
-    price_per_session?: number;
-    refund_amount?: number;
-    scheduled_count?: number;
-    session_count?: number;
-    student_id?: number;
-    student_name?: string;
-    teacher_name?: string;
+export type SubjectAdminUpdateSubjectResponse = {
+    class_ids?: Array<number>;
+    id?: number;
+    material_count?: number;
+    name?: string;
+    program_id?: number;
+    slug?: string;
 };
 
-export type TutoringAdminCreateBookingInput = {
+export type SubjectErrorResponse = {
+    error?: string;
+};
+
+export type SubjectListSubjectsResponse = {
+    class_ids?: Array<number>;
+    id?: number;
+    material_count?: number;
+    name?: string;
+    program_id?: number;
+    slug?: string;
+};
+
+export type TutoringAdminCreateBookingRequest = {
     class_id?: number;
     date?: string;
     end_time?: string;
@@ -583,11 +584,7 @@ export type TutoringAdminCreateBookingInput = {
     teacher_id?: number;
 };
 
-export type TutoringAssignTeacherInput = {
-    teacher_id?: number;
-};
-
-export type TutoringBookingResponse = {
+export type TutoringAdminCreateBookingResponse = {
     class_id?: number;
     created_at?: string;
     date?: string;
@@ -608,7 +605,192 @@ export type TutoringBookingResponse = {
     teacher_name?: string;
 };
 
-export type TutoringCreateBookingInput = {
+export type TutoringAdminDeleteBookingResponse = {
+    message?: string;
+};
+
+export type TutoringAdminListBookingsResponse = {
+    class_id?: number;
+    created_at?: string;
+    date?: string;
+    end_time?: string;
+    group_token?: string;
+    id?: number;
+    invoice_status?: string;
+    mode?: string;
+    note?: string;
+    session_count?: number;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    subject_id?: number;
+    subject_name?: string;
+    teacher_id?: number;
+    teacher_name?: string;
+};
+
+export type TutoringAdminListEvidenceResponse = {
+    booking_id?: number;
+    date?: string;
+    end_time?: string;
+    evidence_url?: string;
+    fee_amount?: number;
+    fee_paid?: boolean;
+    id?: number;
+    invoice_paid?: boolean;
+    mode?: string;
+    note?: string;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    teacher_name?: string;
+};
+
+export type TutoringAdminListFeesResponse = {
+    booking_id?: number;
+    date?: string;
+    end_time?: string;
+    evidence_url?: string;
+    fee_amount?: number;
+    fee_paid?: boolean;
+    id?: number;
+    invoice_paid?: boolean;
+    mode?: string;
+    note?: string;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    teacher_name?: string;
+};
+
+export type TutoringAdminListReportResponse = {
+    booking_id?: number;
+    cancelled_count?: number;
+    done_count?: number;
+    fee_per_session?: number;
+    fee_unpaid_total?: number;
+    invoice_status?: string;
+    mode?: string;
+    price_per_session?: number;
+    refund_amount?: number;
+    scheduled_count?: number;
+    session_count?: number;
+    student_id?: number;
+    student_name?: string;
+    teacher_name?: string;
+};
+
+export type TutoringAdminReviewEvidenceRequest = {
+    /**
+     * approve/reject
+     */
+    action?: string;
+};
+
+export type TutoringAdminReviewEvidenceResponse = {
+    booking_id?: number;
+    date?: string;
+    end_time?: string;
+    evidence_url?: string;
+    fee_amount?: number;
+    fee_paid?: boolean;
+    id?: number;
+    invoice_paid?: boolean;
+    mode?: string;
+    note?: string;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    teacher_name?: string;
+};
+
+export type TutoringAdminToggleFeePaidResponse = {
+    booking_id?: number;
+    date?: string;
+    end_time?: string;
+    evidence_url?: string;
+    fee_amount?: number;
+    fee_paid?: boolean;
+    id?: number;
+    invoice_paid?: boolean;
+    mode?: string;
+    note?: string;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    teacher_name?: string;
+};
+
+export type TutoringAssignTeacherRequest = {
+    teacher_id?: number;
+};
+
+export type TutoringAssignTeacherResponse = {
+    class_id?: number;
+    created_at?: string;
+    date?: string;
+    end_time?: string;
+    group_token?: string;
+    id?: number;
+    invoice_status?: string;
+    mode?: string;
+    note?: string;
+    session_count?: number;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    subject_id?: number;
+    subject_name?: string;
+    teacher_id?: number;
+    teacher_name?: string;
+};
+
+export type TutoringCancelBookingResponse = {
+    class_id?: number;
+    created_at?: string;
+    date?: string;
+    end_time?: string;
+    group_token?: string;
+    id?: number;
+    invoice_status?: string;
+    mode?: string;
+    note?: string;
+    session_count?: number;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    subject_id?: number;
+    subject_name?: string;
+    teacher_id?: number;
+    teacher_name?: string;
+};
+
+export type TutoringCancelSessionResponse = {
+    booking_id?: number;
+    date?: string;
+    end_time?: string;
+    evidence_url?: string;
+    fee_amount?: number;
+    fee_paid?: boolean;
+    id?: number;
+    invoice_paid?: boolean;
+    mode?: string;
+    note?: string;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    teacher_name?: string;
+};
+
+export type TutoringCreateBookingRequest = {
     class_id?: number;
     date?: string;
     end_time?: string;
@@ -640,6 +822,27 @@ export type TutoringCreateBookingInput = {
     teacher_id?: number;
 };
 
+export type TutoringCreateBookingResponse = {
+    class_id?: number;
+    created_at?: string;
+    date?: string;
+    end_time?: string;
+    group_token?: string;
+    id?: number;
+    invoice_status?: string;
+    mode?: string;
+    note?: string;
+    session_count?: number;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    subject_id?: number;
+    subject_name?: string;
+    teacher_id?: number;
+    teacher_name?: string;
+};
+
 export type TutoringErrorResponse = {
     error?: string;
 };
@@ -656,45 +859,28 @@ export type TutoringGroupInfoResponse = {
     teacher_name?: string;
 };
 
-export type TutoringMessageResponse = {
-    message?: string;
-};
-
-export type TutoringRescheduleSessionInput = {
+export type TutoringListBookingsResponse = {
+    class_id?: number;
+    created_at?: string;
     date?: string;
     end_time?: string;
+    group_token?: string;
+    id?: number;
+    invoice_status?: string;
+    mode?: string;
+    note?: string;
+    session_count?: number;
     start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    subject_id?: number;
+    subject_name?: string;
+    teacher_id?: number;
+    teacher_name?: string;
 };
 
-export type TutoringReviewEvidenceInput = {
-    /**
-     * approve/reject
-     */
-    action?: string;
-};
-
-export type TutoringSubjectInfo = {
-    id?: number;
-    name?: string;
-};
-
-export type TutoringTeacherEarningsResponse = {
-    fee_paid_total?: number;
-    fee_unpaid_total?: number;
-    sessions?: Array<TutoringTutoringSessionResponse>;
-    total_fee?: number;
-    total_sessions?: number;
-};
-
-export type TutoringTeacherResponse = {
-    avatar_url?: string;
-    email?: string;
-    id?: number;
-    name?: string;
-    subjects?: Array<TutoringSubjectInfo>;
-};
-
-export type TutoringTutoringSessionResponse = {
+export type TutoringListSessionsResponse = {
     booking_id?: number;
     date?: string;
     end_time?: string;
@@ -712,12 +898,174 @@ export type TutoringTutoringSessionResponse = {
     teacher_name?: string;
 };
 
-export type UserAdminCreateStudentInput = {
+export type TutoringListTeachersResponse = {
+    avatar_url?: string;
+    email?: string;
+    id?: number;
+    name?: string;
+    subjects?: Array<TutoringSubjectInfo>;
+};
+
+export type TutoringMyEarningsResponse = {
+    fee_paid_total?: number;
+    fee_unpaid_total?: number;
+    sessions?: Array<TutoringListSessionsResponse>;
+    total_fee?: number;
+    total_sessions?: number;
+};
+
+export type TutoringSubjectInfo = {
+    id?: number;
+    name?: string;
+};
+
+export type TutoringUpdateBookingStatusRequest = {
+    status?: string;
+};
+
+export type TutoringUpdateBookingStatusResponse = {
+    class_id?: number;
+    created_at?: string;
+    date?: string;
+    end_time?: string;
+    group_token?: string;
+    id?: number;
+    invoice_status?: string;
+    mode?: string;
+    note?: string;
+    session_count?: number;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    subject_id?: number;
+    subject_name?: string;
+    teacher_id?: number;
+    teacher_name?: string;
+};
+
+export type TutoringUpdateSessionRequest = {
+    date?: string;
+    end_time?: string;
+    start_time?: string;
+};
+
+export type TutoringUpdateSessionResponse = {
+    booking_id?: number;
+    date?: string;
+    end_time?: string;
+    evidence_url?: string;
+    fee_amount?: number;
+    fee_paid?: boolean;
+    id?: number;
+    invoice_paid?: boolean;
+    mode?: string;
+    note?: string;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    teacher_name?: string;
+};
+
+export type TutoringUploadSessionEvidenceResponse = {
+    booking_id?: number;
+    date?: string;
+    end_time?: string;
+    evidence_url?: string;
+    fee_amount?: number;
+    fee_paid?: boolean;
+    id?: number;
+    invoice_paid?: boolean;
+    mode?: string;
+    note?: string;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    teacher_name?: string;
+};
+
+export type UserAdminCreateUserRequest = {
     email?: string;
     name?: string;
 };
 
-export type UserAdminUserResponse = {
+export type UserAdminCreateUserResponse = {
+    avatar_url?: string;
+    can_manage_materials?: boolean;
+    can_manage_question_packages?: boolean;
+    created_at?: string;
+    email?: string;
+    has_google?: boolean;
+    has_password?: boolean;
+    id?: number;
+    name?: string;
+    payment_status?: string;
+    roles?: Array<string>;
+    subjects?: Array<UserSubjectInfo>;
+};
+
+export type UserAdminDeleteUserResponse = {
+    message?: string;
+};
+
+export type UserAdminListUsersResponse = {
+    avatar_url?: string;
+    can_manage_materials?: boolean;
+    can_manage_question_packages?: boolean;
+    created_at?: string;
+    email?: string;
+    has_google?: boolean;
+    has_password?: boolean;
+    id?: number;
+    name?: string;
+    payment_status?: string;
+    roles?: Array<string>;
+    subjects?: Array<UserSubjectInfo>;
+};
+
+export type UserAdminMergeUserResponse = {
+    avatar_url?: string;
+    can_manage_materials?: boolean;
+    can_manage_question_packages?: boolean;
+    created_at?: string;
+    email?: string;
+    has_google?: boolean;
+    has_password?: boolean;
+    id?: number;
+    name?: string;
+    payment_status?: string;
+    roles?: Array<string>;
+    subjects?: Array<UserSubjectInfo>;
+};
+
+export type UserAdminUpdateEmailResponse = {
+    message?: string;
+};
+
+export type UserAdminUpdateRoleRequest = {
+    roles?: Array<string>;
+};
+
+export type UserAdminUpdateRoleResponse = {
+    message?: string;
+};
+
+export type UserAdminUpdateTeacherPermissionsRequest = {
+    can_manage_materials?: boolean;
+    can_manage_question_packages?: boolean;
+};
+
+export type UserAdminUpdateTeacherPermissionsResponse = {
+    message?: string;
+};
+
+export type UserAdminUpdateTeacherSubjectsRequest = {
+    subject_ids?: Array<number>;
+};
+
+export type UserAdminUpdateTeacherSubjectsResponse = {
     avatar_url?: string;
     can_manage_materials?: boolean;
     can_manage_question_packages?: boolean;
@@ -736,13 +1084,20 @@ export type UserErrorResponse = {
     error?: string;
 };
 
-export type UserMessageResponse = {
+export type UserLogoutResponse = {
     message?: string;
 };
 
-export type UserSetTeacherPermissionsInput = {
+export type UserMeResponse = {
+    avatar_url?: string;
     can_manage_materials?: boolean;
     can_manage_question_packages?: boolean;
+    email?: string;
+    id?: number;
+    name?: string;
+    payment_status?: string;
+    roles?: Array<string>;
+    subjects?: Array<UserSubjectInfo>;
 };
 
 export type UserSubjectInfo = {
@@ -750,11 +1105,11 @@ export type UserSubjectInfo = {
     name?: string;
 };
 
-export type UserUpdateRoleRequest = {
-    roles?: Array<string>;
+export type UserUpdateProfileRequest = {
+    name?: string;
 };
 
-export type UserUserResponse = {
+export type UserUpdateProfileResponse = {
     avatar_url?: string;
     can_manage_materials?: boolean;
     can_manage_question_packages?: boolean;
@@ -2184,7 +2539,7 @@ export type GetAdminStudentsResponses = {
     /**
      * OK
      */
-    200: Array<UserAdminUserResponse>;
+    200: Array<UserAdminListUsersResponse>;
 };
 
 export type GetAdminStudentsResponse = GetAdminStudentsResponses[keyof GetAdminStudentsResponses];
@@ -2193,7 +2548,7 @@ export type PostAdminSubjectsData = {
     /**
      * Data subject
      */
-    body: SubjectCreateInput;
+    body: SubjectAdminCreateSubjectRequest;
     path?: never;
     query?: never;
     url: '/admin/subjects';
@@ -2212,7 +2567,7 @@ export type PostAdminSubjectsResponses = {
     /**
      * Created
      */
-    201: SubjectSubjectResponse;
+    201: SubjectAdminCreateSubjectResponse;
 };
 
 export type PostAdminSubjectsResponse = PostAdminSubjectsResponses[keyof PostAdminSubjectsResponses];
@@ -2233,7 +2588,7 @@ export type DeleteAdminSubjectsByIdResponses = {
     /**
      * OK
      */
-    200: SubjectMessageResponse;
+    200: SubjectAdminDeleteSubjectResponse;
 };
 
 export type DeleteAdminSubjectsByIdResponse = DeleteAdminSubjectsByIdResponses[keyof DeleteAdminSubjectsByIdResponses];
@@ -2242,7 +2597,7 @@ export type PatchAdminSubjectsByIdData = {
     /**
      * Data update
      */
-    body: SubjectUpdateInput;
+    body: SubjectAdminUpdateSubjectRequest;
     path: {
         /**
          * Subject ID
@@ -2266,7 +2621,7 @@ export type PatchAdminSubjectsByIdResponses = {
     /**
      * OK
      */
-    200: SubjectSubjectResponse;
+    200: SubjectAdminUpdateSubjectResponse;
 };
 
 export type PatchAdminSubjectsByIdResponse = PatchAdminSubjectsByIdResponses[keyof PatchAdminSubjectsByIdResponses];
@@ -2285,7 +2640,7 @@ export type GetAdminSubjectsBySubjectIdImagesData = {
          */
         q?: string;
         /**
-         * Filter folder: materials atau questions
+         * Filter folder: materials atau quiz_questions
          */
         folder?: string;
     };
@@ -2312,7 +2667,7 @@ export type PostAdminSubjectsBySubjectIdImagesData = {
          */
         title?: string;
         /**
-         * Folder penyimpanan: materials (default) atau questions
+         * Folder penyimpanan: materials (default) atau quiz_questions
          */
         folder?: string;
     };
@@ -2423,7 +2778,7 @@ export type GetAdminTutoringBookingsResponses = {
     /**
      * OK
      */
-    200: Array<TutoringBookingResponse>;
+    200: Array<TutoringAdminListBookingsResponse>;
 };
 
 export type GetAdminTutoringBookingsResponse = GetAdminTutoringBookingsResponses[keyof GetAdminTutoringBookingsResponses];
@@ -2432,7 +2787,7 @@ export type PostAdminTutoringBookingsData = {
     /**
      * Booking data
      */
-    body: TutoringAdminCreateBookingInput;
+    body: TutoringAdminCreateBookingRequest;
     path?: never;
     query?: never;
     url: '/admin/tutoring/bookings';
@@ -2451,7 +2806,7 @@ export type PostAdminTutoringBookingsResponses = {
     /**
      * Created
      */
-    201: TutoringBookingResponse;
+    201: TutoringAdminCreateBookingResponse;
 };
 
 export type PostAdminTutoringBookingsResponse = PostAdminTutoringBookingsResponses[keyof PostAdminTutoringBookingsResponses];
@@ -2481,7 +2836,7 @@ export type DeleteAdminTutoringBookingsByIdResponses = {
     /**
      * OK
      */
-    200: TutoringMessageResponse;
+    200: TutoringAdminDeleteBookingResponse;
 };
 
 export type DeleteAdminTutoringBookingsByIdResponse = DeleteAdminTutoringBookingsByIdResponses[keyof DeleteAdminTutoringBookingsByIdResponses];
@@ -2490,7 +2845,7 @@ export type PatchAdminTutoringBookingsByIdAssignData = {
     /**
      * Teacher ID
      */
-    body: TutoringAssignTeacherInput;
+    body: TutoringAssignTeacherRequest;
     path: {
         /**
          * Booking ID
@@ -2514,7 +2869,7 @@ export type PatchAdminTutoringBookingsByIdAssignResponses = {
     /**
      * OK
      */
-    200: TutoringBookingResponse;
+    200: TutoringAssignTeacherResponse;
 };
 
 export type PatchAdminTutoringBookingsByIdAssignResponse = PatchAdminTutoringBookingsByIdAssignResponses[keyof PatchAdminTutoringBookingsByIdAssignResponses];
@@ -2535,7 +2890,7 @@ export type GetAdminTutoringEvidenceResponses = {
     /**
      * OK
      */
-    200: Array<TutoringTutoringSessionResponse>;
+    200: Array<TutoringAdminListEvidenceResponse>;
 };
 
 export type GetAdminTutoringEvidenceResponse = GetAdminTutoringEvidenceResponses[keyof GetAdminTutoringEvidenceResponses];
@@ -2544,7 +2899,7 @@ export type PatchAdminTutoringEvidenceByIdData = {
     /**
      * Aksi: approve atau reject
      */
-    body: TutoringReviewEvidenceInput;
+    body: TutoringAdminReviewEvidenceRequest;
     path: {
         /**
          * Session ID
@@ -2568,7 +2923,7 @@ export type PatchAdminTutoringEvidenceByIdResponses = {
     /**
      * OK
      */
-    200: TutoringTutoringSessionResponse;
+    200: TutoringAdminReviewEvidenceResponse;
 };
 
 export type PatchAdminTutoringEvidenceByIdResponse = PatchAdminTutoringEvidenceByIdResponses[keyof PatchAdminTutoringEvidenceByIdResponses];
@@ -2584,7 +2939,7 @@ export type GetAdminTutoringFeesResponses = {
     /**
      * OK
      */
-    200: Array<TutoringTutoringSessionResponse>;
+    200: Array<TutoringAdminListFeesResponse>;
 };
 
 export type GetAdminTutoringFeesResponse = GetAdminTutoringFeesResponses[keyof GetAdminTutoringFeesResponses];
@@ -2614,7 +2969,7 @@ export type PatchAdminTutoringFeesByIdResponses = {
     /**
      * OK
      */
-    200: TutoringTutoringSessionResponse;
+    200: TutoringAdminToggleFeePaidResponse;
 };
 
 export type PatchAdminTutoringFeesByIdResponse = PatchAdminTutoringFeesByIdResponses[keyof PatchAdminTutoringFeesByIdResponses];
@@ -2630,7 +2985,7 @@ export type GetAdminTutoringReportResponses = {
     /**
      * OK
      */
-    200: Array<TutoringAdminBookingReport>;
+    200: Array<TutoringAdminListReportResponse>;
 };
 
 export type GetAdminTutoringReportResponse = GetAdminTutoringReportResponses[keyof GetAdminTutoringReportResponses];
@@ -2664,7 +3019,7 @@ export type GetAdminUsersResponses = {
     /**
      * OK
      */
-    200: Array<UserAdminUserResponse>;
+    200: Array<UserAdminListUsersResponse>;
 };
 
 export type GetAdminUsersResponse = GetAdminUsersResponses[keyof GetAdminUsersResponses];
@@ -2673,7 +3028,7 @@ export type PostAdminUsersData = {
     /**
      * Nama & email murid
      */
-    body: UserAdminCreateStudentInput;
+    body: UserAdminCreateUserRequest;
     path?: never;
     query?: never;
     url: '/admin/users';
@@ -2696,7 +3051,7 @@ export type PostAdminUsersResponses = {
     /**
      * Created
      */
-    201: UserAdminUserResponse;
+    201: UserAdminCreateUserResponse;
 };
 
 export type PostAdminUsersResponse = PostAdminUsersResponses[keyof PostAdminUsersResponses];
@@ -2730,7 +3085,7 @@ export type DeleteAdminUsersByIdResponses = {
     /**
      * OK
      */
-    200: UserMessageResponse;
+    200: UserAdminDeleteUserResponse;
 };
 
 export type DeleteAdminUsersByIdResponse = DeleteAdminUsersByIdResponses[keyof DeleteAdminUsersByIdResponses];
@@ -2769,7 +3124,7 @@ export type PatchAdminUsersByIdEmailResponses = {
     /**
      * OK
      */
-    200: UserMessageResponse;
+    200: UserAdminUpdateEmailResponse;
 };
 
 export type PatchAdminUsersByIdEmailResponse = PatchAdminUsersByIdEmailResponses[keyof PatchAdminUsersByIdEmailResponses];
@@ -2808,7 +3163,7 @@ export type PostAdminUsersByIdMergeResponses = {
     /**
      * OK
      */
-    200: UserAdminUserResponse;
+    200: UserAdminMergeUserResponse;
 };
 
 export type PostAdminUsersByIdMergeResponse = PostAdminUsersByIdMergeResponses[keyof PostAdminUsersByIdMergeResponses];
@@ -2839,20 +3194,11 @@ export type PatchAdminUsersByIdPaymentErrors = {
 
 export type PatchAdminUsersByIdPaymentError = PatchAdminUsersByIdPaymentErrors[keyof PatchAdminUsersByIdPaymentErrors];
 
-export type PatchAdminUsersByIdPaymentResponses = {
-    /**
-     * OK
-     */
-    200: UserMessageResponse;
-};
-
-export type PatchAdminUsersByIdPaymentResponse = PatchAdminUsersByIdPaymentResponses[keyof PatchAdminUsersByIdPaymentResponses];
-
 export type PatchAdminUsersByIdPermissionsData = {
     /**
      * Izin kelola konten
      */
-    body: UserSetTeacherPermissionsInput;
+    body: UserAdminUpdateTeacherPermissionsRequest;
     path: {
         /**
          * User ID
@@ -2880,7 +3226,7 @@ export type PatchAdminUsersByIdPermissionsResponses = {
     /**
      * OK
      */
-    200: UserMessageResponse;
+    200: UserAdminUpdateTeacherPermissionsResponse;
 };
 
 export type PatchAdminUsersByIdPermissionsResponse = PatchAdminUsersByIdPermissionsResponses[keyof PatchAdminUsersByIdPermissionsResponses];
@@ -2889,7 +3235,7 @@ export type PatchAdminUsersByIdRoleData = {
     /**
      * Role baru
      */
-    body: UserUpdateRoleRequest;
+    body: UserAdminUpdateRoleRequest;
     path: {
         /**
          * User ID
@@ -2917,7 +3263,7 @@ export type PatchAdminUsersByIdRoleResponses = {
     /**
      * OK
      */
-    200: UserMessageResponse;
+    200: UserAdminUpdateRoleResponse;
 };
 
 export type PatchAdminUsersByIdRoleResponse = PatchAdminUsersByIdRoleResponses[keyof PatchAdminUsersByIdRoleResponses];
@@ -2926,9 +3272,7 @@ export type PatchAdminUsersByIdSubjectsData = {
     /**
      * Daftar subject_ids
      */
-    body: {
-        [key: string]: unknown;
-    };
+    body: UserAdminUpdateTeacherSubjectsRequest;
     path: {
         /**
          * User ID
@@ -2956,7 +3300,7 @@ export type PatchAdminUsersByIdSubjectsResponses = {
     /**
      * OK
      */
-    200: UserAdminUserResponse;
+    200: UserAdminUpdateTeacherSubjectsResponse;
 };
 
 export type PatchAdminUsersByIdSubjectsResponse = PatchAdminUsersByIdSubjectsResponses[keyof PatchAdminUsersByIdSubjectsResponses];
@@ -3052,7 +3396,7 @@ export type PostLogoutResponses = {
     /**
      * OK
      */
-    200: UserMessageResponse;
+    200: UserLogoutResponse;
 };
 
 export type PostLogoutResponse = PostLogoutResponses[keyof PostLogoutResponses];
@@ -3132,7 +3476,7 @@ export type GetMeResponses = {
     /**
      * OK
      */
-    200: UserUserResponse;
+    200: UserMeResponse;
 };
 
 export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
@@ -3141,9 +3485,7 @@ export type PatchMeData = {
     /**
      * Data profile
      */
-    body: {
-        [key: string]: unknown;
-    };
+    body: UserUpdateProfileRequest;
     path?: never;
     query?: never;
     url: '/me';
@@ -3162,7 +3504,7 @@ export type PatchMeResponses = {
     /**
      * OK
      */
-    200: UserUserResponse;
+    200: UserUpdateProfileResponse;
 };
 
 export type PatchMeResponse = PatchMeResponses[keyof PatchMeResponses];
@@ -3695,7 +4037,7 @@ export type GetSubjectsResponses = {
     /**
      * OK
      */
-    200: Array<SubjectSubjectResponse>;
+    200: Array<SubjectListSubjectsResponse>;
 };
 
 export type GetSubjectsResponse = GetSubjectsResponses[keyof GetSubjectsResponses];
@@ -3743,7 +4085,7 @@ export type GetTutoringBookingsResponses = {
     /**
      * OK
      */
-    200: Array<TutoringBookingResponse>;
+    200: Array<TutoringListBookingsResponse>;
 };
 
 export type GetTutoringBookingsResponse = GetTutoringBookingsResponses[keyof GetTutoringBookingsResponses];
@@ -3752,7 +4094,7 @@ export type PostTutoringBookingsData = {
     /**
      * Booking data
      */
-    body: TutoringCreateBookingInput;
+    body: TutoringCreateBookingRequest;
     path?: never;
     query?: never;
     url: '/tutoring/bookings';
@@ -3771,7 +4113,7 @@ export type PostTutoringBookingsResponses = {
     /**
      * Created
      */
-    201: TutoringBookingResponse;
+    201: TutoringCreateBookingResponse;
 };
 
 export type PostTutoringBookingsResponse = PostTutoringBookingsResponses[keyof PostTutoringBookingsResponses];
@@ -3780,9 +4122,7 @@ export type PatchTutoringBookingsByIdData = {
     /**
      * Status baru
      */
-    body: {
-        [key: string]: unknown;
-    };
+    body: TutoringUpdateBookingStatusRequest;
     path: {
         /**
          * Booking ID
@@ -3806,26 +4146,10 @@ export type PatchTutoringBookingsByIdResponses = {
     /**
      * OK
      */
-    200: TutoringBookingResponse;
+    200: TutoringUpdateBookingStatusResponse;
 };
 
 export type PatchTutoringBookingsByIdResponse = PatchTutoringBookingsByIdResponses[keyof PatchTutoringBookingsByIdResponses];
-
-export type GetTutoringEarningsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/tutoring/earnings';
-};
-
-export type GetTutoringEarningsResponses = {
-    /**
-     * OK
-     */
-    200: TutoringTeacherEarningsResponse;
-};
-
-export type GetTutoringEarningsResponse = GetTutoringEarningsResponses[keyof GetTutoringEarningsResponses];
 
 export type PostTutoringBookingsByIdCancelData = {
     body?: never;
@@ -3852,10 +4176,26 @@ export type PostTutoringBookingsByIdCancelResponses = {
     /**
      * OK
      */
-    200: TutoringBookingResponse;
+    200: TutoringCancelBookingResponse;
 };
 
 export type PostTutoringBookingsByIdCancelResponse = PostTutoringBookingsByIdCancelResponses[keyof PostTutoringBookingsByIdCancelResponses];
+
+export type GetTutoringEarningsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/tutoring/earnings';
+};
+
+export type GetTutoringEarningsResponses = {
+    /**
+     * OK
+     */
+    200: TutoringMyEarningsResponse;
+};
+
+export type GetTutoringEarningsResponse = GetTutoringEarningsResponses[keyof GetTutoringEarningsResponses];
 
 export type GetTutoringGroupsByTokenData = {
     body?: never;
@@ -3898,7 +4238,7 @@ export type GetTutoringSessionsResponses = {
     /**
      * OK
      */
-    200: Array<TutoringTutoringSessionResponse>;
+    200: Array<TutoringListSessionsResponse>;
 };
 
 export type GetTutoringSessionsResponse = GetTutoringSessionsResponses[keyof GetTutoringSessionsResponses];
@@ -3907,7 +4247,7 @@ export type PatchTutoringSessionsByIdData = {
     /**
      * Jadwal baru
      */
-    body: TutoringRescheduleSessionInput;
+    body: TutoringUpdateSessionRequest;
     path: {
         /**
          * Session ID
@@ -3931,7 +4271,7 @@ export type PatchTutoringSessionsByIdResponses = {
     /**
      * OK
      */
-    200: TutoringTutoringSessionResponse;
+    200: TutoringUpdateSessionResponse;
 };
 
 export type PatchTutoringSessionsByIdResponse = PatchTutoringSessionsByIdResponses[keyof PatchTutoringSessionsByIdResponses];
@@ -3961,7 +4301,7 @@ export type PostTutoringSessionsByIdCancelResponses = {
     /**
      * OK
      */
-    200: TutoringTutoringSessionResponse;
+    200: TutoringCancelSessionResponse;
 };
 
 export type PostTutoringSessionsByIdCancelResponse = PostTutoringSessionsByIdCancelResponses[keyof PostTutoringSessionsByIdCancelResponses];
@@ -3996,7 +4336,7 @@ export type PostTutoringSessionsByIdEvidenceResponses = {
     /**
      * OK
      */
-    200: TutoringTutoringSessionResponse;
+    200: TutoringUploadSessionEvidenceResponse;
 };
 
 export type PostTutoringSessionsByIdEvidenceResponse = PostTutoringSessionsByIdEvidenceResponses[keyof PostTutoringSessionsByIdEvidenceResponses];
@@ -4029,7 +4369,7 @@ export type GetTutoringTeachersResponses = {
     /**
      * OK
      */
-    200: Array<TutoringTeacherResponse>;
+    200: Array<TutoringListTeachersResponse>;
 };
 
 export type GetTutoringTeachersResponse = GetTutoringTeachersResponses[keyof GetTutoringTeachersResponses];

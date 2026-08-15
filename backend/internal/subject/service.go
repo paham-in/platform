@@ -15,43 +15,19 @@ func NewService(repo *Repository) *Service {
 	return &Service{repo: repo}
 }
 
-type SubjectResponse struct {
-	ID            uint   `json:"id"`
-	Name          string `json:"name"`
-	Slug          string `json:"slug"`
-	ProgramID     *uint  `json:"program_id,omitempty"`
-	MaterialCount int64  `json:"material_count"`
-	ClassIDs      []uint `json:"class_ids"`
-}
-
-func (s *Service) List() ([]SubjectResponse, error) {
+func (s *Service) List() ([]ListSubjectsResponse, error) {
 	subjects, err := s.repo.List()
 	if err != nil {
 		return nil, err
 	}
-	result := make([]SubjectResponse, len(subjects))
+	result := make([]ListSubjectsResponse, len(subjects))
 	for i, sub := range subjects {
-		r, _ := s.buildResponse(sub)
-		result[i] = *r
+		result[i] = s.newListSubjectsResponse(sub)
 	}
 	return result, nil
 }
 
-func (s *Service) Get(id uint) (*SubjectResponse, error) {
-	sub, err := s.repo.Get(id)
-	if err != nil {
-		return nil, err
-	}
-	return s.buildResponse(*sub)
-}
-
-type CreateInput struct {
-	Name      string `json:"name"`
-	ProgramID *uint  `json:"program_id"`
-	ClassIDs  []uint `json:"class_ids"`
-}
-
-func (s *Service) Create(input CreateInput) (*SubjectResponse, error) {
+func (s *Service) Create(input AdminCreateSubjectRequest) (*AdminCreateSubjectResponse, error) {
 	if input.ProgramID == nil || *input.ProgramID == 0 {
 		return nil, errors.New("program wajib diisi")
 	}
@@ -70,16 +46,15 @@ func (s *Service) Create(input CreateInput) (*SubjectResponse, error) {
 	if err := s.repo.CreateWithClasses(&subject, input.ClassIDs); err != nil {
 		return nil, err
 	}
-	return s.Get(subject.ID)
+	sub, err := s.repo.Get(subject.ID)
+	if err != nil {
+		return nil, err
+	}
+	r := s.newAdminCreateSubjectResponse(*sub)
+	return &r, nil
 }
 
-type UpdateInput struct {
-	Name      *string `json:"name"`
-	ProgramID *uint   `json:"program_id"`
-	ClassIDs  *[]uint `json:"class_ids"`
-}
-
-func (s *Service) Update(id uint, input UpdateInput) (*SubjectResponse, error) {
+func (s *Service) Update(id uint, input AdminUpdateSubjectRequest) (*AdminUpdateSubjectResponse, error) {
 	sub, err := s.repo.Get(id)
 	if err != nil {
 		return nil, err
@@ -119,22 +94,14 @@ func (s *Service) Update(id uint, input UpdateInput) (*SubjectResponse, error) {
 	if err := s.repo.UpdateWithClasses(id, updates, newClassIDs, input.ClassIDs != nil); err != nil {
 		return nil, err
 	}
-	return s.Get(id)
+	sub, err = s.repo.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	r := s.newAdminUpdateSubjectResponse(*sub)
+	return &r, nil
 }
 
 func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
-}
-
-func (s *Service) buildResponse(sub models.Subject) (*SubjectResponse, error) {
-	classIDs, _ := s.repo.GetClassIDs(sub.ID)
-	count, _ := s.repo.MaterialCount(sub.ID)
-	return &SubjectResponse{
-		ID:            sub.ID,
-		Name:          sub.Name,
-		Slug:          sub.Slug,
-		ProgramID:     sub.ProgramID,
-		MaterialCount: count,
-		ClassIDs:      classIDs,
-	}, nil
 }

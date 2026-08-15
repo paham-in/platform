@@ -22,7 +22,7 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox"
-import type { UserAdminUserResponse, TutoringTeacherResponse } from "@/lib/api/types.gen"
+import type { UserAdminListUsersResponse, TutoringListTeachersResponse } from "@/lib/api/types.gen"
 import {
   postAdminTutoringBookingsMutation,
   getAdminTutoringBookingsQueryKey,
@@ -60,17 +60,17 @@ function AdminTutoringNew() {
   const { data: classes = [] } = useQuery(getAdminClassesOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
 
-  const [student, setStudent] = useState<UserAdminUserResponse>()
+  const [student, setStudent] = useState<UserAdminListUsersResponse>()
   const [subjectId, setSubjectId] = useState("")
-  const [teacher, setTeacher] = useState<TutoringTeacherResponse | undefined>()
+  const [teacher, setTeacher] = useState<TutoringListTeachersResponse | undefined>()
   const [sessionCount, setSessionCount] = useState(1)
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
   const [date, setDate] = useState("")
   const [note, setNote] = useState("")
   const [mode, setMode] = useState<"private" | "group">("private")
-  const [members, setMembers] = useState<UserAdminUserResponse[]>([])
-  const [memberPick, setMemberPick] = useState<UserAdminUserResponse | null>(null)
+  const [members, setMembers] = useState<UserAdminListUsersResponse[]>([])
+  const [memberPick, setMemberPick] = useState<UserAdminListUsersResponse | null>(null)
   const [classId, setClassId] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
@@ -174,7 +174,7 @@ function AdminTutoringNew() {
               <ComboboxContent>
                 <ComboboxEmpty>Tidak ada murid ditemukan</ComboboxEmpty>
                 <ComboboxList>
-                  {(u: UserAdminUserResponse) => (
+                  {(u: UserAdminListUsersResponse) => (
                     <ComboboxItem key={u.id} value={u}>
                       <span className="flex min-w-0 flex-col">
                         <span className="truncate">{u.name}</span>
@@ -260,7 +260,7 @@ function AdminTutoringNew() {
                 <ComboboxContent>
                   <ComboboxEmpty>Tidak ada murid ditemukan</ComboboxEmpty>
                   <ComboboxList>
-                    {(u: UserAdminUserResponse) => (
+                    {(u: UserAdminListUsersResponse) => (
                       <ComboboxItem key={u.id} value={u}>
                         <span className="flex min-w-0 flex-col">
                           <span className="truncate">{u.name}</span>
@@ -342,7 +342,7 @@ function AdminTutoringNew() {
                 <ComboboxContent>
                   <ComboboxEmpty>Tidak ada guru ditemukan</ComboboxEmpty>
                   <ComboboxList>
-                    {(t: TutoringTeacherResponse) => (
+                    {(t: TutoringListTeachersResponse) => (
                       <ComboboxItem key={t.id} value={t}>
                         <span className="flex min-w-0 flex-col">
                           <span className="truncate">{t.name}</span>

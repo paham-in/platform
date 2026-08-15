@@ -17,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getAdminTutoringBookingsOptions, getAdminTutoringBookingsQueryKey, patchAdminTutoringBookingsByIdAssignMutation, deleteAdminTutoringBookingsByIdMutation, getTutoringTeachersOptions } from "@/lib/api/@tanstack/react-query.gen"
-import type { TutoringBookingResponse, TutoringTeacherResponse } from "@/lib/api/types.gen"
+import type { TutoringListBookingsResponse, TutoringListTeachersResponse } from "@/lib/api/types.gen"
 import { Plus, Trash2, UserRound, Users, CalendarX2 } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState } from "react"
@@ -45,7 +45,7 @@ function modeBadge(mode?: string) {
   return <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
 }
 
-function AssignTeacherDialog({ booking, onClose }: { booking: TutoringBookingResponse; onClose: () => void }) {
+function AssignTeacherDialog({ booking, onClose }: { booking: TutoringListBookingsResponse; onClose: () => void }) {
   const qc = useQueryClient()
   const { data: teachers = [] } = useQuery({
     ...getTutoringTeachersOptions({
@@ -58,7 +58,7 @@ function AssignTeacherDialog({ booking, onClose }: { booking: TutoringBookingRes
     }),
     enabled: !!booking.subject_id && !!booking.date && !!booking.start_time && !!booking.end_time,
   })
-  const [teacher, setTeacher] = useState<TutoringTeacherResponse | undefined>()
+  const [teacher, setTeacher] = useState<TutoringListTeachersResponse | undefined>()
 
   const { mutate: assign, isPending } = useMutation({
     ...patchAdminTutoringBookingsByIdAssignMutation(),
@@ -96,7 +96,7 @@ function AssignTeacherDialog({ booking, onClose }: { booking: TutoringBookingRes
               <ComboboxContent>
                 <ComboboxEmpty>Tidak ada guru ditemukan</ComboboxEmpty>
                 <ComboboxList>
-                  {(t: TutoringTeacherResponse) => (
+                  {(t: TutoringListTeachersResponse) => (
                     <ComboboxItem key={t.id} value={t}>
                       <span className="flex min-w-0 flex-col">
                         <span className="truncate">{t.name}</span>
@@ -120,7 +120,7 @@ function AssignTeacherDialog({ booking, onClose }: { booking: TutoringBookingRes
   )
 }
 
-function DeleteBookingDialog({ booking, onClose }: { booking: TutoringBookingResponse; onClose: () => void }) {
+function DeleteBookingDialog({ booking, onClose }: { booking: TutoringListBookingsResponse; onClose: () => void }) {
   const qc = useQueryClient()
 
   const { mutate: deleteBooking, isPending } = useMutation({
@@ -157,8 +157,8 @@ function DeleteBookingDialog({ booking, onClose }: { booking: TutoringBookingRes
 function AdminTutoring() {
   const navigate = useNavigate({ from: Route.fullPath })
   const { data: bookings = [], isLoading } = useQuery(getAdminTutoringBookingsOptions())
-  const [assignBooking, setAssignBooking] = useState<TutoringBookingResponse | null>(null)
-  const [deleteBooking, setDeleteBooking] = useState<TutoringBookingResponse | null>(null)
+  const [assignBooking, setAssignBooking] = useState<TutoringListBookingsResponse | null>(null)
+  const [deleteBooking, setDeleteBooking] = useState<TutoringListBookingsResponse | null>(null)
 
   return (
     <main className="p-6">

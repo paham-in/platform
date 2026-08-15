@@ -18,10 +18,10 @@ import {
   getAdminUsersQueryKey,
   getAdminUsersOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 
 interface ConnectGoogleDialogProps {
-  user: UserAdminUserResponse
+  user: UserAdminListUsersResponse
   onClose: () => void
 }
 
@@ -33,7 +33,7 @@ export function ConnectGoogleDialog({ user, onClose }: ConnectGoogleDialogProps)
   const candidates = users.filter(
     (u) => u.id !== user.id && u.has_google && (u.roles ?? []).includes("student"),
   )
-  const [target, setTarget] = useState<UserAdminUserResponse | undefined>()
+  const [target, setTarget] = useState<UserAdminListUsersResponse | undefined>()
 
   const { mutate: merge, isPending } = useMutation({
     ...postAdminUsersByIdMergeMutation(),
@@ -80,7 +80,7 @@ export function ConnectGoogleDialog({ user, onClose }: ConnectGoogleDialogProps)
                 <ComboboxContent>
                   <ComboboxEmpty>Tidak ada akun ditemukan</ComboboxEmpty>
                   <ComboboxList>
-                    {(u: UserAdminUserResponse) => (
+                    {(u: UserAdminListUsersResponse) => (
                       <ComboboxItem key={u.id} value={u}>
                         <span className="flex min-w-0 flex-col">
                           <span className="truncate">{u.name}</span>

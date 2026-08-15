@@ -14,14 +14,14 @@ import {
 import { MoreVertical, GraduationCap, UserX } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
-import type { UserAdminUserResponse } from "@/lib/api/types.gen"
+import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { TeacherSubjectsDialog } from "@/components/admin/users"
 
 function AdminTeacherSubjects() {
   const { data: teachers = [], isLoading } = useQuery(
     getAdminUsersOptions({ query: { role: "teacher" } })
   )
-  const [editing, setEditing] = useState<UserAdminUserResponse | null>(null)
+  const [editing, setEditing] = useState<UserAdminListUsersResponse | null>(null)
   const [page, setPage] = useState(1)
   const perPage = 5
 

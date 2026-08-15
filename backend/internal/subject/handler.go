@@ -7,14 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type ErrorResponse struct {
-	Error string `json:"error" example:"error message"`
-}
-
-type MessageResponse struct {
-	Message string `json:"message" example:"berhasil"`
-}
-
 type Handler struct {
 	svc *Service
 }
@@ -29,7 +21,7 @@ func NewHandler(svc *Service) *Handler {
 // @Tags         Subjects
 // @Accept       json
 // @Produce      json
-// @Success      200 {array} SubjectResponse
+// @Success      200 {array} ListSubjectsResponse
 // @Router       /subjects [get]
 func (h *Handler) ListSubjects(c *fiber.Ctx) error {
 	subjects, err := h.svc.List()
@@ -46,12 +38,12 @@ func (h *Handler) ListSubjects(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        body body CreateInput true "Data subject"
-// @Success      201 {object} SubjectResponse
+// @Param        body body AdminCreateSubjectRequest true "Data subject"
+// @Success      201 {object} AdminCreateSubjectResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /admin/subjects [post]
 func (h *Handler) AdminCreateSubject(c *fiber.Ctx) error {
-	var input CreateInput
+	var input AdminCreateSubjectRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -74,8 +66,8 @@ func (h *Handler) AdminCreateSubject(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path int    true "Subject ID"
-// @Param        body body UpdateInput true "Data update"
-// @Success      200 {object} SubjectResponse
+// @Param        body body AdminUpdateSubjectRequest true "Data update"
+// @Success      200 {object} AdminUpdateSubjectResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /admin/subjects/{id} [patch]
 func (h *Handler) AdminUpdateSubject(c *fiber.Ctx) error {
@@ -84,7 +76,7 @@ func (h *Handler) AdminUpdateSubject(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
 
-	var input UpdateInput
+	var input AdminUpdateSubjectRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
@@ -104,7 +96,7 @@ func (h *Handler) AdminUpdateSubject(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int true "Subject ID"
-// @Success      200 {object} MessageResponse
+// @Success      200 {object} AdminDeleteSubjectResponse
 // @Router       /admin/subjects/{id} [delete]
 func (h *Handler) AdminDeleteSubject(c *fiber.Ctx) error {
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
@@ -115,7 +107,7 @@ func (h *Handler) AdminDeleteSubject(c *fiber.Ctx) error {
 	if err := h.svc.Delete(uint(id)); err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menghapus data"})
 	}
-	return c.JSON(MessageResponse{Message: "berhasil dihapus"})
+	return c.JSON(AdminDeleteSubjectResponse{Message: "berhasil dihapus"})
 }
 
 func Routes(app fiber.Router, db *gorm.DB) {

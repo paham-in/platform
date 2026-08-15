@@ -25,12 +25,12 @@ import {
   getSubjectsQueryKey,
   getAdminProgramsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { SubjectSubjectResponse, ClassClassResponse } from "@/lib/api/types.gen"
+import type { SubjectListSubjectsResponse, ClassClassResponse } from "@/lib/api/types.gen"
 
 type ClassOption = Pick<ClassClassResponse, "id" | "name">
 
 interface SubjectFormDialogProps {
-  subject?: SubjectSubjectResponse
+  subject?: SubjectListSubjectsResponse
   onClose: () => void
 }
 

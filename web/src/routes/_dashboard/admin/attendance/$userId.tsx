@@ -10,7 +10,7 @@ import { getAdminTutoringEvidenceOptions, getAdminUsersOptions, getAdminTutoring
 import { Check, CheckCircle2, ChevronLeft, ClipboardCheck, MoreVertical, X, XCircle } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ApproveEvidenceDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
-import type { TutoringTutoringSessionResponse } from "@/lib/api/types.gen"
+import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import { useState } from "react"
 
 const attendanceDetailSearchSchema = z.object({
@@ -43,9 +43,9 @@ function AttendanceDetail() {
   const { data: sessions = [], isLoading } = useQuery(getAdminTutoringEvidenceOptions({ query: { status } }))
   const { data: users = [] } = useQuery(getAdminUsersOptions())
   const { data: reports = [] } = useQuery(getAdminTutoringReportOptions())
-  const [approveTarget, setApproveTarget] = useState<TutoringTutoringSessionResponse | null>(null)
-  const [rejectTarget, setRejectTarget] = useState<TutoringTutoringSessionResponse | null>(null)
-  const [feeTarget, setFeeTarget] = useState<TutoringTutoringSessionResponse | null>(null)
+  const [approveTarget, setApproveTarget] = useState<TutoringListSessionsResponse | null>(null)
+  const [rejectTarget, setRejectTarget] = useState<TutoringListSessionsResponse | null>(null)
+  const [feeTarget, setFeeTarget] = useState<TutoringListSessionsResponse | null>(null)
 
   const user = users.find((u) => u.id === Number(userId))
   const studentSessions = sessions.filter((s) => s.student_id === Number(userId))

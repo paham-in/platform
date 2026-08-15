@@ -14,11 +14,11 @@ import {
   getAdminTutoringEvidenceQueryKey,
   getAdminTutoringReportQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { TutoringTutoringSessionResponse } from "@/lib/api/types.gen"
+import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import { Spinner } from "@/components/ui/spinner"
 
 interface ApproveEvidenceDialogProps {
-  session: TutoringTutoringSessionResponse
+  session: TutoringListSessionsResponse
   onClose: () => void
 }
 
