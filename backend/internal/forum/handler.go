@@ -80,7 +80,7 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 	for i, q := range questions {
 		r := QuestionResponse{
 			ID:           q.ID,
-			Content:      q.Content,
+			Content:      h.svc.RewriteContent(q.Content),
 			PlainContent: q.PlainContent,
 			Status:       q.Status,
 			UserName:     q.User.Name,
@@ -132,7 +132,7 @@ func (h *Handler) GetQuestion(c *fiber.Ctx) error {
 
 	r := QuestionResponse{
 		ID:           question.ID,
-		Content:      question.Content,
+		Content:      h.svc.RewriteContent(question.Content),
 		PlainContent: question.PlainContent,
 		Status:       question.Status,
 		UserName:     question.User.Name,
@@ -212,6 +212,64 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 		SubjectID:    question.SubjectID,
 		IsOwner:      true,
 		CreatedAt:    time.Now().Format("2006-01-02 15:04"),
+	})
+}
+
+// UpdateQuestion mengubah pertanyaan (hanya milik sendiri)
+// @Summary      Update question
+// @Description  Mengubah content pertanyaan (hanya pemilik). Gambar temp di-commit ke permanen dan aset content disinkronkan.
+// @Tags         Forum
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Question ID"
+// @Param        body body CreateQuestionInput true "Data pertanyaan"
+// @Success      200 {object} QuestionResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /questions/{id} [put]
+func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
+	userID := userIDFrom(c)
+	if userID == 0 {
+		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
+	}
+
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+
+	var input CreateQuestionInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	if input.Content == "" {
+		return c.Status(400).JSON(ErrorResponse{Error: "content wajib diisi"})
+	}
+	// subjek wajib — tiap pertanyaan harus masuk ke mata pelajaran tertentu.
+	if input.SubjectID == 0 {
+		return c.Status(400).JSON(ErrorResponse{Error: "subject_id wajib diisi"})
+	}
+	var subject models.Subject
+	if err := h.db.First(&subject, input.SubjectID).Error; err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "subjek tidak ditemukan"})
+	}
+
+	question, err := h.svc.Update(uint(id), userID, input.Content, &input.SubjectID)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+
+	user, _ := h.svc.GetUser(userID)
+	return c.JSON(QuestionResponse{
+		ID:           question.ID,
+		Content:      h.svc.RewriteContent(question.Content),
+		PlainContent: question.PlainContent,
+		Status:       question.Status,
+		UserName:     user.Name,
+		UserAvatar:   user.AvatarURL,
+		SubjectID:    question.SubjectID,
+		IsOwner:      true,
+		CreatedAt:    question.CreatedAt.Format("2006-01-02 15:04"),
 	})
 }
 
@@ -320,5 +378,6 @@ func Routes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	app.Get("/questions", middleware.OptionalSessionResolver(db), h.ListQuestions)
 	app.Get("/questions/:id", middleware.OptionalSessionResolver(db), h.GetQuestion)
 	app.Post("/questions", middleware.SessionRequired(), middleware.SessionResolver(db), h.CreateQuestion)
+	app.Put("/questions/:id", middleware.SessionRequired(), middleware.SessionResolver(db), h.UpdateQuestion)
 	app.Delete("/questions/:id", middleware.SessionRequired(), middleware.SessionResolver(db), h.DeleteQuestion)
 }

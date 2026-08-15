@@ -118,3 +118,52 @@ func (r *Runner) StartEvidenceCleanup() {
 	c.Start()
 }
 
+// TempImageCleanup menghapus gambar temp (prefix public/temp_*) yang berumur
+// lebih dari 24 jam — upload yang ditinggalkan (form tidak pernah di-submit).
+// Mengembalikan jumlah object yang dihapus.
+func (r *Runner) TempImageCleanup() (int, error) {
+	if r.objectStorage == nil {
+		log.Println("[temp-image-cleanup] storage tidak tersedia — cleanup dilewati")
+		return 0, nil
+	}
+	temps, err := r.objectStorage.ListTempImages(context.Background())
+	if err != nil {
+		log.Printf("[temp-image-cleanup] gagal list: %v", err)
+		return 0, err
+	}
+	cutoff := time.Now().Add(-24 * time.Hour)
+	deleted := 0
+	for _, t := range temps {
+		if t.LastModified.After(cutoff) {
+			continue
+		}
+		if err := r.objectStorage.Delete(context.Background(), t.ObjectName); err != nil {
+			log.Printf("[temp-image-cleanup] gagal hapus %s: %v", t.ObjectName, err)
+			continue
+		}
+		deleted++
+	}
+	if deleted > 0 {
+		log.Printf("[temp-image-cleanup] %d gambar temp dihapus", deleted)
+	}
+	return deleted, nil
+}
+
+// StartTempImageCleanup menjalankan cleanup gambar temp tiap hari pukul 00:00.
+// Panic di dalam job di-recover otomatis oleh cron.Recover — satu job yang
+// panik tidak mematikan server, dan jadwal berikutnya tetap berjalan.
+func (r *Runner) StartTempImageCleanup() {
+	if r.objectStorage == nil {
+		log.Println("[temp-image-cleanup] storage tidak tersedia — cleanup dilewati")
+		return
+	}
+	c := cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)))
+	if _, err := c.AddFunc("0 0 * * *", func() {
+		r.TempImageCleanup()
+	}); err != nil {
+		log.Printf("[temp-image-cleanup] gagal daftarkan jadwal: %v", err)
+		return
+	}
+	c.Start()
+}
+

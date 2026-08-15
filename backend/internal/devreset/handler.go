@@ -273,6 +273,28 @@ func (h *Handler) RunEvidenceCleanup(c *fiber.Ctx) error {
 	})
 }
 
+// RunTempImageCleanup menjalankan job pembersihan gambar temp yang ditinggalkan secara manual
+// @Summary      Run temp image cleanup job
+// @Description  Menghapus gambar di public/temp_* yang berumur lebih dari 24 jam
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} RunJobResponse
+// @Failure      500 {object} ErrorResponse
+// @Router       /admin/dev/cron/temp-image-cleanup [post]
+func (h *Handler) RunTempImageCleanup(c *fiber.Ctx) error {
+	deleted, err := h.jobs.TempImageCleanup()
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal bersihkan gambar temp: " + err.Error()})
+	}
+	return c.JSON(RunJobResponse{
+		Job:     "temp-image-cleanup",
+		Deleted: int64(deleted),
+		Message: fmt.Sprintf("%d gambar temp dihapus", deleted),
+	})
+}
+
 func AdminRoutes(admin fiber.Router, db *gorm.DB, cfg *config.Config, jobRunner *jobs.Runner) {
 	h := NewHandler(db, cfg, jobRunner)
 	// GET selalu diregistrasi (FE butuh flag enabled buat hide menu).
@@ -282,5 +304,6 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, cfg *config.Config, jobRunner 
 		admin.Delete("/dev/tables/:table", h.ResetTable)
 		admin.Post("/dev/cron/session-cleanup", h.RunSessionCleanup)
 		admin.Post("/dev/cron/evidence-cleanup", h.RunEvidenceCleanup)
+		admin.Post("/dev/cron/temp-image-cleanup", h.RunTempImageCleanup)
 	}
 }

@@ -998,6 +998,15 @@ export type TutoringUploadSessionEvidenceResponse = {
     teacher_name?: string;
 };
 
+export type UploadTempUploadErrorResponse = {
+    error?: string;
+};
+
+export type UploadTempUploadResponse = {
+    object_name?: string;
+    url?: string;
+};
+
 export type UserAdminCreateUserRequest = {
     email?: string;
     name?: string;
@@ -1456,6 +1465,31 @@ export type PostAdminDevCronSessionCleanupResponses = {
 };
 
 export type PostAdminDevCronSessionCleanupResponse = PostAdminDevCronSessionCleanupResponses[keyof PostAdminDevCronSessionCleanupResponses];
+
+export type PostAdminDevCronTempImageCleanupData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/dev/cron/temp-image-cleanup';
+};
+
+export type PostAdminDevCronTempImageCleanupErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: DevresetErrorResponse;
+};
+
+export type PostAdminDevCronTempImageCleanupError = PostAdminDevCronTempImageCleanupErrors[keyof PostAdminDevCronTempImageCleanupErrors];
+
+export type PostAdminDevCronTempImageCleanupResponses = {
+    /**
+     * OK
+     */
+    200: DevresetRunJobResponse;
+};
+
+export type PostAdminDevCronTempImageCleanupResponse = PostAdminDevCronTempImageCleanupResponses[keyof PostAdminDevCronTempImageCleanupResponses];
 
 export type GetAdminDevTablesData = {
     body?: never;
@@ -3380,6 +3414,44 @@ export type GetClassesResponses = {
 
 export type GetClassesResponse = GetClassesResponses[keyof GetClassesResponses];
 
+export type PostContentTempImagesData = {
+    body: {
+        /**
+         * Gambar (jpg, png, gif, webp, maks 5MB)
+         */
+        image: Blob | File;
+        /**
+         * Folder temp (default: forum_questions)
+         */
+        folder?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/content/temp-images';
+};
+
+export type PostContentTempImagesErrors = {
+    /**
+     * Bad Request
+     */
+    400: UploadTempUploadErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: UploadTempUploadErrorResponse;
+};
+
+export type PostContentTempImagesError = PostContentTempImagesErrors[keyof PostContentTempImagesErrors];
+
+export type PostContentTempImagesResponses = {
+    /**
+     * Created
+     */
+    201: UploadTempUploadResponse;
+};
+
+export type PostContentTempImagesResponse = PostContentTempImagesResponses[keyof PostContentTempImagesResponses];
+
 export type GetInvoicesData = {
     body?: never;
     path?: never;
@@ -3879,6 +3951,39 @@ export type GetQuestionsByIdResponses = {
 };
 
 export type GetQuestionsByIdResponse = GetQuestionsByIdResponses[keyof GetQuestionsByIdResponses];
+
+export type PutQuestionsByIdData = {
+    /**
+     * Data pertanyaan
+     */
+    body: ForumCreateQuestionInput;
+    path: {
+        /**
+         * Question ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/questions/{id}';
+};
+
+export type PutQuestionsByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: ForumErrorResponse;
+};
+
+export type PutQuestionsByIdError = PutQuestionsByIdErrors[keyof PutQuestionsByIdErrors];
+
+export type PutQuestionsByIdResponses = {
+    /**
+     * OK
+     */
+    200: ForumQuestionResponse;
+};
+
+export type PutQuestionsByIdResponse = PutQuestionsByIdResponses[keyof PutQuestionsByIdResponses];
 
 export type GetQuestionsByQuestionIdAnswersData = {
     body?: never;

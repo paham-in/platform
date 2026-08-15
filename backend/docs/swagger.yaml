@@ -1632,6 +1632,18 @@ definitions:
       teacher_name:
         type: string
     type: object
+  upload.TempUploadErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  upload.TempUploadResponse:
+    properties:
+      object_name:
+        type: string
+      url:
+        type: string
+    type: object
   user.AdminCreateUserRequest:
     properties:
       email:
@@ -2201,6 +2213,27 @@ paths:
       summary: Run session cleanup job
       tags:
       - Dev
+  /admin/dev/cron/temp-image-cleanup:
+    post:
+      consumes:
+      - application/json
+      description: Menghapus gambar di public/temp_* yang berumur lebih dari 24 jam
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/devreset.RunJobResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/devreset.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Run temp image cleanup job
+      tags:
+      - Admin
   /admin/dev/tables:
     get:
       description: Status fitur reset + daftar tabel aplikasi beserta jumlah row (development)
@@ -4100,6 +4133,43 @@ paths:
       summary: List classes
       tags:
       - Classes
+  /content/temp-images:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 'Mengunggah gambar ke storage temp (public/temp_<folder>/). Gambar
+        dipindahkan ke lokasi permanen (public/<folder>/) saat content di-submit.
+        Folder sekarang: forum_questions.'
+      parameters:
+      - description: Gambar (jpg, png, gif, webp, maks 5MB)
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: 'Folder temp (default: forum_questions)'
+        in: formData
+        name: folder
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/upload.TempUploadResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/upload.TempUploadErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/upload.TempUploadErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload temp image
+      tags:
+      - Upload
   /invoices:
     get:
       consumes:
@@ -4590,6 +4660,39 @@ paths:
       security:
       - BearerAuth: []
       summary: Get question
+      tags:
+      - Forum
+    put:
+      consumes:
+      - application/json
+      description: Mengubah content pertanyaan (hanya pemilik). Gambar temp di-commit
+        ke permanen dan aset content disinkronkan.
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data pertanyaan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/forum.CreateQuestionInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/forum.QuestionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/forum.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update question
       tags:
       - Forum
   /questions/{question_id}/answers:

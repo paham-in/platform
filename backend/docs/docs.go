@@ -504,6 +504,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/dev/cron/temp-image-cleanup": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus gambar di public/temp_* yang berumur lebih dari 24 jam",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Run temp image cleanup job",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.RunJobResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/dev/tables": {
             "get": {
                 "security": [
@@ -3486,6 +3520,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/content/temp-images": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengunggah gambar ke storage temp (public/temp_\u003cfolder\u003e/). Gambar dipindahkan ke lokasi permanen (public/\u003cfolder\u003e/) saat content di-submit. Folder sekarang: forum_questions.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Upload"
+                ],
+                "summary": "Upload temp image",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Gambar (jpg, png, gif, webp, maks 5MB)",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Folder temp (default: forum_questions)",
+                        "name": "folder",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/upload.TempUploadResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/upload.TempUploadErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/upload.TempUploadErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/invoices": {
             "get": {
                 "security": [
@@ -4221,6 +4310,56 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/forum.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengubah content pertanyaan (hanya pemilik). Gambar temp di-commit ke permanen dan aset content disinkronkan.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Forum"
+                ],
+                "summary": "Update question",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Question ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Data pertanyaan",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/forum.CreateQuestionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/forum.QuestionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/forum.ErrorResponse"
                         }
@@ -7685,6 +7824,25 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "upload.TempUploadErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "upload.TempUploadResponse": {
+            "type": "object",
+            "properties": {
+                "object_name": {
+                    "type": "string"
+                },
+                "url": {
                     "type": "string"
                 }
             }

@@ -159,7 +159,10 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Isi Pertanyaan</Label>
-          <TiptapEditor content={content} onChange={setContent} allowImages={false} />
+          <p className="text-xs text-muted-foreground">
+            Tarik & lepas gambar ke editor untuk mengunggahnya langsung.
+          </p>
+          <TiptapEditor content={content} onChange={setContent} allowImages={false} tempFolder="forum_questions" />
         </div>
 
         {/* Images */}

@@ -59,18 +59,95 @@ func (s *Service) List(subjectID, userID *uint, unanswered bool) ([]models.Forum
 	return s.repo.List(subjectID, userID, unanswered)
 }
 
+// commitContent memindahkan gambar temp ke lokasi permanen (kalau ada) lalu
+// menormalkan semua referensi gambar di content ke bentuk object name.
+func (s *Service) commitContent(content string) (string, error) {
+	if s.storage != nil {
+		var err error
+		content, err = s.storage.CommitTempImages(context.Background(), content)
+		if err != nil {
+			return "", err
+		}
+	}
+	return storage.SanitizeContentImages(content), nil
+}
+
+// RewriteContent mengganti object name gambar di content → URL akses (untuk serve).
+func (s *Service) RewriteContent(content string) string {
+	if s.storage == nil {
+		return content
+	}
+	return s.storage.RewriteContentImages(content)
+}
+
 func (s *Service) Create(userID uint, content string, subjectID *uint) (*models.ForumQuestion, error) {
+	committed, err := s.commitContent(content)
+	if err != nil {
+		return nil, err
+	}
 	question := models.ForumQuestion{
 		UserID:       userID,
-		Content:      content,
-		PlainContent: stripHTML(content),
+		Content:      committed,
+		PlainContent: stripHTML(committed),
 		Status:       "open",
 		SubjectID:    subjectID,
 	}
-	if err := s.repo.Create(&question); err != nil {
+	if err := s.repo.CreateWithAssets(&question, storage.ExtractContentImages(committed)); err != nil {
 		return nil, err
 	}
 	return &question, nil
+}
+
+// Update memperbarui content pertanyaan (hanya pemilik). Gambar temp di-commit
+// ke permanen, lalu aset content di-diff dengan DB: gambar yang sudah tidak ada
+// di content ikut dihapus filenya dari storage.
+func (s *Service) Update(id, userID uint, content string, subjectID *uint) (*models.ForumQuestion, error) {
+	q, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, errors.New("pertanyaan tidak ditemukan")
+	}
+	if q.UserID != userID {
+		return nil, errors.New("bukan pemilik pertanyaan")
+	}
+	committed, err := s.commitContent(content)
+	if err != nil {
+		return nil, err
+	}
+	newAssets := storage.ExtractContentImages(committed)
+	var removed []string
+	if s.storage != nil {
+		oldAssets, err := s.repo.ListAssetObjectNames(id)
+		if err != nil {
+			return nil, err
+		}
+		removed = difference(oldAssets, newAssets)
+	}
+	if err := s.repo.UpdateContentWithAssets(id, committed, stripHTML(committed), subjectID, newAssets); err != nil {
+		return nil, err
+	}
+	if s.storage != nil {
+		for _, obj := range removed {
+			if err := s.storage.Delete(context.Background(), obj); err != nil {
+				log.Printf("[forum] gagal hapus aset %q: %v", obj, err)
+			}
+		}
+	}
+	return s.repo.GetByID(id)
+}
+
+// difference mengembalikan elemen a yang tidak ada di b.
+func difference(a, b []string) []string {
+	inB := make(map[string]bool, len(b))
+	for _, x := range b {
+		inB[x] = true
+	}
+	var out []string
+	for _, x := range a {
+		if !inB[x] {
+			out = append(out, x)
+		}
+	}
+	return out
 }
 
 func (s *Service) Delete(id, userID uint) error {

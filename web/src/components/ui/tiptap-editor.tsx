@@ -15,15 +15,18 @@ import {
   UndoIcon,
 } from "lucide-react"
 import { useEditor, EditorContent, type Editor } from "@tiptap/react"
+import type { EditorView } from "@tiptap/pm/view"
 import StarterKit from "@tiptap/starter-kit"
 import Underline from "@tiptap/extension-underline"
 import TextAlign from "@tiptap/extension-text-align"
 import ImageExt from "@tiptap/extension-image"
 import { Mathematics } from "@tiptap/extension-mathematics"
 import "katex/dist/katex.min.css"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { MathInputDialog } from "./math-input-dialog"
 import { GalleryPicker } from "./gallery-picker"
+import { postContentTempImages } from "@/lib/api/sdk.gen"
 import {
   Dialog,
   DialogContent,
@@ -63,6 +66,7 @@ export function TiptapEditor({
   allowImages = true,
   subjectId,
   galleryFolder = "materials",
+  tempFolder,
 }: {
   content: string;
   onChange: (html: string) => void;
@@ -70,12 +74,33 @@ export function TiptapEditor({
   allowImages?: boolean;
   subjectId?: number;
   galleryFolder?: "materials" | "quiz_questions";
+  tempFolder?: string;
 }) {
   const [mathOpen, setMathOpen] = useState(false)
   const [editLatex, setEditLatex] = useState<string | null>(null)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [resizeOpen, setResizeOpen] = useState(false)
   const editorElRef = useRef<HTMLDivElement>(null)
+
+  // uploadTemp mengunggah gambar ke storage temp lalu mengembalikan URL-nya.
+  // Gambar dipindahkan ke lokasi permanen saat content di-submit (backend).
+  const uploadTemp = async (file: File): Promise<string | undefined> => {
+    if (!tempFolder) return undefined
+    try {
+      const res = await postContentTempImages({ body: { image: file, folder: tempFolder } })
+      return res?.data?.url
+    } catch {
+      toast.error("Gagal mengunggah gambar")
+      return undefined
+    }
+  }
+
+  const insertImageAt = (view: EditorView, url: string, pos?: number) => {
+    const node = view.state.schema.nodes.image.create({ src: url })
+    const target = pos ?? view.state.selection.to
+    view.dispatch(view.state.tr.insert(target, node))
+    view.focus()
+  }
 
   const editor = useEditor({
     extensions: [
@@ -89,6 +114,38 @@ export function TiptapEditor({
     ],
     content,
     editable,
+    editorProps: {
+      // drag & drop gambar: unggah ke storage temp, lalu sisipkan ke editor
+      // dari URL hasil upload (bukan blob lokal).
+      handleDrop: (view, event) => {
+        if (!tempFolder) return false
+        const files = Array.from(event.dataTransfer?.files ?? [])
+        const imgs = files.filter((f) => f.type.startsWith("image/"))
+        if (!imgs.length) return false
+        event.preventDefault()
+        const coords = view.posAtCoords({ left: event.clientX, top: event.clientY })
+        const pos = coords?.pos
+        for (const f of imgs) {
+          void uploadTemp(f).then((url) => {
+            if (url) insertImageAt(view, url, pos)
+          })
+        }
+        return true
+      },
+      handlePaste: (view, event) => {
+        if (!tempFolder) return false
+        const files = Array.from(event.clipboardData?.files ?? [])
+        const imgs = files.filter((f) => f.type.startsWith("image/"))
+        if (!imgs.length) return false
+        event.preventDefault()
+        for (const f of imgs) {
+          void uploadTemp(f).then((url) => {
+            if (url) insertImageAt(view, url)
+          })
+        }
+        return true
+      },
+    },
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
   });
 

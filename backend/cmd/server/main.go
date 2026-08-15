@@ -25,6 +25,7 @@ import (
 	"bimbel2/backend/internal/storage"
 	"bimbel2/backend/internal/studentclass"
 	"bimbel2/backend/internal/subject"
+	"bimbel2/backend/internal/upload"
 	"bimbel2/backend/internal/user"
 
 	"github.com/gofiber/fiber/v2"
@@ -104,6 +105,7 @@ func main() {
 	invoice.AuthRoutes(auth, db)
 	if objectStorage != nil {
 		forum.AuthRoutes(auth, db, objectStorage)
+		upload.AuthRoutes(auth, objectStorage)
 	}
 
 	// Teacher + admin shared resources (register first so teacher can pass)
@@ -138,9 +140,11 @@ func main() {
 	tutoring.AdminRoutes(admin, db, objectStorage, settingSvc)
 	devreset.AdminRoutes(admin, db, cfg, jobRunner)
 
-	// background job: hapus sesi kedaluwarsa tiap jam & bukti kehadiran lewat masa simpan
+	// background job: hapus sesi kedaluwarsa tiap jam, bukti kehadiran lewat masa
+	// simpan, & gambar temp yang ditinggalkan (tiap tengah malam).
 	jobRunner.StartSessionCleanup()
 	jobRunner.StartEvidenceCleanup()
+	jobRunner.StartTempImageCleanup()
 
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)
