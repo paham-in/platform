@@ -19,7 +19,7 @@ Namun masih ada **1 temuan kritis, 2 temuan tinggi, dan beberapa temuan sedang**
 | 3 | **Tinggi** | Draft & materi milik guru lain bisa dibaca + diubah/dihapus lintas-teacher | ✅ **Fixed 2026-08-14** (S4/A7) — akses per-author di service material |
 | 4 | **Tinggi** | Goroutine background job tanpa `recover` → satu panic = seluruh server crash | ✅ **Fixed 2026-08-14** (A1) — pindah ke `robfig/cron/v3` dengan `cron.Recover` |
 | 5 | **Tinggi** | `EvidenceCleanup` non-atomic → bukti bisa "stuck" permanen (broken link) | ✅ **Fixed 2026-08-14** (A2) — urutan dibalik: clear DB dulu, hapus file belakangan |
-| 6 | Sedang | Token sesi di `localStorage` + token OAuth lewat query-string URL (S2) | 🔴 Masih terbuka |
+| 6 | — | Token sesi di `localStorage` + token OAuth lewat query-string URL (S2) | ✅ Clarified 2026-08-15 — **by design** (sesi bertahan walau browser ditutup) |
 | 7 | Sedang | CORS terbuka penuh + tidak ada rate limiter (S5) | 🔴 Masih terbuka |
 | 8 | Sedang | Reject booking **grup** tidak transaksional → bisa reject sebagian | ✅ **Fixed 2026-08-14** (A3) — path `rejected` dibungkus `s.db.Transaction` |
 | 9 | Sedang | Fee guru dihitung dinamis → berubah retroaktif saat persen fee diubah | 🆕 Baru |
@@ -172,7 +172,7 @@ Error pada update sliding diabaikan (ok), tapi 4 query/request untuk setiap hala
 | N2 | Cover upload non-atomic | ✅ **Fixed** | Update DB dulu, baru hapus file lama |
 | N3 | Reject evidence: DB dulu, file belakangan | ✅ **Fixed** | Hapus file dulu (error dicek), lalu update DB |
 | S1 | Stored XSS via `innerHTML` | 🔴 **Masih terbuka** | `rich-content.tsx:16` masih `ref.current.innerHTML = html;`; backend hanya `stripHTML` (regex) untuk preview + normalisasi URL gambar, tanpa sanitasi whitelist |
-| S2 | Token localStorage + URL query-string | 🔴 **Masih terbuka** | `main.tsx:10`, `auth.callback.tsx:16`, `oauth.go:113` (redirect `?token=`) |
+| S2 | Token localStorage + URL query-string | ✅ **Bukan bug — by design** (klarifikasi 2026-08-15) | `main.tsx:10`, `auth.callback.tsx:16`, `oauth.go:113` (redirect `?token=`). Keputusan tim: pakai `localStorage` supaya sesi tetap aktif walau browser ditutup. Jika ingin ditinjau ulang nanti, `HttpOnly` cookie dengan `Max-Age` 7 hari (sesuai `SessionTTL`) bisa menggantikan tanpa mengubah UX |
 | S3 | Admin tidak bisa reject/confirm booking | ✅ **Bukan bug — by design** (klarisifikasi 2026-08-14) | Hanya guru terkait yang boleh approve/reject (`tutoring/service.go:712`). Yang bermasalah justru UI-nya: tombol "Tolak" di `admin/tutoring/index.tsx` muncul untuk booking pending tanpa guru — endpoint-nya teacher-only sehingga **selalu gagal**. Tombol + mutation mati sudah dihapus dari UI admin |
 | S4 | Draft materi bocor via admin endpoint | ✅ **Fixed 2026-08-14** | Akses per-author di service material (lihat A7) |
 | S5 | CORS `*` + tanpa rate limiter | 🔴 **Masih terbuka** | `main.go:70` `app.Use(cors.New())`; tidak ada import limiter |
@@ -210,7 +210,7 @@ Error pada update sliding diabaikan (ok), tapi 4 query/request untuk setiap hala
 
 **Berikutnya:**
 6. **A4** — snapshot `fee_amount` saat sesi dibuat.
-7. **#6 (S2)** — pindah token dari localStorage/URL ke cookie `HttpOnly` (minimal `sessionStorage`).
+7. ~~**#6 (S2)** — pindah token dari localStorage/URL ke cookie `HttpOnly`~~ — **ditutup 2026-08-15 (by design)**. Bila ditinjau ulang: cookie `HttpOnly` + `Max-Age` 7 hari (= `SessionTTL`) tanpa perubahan UX.
 8. **A5/A6** — money ke int sen; jangan log password admin.
 9. **#12 (F1)** — hapus route `/user/*` atau redirect ke `/student/*`.
 10. **#13 (F3)** — tambah test minimal: `middleware.RoleAllowed`, `invoice.ToggleStatus`, `tutoring` booking/session flow, `setting` fee validation.
