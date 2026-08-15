@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -7,7 +7,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { Search, SearchX, Loader2, X, UserX } from "lucide-react"
+import { Search, SearchX, X, UserX, MoreVertical, Eye } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 const paymentsSearchSchema = z.object({
@@ -40,14 +47,6 @@ function PaymentsIndex() {
     (u.name ?? "").toLowerCase().includes(searchParam.toLowerCase()) ||
     (u.email ?? "").toLowerCase().includes(searchParam.toLowerCase())
   )
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
 
   return (
     <main className="p-6">
@@ -83,31 +82,56 @@ function PaymentsIndex() {
               <TableRow className="bg-muted/30">
                 <TableHead className="pl-6">Nama</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead className="pr-6">Aksi</TableHead>
+                <TableHead className="pr-6 text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell className="pl-6">
-                    <div className="flex items-center gap-3">
-                      {u.avatar_url ? (
-                        <img src={u.avatar_url} alt="" className="h-8 w-8 rounded-full" />
-                      ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
-                      )}
-                      <span className="font-medium">{u.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                  <TableCell className="pr-6">
-                    <Link to="/admin/payments/$userId" params={{ userId: String(u.id!) }}>
-                      <Button variant="outline" size="sm">Lihat Invoice</Button>
-                    </Link>
-                  </TableCell>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+<TableRow key={`skeleton-${i}`}>
+                  <TableCell className="pl-6"><div className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-4 w-24" />
+                  </div></TableCell>
+                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell className="pr-6"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
                 </TableRow>
-              ))}
-              {filtered.length === 0 && (
+              ))
+            ) : filtered.map((u) => (
+              <TableRow
+                key={u.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => navigate({ to: "/admin/payments/$userId", params: { userId: String(u.id!) } })}
+              >
+                <TableCell className="pl-6">
+                  <div className="flex items-center gap-3">
+                    {u.avatar_url ? (
+                      <img src={u.avatar_url} alt="" className="h-8 w-8 rounded-full" />
+                    ) : (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
+                    )}
+                    <span className="font-medium">{u.name}</span>
+                  </div>
+                </TableCell>
+<TableCell className="text-muted-foreground">{u.email}</TableCell>
+<TableCell className="pr-6 text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={<Button variant="outline" size="icon" />}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => navigate({ to: "/admin/payments/$userId", params: { userId: String(u.id!) } })}>
+                        <Eye className="h-4 w-4" /> Lihat Invoice
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+              {!isLoading && filtered.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={3}>
                     <Empty className="border-0 p-8">

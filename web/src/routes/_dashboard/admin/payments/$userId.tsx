@@ -12,15 +12,17 @@ import {
   getAdminUsersOptions,
   getAdminInvoicesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, MoreVertical, CheckCircle2, XCircle, Search, Trash2, Receipt } from "lucide-react"
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Plus, MoreVertical, CheckCircle2, XCircle, Search, Trash2, Receipt, Funnel, X } from "lucide-react"
+import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CreateInvoiceDialog, DeleteInvoiceDialog, ToggleInvoiceDialog } from "@/components/admin/payments"
@@ -123,14 +125,33 @@ function PaymentsDetail() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Cari periode atau catatan..." className="pl-9" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
         </div>
-        <Select items={statusOptions} value={statusFilter} onValueChange={(v) => { if (v) { navigate({ search: (prev) => ({ ...prev, status: v === "all" ? undefined : v as "paid" | "pending" }), replace: true }); setSelectedIds(new Set()) } }}>
-          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Filter Status" /></SelectTrigger>
-          <SelectContent>
-            {statusOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="outline" />} aria-label="Filter status">
+            <Funnel className="h-4 w-4" />
+            Filter
+            {statusFilter !== "all" && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                1
+              </span>
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-52">
+            <DropdownMenuRadioGroup
+              value={statusFilter}
+              onValueChange={(v) => {
+                if (v) {
+                  navigate({ search: (prev) => ({ ...prev, status: v === "all" ? undefined : v as "paid" | "pending" }), replace: true })
+                  setSelectedIds(new Set())
+                }
+              }}
+            >
+              <DropdownMenuLabel>Status</DropdownMenuLabel>
+              {statusOptions.map((opt) => (
+                <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
         {selectedIds.size > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="outline">Aksi</Button>} />
@@ -164,7 +185,7 @@ function PaymentsDetail() {
                 <TableHead>Jumlah</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Catatan</TableHead>
-                <TableHead>Tgl Buat</TableHead>
+                <TableHead>Tanggal Buat</TableHead>
                 <TableHead className="pr-6 text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -188,6 +209,20 @@ function PaymentsDetail() {
                         <EmptyMedia variant="icon"><Receipt /></EmptyMedia>
                         <EmptyTitle>Belum ada invoice</EmptyTitle>
                       </EmptyHeader>
+                      {(searchParam || statusFilter !== "all") && (
+                        <EmptyContent>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigate({ search: (prev) => ({ ...prev, search: undefined, status: undefined }), replace: true })
+                              setSearchInput("")
+                            }}
+                          >
+                            <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                          </Button>
+                        </EmptyContent>
+                      )}
                     </Empty>
                   </TableCell>
                 </TableRow>
