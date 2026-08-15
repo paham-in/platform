@@ -1307,9 +1307,6 @@ definitions:
         type: string
       end_time:
         type: string
-      group_token:
-        description: isi utk join grup yang sudah ada
-        type: string
       member_emails:
         description: 'group: email member (wajib ≥1)'
         items:
@@ -1374,27 +1371,6 @@ definitions:
   tutoring.ErrorResponse:
     properties:
       error:
-        type: string
-    type: object
-  tutoring.GroupInfoResponse:
-    properties:
-      date:
-        type: string
-      end_time:
-        type: string
-      max_slots:
-        type: integer
-      mode:
-        type: string
-      participants:
-        type: integer
-      session_count:
-        type: integer
-      start_time:
-        type: string
-      teacher_id:
-        type: integer
-      teacher_name:
         type: string
     type: object
   tutoring.ListBookingsResponse:
@@ -4967,33 +4943,6 @@ paths:
       security:
       - BearerAuth: []
       summary: My earnings
-      tags:
-      - Tutoring
-  /tutoring/groups/{token}:
-    get:
-      consumes:
-      - application/json
-      description: Mengembalikan info grup dari token undangan
-      parameters:
-      - description: Group token
-        in: path
-        name: token
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/tutoring.GroupInfoResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/tutoring.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Group info
       tags:
       - Tutoring
   /tutoring/sessions:

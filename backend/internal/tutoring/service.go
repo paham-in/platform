@@ -126,9 +126,6 @@ func (s *Service) CreateBooking(studentID uint, input CreateBookingRequest) (*Cr
 		return nil, errors.New("start_time harus sebelum end_time")
 	}
 
-	if input.GroupToken != "" {
-		return s.joinGroup(studentID, input)
-	}
 	return s.createOrganizer(studentID, input)
 }
 
@@ -543,72 +540,6 @@ func (s *Service) AdminDeleteBooking(id uint) error {
 	return s.repo.DeleteBookingCascade(id)
 }
 
-func (s *Service) joinGroup(studentID uint, input CreateBookingRequest) (*CreateBookingResponse, error) {
-	organizer, err := s.repo.GetBookingByToken(input.GroupToken)
-	if err != nil {
-		return nil, errors.New("grup tidak ditemukan")
-	}
-	if organizer.Status == "rejected" || organizer.Status == "cancelled" {
-		return nil, errors.New("grup sudah tidak aktif")
-	}
-	if organizer.StudentID == studentID {
-		return nil, errors.New("kamu sudah menjadi organizer grup ini")
-	}
-
-	existing, err := s.repo.ListBookingsByGroupToken(input.GroupToken)
-	if err != nil {
-		return nil, err
-	}
-	for _, b := range existing {
-		if b.StudentID == studentID {
-			return nil, errors.New("kamu sudah bergabung ke grup ini")
-		}
-	}
-
-	count, err := s.repo.CountGroupParticipants(input.GroupToken)
-	if err != nil {
-		return nil, err
-	}
-	if count >= maxGroupSlots {
-		return nil, errors.New("grup sudah penuh (maks 5 siswa)")
-	}
-
-	// peserta wajib memakai slot yang sama dgn organizer (guru boleh sama-sama
-	// kosong — grup menunggu admin assign, lalu token menyebar ke semua anggota)
-	sameTeacher := (organizer.TeacherID == nil && input.TeacherID == nil) ||
-		(organizer.TeacherID != nil && input.TeacherID != nil && *organizer.TeacherID == *input.TeacherID)
-	if !sameTeacher ||
-		organizer.Date != input.Date ||
-		organizer.StartTime != input.StartTime ||
-		organizer.EndTime != input.EndTime {
-		return nil, errors.New("data booking harus sama dengan grup (guru, tanggal, jam)")
-	}
-
-	booking := models.Booking{
-		TeacherID:    organizer.TeacherID,
-		StudentID:    studentID,
-		SubjectID:    organizer.SubjectID,
-		Date:         organizer.Date,
-		StartTime:    organizer.StartTime,
-		EndTime:      organizer.EndTime,
-		Status:       "pending",
-		Mode:         organizer.Mode,
-		SessionCount: organizer.SessionCount,
-		GroupToken:   organizer.GroupToken,
-		Note:         input.Note,
-		ClassID:      organizer.ClassID,
-	}
-	if err := s.repo.CreateBooking(&booking); err != nil {
-		return nil, err
-	}
-	created, err := s.repo.GetBooking(booking.ID)
-	if err != nil {
-		return nil, err
-	}
-	r := newCreateBookingResponse(*created)
-	return &r, nil
-}
-
 // checkBookingConflict mengecek keseluruhan bentrokan jadwal guru: booking
 // existing pada date+time, dan sesi pertemuan yang sudah di-expand dari booking
 // berulang (multi-week). Dipanggil saat create/assign booking — termasuk path
@@ -1006,19 +937,6 @@ func sessionCountForTotal(weeks int, start, end string) (int, error) {
 		return 0, err
 	}
 	return weeks * perWeek, nil
-}
-
-func (s *Service) ListGroupInfo(token string) (*GroupInfoResponse, error) {
-	organizer, err := s.repo.GetBookingByToken(token)
-	if err != nil {
-		return nil, errors.New("grup tidak ditemukan")
-	}
-	count, err := s.repo.CountGroupParticipants(token)
-	if err != nil {
-		return nil, err
-	}
-	resp := newGroupInfoResponse(*organizer, int(count))
-	return &resp, nil
 }
 
 // ListTeacherSessions mengembalikan semua sesi pertemuan milik guru.

@@ -223,29 +223,6 @@ func (h *Handler) AssignTeacher(c *fiber.Ctx) error {
 	return c.JSON(booking)
 }
 
-// GroupInfo returns group info for a share link
-// @Summary      Group info
-// @Description  Mengembalikan info grup dari token undangan
-// @Tags         Tutoring
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        token path string true "Group token"
-// @Success      200 {object} GroupInfoResponse
-// @Failure      404 {object} ErrorResponse
-// @Router       /tutoring/groups/{token} [get]
-func (h *Handler) GroupInfo(c *fiber.Ctx) error {
-	token := c.Params("token")
-	if token == "" {
-		return c.Status(400).JSON(ErrorResponse{Error: "token wajib diisi"})
-	}
-	info, err := h.svc.ListGroupInfo(token)
-	if err != nil {
-		return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
-	}
-	return c.JSON(info)
-}
-
 // ListSessions returns meeting sessions (teacher: all own sessions, student: paid sessions)
 // @Summary      My sessions
 // @Description  Jadwal pertemuan. Guru: semua sesi dari booking-nya. Murid: sesi setelah invoice lunas.
@@ -683,7 +660,6 @@ func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settin
 	auth.Post("/tutoring/bookings", h.CreateBooking)
 	auth.Patch("/tutoring/bookings/:id", h.UpdateBookingStatus)
 	auth.Post("/tutoring/bookings/:id/cancel", h.CancelBooking)
-	auth.Get("/tutoring/groups/:token", h.GroupInfo)
 	auth.Get("/tutoring/sessions", h.ListSessions)
 	auth.Get("/tutoring/earnings", h.MyEarnings)
 	auth.Patch("/tutoring/sessions/:id", h.UpdateSession)

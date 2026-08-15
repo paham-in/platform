@@ -301,42 +301,6 @@ func newAssignTeacherResponse(b models.Booking) AssignTeacherResponse {
 	return AssignTeacherResponse(buildBookingItem(b))
 }
 
-// — handler: GroupInfo (GET /tutoring/groups/:token) —
-
-type GroupInfoResponse struct {
-	TeacherID    uint   `json:"teacher_id"`
-	TeacherName  string `json:"teacher_name"`
-	Mode         string `json:"mode"`
-	SessionCount int    `json:"session_count"`
-	Date         string `json:"date"`
-	StartTime    string `json:"start_time"`
-	EndTime      string `json:"end_time"`
-	Participants int    `json:"participants"`
-	MaxSlots     int    `json:"max_slots"`
-}
-
-func newGroupInfoResponse(organizer models.Booking, participants int) GroupInfoResponse {
-	teacherName := ""
-	teacherID := uint(0)
-	if organizer.TeacherID != nil {
-		teacherID = *organizer.TeacherID
-	}
-	if organizer.Teacher != nil {
-		teacherName = organizer.Teacher.Name
-	}
-	return GroupInfoResponse{
-		TeacherID:    teacherID,
-		TeacherName:  teacherName,
-		Mode:         organizer.Mode,
-		SessionCount: organizer.SessionCount,
-		Date:         organizer.Date,
-		StartTime:    organizer.StartTime,
-		EndTime:      organizer.EndTime,
-		Participants: participants,
-		MaxSlots:     maxGroupSlots,
-	}
-}
-
 // — handler: ListSessions (GET /tutoring/sessions) —
 
 type ListSessionsResponse struct {

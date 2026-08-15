@@ -219,15 +219,6 @@ func (r *Repository) GetBookingWithDB(db *gorm.DB, id uint) (*models.Booking, er
 	return &b, nil
 }
 
-// GetBookingByToken mengambil booking organizer (yang pertama) dari token grup.
-func (r *Repository) GetBookingByToken(token string) (*models.Booking, error) {
-	var b models.Booking
-	if err := r.db.Preload("Teacher").Where("group_token = ?", token).Order("id asc").First(&b).Error; err != nil {
-		return nil, err
-	}
-	return &b, nil
-}
-
 // ListBookingsByGroupToken mengambil semua booking dgn token yang sama.
 func (r *Repository) ListBookingsByGroupToken(token string) ([]models.Booking, error) {
 	var bookings []models.Booking
@@ -235,15 +226,6 @@ func (r *Repository) ListBookingsByGroupToken(token string) ([]models.Booking, e
 		return nil, err
 	}
 	return bookings, nil
-}
-
-// CountGroupParticipants menghitung peserta aktif (pending/confirmed) dalam grup.
-func (r *Repository) CountGroupParticipants(token string) (int64, error) {
-	var count int64
-	err := r.db.Model(&models.Booking{}).
-		Where("group_token = ? AND status IN ?", token, []string{"pending", "confirmed"}).
-		Count(&count).Error
-	return count, err
 }
 
 // CreateSessions menyimpan sesi pertemuan (bulk).

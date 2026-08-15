@@ -4862,49 +4862,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/tutoring/groups/{token}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Mengembalikan info grup dari token undangan",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tutoring"
-                ],
-                "summary": "Group info",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Group token",
-                        "name": "token",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.GroupInfoResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/tutoring/sessions": {
             "get": {
                 "security": [
@@ -7145,10 +7102,6 @@ const docTemplate = `{
                 "end_time": {
                     "type": "string"
                 },
-                "group_token": {
-                    "description": "isi utk join grup yang sudah ada",
-                    "type": "string"
-                },
                 "member_emails": {
                     "description": "group: email member (wajib ≥1)",
                     "type": "array",
@@ -7243,38 +7196,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "tutoring.GroupInfoResponse": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "type": "string"
-                },
-                "end_time": {
-                    "type": "string"
-                },
-                "max_slots": {
-                    "type": "integer"
-                },
-                "mode": {
-                    "type": "string"
-                },
-                "participants": {
-                    "type": "integer"
-                },
-                "session_count": {
-                    "type": "integer"
-                },
-                "start_time": {
-                    "type": "string"
-                },
-                "teacher_id": {
-                    "type": "integer"
-                },
-                "teacher_name": {
                     "type": "string"
                 }
             }

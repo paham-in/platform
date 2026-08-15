@@ -19,7 +19,6 @@ type CreateBookingRequest struct {
 	EndTime      string   `json:"end_time"`
 	Mode         string   `json:"mode"`          // private/group
 	SessionCount int      `json:"session_count"` // jumlah pertemuan (default 1)
-	GroupToken   string   `json:"group_token"`   // isi utk join grup yang sudah ada
 	Note         string   `json:"note"`
 	ClassID      *uint    `json:"class_id,omitempty"`
 	MemberEmails []string `json:"member_emails"` // group: email member (wajib ≥1)
