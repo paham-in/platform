@@ -144,7 +144,7 @@ export function GalleryPicker({
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       } />
-                      <AlertDialogContent size="sm">
+                      <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Hapus Gambar</AlertDialogTitle>
                           <AlertDialogDescription>Yakin ingin menghapus gambar ini?</AlertDialogDescription>
@@ -156,7 +156,7 @@ export function GalleryPicker({
                             disabled={deleting}
                             onClick={() => deleteImage({ path: { subject_id: subjectId!, id: img.id! } })}
                           >
-                            {deleting && <Spinner className="h-3 w-3" />}
+                            {deleting && <Spinner />}
                             Hapus
                           </AlertDialogAction>
                         </AlertDialogFooter>

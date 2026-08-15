@@ -332,9 +332,9 @@ export function CalendarWeek({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Kembali</AlertDialogCancel>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-600 text-white hover:bg-red-700"
+              variant="destructive"
               onClick={() => {
                 if (selected) {
                   onCancelSession?.(selected.id)

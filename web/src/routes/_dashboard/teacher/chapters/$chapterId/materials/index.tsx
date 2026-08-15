@@ -1,4 +1,4 @@
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -496,11 +496,11 @@ function ChapterMaterials() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Batal</Button>
-            <Button variant="destructive" onClick={() => deleteMaterial({ path: { id: deleteConfirm.id } })} disabled={deletingMaterial}>
-              {deletingMaterial && <Spinner className="h-3 w-3" />}
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={() => deleteMaterial({ path: { id: deleteConfirm.id } })} disabled={deletingMaterial}>
+              {deletingMaterial && <Spinner />}
               Hapus
-            </Button>
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>}
@@ -516,15 +516,15 @@ function ChapterMaterials() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Batal</Button>
-            <Button onClick={() => {
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
               if (pendingStatus) {
                 toggleStatus({ path: { id: pendingStatus.id }, body: { status: pendingStatus.status } });
               }
               setConfirmOpen(false);
             }}>
               {pendingStatus?.status === "published" ? "Publikasikan" : "Jadikan Draft"}
-            </Button>
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

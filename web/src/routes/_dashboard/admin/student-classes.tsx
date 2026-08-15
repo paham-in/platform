@@ -39,6 +39,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -300,11 +302,11 @@ function RevokeDialog({ access, onClose }: {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button variant="destructive" onClick={() => revoke({ path: { id: access.id! } })} disabled={isPending}>
-            {isPending && <Spinner className="h-3 w-3" />}
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" onClick={() => revoke({ path: { id: access.id! } })} disabled={isPending}>
+            {isPending && <Spinner />}
             Cabut
-          </Button>
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -42,13 +43,15 @@ export function DeleteCollectionDialog({ collection, onClose }: DeleteCollection
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button variant="destructive" onClick={() => deleteCollection({ path: { id: collection.id } })} disabled={isPending}>
-            <span className="inline-flex items-center gap-2">
-              {isPending && <Spinner />}
-              Hapus
-            </span>
-          </Button>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            disabled={isPending}
+            onClick={() => deleteCollection({ path: { id: collection.id } })}
+          >
+            {isPending && <Spinner />}
+            Hapus
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

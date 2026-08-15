@@ -108,11 +108,11 @@ export function BookingRequests() {
                       <TableCell className="pr-6 text-right">
                         <div className="flex justify-end gap-2">
                           <Button size="sm" onClick={() => updateStatus({ path: { id: primary.id! }, body: { status: "confirmed" } })} disabled={isPending}>
-                            {isPending && <Spinner className="h-3 w-3" />}
+                            {isPending && <Spinner />}
                             <CheckCircle2 className="h-4 w-4" /> Setuju
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => updateStatus({ path: { id: primary.id! }, body: { status: "rejected" } })} disabled={isPending}>
-                            {isPending && <Spinner className="h-3 w-3" />}
+                            {isPending && <Spinner />}
                             <XCircle className="h-4 w-4" /> Tolak
                           </Button>
                         </div>

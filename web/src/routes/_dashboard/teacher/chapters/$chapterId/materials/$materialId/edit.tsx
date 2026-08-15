@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -317,8 +319,8 @@ function EditMaterial() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => { discard(); setShowDraftDialog(false) }}>Mulai dari Server</Button>
-            <Button onClick={restoreDraft}>Lanjutkan Draft</Button>
+            <AlertDialogCancel>Mulai dari Server</AlertDialogCancel>
+            <AlertDialogAction onClick={restoreDraft}>Lanjutkan Draft</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

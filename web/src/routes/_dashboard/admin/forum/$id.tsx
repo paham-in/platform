@@ -146,7 +146,7 @@ function ForumDetail() {
                     <AlertDialogTrigger render={<Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" />}>
                       <Trash2 className="h-4 w-4" />
                     </AlertDialogTrigger>
-                    <AlertDialogContent size="sm">
+                    <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Hapus Jawaban</AlertDialogTitle>
                         <AlertDialogDescription>

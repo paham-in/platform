@@ -46,6 +46,8 @@ import {
 } from "@/components/ui/sidebar";
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -297,8 +299,8 @@ function DashboardLayout() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setLogoutConfirmOpen(false)}>Batal</Button>
-            <Button variant="destructive" onClick={confirmLogout}>Logout</Button>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmLogout}>Logout</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

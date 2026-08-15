@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -47,15 +48,14 @@ export function ApproveEvidenceDialog({ session, onClose }: ApproveEvidenceDialo
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button
-            className="bg-green-600 text-white hover:bg-green-700"
-            onClick={() => session.id && approve({ path: { id: session.id }, body: { action: "approve" } })}
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction
             disabled={isPending}
+            onClick={() => session.id && approve({ path: { id: session.id }, body: { action: "approve" } })}
           >
-            {isPending && <Spinner className="h-3 w-3" />}
+            {isPending && <Spinner />}
             Setujui
-          </Button>
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -65,11 +65,7 @@ export function ToggleInvoiceDialog({ invoices, targetStatus, onClose }: ToggleI
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Batal</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleConfirm}
-            disabled={isPending}
-            className={targetStatus === "pending" ? "border border-input" : undefined}
-          >
+          <AlertDialogAction onClick={handleConfirm} disabled={isPending}>
             <span className="inline-flex items-center gap-2">
               {isPending && <Spinner />}
               {targetLabel}

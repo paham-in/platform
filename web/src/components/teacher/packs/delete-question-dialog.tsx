@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -40,13 +41,15 @@ export function DeleteQuestionDialog({ question, onClose }: DeleteQuestionDialog
           <AlertDialogDescription>Yakin ingin menghapus soal ini?</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button variant="destructive" onClick={() => deleteQuestion({ path: { id: packageId!, qid: question.id! } })} disabled={isPending}>
-            <span className="inline-flex items-center gap-2">
-              {isPending && <Spinner />}
-              Hapus
-            </span>
-          </Button>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            disabled={isPending}
+            onClick={() => deleteQuestion({ path: { id: packageId!, qid: question.id! } })}
+          >
+            {isPending && <Spinner />}
+            Hapus
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -672,10 +674,8 @@ function AdminChapters() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-                Batal
-              </Button>
-              <Button
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction
                 variant="destructive"
                 onClick={() => {
                   deleteChapter({ path: { id: deleteConfirm.id! } });
@@ -683,7 +683,7 @@ function AdminChapters() {
                 }}
               >
                 Hapus
-              </Button>
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

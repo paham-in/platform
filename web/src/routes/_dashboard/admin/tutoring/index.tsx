@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -143,11 +145,15 @@ function DeleteBookingDialog({ booking, onClose }: { booking: TutoringListBookin
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button variant="destructive" onClick={() => booking.id && deleteBooking({ path: { id: booking.id } })} disabled={isPending}>
-            {isPending && <Spinner className="h-3 w-3" />}
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            disabled={isPending}
+            onClick={() => booking.id && deleteBooking({ path: { id: booking.id } })}
+          >
+            {isPending && <Spinner />}
             Hapus
-          </Button>
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

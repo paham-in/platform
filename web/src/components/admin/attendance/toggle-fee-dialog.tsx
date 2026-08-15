@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -52,14 +53,14 @@ export function ToggleFeeDialog({ session, onClose }: ToggleFeeDialogProps) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button
-            onClick={() => session.id && toggleFee({ path: { id: session.id } })}
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction
             disabled={isPending}
+            onClick={() => session.id && toggleFee({ path: { id: session.id } })}
           >
-            {isPending && <Spinner className="h-3 w-3" />}
+            {isPending && <Spinner />}
             {targetPaid ? "Tandai Sudah" : "Tandai Belum"}
-          </Button>
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

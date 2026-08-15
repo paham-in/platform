@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Spinner } from "@/components/ui/spinner"
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -152,7 +154,7 @@ export function GalleryBrowser({
                           disabled={deleting || (img.usage_count ?? 0) > 0}
                           onClick={() => requestDelete(img)}
                         >
-                          {deleting && <Spinner className="h-3 w-3" />}
+                          {deleting && <Spinner />}
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       )}
@@ -194,13 +196,11 @@ export function GalleryBrowser({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>
-              Batal
-            </Button>
-            <Button variant="destructive" onClick={confirmDelete} disabled={deleting}>
-              {deleting && <Spinner className="h-3 w-3" />}
+            <AlertDialogCancel disabled={deleting}>Batal</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmDelete} disabled={deleting}>
+              {deleting && <Spinner />}
               Hapus
-            </Button>
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

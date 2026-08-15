@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -138,11 +140,11 @@ function MyQuestions() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <Button variant="outline" onClick={() => setDeleteId(null)}>Batal</Button>
-              <Button variant="destructive" onClick={() => {
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction variant="destructive" onClick={() => {
                 deleteQuestion({ path: { id: deleteId } })
                 setDeleteId(null)
-              }}>Hapus</Button>
+              }}>Hapus</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -47,15 +48,15 @@ export function RejectEvidenceDialog({ session, onClose }: RejectEvidenceDialogP
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction
             variant="destructive"
-            onClick={() => session.id && reject({ path: { id: session.id }, body: { action: "reject" } })}
             disabled={isPending}
+            onClick={() => session.id && reject({ path: { id: session.id }, body: { action: "reject" } })}
           >
-            {isPending && <Spinner className="h-3 w-3" />}
+            {isPending && <Spinner />}
             Ya, tolak
-          </Button>
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

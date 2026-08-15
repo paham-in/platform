@@ -33,6 +33,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -311,8 +313,8 @@ function AdminPrograms() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <Button variant="outline" onClick={() => setUnassignTarget(null)}>Batal</Button>
-              <Button
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction
                 variant="destructive"
                 disabled={unassignMut.isPending}
                 onClick={() => {
@@ -320,9 +322,9 @@ function AdminPrograms() {
                   setUnassignTarget(null)
                 }}
               >
-                {unassignMut.isPending && <Spinner className="h-3 w-3" />}
+                {unassignMut.isPending && <Spinner />}
                 Lepas
-              </Button>
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

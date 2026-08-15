@@ -42,7 +42,7 @@ export function DeleteAnswerDialog({ answer, questionId, onClose }: DeleteAnswer
 
   return (
     <AlertDialog open onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent size="sm">
+      <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Hapus Jawaban</AlertDialogTitle>
           <AlertDialogDescription>
@@ -56,7 +56,7 @@ export function DeleteAnswerDialog({ answer, questionId, onClose }: DeleteAnswer
             disabled={isPending}
             onClick={() => deleteAnswer({ path: { question_id: questionId, id: answer.id! } })}
           >
-            {isPending && <Spinner className="h-3 w-3" />}
+            {isPending && <Spinner />}
             Hapus
           </AlertDialogAction>
         </AlertDialogFooter>
