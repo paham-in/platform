@@ -19,7 +19,6 @@ import { Route as DashboardUserMaterialsRouteImport } from './routes/_dashboard/
 import { Route as DashboardUserDashboardRouteImport } from './routes/_dashboard/user/dashboard'
 import { Route as DashboardTeacherDashboardRouteImport } from './routes/_dashboard/teacher/dashboard'
 import { Route as DashboardTeacherCalendarRouteImport } from './routes/_dashboard/teacher/calendar'
-import { Route as DashboardStudentTutoringRouteImport } from './routes/_dashboard/student/tutoring'
 import { Route as DashboardStudentSubscribeRouteImport } from './routes/_dashboard/student/subscribe'
 import { Route as DashboardStudentPaymentsRouteImport } from './routes/_dashboard/student/payments'
 import { Route as DashboardStudentDashboardRouteImport } from './routes/_dashboard/student/dashboard'
@@ -122,12 +121,6 @@ const DashboardTeacherCalendarRoute =
   DashboardTeacherCalendarRouteImport.update({
     id: '/teacher/calendar',
     path: '/teacher/calendar',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentTutoringRoute =
-  DashboardStudentTutoringRouteImport.update({
-    id: '/student/tutoring',
-    path: '/student/tutoring',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardStudentSubscribeRoute =
@@ -234,9 +227,9 @@ const DashboardTeacherChaptersIndexRoute =
   } as any)
 const DashboardStudentTutoringIndexRoute =
   DashboardStudentTutoringIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => DashboardStudentTutoringRoute,
+    id: '/student/tutoring/',
+    path: '/student/tutoring/',
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardStudentPackagesIndexRoute =
   DashboardStudentPackagesIndexRouteImport.update({
@@ -305,15 +298,15 @@ const DashboardTeacherForumIdRoute = DashboardTeacherForumIdRouteImport.update({
 } as any)
 const DashboardStudentTutoringNewRoute =
   DashboardStudentTutoringNewRouteImport.update({
-    id: '/new',
-    path: '/new',
-    getParentRoute: () => DashboardStudentTutoringRoute,
+    id: '/student/tutoring/new',
+    path: '/student/tutoring/new',
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardStudentTutoringJoinRoute =
   DashboardStudentTutoringJoinRouteImport.update({
-    id: '/join',
-    path: '/join',
-    getParentRoute: () => DashboardStudentTutoringRoute,
+    id: '/student/tutoring/join',
+    path: '/student/tutoring/join',
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardStudentForumNewRoute =
   DashboardStudentForumNewRouteImport.update({
@@ -455,7 +448,6 @@ export interface FileRoutesByFullPath {
   '/student/dashboard': typeof DashboardStudentDashboardRoute
   '/student/payments': typeof DashboardStudentPaymentsRoute
   '/student/subscribe': typeof DashboardStudentSubscribeRoute
-  '/student/tutoring': typeof DashboardStudentTutoringRouteWithChildren
   '/teacher/calendar': typeof DashboardTeacherCalendarRoute
   '/teacher/dashboard': typeof DashboardTeacherDashboardRoute
   '/user/dashboard': typeof DashboardUserDashboardRoute
@@ -584,7 +576,6 @@ export interface FileRoutesById {
   '/_dashboard/student/dashboard': typeof DashboardStudentDashboardRoute
   '/_dashboard/student/payments': typeof DashboardStudentPaymentsRoute
   '/_dashboard/student/subscribe': typeof DashboardStudentSubscribeRoute
-  '/_dashboard/student/tutoring': typeof DashboardStudentTutoringRouteWithChildren
   '/_dashboard/teacher/calendar': typeof DashboardTeacherCalendarRoute
   '/_dashboard/teacher/dashboard': typeof DashboardTeacherDashboardRoute
   '/_dashboard/user/dashboard': typeof DashboardUserDashboardRoute
@@ -650,7 +641,6 @@ export interface FileRouteTypes {
     | '/student/dashboard'
     | '/student/payments'
     | '/student/subscribe'
-    | '/student/tutoring'
     | '/teacher/calendar'
     | '/teacher/dashboard'
     | '/user/dashboard'
@@ -778,7 +768,6 @@ export interface FileRouteTypes {
     | '/_dashboard/student/dashboard'
     | '/_dashboard/student/payments'
     | '/_dashboard/student/subscribe'
-    | '/_dashboard/student/tutoring'
     | '/_dashboard/teacher/calendar'
     | '/_dashboard/teacher/dashboard'
     | '/_dashboard/user/dashboard'
@@ -901,13 +890,6 @@ declare module '@tanstack/react-router' {
       path: '/teacher/calendar'
       fullPath: '/teacher/calendar'
       preLoaderRoute: typeof DashboardTeacherCalendarRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/student/tutoring': {
-      id: '/_dashboard/student/tutoring'
-      path: '/student/tutoring'
-      fullPath: '/student/tutoring'
-      preLoaderRoute: typeof DashboardStudentTutoringRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/student/subscribe': {
@@ -1038,10 +1020,10 @@ declare module '@tanstack/react-router' {
     }
     '/_dashboard/student/tutoring/': {
       id: '/_dashboard/student/tutoring/'
-      path: '/'
+      path: '/student/tutoring'
       fullPath: '/student/tutoring/'
       preLoaderRoute: typeof DashboardStudentTutoringIndexRouteImport
-      parentRoute: typeof DashboardStudentTutoringRoute
+      parentRoute: typeof DashboardRoute
     }
     '/_dashboard/student/packages/': {
       id: '/_dashboard/student/packages/'
@@ -1122,17 +1104,17 @@ declare module '@tanstack/react-router' {
     }
     '/_dashboard/student/tutoring/new': {
       id: '/_dashboard/student/tutoring/new'
-      path: '/new'
+      path: '/student/tutoring/new'
       fullPath: '/student/tutoring/new'
       preLoaderRoute: typeof DashboardStudentTutoringNewRouteImport
-      parentRoute: typeof DashboardStudentTutoringRoute
+      parentRoute: typeof DashboardRoute
     }
     '/_dashboard/student/tutoring/join': {
       id: '/_dashboard/student/tutoring/join'
-      path: '/join'
+      path: '/student/tutoring/join'
       fullPath: '/student/tutoring/join'
       preLoaderRoute: typeof DashboardStudentTutoringJoinRouteImport
-      parentRoute: typeof DashboardStudentTutoringRoute
+      parentRoute: typeof DashboardRoute
     }
     '/_dashboard/student/forum/new': {
       id: '/_dashboard/student/forum/new'
@@ -1277,24 +1259,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface DashboardStudentTutoringRouteChildren {
-  DashboardStudentTutoringJoinRoute: typeof DashboardStudentTutoringJoinRoute
-  DashboardStudentTutoringNewRoute: typeof DashboardStudentTutoringNewRoute
-  DashboardStudentTutoringIndexRoute: typeof DashboardStudentTutoringIndexRoute
-}
-
-const DashboardStudentTutoringRouteChildren: DashboardStudentTutoringRouteChildren =
-  {
-    DashboardStudentTutoringJoinRoute: DashboardStudentTutoringJoinRoute,
-    DashboardStudentTutoringNewRoute: DashboardStudentTutoringNewRoute,
-    DashboardStudentTutoringIndexRoute: DashboardStudentTutoringIndexRoute,
-  }
-
-const DashboardStudentTutoringRouteWithChildren =
-  DashboardStudentTutoringRoute._addFileChildren(
-    DashboardStudentTutoringRouteChildren,
-  )
-
 interface DashboardUserMaterialsRouteChildren {
   DashboardUserMaterialsMaterialIdRoute: typeof DashboardUserMaterialsMaterialIdRoute
 }
@@ -1326,7 +1290,6 @@ interface DashboardRouteChildren {
   DashboardStudentDashboardRoute: typeof DashboardStudentDashboardRoute
   DashboardStudentPaymentsRoute: typeof DashboardStudentPaymentsRoute
   DashboardStudentSubscribeRoute: typeof DashboardStudentSubscribeRoute
-  DashboardStudentTutoringRoute: typeof DashboardStudentTutoringRouteWithChildren
   DashboardTeacherCalendarRoute: typeof DashboardTeacherCalendarRoute
   DashboardTeacherDashboardRoute: typeof DashboardTeacherDashboardRoute
   DashboardUserDashboardRoute: typeof DashboardUserDashboardRoute
@@ -1339,6 +1302,8 @@ interface DashboardRouteChildren {
   DashboardStudentForumIdRoute: typeof DashboardStudentForumIdRoute
   DashboardStudentForumMineRoute: typeof DashboardStudentForumMineRoute
   DashboardStudentForumNewRoute: typeof DashboardStudentForumNewRoute
+  DashboardStudentTutoringJoinRoute: typeof DashboardStudentTutoringJoinRoute
+  DashboardStudentTutoringNewRoute: typeof DashboardStudentTutoringNewRoute
   DashboardTeacherForumIdRoute: typeof DashboardTeacherForumIdRoute
   DashboardTeacherTutoringEarningsRoute: typeof DashboardTeacherTutoringEarningsRoute
   DashboardTeacherTutoringRequestsRoute: typeof DashboardTeacherTutoringRequestsRoute
@@ -1349,6 +1314,7 @@ interface DashboardRouteChildren {
   DashboardStudentForumIndexRoute: typeof DashboardStudentForumIndexRoute
   DashboardStudentMaterialsIndexRoute: typeof DashboardStudentMaterialsIndexRoute
   DashboardStudentPackagesIndexRoute: typeof DashboardStudentPackagesIndexRoute
+  DashboardStudentTutoringIndexRoute: typeof DashboardStudentTutoringIndexRoute
   DashboardTeacherChaptersIndexRoute: typeof DashboardTeacherChaptersIndexRoute
   DashboardTeacherForumIndexRoute: typeof DashboardTeacherForumIndexRoute
   DashboardTeacherPacksIndexRoute: typeof DashboardTeacherPacksIndexRoute
@@ -1384,7 +1350,6 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardStudentDashboardRoute: DashboardStudentDashboardRoute,
   DashboardStudentPaymentsRoute: DashboardStudentPaymentsRoute,
   DashboardStudentSubscribeRoute: DashboardStudentSubscribeRoute,
-  DashboardStudentTutoringRoute: DashboardStudentTutoringRouteWithChildren,
   DashboardTeacherCalendarRoute: DashboardTeacherCalendarRoute,
   DashboardTeacherDashboardRoute: DashboardTeacherDashboardRoute,
   DashboardUserDashboardRoute: DashboardUserDashboardRoute,
@@ -1397,6 +1362,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardStudentForumIdRoute: DashboardStudentForumIdRoute,
   DashboardStudentForumMineRoute: DashboardStudentForumMineRoute,
   DashboardStudentForumNewRoute: DashboardStudentForumNewRoute,
+  DashboardStudentTutoringJoinRoute: DashboardStudentTutoringJoinRoute,
+  DashboardStudentTutoringNewRoute: DashboardStudentTutoringNewRoute,
   DashboardTeacherForumIdRoute: DashboardTeacherForumIdRoute,
   DashboardTeacherTutoringEarningsRoute: DashboardTeacherTutoringEarningsRoute,
   DashboardTeacherTutoringRequestsRoute: DashboardTeacherTutoringRequestsRoute,
@@ -1407,6 +1374,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardStudentForumIndexRoute: DashboardStudentForumIndexRoute,
   DashboardStudentMaterialsIndexRoute: DashboardStudentMaterialsIndexRoute,
   DashboardStudentPackagesIndexRoute: DashboardStudentPackagesIndexRoute,
+  DashboardStudentTutoringIndexRoute: DashboardStudentTutoringIndexRoute,
   DashboardTeacherChaptersIndexRoute: DashboardTeacherChaptersIndexRoute,
   DashboardTeacherForumIndexRoute: DashboardTeacherForumIndexRoute,
   DashboardTeacherPacksIndexRoute: DashboardTeacherPacksIndexRoute,

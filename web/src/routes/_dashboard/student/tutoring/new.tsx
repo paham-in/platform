@@ -17,7 +17,7 @@ import {
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListTeachersResponse } from "@/lib/api/types.gen"
-import { CalendarIcon, CheckCircle2, Loader2, Plus, X, UserX } from "lucide-react"
+import { CalendarIcon, CheckCircle2, ChevronLeft, Loader2, Plus, X, UserX } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
@@ -163,14 +163,15 @@ function NewBooking() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 py-2">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold">Booking Baru</h2>
-          <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam dulu, lalu pilih guru — atau kirim tanpa guru.</p>
-        </div>
-        <Link to="/student/tutoring"><Button variant="outline">Batal</Button></Link>
+    <main className="p-6">
+      <div className="mb-6">
+        <Link to="/student/tutoring" className="mb-2 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <ChevronLeft className="h-4 w-4" /> Kembali
+        </Link>
+        <h1 className="text-2xl font-bold tracking-tight">Booking Baru</h1>
+        <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam dulu, lalu pilih guru — atau kirim tanpa guru.</p>
       </div>
+      <div className="mx-auto max-w-2xl space-y-6 py-2">
 
       <Card className="gap-0 pt-0 pb-0">
         <CardContent className="space-y-4 p-5">
@@ -433,7 +434,8 @@ function NewBooking() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </main>
   )
 }
 
