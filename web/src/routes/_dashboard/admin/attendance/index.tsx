@@ -5,9 +5,17 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Search, SearchX, X, ClipboardCheck } from "lucide-react"
+import { Loader2, Search, SearchX, X, ClipboardCheck, Funnel } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { getAdminTutoringEvidenceOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 
 const attendanceIndexSearchSchema = z.object({
@@ -15,9 +23,10 @@ const attendanceIndexSearchSchema = z.object({
   search: z.string().optional(),
 })
 
-const statusFilters = [
-  { key: "review", label: "Menunggu Validasi" },
-  { key: "done", label: "Selesai" },
+const statusOptions = [
+  { label: "Semua Status", value: "all" },
+  { label: "Menunggu Validasi", value: "review" },
+  { label: "Selesai", value: "done" },
 ] as const
 
 const fmtRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`
@@ -64,6 +73,9 @@ function AttendanceIndex() {
     navigate({ search: (prev) => ({ ...prev, status: s }), replace: true })
   }
 
+  const activeFilterCount = status ? 1 : 0
+  const hasActiveFilter = !!searchParam || !!status
+
   if (isLoading) {
     return (
       <main className="flex flex-1 items-center justify-center">
@@ -81,7 +93,7 @@ function AttendanceIndex() {
         </p>
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-4">
+      <div className="mb-4 flex min-w-0 flex-1 flex-wrap items-center gap-2">
         <div className="relative w-full max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -102,21 +114,30 @@ function AttendanceIndex() {
             </button>
           )}
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant={!status ? "default" : "outline"} onClick={() => setFilter(undefined)}>
-            Semua
-          </Button>
-          {statusFilters.map((f) => (
-            <Button
-              key={f.key}
-              size="sm"
-              variant={status === f.key ? "default" : "outline"}
-              onClick={() => setFilter(status === f.key ? undefined : f.key)}
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="outline" />} aria-label="Filter status">
+            <Funnel className="h-4 w-4" />
+            Filter
+            {activeFilterCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeFilterCount}
+              </span>
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-52">
+            <DropdownMenuRadioGroup
+              value={status ?? "all"}
+              onValueChange={(v) => setFilter(v === "all" ? undefined : (v as "review" | "done"))}
             >
-              {f.label}
-            </Button>
-          ))}
-        </div>
+              <DropdownMenuLabel>Status</DropdownMenuLabel>
+              {statusOptions.map((opt) => (
+                <DropdownMenuRadioItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <Card className="pt-0 gap-0 pb-0">
@@ -159,15 +180,22 @@ function AttendanceIndex() {
                   <TableCell colSpan={5}>
                     <Empty className="border-0 p-8">
                       <EmptyHeader>
-                        <EmptyMedia variant="icon">{searchParam ? <SearchX /> : <ClipboardCheck />}</EmptyMedia>
+                        <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <ClipboardCheck />}</EmptyMedia>
                         <EmptyTitle>
-                          {searchParam ? "Tidak ada murid yang cocok" : "Tidak ada murid dengan bukti kehadiran"}
+                          {hasActiveFilter ? "Tidak ada murid yang cocok" : "Tidak ada murid dengan bukti kehadiran"}
                         </EmptyTitle>
                       </EmptyHeader>
-                      {searchParam && (
+                      {hasActiveFilter && (
                         <EmptyContent>
-                          <Button variant="outline" size="sm" onClick={() => setSearchInput("")}>
-                            <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSearchInput("")
+                              navigate({ search: {}, replace: true })
+                            }}
+                          >
+                            <X className="mr-1 h-4 w-4" /> Bersihkan filter
                           </Button>
                         </EmptyContent>
                       )}
