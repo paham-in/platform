@@ -3157,6 +3157,14 @@ paths:
         in: query
         name: class_id
         type: integer
+      - description: Filter by program ID
+        in: query
+        name: program_id
+        type: integer
+      - description: Filter by student name/email, class, or program
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:

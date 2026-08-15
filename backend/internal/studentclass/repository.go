@@ -14,7 +14,7 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) List(filterUserID, filterClassID uint) ([]models.StudentClass, error) {
+func (r *Repository) List(filterUserID, filterClassID, filterProgramID uint, search string) ([]models.StudentClass, error) {
 	var sp []models.StudentClass
 	q := r.db.Order("created_at desc")
 	if filterUserID > 0 {
@@ -22,6 +22,18 @@ func (r *Repository) List(filterUserID, filterClassID uint) ([]models.StudentCla
 	}
 	if filterClassID > 0 {
 		q = q.Where("class_id = ?", filterClassID)
+	}
+	if filterProgramID > 0 {
+		q = q.Joins("JOIN classes ON classes.id = student_classes.class_id").
+			Where("classes.program_id = ?", filterProgramID)
+	}
+	if search != "" {
+		like := "%" + search + "%"
+		q = q.
+			Joins("JOIN users ON users.id = student_classes.user_id").
+			Joins("JOIN classes ON classes.id = student_classes.class_id").
+			Joins("LEFT JOIN programs ON programs.id = classes.program_id").
+			Where("users.name ILIKE ? OR users.email ILIKE ? OR classes.name ILIKE ? OR programs.name ILIKE ?", like, like, like, like)
 	}
 	if err := q.Find(&sp).Error; err != nil {
 		return nil, err

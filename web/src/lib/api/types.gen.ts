@@ -2448,6 +2448,14 @@ export type GetAdminStudentClassesData = {
          * Filter by class ID
          */
         class_id?: number;
+        /**
+         * Filter by program ID
+         */
+        program_id?: number;
+        /**
+         * Filter by student name/email, class, or program
+         */
+        search?: string;
     };
     url: '/admin/student-classes';
 };

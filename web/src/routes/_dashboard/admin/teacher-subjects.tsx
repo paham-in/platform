@@ -1,8 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useEffect, useState } from "react"
+import { z } from "zod"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -11,19 +13,37 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { MoreVertical, GraduationCap, UserX } from "lucide-react"
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { MoreVertical, GraduationCap, UserX, Search, SearchX, X } from "lucide-react"
+import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { TeacherSubjectsDialog } from "@/components/admin/users"
 
+const teacherSubjectsSearchSchema = z.object({
+  search: z.string().optional(),
+})
+
 function AdminTeacherSubjects() {
+  const navigate = useNavigate({ from: Route.fullPath })
+  const { search: searchParam } = Route.useSearch()
+  const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const { data: teachers = [], isLoading } = useQuery(
-    getAdminUsersOptions({ query: { role: "teacher" } })
+    getAdminUsersOptions({ query: { role: "teacher", search: searchParam || undefined } })
   )
   const [editing, setEditing] = useState<UserAdminListUsersResponse | null>(null)
   const [page, setPage] = useState(1)
   const perPage = 5
+
+  // sync URL → local search input (e.g. back/forward, manual URL edit)
+  useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
+
+  // debounce search input → URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({ search: (prev) => ({ ...prev, search: searchInput || undefined }), replace: true })
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput, navigate])
 
   const totalPages = Math.ceil(teachers.length / perPage)
   const paged = teachers.slice((page - 1) * perPage, page * perPage)
@@ -35,6 +55,29 @@ function AdminTeacherSubjects() {
         <p className="mb-4 text-sm text-muted-foreground">
           Atur mata pelajaran yang diampu setiap guru. Guru tidak bisa mengubahnya sendiri.
         </p>
+
+        <div className="mb-4 flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          <div className="relative w-full max-w-sm flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              aria-label="Cari nama atau email guru"
+              placeholder="Cari nama atau email..."
+              className="pl-9 pr-9"
+              value={searchInput}
+              onChange={(e) => { setSearchInput(e.target.value); setPage(1) }}
+            />
+            {searchInput && (
+              <button
+                type="button"
+                aria-label="Bersihkan pencarian"
+                onClick={() => { setSearchInput(""); setPage(1) }}
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
 
         <Card className="pt-0 gap-0 pb-0">
           <CardContent className="p-0">
@@ -100,9 +143,24 @@ function AdminTeacherSubjects() {
                     <TableCell colSpan={4}>
                       <Empty className="border-0 p-8">
                         <EmptyHeader>
-                          <EmptyMedia variant="icon"><UserX /></EmptyMedia>
+                          <EmptyMedia variant="icon">{searchParam ? <SearchX /> : <UserX />}</EmptyMedia>
                           <EmptyTitle>Tidak ada guru ditemukan</EmptyTitle>
                         </EmptyHeader>
+                        {searchParam && (
+                          <EmptyContent>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSearchInput("")
+                                navigate({ search: {}, replace: true })
+                                setPage(1)
+                              }}
+                            >
+                              <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                            </Button>
+                          </EmptyContent>
+                        )}
                       </Empty>
                     </TableCell>
                   </TableRow>
@@ -135,4 +193,5 @@ function AdminTeacherSubjects() {
 
 export const Route = createFileRoute("/_dashboard/admin/teacher-subjects")({
   component: AdminTeacherSubjects,
+  validateSearch: teacherSubjectsSearchSchema,
 })

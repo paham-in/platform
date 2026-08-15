@@ -2052,6 +2052,18 @@ const docTemplate = `{
                         "description": "Filter by class ID",
                         "name": "class_id",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by program ID",
+                        "name": "program_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by student name/email, class, or program",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {

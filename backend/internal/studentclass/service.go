@@ -39,12 +39,14 @@ func NewService(repo *Repository, db *gorm.DB) *Service {
 }
 
 type ListFilter struct {
-	UserID  uint `json:"user_id"`
-	ClassID uint `json:"class_id"`
+	UserID    uint   `json:"user_id"`
+	ClassID   uint   `json:"class_id"`
+	ProgramID uint   `json:"program_id"`
+	Search    string `json:"search"`
 }
 
 func (s *Service) List(filter ListFilter) ([]StudentClassResponse, error) {
-	sp, err := s.repo.List(filter.UserID, filter.ClassID)
+	sp, err := s.repo.List(filter.UserID, filter.ClassID, filter.ProgramID, filter.Search)
 	if err != nil {
 		return nil, err
 	}

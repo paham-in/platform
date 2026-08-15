@@ -31,10 +31,12 @@ func NewHandler(svc *Service) *Handler {
 // @Security     BearerAuth
 // @Param        user_id query int false "Filter by user ID"
 // @Param        class_id query int false "Filter by class ID"
+// @Param        program_id query int false "Filter by program ID"
+// @Param        search query string false "Filter by student name/email, class, or program"
 // @Success      200 {array} StudentClassResponse
 // @Router       /admin/student-classes [get]
 func (h *Handler) AdminListStudentClasses(c *fiber.Ctx) error {
-	filter := ListFilter{}
+	filter := ListFilter{Search: c.Query("search", "")}
 	if uid := c.Query("user_id"); uid != "" {
 		if id, err := strconv.ParseUint(uid, 10, 64); err == nil {
 			filter.UserID = uint(id)
@@ -43,6 +45,11 @@ func (h *Handler) AdminListStudentClasses(c *fiber.Ctx) error {
 	if cid := c.Query("class_id"); cid != "" {
 		if id, err := strconv.ParseUint(cid, 10, 64); err == nil {
 			filter.ClassID = uint(id)
+		}
+	}
+	if pid := c.Query("program_id"); pid != "" {
+		if id, err := strconv.ParseUint(pid, 10, 64); err == nil {
+			filter.ProgramID = uint(id)
 		}
 	}
 	sp, err := h.svc.List(filter)
