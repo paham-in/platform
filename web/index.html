@@ -20,6 +20,20 @@
         }
       })();
     </script>
+    <script>
+      (() => {
+        const standalone =
+          window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+        if (standalone) {
+          document
+            .querySelector('meta[name="viewport"]')
+            ?.setAttribute(
+              "content",
+              "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+            );
+        }
+      })();
+    </script>
     <title>paham.in</title>
   </head>
   <body>
