@@ -66,6 +66,7 @@ function NewMaterial() {
   const [isFree, setIsFree] = useState(true);
   const [importOpen, setImportOpen] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
+  const [editorUploading, setEditorUploading] = useState(false);
 
   // autosave on change
   useEffect(() => {
@@ -183,7 +184,7 @@ function NewMaterial() {
                       <FileText className="mr-1 h-4 w-4" /> Import dari Word
                     </Button>
                   </div>
-                  <TiptapEditor content={content} onChange={setContent} subjectId={subjectId} />
+                  <TiptapEditor content={content} onChange={setContent} subjectId={subjectId} tempFolder="materials" onUploadingChange={setEditorUploading} />
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -224,9 +225,9 @@ function NewMaterial() {
               <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId }}>
                 <Button variant="outline" type="button">Batal</Button>
               </Link>
-              <Button onClick={save} disabled={!title || isPending || (type === "video" && !videoUrl)}>
+              <Button onClick={save} disabled={!title || isPending || editorUploading || (type === "video" && !videoUrl)}>
                 {isPending && <Spinner />}
-                Simpan
+                {editorUploading ? "Mengupload gambar..." : "Simpan"}
               </Button>
             </CardFooter>
           </Card>

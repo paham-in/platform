@@ -37,10 +37,10 @@ type TempDeleteResponse struct {
 	OK bool `json:"ok"`
 }
 
-// tempFolders: whitelist folder temp yang boleh dipakai. Untuk sekarang cuma
-// forum questions; fitur lain (materials, quiz_questions) menyusul.
+// tempFolders: whitelist folder temp yang boleh dipakai.
 var tempFolders = map[string]bool{
 	"forum_questions": true,
+	"materials":       true,
 }
 
 // UploadTemp mengunggah gambar ke folder temp untuk editor content

@@ -71,6 +71,7 @@ function EditMaterial() {
   const [loaded, setLoaded] = useState(false);
   const [initialLoad, setInitialLoad] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
+  const [editorUploading, setEditorUploading] = useState(false);
 
   // init from server data — only if no draft restore
   useEffect(() => {
@@ -248,7 +249,7 @@ function EditMaterial() {
                     </Button>
                   </div>
                   {loaded ? (
-                    <TiptapEditor content={content} onChange={setContent} subjectId={subjectId} />
+                    <TiptapEditor content={content} onChange={setContent} subjectId={subjectId} tempFolder="materials" onUploadingChange={setEditorUploading} />
                   ) : (
                     <div className="min-h-[300px] animate-pulse rounded-md bg-muted" />
                   )}
@@ -292,9 +293,9 @@ function EditMaterial() {
               <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId }}>
                 <Button variant="outline" type="button">Batal</Button>
               </Link>
-              <Button onClick={save} disabled={!title || isPending || (type === "video" && !videoUrl)}>
+              <Button onClick={save} disabled={!title || isPending || editorUploading || (type === "video" && !videoUrl)}>
                 {isPending && <Spinner />}
-                Simpan
+                {editorUploading ? "Mengupload gambar..." : "Simpan"}
               </Button>
             </CardFooter>
           </Card>

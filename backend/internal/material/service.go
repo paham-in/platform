@@ -1,7 +1,9 @@
 package material
 
 import (
+	"context"
 	"errors"
+	"log"
 	"strings"
 
 	"bimbel2/backend/internal/models"
@@ -142,8 +144,25 @@ type CreateInput struct {
 	Order       int    `json:"order"`
 }
 
+// commitContent memindahkan gambar temp ke lokasi permanen (kalau ada) lalu
+// menormalkan semua referensi gambar di content ke bentuk object name.
+func (s *Service) commitContent(content string) (string, error) {
+	if s.storage != nil {
+		var err error
+		content, err = s.storage.CommitTempImages(context.Background(), content)
+		if err != nil {
+			return "", err
+		}
+	}
+	return storage.SanitizeContentImages(content), nil
+}
+
 func (s *Service) Create(input CreateInput, authorID uint) (*MaterialResponse, error) {
 	slug := strings.ToLower(strings.ReplaceAll(input.Title, " ", "-"))
+	committed, err := s.commitContent(input.Content)
+	if err != nil {
+		return nil, err
+	}
 	material := models.Material{
 		ChapterID:   input.ChapterID,
 		AuthorID:    authorID,
@@ -151,7 +170,7 @@ func (s *Service) Create(input CreateInput, authorID uint) (*MaterialResponse, e
 		Slug:        slug,
 		Description: input.Description,
 		Type:        input.Type,
-		Content:     storage.SanitizeContentImages(input.Content),
+		Content:     committed,
 		VideoURL:    input.VideoURL,
 		Status:      input.Status,
 		IsFree:      input.IsFree,
@@ -163,7 +182,7 @@ func (s *Service) Create(input CreateInput, authorID uint) (*MaterialResponse, e
 	if material.Status == "" {
 		material.Status = "draft"
 	}
-	if err := s.repo.Create(&material); err != nil {
+	if err := s.repo.CreateWithAssets(&material, storage.ExtractContentImages(committed)); err != nil {
 		return nil, err
 	}
 	created, err := s.repo.Get(material.ID)
@@ -203,7 +222,35 @@ func (s *Service) Update(id uint, input UpdateInput, a Access) (*MaterialRespons
 		updates["description"] = *input.Description
 	}
 	if input.Content != nil {
-		updates["content"] = storage.SanitizeContentImages(*input.Content)
+		// commit gambar temp baru, lalu diff aset content dengan DB: gambar yang
+		// sudah tidak ada di content ikut dihapus filenya (kecuali milik galeri
+		// yang dipakai bersama lintas materi).
+		committed, err := s.commitContent(*input.Content)
+		if err != nil {
+			return nil, err
+		}
+		newAssets := storage.ExtractContentImages(committed)
+		var removed []string
+		if s.storage != nil {
+			oldAssets, err := s.repo.ListAssetObjectNames(id)
+			if err != nil {
+				return nil, err
+			}
+			removed, err = s.repo.ExcludeGalleryAssets(difference(oldAssets, newAssets))
+			if err != nil {
+				return nil, err
+			}
+		}
+		if err := s.repo.UpdateContentWithAssets(id, committed, newAssets); err != nil {
+			return nil, err
+		}
+		if s.storage != nil {
+			for _, obj := range removed {
+				if err := s.storage.Delete(context.Background(), obj); err != nil {
+					log.Printf("[material] gagal hapus aset %q: %v", obj, err)
+				}
+			}
+		}
 	}
 	if input.Type != nil {
 		updates["type"] = *input.Type
@@ -241,7 +288,36 @@ func (s *Service) Delete(id uint, a Access) error {
 	if !s.canManage(material, a) {
 		return ErrNotOwner
 	}
-	return s.repo.Delete(id)
+	// hapus materi + aset content dari DB, lalu bersihkan file gambar dari
+	// storage (best-effort setelah commit — file orphan lebih aman daripada
+	// DB yang tidak konsisten).
+	assetNames, err := s.repo.DeleteWithAssets(id)
+	if err != nil {
+		return err
+	}
+	if s.storage != nil {
+		for _, obj := range assetNames {
+			if err := s.storage.Delete(context.Background(), obj); err != nil {
+				log.Printf("[material] gagal hapus aset %q: %v", obj, err)
+			}
+		}
+	}
+	return nil
+}
+
+// difference mengembalikan elemen a yang tidak ada di b.
+func difference(a, b []string) []string {
+	inB := make(map[string]bool, len(b))
+	for _, x := range b {
+		inB[x] = true
+	}
+	var out []string
+	for _, x := range a {
+		if !inB[x] {
+			out = append(out, x)
+		}
+	}
+	return out
 }
 
 func (s *Service) toResponse(m models.Material) MaterialResponse {

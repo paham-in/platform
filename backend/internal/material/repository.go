@@ -92,12 +92,106 @@ func (r *Repository) Create(material *models.Material) error {
 	return r.db.Create(material).Error
 }
 
-func (r *Repository) Update(id uint, updates map[string]any) error {
-	return r.db.Model(&models.Material{}).Where("id = ?", id).Updates(updates).Error
+// CreateWithAssets menyimpan materi + aset content (material_assets) dalam
+// satu transaksi.
+func (r *Repository) CreateWithAssets(material *models.Material, assets []string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(material).Error; err != nil {
+			return err
+		}
+		return insertAssets(tx, material.ID, assets)
+	})
 }
 
-func (r *Repository) Delete(id uint) error {
-	return r.db.Unscoped().Delete(&models.Material{}, id).Error
+// UpdateContentWithAssets memperbarui content materi + mengganti daftar aset
+// content (hapus semua, insert ulang) dalam satu transaksi. Aset dihapus secara
+// HARD (Unscoped) — row aset adalah data turunan, bukan data user yang butuh
+// audit, jadi tidak perlu soft delete.
+func (r *Repository) UpdateContentWithAssets(id uint, content string, assets []string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&models.Material{}).Where("id = ?", id).Update("content", content).Error; err != nil {
+			return err
+		}
+		if err := tx.Unscoped().Where("material_id = ?", id).Delete(&models.MaterialAsset{}).Error; err != nil {
+			return err
+		}
+		return insertAssets(tx, id, assets)
+	})
+}
+
+func insertAssets(tx *gorm.DB, materialID uint, assets []string) error {
+	if len(assets) == 0 {
+		return nil
+	}
+	rows := make([]models.MaterialAsset, 0, len(assets))
+	for _, obj := range assets {
+		rows = append(rows, models.MaterialAsset{MaterialID: materialID, ObjectName: obj})
+	}
+	return tx.Create(&rows).Error
+}
+
+// ListAssetObjectNames mengembalikan object name aset content materi.
+// Dipakai saat edit untuk mendeteksi gambar yang dihapus dari editor.
+func (r *Repository) ListAssetObjectNames(materialID uint) ([]string, error) {
+	var names []string
+	if err := r.db.Model(&models.MaterialAsset{}).
+		Where("material_id = ?", materialID).
+		Pluck("object_name", &names).Error; err != nil {
+		return nil, err
+	}
+	return names, nil
+}
+
+// ExcludeGalleryAssets menyaring object name yang masih dipakai sebagai gambar
+// galeri (subject_images). File galeri dipakai bersama lintas materi — tidak
+// boleh dihapus saat sebuah materi berhenti mereferensikannya.
+func (r *Repository) ExcludeGalleryAssets(objectNames []string) ([]string, error) {
+	if len(objectNames) == 0 {
+		return nil, nil
+	}
+	var galleryNames []string
+	if err := r.db.Model(&models.SubjectImage{}).
+		Where("file_name IN ?", objectNames).
+		Pluck("file_name", &galleryNames).Error; err != nil {
+		return nil, err
+	}
+	gallery := make(map[string]bool, len(galleryNames))
+	for _, g := range galleryNames {
+		gallery[g] = true
+	}
+	out := make([]string, 0, len(objectNames))
+	for _, obj := range objectNames {
+		if !gallery[obj] {
+			out = append(out, obj)
+		}
+	}
+	return out, nil
+}
+
+// DeleteWithAssets menghapus materi beserta aset content-nya secara HARD dalam
+// satu transaksi. Mengembalikan object name aset yang ikut terhapus supaya
+// caller bisa membersihkan object storage setelah commit.
+func (r *Repository) DeleteWithAssets(id uint) ([]string, error) {
+	var assetNames []string
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Unscoped().Model(&models.MaterialAsset{}).
+			Where("material_id = ?", id).
+			Pluck("object_name", &assetNames).Error; err != nil {
+			return err
+		}
+		if err := tx.Unscoped().Where("material_id = ?", id).Delete(&models.MaterialAsset{}).Error; err != nil {
+			return err
+		}
+		return tx.Unscoped().Delete(&models.Material{}, id).Error
+	})
+	if err != nil {
+		return nil, err
+	}
+	return assetNames, nil
+}
+
+func (r *Repository) Update(id uint, updates map[string]any) error {
+	return r.db.Model(&models.Material{}).Where("id = ?", id).Updates(updates).Error
 }
 
 func (r *Repository) CountByChapter(chapterID uint) (int64, error) {
