@@ -30,12 +30,13 @@ import { GalleryPicker } from "./gallery-picker"
 import { Spinner } from "@/components/ui/spinner"
 import { postContentTempImages } from "@/lib/api/sdk.gen"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const ToolbarButton = ({
   active,
@@ -120,6 +121,7 @@ export function TiptapEditor({
   const [editLatex, setEditLatex] = useState<string | null>(null)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [resizeOpen, setResizeOpen] = useState(false)
+  const [resizeAnchor, setResizeAnchor] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
   const [pendingUploads, setPendingUploads] = useState(0)
   const editorElRef = useRef<HTMLDivElement>(null)
 
@@ -263,7 +265,9 @@ export function TiptapEditor({
               break
             }
           }
-          setResizeOpen(true)
+          const r = (img as HTMLElement).getBoundingClientRect()
+            setResizeAnchor({ left: r.left, top: r.top, width: r.width, height: r.height })
+            setResizeOpen(true)
         }
         return
       }
@@ -317,20 +321,26 @@ export function TiptapEditor({
         />
       )}
 
-      <Dialog open={resizeOpen} onOpenChange={setResizeOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Ukuran Gambar</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-wrap gap-2">
-            {[25, 50, 75, 100].map((pct) => (
-              <Button key={pct} variant="outline" className="flex-1" onClick={() => handleResize(pct)}>
-                {pct}%
-              </Button>
-            ))}
+      <DropdownMenu open={resizeOpen} onOpenChange={setResizeOpen}>
+        {resizeAnchor && (
+          <div
+            className="pointer-events-none fixed z-50"
+            style={{ left: resizeAnchor.left, top: resizeAnchor.top, width: resizeAnchor.width, height: resizeAnchor.height }}
+          >
+            <DropdownMenuTrigger aria-label="Ukuran gambar" className="pointer-events-auto block h-full w-full" />
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+        <DropdownMenuContent align="end" sideOffset={8} className="w-auto min-w-36">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Ukuran Gambar</DropdownMenuLabel>
+            {[25, 50, 75, 100].map((pct) => (
+              <DropdownMenuItem key={pct} onClick={() => handleResize(pct)}>
+                {pct}%
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
