@@ -98,7 +98,14 @@ function AdminChapters() {
   const { search, classId } = Route.useSearch();
   const { data: user } = useQuery(getMeOptions());
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_materials;
-  const { data: chapters = [], isLoading, isError } = useQuery(getAdminChaptersOptions());
+  const { data: chapters = [], isLoading, isError } = useQuery(
+    getAdminChaptersOptions({
+      query: {
+        class_id: classId ? Number(classId) : undefined,
+        search: search || undefined,
+      },
+    })
+  );
   const { data: subjects = [] } = useQuery(getSubjectsOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
   const [searchInput, setSearchInput] = useState(search ?? "");
@@ -169,13 +176,8 @@ function AdminChapters() {
     : [];
   const subjectOptions = availableSubjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }));
 
-  const filtered = chapters.filter((c) => {
-    const matchSearch = !search || (c.title ?? "").toLowerCase().includes(search.toLowerCase());
-    const matchClass = !classId || String(c.class_id) === classId;
-    return matchSearch && matchClass;
-  });
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-  const paged = filtered.slice((page - 1) * perPage, page * perPage);
+  const totalPages = Math.max(1, Math.ceil(chapters.length / perPage));
+  const paged = chapters.slice((page - 1) * perPage, page * perPage);
 
   // clamp page kalau data mengecil (mis. setelah hapus item terakhir di halaman)
   useEffect(() => {
@@ -617,9 +619,9 @@ function AdminChapters() {
           </CardContent>
           <CardFooter className="flex items-center justify-between border-t">
             <p className="text-sm text-muted-foreground">
-              {filtered.length === 0
+              {chapters.length === 0
                 ? "Belum ada data"
-                : `Menampilkan ${(page - 1) * perPage + 1}–${Math.min(page * perPage, filtered.length)} dari ${filtered.length} bab`}
+                : `Menampilkan ${(page - 1) * perPage + 1}–${Math.min(page * perPage, chapters.length)} dari ${chapters.length} bab`}
             </p>
             {totalPages > 1 && (
               <div className="flex gap-1">

@@ -32,7 +32,9 @@ function PackageQuestions() {
   const { data: pkg } = useQuery(getAdminQuestionPackagesByIdOptions({ path: { id: Number(packageId) } }))
   // paket bisa dikelola kalau punya izin DAN (admin, paket sendiri, atau paket tanpa pemilik)
   const canEditPkg = !!pkg && (user?.roles?.includes("admin") || pkg.author_id === user?.id || !pkg.author_id)
-  const { data: questions = [], isLoading } = useQuery(getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) } }))
+  const { data: questions = [], isLoading } = useQuery(
+    getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) }, query: { search: search || undefined } })
+  )
   const [searchInput, setSearchInput] = useState(search ?? "")
   const [page, setPage] = useState(1)
   const perPage = 10
@@ -51,11 +53,8 @@ function PackageQuestions() {
     return () => clearTimeout(timer)
   }, [searchInput, navigate])
 
-  const filtered = questions.filter((q) =>
-    !search || stripHtml(q.question ?? "").toLowerCase().includes(search.toLowerCase())
-  )
-  const totalPages = Math.ceil(filtered.length / perPage)
-  const paged = filtered.slice((page - 1) * perPage, page * perPage)
+  const totalPages = Math.ceil(questions.length / perPage)
+  const paged = questions.slice((page - 1) * perPage, page * perPage)
 
   return (
     <>

@@ -1,6 +1,7 @@
 package chapter
 
 import (
+	"errors"
 	"strconv"
 
 	"bimbel2/backend/internal/middleware"
@@ -29,40 +30,47 @@ func NewHandler(svc *Service, db *gorm.DB) *Handler {
 
 // AdminListChapters mengembalikan daftar semua chapter (admin only)
 // @Summary      List chapters
-// @Description  Mengembalikan daftar semua chapter, bisa difilter dengan class_id & subject_id
+// @Description  Mengembalikan daftar semua chapter, bisa difilter dengan class_id, subject_id & search
 // @Tags         Admin
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        class_id query int false "Filter by class ID"
 // @Param        subject_id query int false "Filter by subject ID"
+// @Param        search query string false "Search by title"
 // @Success      200 {array} ChapterResponse
 // @Router       /admin/chapters [get]
 func (h *Handler) AdminListChapters(c *fiber.Ctx) error {
-	classIDStr := c.Query("class_id")
-	subjectIDStr := c.Query("subject_id")
-
-	if classIDStr != "" && subjectIDStr != "" {
-		classID, err := strconv.ParseUint(classIDStr, 10, 64)
-		if err != nil {
-			return c.Status(400).JSON(ErrorResponse{Error: "class_id tidak valid"})
-		}
-		subjectID, err := strconv.ParseUint(subjectIDStr, 10, 64)
-		if err != nil {
-			return c.Status(400).JSON(ErrorResponse{Error: "subject_id tidak valid"})
-		}
-		chapters, err := h.svc.ListByClassSubject(uint(classID), uint(subjectID))
-		if err != nil {
-			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
-		}
-		return c.JSON(chapters)
+	f, err := parseChapterFilter(c)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
-
-	chapters, err := h.svc.List()
+	chapters, err := h.svc.ListFiltered(f, nil)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
 	return c.JSON(chapters)
+}
+
+func parseChapterFilter(c *fiber.Ctx) (ListFilter, error) {
+	f := ListFilter{Search: c.Query("search", "")}
+	if v := c.Query("class_id"); v != "" {
+		id, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			return f, errors.New("class_id tidak valid")
+		}
+		uid := uint(id)
+		f.ClassID = &uid
+	}
+	if v := c.Query("subject_id"); v != "" {
+		id, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			return f, errors.New("subject_id tidak valid")
+		}
+		uid := uint(id)
+		f.SubjectID = &uid
+	}
+	return f, nil
 }
 
 // AdminGetChapter mengembalikan detail satu chapter (untuk resolve subject)
@@ -189,12 +197,14 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) 
 // @Summary      List chapters
 // @Description  Mengembalikan daftar chapter. Student hanya melihat chapter
 // kelas yang dia langganan; user lain (admin/teacher/user) melihat semua.
+// Bisa difilter class_id, subject_id, dan search (masing-masing opsional).
 // @Tags         Chapters
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        class_id query int false "Filter by class ID"
 // @Param        subject_id query int false "Filter by subject ID"
+// @Param        search query string false "Search by title"
 // @Success      200 {array} ChapterResponse
 // @Router       /chapters [get]
 func (h *Handler) ListChapters(c *fiber.Ctx) error {
@@ -210,25 +220,12 @@ func (h *Handler) ListChapters(c *fiber.Ctx) error {
 		}
 	}
 
-	classIDStr := c.Query("class_id")
-	subjectIDStr := c.Query("subject_id")
-	if classIDStr != "" && subjectIDStr != "" {
-		classID, err := strconv.ParseUint(classIDStr, 10, 64)
-		if err != nil {
-			return c.Status(400).JSON(ErrorResponse{Error: "class_id tidak valid"})
-		}
-		subjectID, err := strconv.ParseUint(subjectIDStr, 10, 64)
-		if err != nil {
-			return c.Status(400).JSON(ErrorResponse{Error: "subject_id tidak valid"})
-		}
-		chapters, err := h.svc.ListByClassSubjectScoped(uint(classID), uint(subjectID), classIDs)
-		if err != nil {
-			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
-		}
-		return c.JSON(chapters)
+	f, err := parseChapterFilter(c)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 
-	chapters, err := h.svc.ListScoped(classIDs)
+	chapters, err := h.svc.ListFiltered(f, classIDs)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}

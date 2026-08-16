@@ -101,6 +101,22 @@ func (s *Service) ListByChapter(chapterID uint, a Access) ([]MaterialResponse, e
 	return s.toResponses(materials), nil
 }
 
+// ListFiltered daftar materi dengan filter opsional chapter_id, search, access,
+// type, status. Non-admin tetap dibatasi scoped (published/milik sendiri).
+func (s *Service) ListFiltered(chapterID *uint, search, access, type_, status string, a Access) ([]MaterialResponse, error) {
+	var materials []models.Material
+	var err error
+	if a.IsAdmin {
+		materials, err = s.repo.ListFiltered(chapterID, search, access, type_, status)
+	} else {
+		materials, err = s.repo.ListFilteredScoped(chapterID, search, access, type_, status, a.CallerID)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return s.toResponses(materials), nil
+}
+
 // ListPublished untuk akses murid/user — hanya materi published.
 // includePremium=false membatasi ke materi free saja.
 // classIDs non-nil membatasi premium ke kelas tertentu; nil = semua kelas (staff).

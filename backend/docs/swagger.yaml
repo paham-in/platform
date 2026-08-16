@@ -1841,8 +1841,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar semua chapter, bisa difilter dengan class_id
-        & subject_id
+      description: Mengembalikan daftar semua chapter, bisa difilter dengan class_id,
+        subject_id & search
       parameters:
       - description: Filter by class ID
         in: query
@@ -1852,6 +1852,10 @@ paths:
         in: query
         name: subject_id
         type: integer
+      - description: Search by title
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
@@ -2333,12 +2337,29 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar semua materi, bisa difilter dengan chapter_id
+      description: Mengembalikan daftar semua materi, bisa difilter dengan chapter_id,
+        search, access, type & status
       parameters:
       - description: Filter by chapter ID
         in: query
         name: chapter_id
         type: integer
+      - description: Search by title
+        in: query
+        name: search
+        type: string
+      - description: Filter by access (free/paid)
+        in: query
+        name: access
+        type: string
+      - description: Filter by type (text/video)
+        in: query
+        name: type
+        type: string
+      - description: Filter by status (draft/published)
+        in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:
@@ -2892,13 +2913,18 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar soal dalam sebuah paket soal
+      description: Mengembalikan daftar soal dalam sebuah paket soal, bisa difilter
+        search
       parameters:
       - description: Package ID
         in: path
         name: id
         required: true
         type: integer
+      - description: Search by question content
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
@@ -3026,6 +3052,15 @@ paths:
       description: |-
         Menghapus pertanyaan (admin)
         Mengembalikan daftar semua pertanyaan (admin)
+      parameters:
+      - description: Filter by subject
+        in: query
+        name: subject_id
+        type: integer
+      - description: Search by content or author name
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       - application/json
@@ -3061,6 +3096,14 @@ paths:
         name: id
         required: true
         type: integer
+      - description: Filter by subject
+        in: query
+        name: subject_id
+        type: integer
+      - description: Search by content or author name
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       - application/json
@@ -3438,11 +3481,16 @@ paths:
       consumes:
       - application/json
       description: 'Mengembalikan sesi yang punya bukti kehadiran + info fee guru
-        & status invoice. Filter status opsional: review/done.'
+        & status invoice. Filter status opsional: review/done, filter search opsional:
+        nama/email murid.'
       parameters:
       - description: 'Filter status: review atau done'
         in: query
         name: status
+        type: string
+      - description: Search by student name or email
+        in: query
+        name: search
         type: string
       produces:
       - application/json
@@ -3902,6 +3950,10 @@ paths:
         in: query
         name: subject_id
         type: integer
+      - description: Search by title
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
@@ -4401,6 +4453,10 @@ paths:
         in: query
         name: unanswered
         type: boolean
+      - description: Search by content or author name
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
@@ -4643,7 +4699,17 @@ paths:
     get:
       consumes:
       - application/json
-      description: Mengembalikan daftar semua mata pelajaran
+      description: Mengembalikan daftar semua mata pelajaran, bisa difilter search
+        & class_id
+      parameters:
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      - description: Filter by class ID
+        in: query
+        name: class_id
+        type: integer
       produces:
       - application/json
       responses:

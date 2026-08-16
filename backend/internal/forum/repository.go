@@ -14,7 +14,7 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) List(subjectID, userID *uint, unanswered bool) ([]models.ForumQuestion, error) {
+func (r *Repository) List(subjectID, userID *uint, unanswered bool, search string) ([]models.ForumQuestion, error) {
 	var questions []models.ForumQuestion
 	q := r.db.
 		Preload("User").
@@ -30,6 +30,10 @@ func (r *Repository) List(subjectID, userID *uint, unanswered bool) ([]models.Fo
 	}
 	if unanswered {
 		q = q.Where("NOT EXISTS (SELECT 1 FROM forum_answers WHERE forum_answers.question_id = forum_questions.id)")
+	}
+	if search != "" {
+		like := "%" + search + "%"
+		q = q.Where("plain_content ILIKE ? OR EXISTS (SELECT 1 FROM users WHERE users.id = forum_questions.user_id AND users.name ILIKE ?)", like, like)
 	}
 	if err := q.Order("created_at desc").Find(&questions).Error; err != nil {
 		return nil, err

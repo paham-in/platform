@@ -21,7 +21,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 /**
  * List chapters
  *
- * Mengembalikan daftar semua chapter, bisa difilter dengan class_id & subject_id
+ * Mengembalikan daftar semua chapter, bisa difilter dengan class_id, subject_id & search
  */
 export const getAdminChapters = <ThrowOnError extends boolean = false>(options?: Options<GetAdminChaptersData, ThrowOnError>): RequestResult<GetAdminChaptersResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminChaptersResponses, unknown, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],
@@ -255,7 +255,7 @@ export const patchAdminInvoicesByIdToggle = <ThrowOnError extends boolean = fals
 /**
  * List materials
  *
- * Mengembalikan daftar semua materi, bisa difilter dengan chapter_id
+ * Mengembalikan daftar semua materi, bisa difilter dengan chapter_id, search, access, type & status
  */
 export const getAdminMaterials = <ThrowOnError extends boolean = false>(options?: Options<GetAdminMaterialsData, ThrowOnError>): RequestResult<GetAdminMaterialsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminMaterialsResponses, unknown, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],
@@ -520,7 +520,7 @@ export const patchAdminQuestionPackagesById = <ThrowOnError extends boolean = fa
 /**
  * List package questions
  *
- * Mengembalikan daftar soal dalam sebuah paket soal
+ * Mengembalikan daftar soal dalam sebuah paket soal, bisa difilter search
  */
 export const getAdminQuestionPackagesByIdQuestions = <ThrowOnError extends boolean = false>(options: Options<GetAdminQuestionPackagesByIdQuestionsData, ThrowOnError>): RequestResult<GetAdminQuestionPackagesByIdQuestionsResponses, GetAdminQuestionPackagesByIdQuestionsErrors, ThrowOnError> => (options.client ?? client).get<GetAdminQuestionPackagesByIdQuestionsResponses, GetAdminQuestionPackagesByIdQuestionsErrors, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],
@@ -757,7 +757,7 @@ export const patchAdminTutoringBookingsByIdAssign = <ThrowOnError extends boolea
 /**
  * List attendance evidence
  *
- * Mengembalikan sesi yang punya bukti kehadiran + info fee guru & status invoice. Filter status opsional: review/done.
+ * Mengembalikan sesi yang punya bukti kehadiran + info fee guru & status invoice. Filter status opsional: review/done, filter search opsional: nama/email murid.
  */
 export const getAdminTutoringEvidence = <ThrowOnError extends boolean = false>(options?: Options<GetAdminTutoringEvidenceData, ThrowOnError>): RequestResult<GetAdminTutoringEvidenceResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminTutoringEvidenceResponses, unknown, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],
@@ -1288,7 +1288,7 @@ export const getStudentClasses = <ThrowOnError extends boolean = false>(options?
 /**
  * List subjects
  *
- * Mengembalikan daftar semua mata pelajaran
+ * Mengembalikan daftar semua mata pelajaran, bisa difilter search & class_id
  */
 export const getSubjects = <ThrowOnError extends boolean = false>(options?: Options<GetSubjectsData, ThrowOnError>): RequestResult<GetSubjectsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetSubjectsResponses, unknown, ThrowOnError>({ url: '/subjects', ...options });
 

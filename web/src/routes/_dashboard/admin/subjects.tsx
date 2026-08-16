@@ -52,7 +52,14 @@ const subjectsSearchSchema = z.object({
 function AdminSubjects() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { search: searchParam, class: classParam } = Route.useSearch();
-  const { data: subjects = [], isLoading } = useQuery(getSubjectsOptions());
+  const { data: subjects = [], isLoading } = useQuery(
+    getSubjectsOptions({
+      query: {
+        search: searchParam || undefined,
+        class_id: classParam,
+      },
+    })
+  );
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
   const { data: programs = [] } = useQuery(getAdminProgramsOptions());
   const [searchInput, setSearchInput] = useState(searchParam ?? "");
@@ -77,13 +84,8 @@ function AdminSubjects() {
     setPage(1);
   };
 
-  const filtered = subjects.filter((s) => {
-    const matchSearch = !searchParam || (s.name ?? "").toLowerCase().includes(searchParam.toLowerCase());
-    const matchClass = classFilter === undefined || (s.class_ids ?? []).includes(classFilter);
-    return matchSearch && matchClass;
-  });
-  const totalPages = Math.ceil(filtered.length / perPage);
-  const paged = filtered.slice((page - 1) * perPage, page * perPage);
+  const totalPages = Math.ceil(subjects.length / perPage);
+  const paged = subjects.slice((page - 1) * perPage, page * perPage);
 
   const openAdd = () => setFormTarget({ open: true, editing: null });
   const openEdit = (s: SubjectListSubjectsResponse) => setFormTarget({ open: true, editing: s });

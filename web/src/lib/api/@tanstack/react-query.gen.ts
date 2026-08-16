@@ -44,7 +44,7 @@ export const getAdminChaptersQueryKey = (options?: Options<GetAdminChaptersData>
 /**
  * List chapters
  *
- * Mengembalikan daftar semua chapter, bisa difilter dengan class_id & subject_id
+ * Mengembalikan daftar semua chapter, bisa difilter dengan class_id, subject_id & search
  */
 export const getAdminChaptersOptions = (options?: Options<GetAdminChaptersData>) => queryOptions<GetAdminChaptersResponse, DefaultError, GetAdminChaptersResponse, ReturnType<typeof getAdminChaptersQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
@@ -410,7 +410,7 @@ export const getAdminMaterialsQueryKey = (options?: Options<GetAdminMaterialsDat
 /**
  * List materials
  *
- * Mengembalikan daftar semua materi, bisa difilter dengan chapter_id
+ * Mengembalikan daftar semua materi, bisa difilter dengan chapter_id, search, access, type & status
  */
 export const getAdminMaterialsOptions = (options?: Options<GetAdminMaterialsData>) => queryOptions<GetAdminMaterialsResponse, DefaultError, GetAdminMaterialsResponse, ReturnType<typeof getAdminMaterialsQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
@@ -814,7 +814,7 @@ export const getAdminQuestionPackagesByIdQuestionsQueryKey = (options: Options<G
 /**
  * List package questions
  *
- * Mengembalikan daftar soal dalam sebuah paket soal
+ * Mengembalikan daftar soal dalam sebuah paket soal, bisa difilter search
  */
 export const getAdminQuestionPackagesByIdQuestionsOptions = (options: Options<GetAdminQuestionPackagesByIdQuestionsData>) => queryOptions<GetAdminQuestionPackagesByIdQuestionsResponse, GetAdminQuestionPackagesByIdQuestionsError, GetAdminQuestionPackagesByIdQuestionsResponse, ReturnType<typeof getAdminQuestionPackagesByIdQuestionsQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
@@ -1177,7 +1177,7 @@ export const getAdminTutoringEvidenceQueryKey = (options?: Options<GetAdminTutor
 /**
  * List attendance evidence
  *
- * Mengembalikan sesi yang punya bukti kehadiran + info fee guru & status invoice. Filter status opsional: review/done.
+ * Mengembalikan sesi yang punya bukti kehadiran + info fee guru & status invoice. Filter status opsional: review/done, filter search opsional: nama/email murid.
  */
 export const getAdminTutoringEvidenceOptions = (options?: Options<GetAdminTutoringEvidenceData>) => queryOptions<GetAdminTutoringEvidenceResponse, DefaultError, GetAdminTutoringEvidenceResponse, ReturnType<typeof getAdminTutoringEvidenceQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
@@ -2034,7 +2034,7 @@ export const getSubjectsQueryKey = (options?: Options<GetSubjectsData>) => creat
 /**
  * List subjects
  *
- * Mengembalikan daftar semua mata pelajaran
+ * Mengembalikan daftar semua mata pelajaran, bisa difilter search & class_id
  */
 export const getSubjectsOptions = (options?: Options<GetSubjectsData>) => queryOptions<GetSubjectsResponse, DefaultError, GetSubjectsResponse, ReturnType<typeof getSubjectsQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {

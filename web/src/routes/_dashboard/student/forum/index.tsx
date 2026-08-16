@@ -68,7 +68,14 @@ function ForumPage() {
   const { search: searchParam, subject: subjectParam } = Route.useSearch()
   const canPost = useCanPostForum()
   const locked = canPost === false
-  const { data: questions = [], isLoading } = useQuery(getQuestionsOptions())
+  const { data: questions = [], isLoading } = useQuery(
+    getQuestionsOptions({
+      query: {
+        subject_id: subjectParam && subjectParam !== "all" ? Number(subjectParam) : undefined,
+        search: searchParam || undefined,
+      },
+    })
+  )
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const subjectFilter = subjectParam ?? "all"
@@ -78,7 +85,7 @@ function ForumPage() {
     ...subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) })),
   ]
   const activeFilterCount = subjectFilter !== "all" ? 1 : 0
-  const hasActiveFilter = !!searchInput || subjectFilter !== "all"
+  const hasActiveFilter = !!searchParam || subjectFilter !== "all"
 
   // sync URL → local search input
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
@@ -94,13 +101,6 @@ function ForumPage() {
   const setSubjectFilter = (v: string) => {
     navigate({ search: (prev) => ({ ...prev, subject: v === "all" ? undefined : v }), replace: true })
   }
-
-  const filtered = questions.filter((q) => {
-    const term = searchInput.trim().toLowerCase()
-    const matchSearch = !term || (q.plain_content ?? "").toLowerCase().includes(term)
-    const matchSubject = subjectFilter === "all" || String(q.subject_id) === subjectFilter
-    return matchSearch && matchSubject
-  })
 
   const resetFilters = () => {
     setSearchInput("")
@@ -199,7 +199,7 @@ function ForumPage() {
         </Link>
       </div>
 
-      {filtered.length === 0 ? (
+      {questions.length === 0 ? (
         <Empty className="py-12">
           <EmptyHeader>
             <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <MessageSquare />}</EmptyMedia>
@@ -226,7 +226,7 @@ function ForumPage() {
         </Empty>
       ) : (
         <div className="columns-2 gap-4">
-          {filtered.map((q) => (
+          {questions.map((q) => (
             <Card key={q.id} className="mb-4 break-inside-avoid transition-colors hover:bg-muted/40">
               <Link
                 to="/student/forum/$id"

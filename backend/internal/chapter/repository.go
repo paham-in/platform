@@ -72,6 +72,49 @@ func (r *Repository) ListByClassSubjectScoped(classID, subjectID uint, classIDs 
 	return chapters, nil
 }
 
+type ListFilter struct {
+	ClassID   *uint
+	SubjectID *uint
+	Search    string
+}
+
+// ListFiltered mengembalikan chapter dengan filter opsional class_id, subject_id
+// (masing-masing berdiri sendiri, tidak wajib berpasangan) dan pencarian judul.
+func (r *Repository) ListFiltered(f ListFilter) ([]models.Chapter, error) {
+	return r.listFiltered(f, nil)
+}
+
+// ListFilteredScoped sama dengan ListFiltered tapi menghormati batas akses
+// classIDs (hak akses student).
+func (r *Repository) ListFilteredScoped(f ListFilter, classIDs []uint) ([]models.Chapter, error) {
+	return r.listFiltered(f, classIDs)
+}
+
+func (r *Repository) listFiltered(f ListFilter, classIDs []uint) ([]models.Chapter, error) {
+	q := r.db.Preload("Class").Preload("Subject")
+	if f.ClassID != nil {
+		q = q.Where("class_id = ?", *f.ClassID)
+	}
+	if f.SubjectID != nil {
+		q = q.Where("subject_id = ?", *f.SubjectID)
+	}
+	if f.Search != "" {
+		q = q.Where("title ILIKE ?", "%"+f.Search+"%")
+	}
+	if classIDs != nil {
+		q = q.Where(`class_id IN ? OR EXISTS (
+			SELECT 1 FROM materials
+			WHERE materials.chapter_id = chapters.id
+			  AND materials.is_free = ? AND materials.status = ? AND materials.deleted_at IS NULL
+		)`, classIDs, true, "published")
+	}
+	var chapters []models.Chapter
+	if err := q.Order("\"order\" asc, title asc").Find(&chapters).Error; err != nil {
+		return nil, err
+	}
+	return chapters, nil
+}
+
 func (r *Repository) Get(id uint) (*models.Chapter, error) {
 	var chapter models.Chapter
 	if err := r.db.Preload("Class").Preload("Subject").First(&chapter, id).Error; err != nil {

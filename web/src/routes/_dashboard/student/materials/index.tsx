@@ -30,7 +30,14 @@ const materialsSearchSchema = z.object({
 function MaterialsPage() {
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam, subject: subjectParam } = Route.useSearch()
-  const { data: chapters = [], isLoading, isError } = useQuery(getChaptersOptions())
+  const { data: chapters = [], isLoading, isError } = useQuery(
+    getChaptersOptions({
+      query: {
+        subject_id: subjectParam && subjectParam !== "all" ? Number(subjectParam) : undefined,
+        search: searchParam || undefined,
+      },
+    })
+  )
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const { data: classes = [] } = useQuery(getClassesOptions())
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
@@ -57,12 +64,6 @@ function MaterialsPage() {
   const setSubjectFilter = (v: string) => {
     navigate({ search: (prev) => ({ ...prev, subject: v === "all" ? undefined : v }), replace: true })
   }
-
-  const filtered = chapters.filter((c) => {
-    const matchSearch = !searchParam || (c.title ?? "").toLowerCase().includes(searchParam.toLowerCase())
-    const matchSubject = subjectFilter === "all" || String(c.subject_id) === subjectFilter
-    return matchSearch && matchSubject
-  })
 
   const subjectName = (id: number | undefined) => subjects.find((s) => s.id === id)?.name ?? "-"
   const className = (id: number | undefined) => classes.find((c) => c.id === id)?.name ?? "-"
@@ -153,7 +154,7 @@ function MaterialsPage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.length === 0 ? (
+        {chapters.length === 0 ? (
           <Empty className="sm:col-span-2 lg:col-span-3">
             <EmptyHeader>
               <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <BookOpen />}</EmptyMedia>
@@ -180,7 +181,7 @@ function MaterialsPage() {
             )}
           </Empty>
         ) : (
-          filtered.map((c) => (
+          chapters.map((c) => (
             <Link key={c.id} to="/student/materials/chapters/$id" params={{ id: String(c.id!) }}>
               <Card className="group cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
                 {c.cover_url ? (

@@ -346,12 +346,17 @@ func (r *Repository) MarkSessionsTaken(teacherID uint, ids []uint, taken bool) e
 }
 
 // ListSessionsWithEvidence mengembalikan sesi yang punya bukti kehadiran.
-// status opsional: "" = semua, atau "review"/"done".
-func (r *Repository) ListSessionsWithEvidence(status string) ([]models.TutoringSession, error) {
+// status opsional: "" = semua, atau "review"/"done". search opsional:
+// mencocokkan nama/email murid.
+func (r *Repository) ListSessionsWithEvidence(status, search string) ([]models.TutoringSession, error) {
 	var sessions []models.TutoringSession
 	q := r.db.Where("evidence_url <> ''").Preload("Booking.Student").Preload("Booking.Teacher").Preload("Booking.Invoice")
 	if status != "" {
 		q = q.Where("status = ?", status)
+	}
+	if search != "" {
+		like := "%" + search + "%"
+		q = q.Where("EXISTS (SELECT 1 FROM bookings b JOIN users u ON u.id = b.student_id WHERE b.id = tutoring_sessions.booking_id AND (u.name ILIKE ? OR u.email ILIKE ?))", like, like)
 	}
 	if err := q.Order("date desc, start_time").Find(&sessions).Error; err != nil {
 		return nil, err

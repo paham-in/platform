@@ -55,8 +55,8 @@ func (s *Service) deleteWithCleanup(id uint) error {
 	return nil
 }
 
-func (s *Service) List(subjectID, userID *uint, unanswered bool) ([]models.ForumQuestion, error) {
-	return s.repo.List(subjectID, userID, unanswered)
+func (s *Service) List(subjectID, userID *uint, unanswered bool, search string) ([]models.ForumQuestion, error) {
+	return s.repo.List(subjectID, userID, unanswered, search)
 }
 
 // commitContent memindahkan gambar temp ke lokasi permanen (kalau ada) lalu

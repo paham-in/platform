@@ -24,7 +24,14 @@ const paymentsSearchSchema = z.object({
 function PaymentsIndex() {
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam } = Route.useSearch()
-  const { data: users = [], isLoading } = useQuery(getAdminUsersOptions())
+  const { data: users = [], isLoading } = useQuery(
+    getAdminUsersOptions({
+      query: {
+        role: "student",
+        search: searchParam || undefined,
+      },
+    })
+  )
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
 
   // sync URL → local search input
@@ -38,15 +45,7 @@ function PaymentsIndex() {
     return () => clearTimeout(timer)
   }, [searchInput, navigate])
 
-  const students = users.filter((u) => {
-    const roles = u.roles ?? []
-    return roles.includes("student")
-  })
-  const filtered = students.filter((u) =>
-    !searchParam ||
-    (u.name ?? "").toLowerCase().includes(searchParam.toLowerCase()) ||
-    (u.email ?? "").toLowerCase().includes(searchParam.toLowerCase())
-  )
+  const students = users
 
   return (
     <main className="p-6">
@@ -97,7 +96,7 @@ function PaymentsIndex() {
                   <TableCell className="pr-6"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
                 </TableRow>
               ))
-            ) : filtered.map((u) => (
+            ) : students.map((u) => (
               <TableRow
                 key={u.id}
                 className="cursor-pointer hover:bg-muted/50"
@@ -131,7 +130,7 @@ function PaymentsIndex() {
                 </TableCell>
               </TableRow>
             ))}
-              {!isLoading && filtered.length === 0 && (
+              {!isLoading && students.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={3}>
                     <Empty className="border-0 p-8">

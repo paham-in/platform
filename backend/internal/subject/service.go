@@ -15,8 +15,8 @@ func NewService(repo *Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) List() ([]ListSubjectsResponse, error) {
-	subjects, err := s.repo.List()
+func (s *Service) List(search string, classID uint) ([]ListSubjectsResponse, error) {
+	subjects, err := s.repo.List(search, classID)
 	if err != nil {
 		return nil, err
 	}

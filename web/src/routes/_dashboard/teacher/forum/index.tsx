@@ -43,15 +43,16 @@ function TeacherForum() {
   const perPage = 10
 
   const { data: questions = [], isLoading } = useQuery(
-    getQuestionsOptions({ query: unansweredOnly ? { unanswered: true } : undefined })
+    getQuestionsOptions({
+      query: {
+        unanswered: unansweredOnly ? true : undefined,
+        search: searchParam || undefined,
+      },
+    })
   )
 
-  const filtered = questions.filter((q) =>
-    (q.plain_content ?? "").toLowerCase().includes(searchParam?.toLowerCase() ?? "") ||
-    (q.user_name ?? "").toLowerCase().includes(searchParam?.toLowerCase() ?? "")
-  )
-  const totalPages = Math.ceil(filtered.length / perPage)
-  const paged = filtered.slice((page - 1) * perPage, page * perPage)
+  const totalPages = Math.ceil(questions.length / perPage)
+  const paged = questions.slice((page - 1) * perPage, page * perPage)
 
   // Sync URL → local state when search changes externally
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])

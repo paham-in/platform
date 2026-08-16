@@ -69,7 +69,7 @@ func (s *Service) canManagePackage(p *models.QuizPackage, a Access) bool {
 	return p.AuthorID == a.CallerID || p.AuthorID == 0
 }
 
-func (s *Service) ListByPackage(packageID uint, a Access) ([]QuestionResponse, error) {
+func (s *Service) ListByPackage(packageID uint, search string, a Access) ([]QuestionResponse, error) {
 	pkg, err := s.repo.GetPackage(packageID)
 	if err != nil {
 		return nil, ErrNotFound
@@ -77,7 +77,7 @@ func (s *Service) ListByPackage(packageID uint, a Access) ([]QuestionResponse, e
 	if !s.canViewPackage(pkg, a) {
 		return nil, ErrNotFound
 	}
-	questions, err := s.repo.ListByPackage(packageID)
+	questions, err := s.repo.ListByPackage(packageID, search)
 	if err != nil {
 		return nil, err
 	}

@@ -17,14 +17,25 @@ func NewHandler(svc *Service) *Handler {
 
 // ListSubjects mengembalikan daftar semua mata pelajaran
 // @Summary      List subjects
-// @Description  Mengembalikan daftar semua mata pelajaran
+// @Description  Mengembalikan daftar semua mata pelajaran, bisa difilter search & class_id
 // @Tags         Subjects
 // @Accept       json
 // @Produce      json
+// @Param        search query string false "Search by name"
+// @Param        class_id query int false "Filter by class ID"
 // @Success      200 {array} ListSubjectsResponse
 // @Router       /subjects [get]
 func (h *Handler) ListSubjects(c *fiber.Ctx) error {
-	subjects, err := h.svc.List()
+	search := c.Query("search", "")
+	var classID uint
+	if v := c.Query("class_id"); v != "" {
+		id, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			return c.Status(400).JSON(ErrorResponse{Error: "class_id tidak valid"})
+		}
+		classID = uint(id)
+	}
+	subjects, err := h.svc.List(search, classID)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}

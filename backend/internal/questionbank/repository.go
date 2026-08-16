@@ -24,11 +24,15 @@ func (r *Repository) GetPackage(id uint) (*models.QuizPackage, error) {
 	return &pkg, nil
 }
 
-func (r *Repository) ListByPackage(packageID uint) ([]models.QuizQuestion, error) {
+func (r *Repository) ListByPackage(packageID uint, search string) ([]models.QuizQuestion, error) {
 	var questions []models.QuizQuestion
-	if err := r.db.Preload("User").Preload("Answers", func(db *gorm.DB) *gorm.DB {
+	q := r.db.Preload("User").Preload("Answers", func(db *gorm.DB) *gorm.DB {
 		return db.Order("sort_order asc")
-	}).Where("package_id = ?", packageID).Order("created_at desc").Find(&questions).Error; err != nil {
+	}).Where("package_id = ?", packageID)
+	if search != "" {
+		q = q.Where("question ILIKE ?", "%"+search+"%")
+	}
+	if err := q.Order("created_at desc").Find(&questions).Error; err != nil {
 		return nil, err
 	}
 	return questions, nil

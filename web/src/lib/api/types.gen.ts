@@ -1115,6 +1115,10 @@ export type GetAdminChaptersData = {
          * Filter by subject ID
          */
         subject_id?: number;
+        /**
+         * Search by title
+         */
+        search?: string;
     };
     url: '/admin/chapters';
 };
@@ -1633,6 +1637,22 @@ export type GetAdminMaterialsData = {
          * Filter by chapter ID
          */
         chapter_id?: number;
+        /**
+         * Search by title
+         */
+        search?: string;
+        /**
+         * Filter by access (free/paid)
+         */
+        access?: string;
+        /**
+         * Filter by type (text/video)
+         */
+        type?: string;
+        /**
+         * Filter by status (draft/published)
+         */
+        status?: string;
     };
     url: '/admin/materials';
 };
@@ -2212,7 +2232,12 @@ export type GetAdminQuestionPackagesByIdQuestionsData = {
          */
         id: number;
     };
-    query?: never;
+    query?: {
+        /**
+         * Search by question content
+         */
+        search?: string;
+    };
     url: '/admin/question-packages/{id}/questions';
 };
 
@@ -2341,7 +2366,16 @@ export type PatchAdminQuestionPackagesByIdQuestionsByQidResponse = PatchAdminQue
 export type GetAdminQuestionsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Filter by subject
+         */
+        subject_id?: number;
+        /**
+         * Search by content or author name
+         */
+        search?: string;
+    };
     url: '/admin/questions';
 };
 
@@ -2371,7 +2405,16 @@ export type DeleteAdminQuestionsByIdData = {
          */
         id: number;
     };
-    query?: never;
+    query?: {
+        /**
+         * Filter by subject
+         */
+        subject_id?: number;
+        /**
+         * Search by content or author name
+         */
+        search?: string;
+    };
     url: '/admin/questions/{id}';
 };
 
@@ -2756,6 +2799,10 @@ export type GetAdminTutoringEvidenceData = {
          * Filter status: review atau done
          */
         status?: string;
+        /**
+         * Search by student name or email
+         */
+        search?: string;
     };
     url: '/admin/tutoring/evidence';
 };
@@ -3205,6 +3252,10 @@ export type GetChaptersData = {
          * Filter by subject ID
          */
         subject_id?: number;
+        /**
+         * Search by title
+         */
+        search?: string;
     };
     url: '/chapters';
 };
@@ -3708,6 +3759,10 @@ export type GetQuestionsData = {
          * Filter unanswered only
          */
         unanswered?: boolean;
+        /**
+         * Search by content or author name
+         */
+        search?: string;
     };
     url: '/questions';
 };
@@ -3948,7 +4003,16 @@ export type GetStudentClassesResponse = GetStudentClassesResponses[keyof GetStud
 export type GetSubjectsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Search by name
+         */
+        search?: string;
+        /**
+         * Filter by class ID
+         */
+        class_id?: number;
+    };
     url: '/subjects';
 };
 

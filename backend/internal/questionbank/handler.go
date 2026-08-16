@@ -45,12 +45,13 @@ func callerAccess(c *fiber.Ctx) Access {
 
 // ListQuestions mengembalikan daftar soal dalam paket
 // @Summary      List package questions
-// @Description  Mengembalikan daftar soal dalam sebuah paket soal
+// @Description  Mengembalikan daftar soal dalam sebuah paket soal, bisa difilter search
 // @Tags         QuestionPackage
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int true "Package ID"
+// @Param        search query string false "Search by question content"
 // @Success      200 {array} QuestionResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /admin/question-packages/{id}/questions [get]
@@ -59,7 +60,8 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id paket tidak valid"})
 	}
-	questions, err := h.svc.ListByPackage(uint(packageID), callerAccess(c))
+	search := c.Query("search", "")
+	questions, err := h.svc.ListByPackage(uint(packageID), search, callerAccess(c))
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})

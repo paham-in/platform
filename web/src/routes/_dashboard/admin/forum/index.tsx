@@ -27,7 +27,9 @@ const adminForumSearchSchema = z.object({
 function AdminForum() {
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam } = Route.useSearch()
-  const { data: questions = [], isLoading } = useQuery(getAdminQuestionsOptions())
+  const { data: questions = [], isLoading } = useQuery(
+    getAdminQuestionsOptions({ query: { search: searchParam || undefined } })
+  )
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const [page, setPage] = useState(1)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; content: string } | null>(null)
@@ -44,12 +46,8 @@ function AdminForum() {
     return () => clearTimeout(timer)
   }, [searchInput, navigate])
 
-  const filtered = questions.filter((q) =>
-    !searchParam || (q.plain_content ?? "").toLowerCase().includes(searchParam.toLowerCase()) ||
-    (q.user_name ?? "").toLowerCase().includes(searchParam.toLowerCase())
-  )
-  const totalPages = Math.ceil(filtered.length / perPage)
-  const paged = filtered.slice((page - 1) * perPage, page * perPage)
+  const totalPages = Math.ceil(questions.length / perPage)
+  const paged = questions.slice((page - 1) * perPage, page * perPage)
 
   return (
     <>

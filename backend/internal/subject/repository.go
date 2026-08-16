@@ -14,9 +14,16 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r *Repository) List() ([]models.Subject, error) {
+func (r *Repository) List(search string, classID uint) ([]models.Subject, error) {
+	q := r.db.Order("name asc")
+	if search != "" {
+		q = q.Where("name ILIKE ?", "%"+search+"%")
+	}
+	if classID > 0 {
+		q = q.Where("EXISTS (SELECT 1 FROM class_subjects WHERE class_subjects.subject_id = subjects.id AND class_subjects.class_id = ?)", classID)
+	}
 	var subjects []models.Subject
-	if err := r.db.Order("name asc").Find(&subjects).Error; err != nil {
+	if err := q.Find(&subjects).Error; err != nil {
 		return nil, err
 	}
 	return subjects, nil

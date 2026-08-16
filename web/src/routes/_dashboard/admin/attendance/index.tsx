@@ -34,7 +34,9 @@ const fmtRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`
 function AttendanceIndex() {
   const navigate = useNavigate({ from: Route.fullPath })
   const { status, search: searchParam } = Route.useSearch()
-  const { data: sessions = [], isLoading } = useQuery(getAdminTutoringEvidenceOptions({ query: { status } }))
+  const { data: sessions = [], isLoading } = useQuery(
+    getAdminTutoringEvidenceOptions({ query: { status, search: searchParam || undefined } })
+  )
   const { data: users = [] } = useQuery(getAdminUsersOptions())
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
 
@@ -63,11 +65,7 @@ function AttendanceIndex() {
     const name = u?.name ?? sessions.find((s) => s.student_id === id)?.student_name ?? "—"
     const email = u?.email ?? ""
     return { id, name, email, avatar: u?.avatar_url, ...agg }
-  }).filter((r) =>
-    !searchParam ||
-    r.name.toLowerCase().includes(searchParam.toLowerCase()) ||
-    r.email.toLowerCase().includes(searchParam.toLowerCase())
-  )
+  })
 
   const setFilter = (s: "review" | "done" | undefined) => {
     navigate({ search: (prev) => ({ ...prev, status: s }), replace: true })

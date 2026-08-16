@@ -22,7 +22,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan daftar semua chapter, bisa difilter dengan class_id \u0026 subject_id",
+                "description": "Mengembalikan daftar semua chapter, bisa difilter dengan class_id, subject_id \u0026 search",
                 "consumes": [
                     "application/json"
                 ],
@@ -44,6 +44,12 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Filter by subject ID",
                         "name": "subject_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by title",
+                        "name": "search",
                         "in": "query"
                     }
                 ],
@@ -802,7 +808,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan daftar semua materi, bisa difilter dengan chapter_id",
+                "description": "Mengembalikan daftar semua materi, bisa difilter dengan chapter_id, search, access, type \u0026 status",
                 "consumes": [
                     "application/json"
                 ],
@@ -818,6 +824,30 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Filter by chapter ID",
                         "name": "chapter_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by title",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by access (free/paid)",
+                        "name": "access",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by type (text/video)",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status (draft/published)",
+                        "name": "status",
                         "in": "query"
                     }
                 ],
@@ -1689,7 +1719,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan daftar soal dalam sebuah paket soal",
+                "description": "Mengembalikan daftar soal dalam sebuah paket soal, bisa difilter search",
                 "consumes": [
                     "application/json"
                 ],
@@ -1707,6 +1737,12 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by question content",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1909,6 +1945,20 @@ const docTemplate = `{
                     "Admin"
                 ],
                 "summary": "Admin list questions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Filter by subject",
+                        "name": "subject_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by content or author name",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1959,6 +2009,18 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by subject",
+                        "name": "subject_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by content or author name",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2542,7 +2604,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Mengembalikan sesi yang punya bukti kehadiran + info fee guru \u0026 status invoice. Filter status opsional: review/done.",
+                "description": "Mengembalikan sesi yang punya bukti kehadiran + info fee guru \u0026 status invoice. Filter status opsional: review/done, filter search opsional: nama/email murid.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2558,6 +2620,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Filter status: review atau done",
                         "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by student name or email",
+                        "name": "search",
                         "in": "query"
                     }
                 ],
@@ -3273,6 +3341,12 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Filter by subject ID",
                         "name": "subject_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by title",
+                        "name": "search",
                         "in": "query"
                     }
                 ],
@@ -4054,6 +4128,12 @@ const docTemplate = `{
                         "description": "Filter unanswered only",
                         "name": "unanswered",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by content or author name",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -4424,7 +4504,7 @@ const docTemplate = `{
         },
         "/subjects": {
             "get": {
-                "description": "Mengembalikan daftar semua mata pelajaran",
+                "description": "Mengembalikan daftar semua mata pelajaran, bisa difilter search \u0026 class_id",
                 "consumes": [
                     "application/json"
                 ],
@@ -4435,6 +4515,20 @@ const docTemplate = `{
                     "Subjects"
                 ],
                 "summary": "List subjects",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search by name",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by class ID",
+                        "name": "class_id",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

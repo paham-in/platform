@@ -30,6 +30,51 @@ func (r *Repository) ListByChapter(chapterID uint) ([]models.Material, error) {
 	return materials, nil
 }
 
+// ListFiltered mengembalikan materi dengan filter opsional chapter_id, search
+// (judul), access (free/paid), type (text/video), dan status (draft/published).
+func (r *Repository) ListFiltered(chapterID *uint, search, access, type_, status string) ([]models.Material, error) {
+	var materials []models.Material
+	q := r.db.Preload("Chapter")
+	q = r.applyFilters(q, chapterID, search, access, type_, status)
+	if err := q.Order("\"order\" asc, title asc").Find(&materials).Error; err != nil {
+		return nil, err
+	}
+	return materials, nil
+}
+
+// ListFilteredScoped sama dengan ListFiltered tapi dibatasi: published + materi
+// milik caller + materi tanpa pemilik (non-admin).
+func (r *Repository) ListFilteredScoped(chapterID *uint, search, access, type_, status string, callerID uint) ([]models.Material, error) {
+	var materials []models.Material
+	q := r.db.Preload("Chapter").Where("status = ? OR author_id = ? OR author_id = 0", "published", callerID)
+	q = r.applyFilters(q, chapterID, search, access, type_, status)
+	if err := q.Order("\"order\" asc, title asc").Find(&materials).Error; err != nil {
+		return nil, err
+	}
+	return materials, nil
+}
+
+func (r *Repository) applyFilters(q *gorm.DB, chapterID *uint, search, access, type_, status string) *gorm.DB {
+	if chapterID != nil {
+		q = q.Where("chapter_id = ?", *chapterID)
+	}
+	if search != "" {
+		q = q.Where("title ILIKE ?", "%"+search+"%")
+	}
+	if access == "free" {
+		q = q.Where("is_free = ?", true)
+	} else if access == "paid" {
+		q = q.Where("is_free = ?", false)
+	}
+	if type_ != "" {
+		q = q.Where("type = ?", type_)
+	}
+	if status != "" {
+		q = q.Where("status = ?", status)
+	}
+	return q
+}
+
 // ListScoped utk non-admin: published + materi milik caller + materi tanpa pemilik.
 func (r *Repository) ListScoped(callerID uint) ([]models.Material, error) {
 	var materials []models.Material

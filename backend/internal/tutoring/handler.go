@@ -413,12 +413,13 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 
 // AdminListEvidence lists sessions with attendance evidence (admin only)
 // @Summary      List attendance evidence
-// @Description  Mengembalikan sesi yang punya bukti kehadiran + info fee guru & status invoice. Filter status opsional: review/done.
+// @Description  Mengembalikan sesi yang punya bukti kehadiran + info fee guru & status invoice. Filter status opsional: review/done, filter search opsional: nama/email murid.
 // @Tags         Admin Tutoring
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        status query string false "Filter status: review atau done"
+// @Param        search query string false "Search by student name or email"
 // @Success      200 {array} AdminListEvidenceResponse
 // @Router       /admin/tutoring/evidence [get]
 func (h *Handler) AdminListEvidence(c *fiber.Ctx) error {
@@ -426,7 +427,8 @@ func (h *Handler) AdminListEvidence(c *fiber.Ctx) error {
 	if status != "" && status != "review" && status != "done" {
 		return c.Status(400).JSON(ErrorResponse{Error: "status harus review atau done"})
 	}
-	sessions, err := h.svc.ListEvidence(status)
+	search := c.Query("search", "")
+	sessions, err := h.svc.ListEvidence(status, search)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}

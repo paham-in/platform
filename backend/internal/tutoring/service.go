@@ -1102,10 +1102,11 @@ func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (
 	return &r, oldObject, nil
 }
 
-// ListEvidence mengembalikan sesi yang punya bukti, difilter status ("" = semua).
+// ListEvidence mengembalikan sesi yang punya bukti, difilter status ("" = semua)
+// dan search (nama/email murid, opsional).
 // Plus info fee & status invoice utk halaman admin gabungan validasi + fee guru.
-func (s *Service) ListEvidence(status string) ([]AdminListEvidenceResponse, error) {
-	sessions, err := s.repo.ListSessionsWithEvidence(status)
+func (s *Service) ListEvidence(status, search string) ([]AdminListEvidenceResponse, error) {
+	sessions, err := s.repo.ListSessionsWithEvidence(status, search)
 	if err != nil {
 		return nil, err
 	}

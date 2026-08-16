@@ -47,28 +47,33 @@ func NewHandler(svc *Service, db *gorm.DB) *Handler {
 
 // AdminListMaterials mengembalikan daftar semua materi (admin only)
 // @Summary      List materials
-// @Description  Mengembalikan daftar semua materi, bisa difilter dengan chapter_id
+// @Description  Mengembalikan daftar semua materi, bisa difilter dengan chapter_id, search, access, type & status
 // @Tags         Admin
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        chapter_id query int false "Filter by chapter ID"
+// @Param        search query string false "Search by title"
+// @Param        access query string false "Filter by access (free/paid)"
+// @Param        type query string false "Filter by type (text/video)"
+// @Param        status query string false "Filter by status (draft/published)"
 // @Success      200 {array} MaterialResponse
 // @Router       /admin/materials [get]
 func (h *Handler) AdminListMaterials(c *fiber.Ctx) error {
-	if chapterIDStr := c.Query("chapter_id"); chapterIDStr != "" {
-		chapterID, err := strconv.ParseUint(chapterIDStr, 10, 64)
+	var chapterID *uint
+	if v := c.Query("chapter_id"); v != "" {
+		id, err := strconv.ParseUint(v, 10, 64)
 		if err != nil {
 			return c.Status(400).JSON(ErrorResponse{Error: "chapter_id tidak valid"})
 		}
-		materials, err := h.svc.ListByChapter(uint(chapterID), callerAccess(c))
-		if err != nil {
-			return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
-		}
-		return c.JSON(materials)
+		uid := uint(id)
+		chapterID = &uid
 	}
-
-	materials, err := h.svc.List(callerAccess(c))
+	search := c.Query("search", "")
+	access := c.Query("access", "")
+	type_ := c.Query("type", "")
+	status := c.Query("status", "")
+	materials, err := h.svc.ListFiltered(chapterID, search, access, type_, status, callerAccess(c))
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}

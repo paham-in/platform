@@ -120,7 +120,15 @@ function ChapterMaterials() {
   // materi bisa dikelola kalau punya izin kelola DAN (admin, materi sendiri, atau materi tanpa pemilik)
   const canEdit = (m: { author_id?: number }) => user?.roles?.includes("admin") || m.author_id === user?.id || !m.author_id;
   const { data: materials = [], isLoading, isError } = useQuery(
-    getAdminMaterialsOptions({ query: { chapter_id: Number(chapterId) } })
+    getAdminMaterialsOptions({
+      query: {
+        chapter_id: Number(chapterId),
+        search: search || undefined,
+        access: access || undefined,
+        type: type || undefined,
+        status: status || undefined,
+      },
+    })
   );
   const { data: chapters = [] } = useQuery(getAdminChaptersOptions());
   const chapter = chapters.find((c) => c.id === Number(chapterId));
@@ -182,15 +190,8 @@ function ChapterMaterials() {
     },
   });
 
-  const filtered = materials.filter((m) => {
-    const matchSearch = !search || (m.title ?? "").toLowerCase().includes(search.toLowerCase());
-    const matchFree = !access || (access === "free" ? m.is_free : !m.is_free);
-    const matchType = !type || m.type === type;
-    const matchStatus = !status || (m.status ?? "draft") === status;
-    return matchSearch && matchFree && matchType && matchStatus;
-  });
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-  const paged = filtered.slice((page - 1) * perPage, page * perPage);
+  const totalPages = Math.max(1, Math.ceil(materials.length / perPage));
+  const paged = materials.slice((page - 1) * perPage, page * perPage);
 
   // clamp page kalau data mengecil (mis. setelah hapus item terakhir di halaman)
   useEffect(() => {
@@ -455,10 +456,10 @@ function ChapterMaterials() {
               </TableBody>
             </Table>
           </CardContent>
-          {filtered.length > 0 && (
+          {materials.length > 0 && (
             <CardFooter className="flex flex-wrap items-center justify-between gap-2 border-t">
               <p className="text-sm text-muted-foreground">
-                Menampilkan {(page - 1) * perPage + 1}-{Math.min(page * perPage, filtered.length)} dari {filtered.length} materi
+                Menampilkan {(page - 1) * perPage + 1}-{Math.min(page * perPage, materials.length)} dari {materials.length} materi
               </p>
               {totalPages > 1 && (
                 <div className="flex gap-1">

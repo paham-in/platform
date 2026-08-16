@@ -69,6 +69,22 @@ func (s *Service) ListByClassSubjectScoped(classID, subjectID uint, classIDs []u
 	return s.toResponses(chapters), nil
 }
 
+// ListFiltered daftar chapter dengan filter opsional class_id/subject_id/search
+// (masing-masing berdiri sendiri). classIDs nil = semua kelas (staff).
+func (s *Service) ListFiltered(f ListFilter, classIDs []uint) ([]ChapterResponse, error) {
+	var chapters []models.Chapter
+	var err error
+	if classIDs != nil {
+		chapters, err = s.repo.ListFilteredScoped(f, classIDs)
+	} else {
+		chapters, err = s.repo.ListFiltered(f)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return s.toResponses(chapters), nil
+}
+
 func (s *Service) Get(id uint) (*ChapterResponse, error) {
 	chapter, err := s.repo.Get(id)
 	if err != nil {
