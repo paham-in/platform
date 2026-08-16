@@ -223,8 +223,7 @@ func (s *Service) Update(id uint, input UpdateInput, a Access) (*MaterialRespons
 	}
 	if input.Content != nil {
 		// commit gambar temp baru, lalu diff aset content dengan DB: gambar yang
-		// sudah tidak ada di content ikut dihapus filenya (kecuali milik galeri
-		// yang dipakai bersama lintas materi).
+		// sudah tidak ada di content ikut dihapus filenya.
 		committed, err := s.commitContent(*input.Content)
 		if err != nil {
 			return nil, err
@@ -236,10 +235,7 @@ func (s *Service) Update(id uint, input UpdateInput, a Access) (*MaterialRespons
 			if err != nil {
 				return nil, err
 			}
-			removed, err = s.repo.ExcludeGalleryAssets(difference(oldAssets, newAssets))
-			if err != nil {
-				return nil, err
-			}
+			removed = difference(oldAssets, newAssets)
 		}
 		if err := s.repo.UpdateContentWithAssets(id, committed, newAssets); err != nil {
 			return nil, err

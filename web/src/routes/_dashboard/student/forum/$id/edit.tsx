@@ -119,7 +119,7 @@ function EditQuestion() {
           <p className="text-xs text-muted-foreground">
             Tarik & lepas gambar ke editor untuk mengunggahnya langsung.
           </p>
-          <TiptapEditor content={question.content ?? ""} onChange={setContent} allowImages={false} tempFolder="forum_questions" onUploadingChange={setEditorUploading} />
+          <TiptapEditor content={question.content ?? ""} onChange={setContent} tempFolder="forum_questions" onUploadingChange={setEditorUploading} />
         </div>
 
         <div className="flex justify-end gap-3">

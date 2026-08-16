@@ -21,7 +21,6 @@ import { DocxImportDialog } from "@/components/ui/docx-import-dialog";
 import {
   getAdminMaterialsByIdOptions,
   getAdminMaterialsQueryKey,
-  getChaptersOptions,
   patchAdminMaterialsByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -52,13 +51,6 @@ function EditMaterial() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { data: material, isLoading, isError } = useQuery(getAdminMaterialsByIdOptions({ path: { id: Number(materialId) } }));
-
-  // subject gallery = subject dari chapter ini (buat GalleryPicker di editor).
-  const { data: chapters = [] } = useQuery({
-    ...getChaptersOptions(),
-    enabled: !!chapterId,
-  })
-  const subjectId = chapters.find((c) => c.id === Number(chapterId))?.subject_id
 
   const { draft, hasDraft, restored, debouncedSave, clear, restore, discard } = useDraft(materialId);
 
@@ -249,7 +241,7 @@ function EditMaterial() {
                     </Button>
                   </div>
                   {loaded ? (
-                    <TiptapEditor content={content} onChange={setContent} subjectId={subjectId} tempFolder="materials" onUploadingChange={setEditorUploading} />
+                    <TiptapEditor content={content} onChange={setContent} tempFolder="materials" onUploadingChange={setEditorUploading} />
                   ) : (
                     <div className="min-h-[300px] animate-pulse rounded-md bg-muted" />
                   )}
@@ -307,7 +299,6 @@ function EditMaterial() {
         open={importOpen}
         onOpenChange={setImportOpen}
         onImport={(html) => setContent(html)}
-        chapterId={chapterId}
       />
 
       {/* draft dialog */}

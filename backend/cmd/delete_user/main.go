@@ -92,7 +92,6 @@ func cleanupUser(db *gorm.DB, id uint) {
 	// sisa referensi langsung
 	db.Unscoped().Where("user_id = ?", id).Delete(&models.Session{})
 	db.Unscoped().Where("user_id = ?", id).Delete(&models.TeacherSubject{})
-	db.Unscoped().Where("user_id = ?", id).Delete(&models.SubjectImage{})
 	db.Unscoped().Where("user_id = ?", id).Delete(&models.PushSubscription{})
 	db.Unscoped().Where("user_id = ?", id).Delete(&models.Invoice{})
 	db.Unscoped().Where("user_id = ?", id).Delete(&models.StudentClass{})

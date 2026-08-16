@@ -142,32 +142,6 @@ func (r *Repository) ListAssetObjectNames(materialID uint) ([]string, error) {
 	return names, nil
 }
 
-// ExcludeGalleryAssets menyaring object name yang masih dipakai sebagai gambar
-// galeri (subject_images). File galeri dipakai bersama lintas materi — tidak
-// boleh dihapus saat sebuah materi berhenti mereferensikannya.
-func (r *Repository) ExcludeGalleryAssets(objectNames []string) ([]string, error) {
-	if len(objectNames) == 0 {
-		return nil, nil
-	}
-	var galleryNames []string
-	if err := r.db.Model(&models.SubjectImage{}).
-		Where("file_name IN ?", objectNames).
-		Pluck("file_name", &galleryNames).Error; err != nil {
-		return nil, err
-	}
-	gallery := make(map[string]bool, len(galleryNames))
-	for _, g := range galleryNames {
-		gallery[g] = true
-	}
-	out := make([]string, 0, len(objectNames))
-	for _, obj := range objectNames {
-		if !gallery[obj] {
-			out = append(out, obj)
-		}
-	}
-	return out, nil
-}
-
 // DeleteWithAssets menghapus materi beserta aset content-nya secara HARD dalam
 // satu transaksi. Mengembalikan object name aset yang ikut terhapus supaya
 // caller bisa membersihkan object storage setelah commit.

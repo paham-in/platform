@@ -145,10 +145,6 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.TeacherSubject{}).Error; err != nil {
 		return err
 	}
-	// gambar subjek milik user
-	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.SubjectImage{}).Error; err != nil {
-		return err
-	}
 	// langganan push notifikasi
 	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.PushSubscription{}).Error; err != nil {
 		return err

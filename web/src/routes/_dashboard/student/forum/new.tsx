@@ -163,7 +163,7 @@ function NewQuestion() {
           <p className="text-xs text-muted-foreground">
             Tarik & lepas gambar ke editor untuk mengunggahnya langsung.
           </p>
-          <TiptapEditor content={content} onChange={setContent} allowImages={false} tempFolder="forum_questions" onUploadingChange={setEditorUploading} />
+          <TiptapEditor content={content} onChange={setContent} tempFolder="forum_questions" onUploadingChange={setEditorUploading} />
         </div>
 
         {/* Images */}

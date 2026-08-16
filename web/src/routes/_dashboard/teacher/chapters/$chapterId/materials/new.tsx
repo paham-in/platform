@@ -19,10 +19,9 @@ import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { DocxImportDialog } from "@/components/ui/docx-import-dialog";
 import {
   getAdminMaterialsQueryKey,
-  getChaptersOptions,
   postAdminMaterialsMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, FileText, Type, Video } from "lucide-react";
 import { toast } from "sonner";
@@ -49,13 +48,6 @@ function NewMaterial() {
   const { chapterId } = useParams({ from: "/_dashboard/teacher/chapters/$chapterId/materials/new" });
   const qc = useQueryClient();
   const navigate = useNavigate();
-
-  // subject gallery = subject dari chapter ini (buat GalleryPicker di editor).
-  const { data: chapters = [] } = useQuery({
-    ...getChaptersOptions(),
-    enabled: !!chapterId,
-  })
-  const subjectId = chapters.find((c) => c.id === Number(chapterId))?.subject_id
 
   const { draft, hasDraft, restored, debouncedSave, clear, restore, discard } = useDraft();
 
@@ -184,7 +176,7 @@ function NewMaterial() {
                       <FileText className="mr-1 h-4 w-4" /> Import dari Word
                     </Button>
                   </div>
-                  <TiptapEditor content={content} onChange={setContent} subjectId={subjectId} tempFolder="materials" onUploadingChange={setEditorUploading} />
+                  <TiptapEditor content={content} onChange={setContent} tempFolder="materials" onUploadingChange={setEditorUploading} />
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -239,7 +231,6 @@ function NewMaterial() {
         open={importOpen}
         onOpenChange={setImportOpen}
         onImport={(html) => setContent(html)}
-        chapterId={chapterId}
       />
 
       {/* draft dialog */}

@@ -4,7 +4,6 @@ import {
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
-ImageIcon,
   ImagePlusIcon,
   ItalicIcon,
   ListIcon,
@@ -30,7 +29,6 @@ import "katex/dist/katex.min.css"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { MathInputDialog } from "./math-input-dialog"
-import { GalleryPicker } from "./gallery-picker"
 import { Spinner } from "@/components/ui/spinner"
 import { postContentTempImages, deleteContentTempImages } from "@/lib/api/sdk.gen"
 
@@ -98,24 +96,17 @@ export function TiptapEditor({
   content,
   onChange,
   editable = true,
-  allowImages = true,
-  subjectId,
-  galleryFolder = "materials",
   tempFolder,
   onUploadingChange,
 }: {
   content: string;
   onChange: (html: string) => void;
   editable?: boolean;
-  allowImages?: boolean;
-  subjectId?: number;
-  galleryFolder?: "materials" | "quiz_questions";
   tempFolder?: string;
   onUploadingChange?: (uploading: boolean) => void;
 }) {
   const [mathOpen, setMathOpen] = useState(false)
   const [editLatex, setEditLatex] = useState<string | null>(null)
-  const [galleryOpen, setGalleryOpen] = useState(false)
   const [pendingUploads, setPendingUploads] = useState(0)
   const editorElRef = useRef<HTMLDivElement>(null)
 
@@ -306,9 +297,7 @@ export function TiptapEditor({
       <Toolbar
         editor={editor}
         onOpenMath={openMathForInsert}
-        onOpenGallery={() => setGalleryOpen(true)}
         onUploadImage={(files) => uploadImages(editor.view, files)}
-        allowImages={allowImages}
         canUpload={!!tempFolder}
       />
       <div ref={editorElRef}>
@@ -323,15 +312,6 @@ export function TiptapEditor({
         onOpenChange={(v) => { setMathOpen(v); if (!v) setEditLatex(null) }}
         onInsert={handleMathInsert}
       />
-      {allowImages && (
-        <GalleryPicker
-          open={galleryOpen}
-          onOpenChange={setGalleryOpen}
-          onInsert={(url) => editor.chain().focus().setImage({ src: url }).run()}
-          subjectId={subjectId}
-          folder={galleryFolder}
-        />
-      )}
 
       <BubbleMenu
         editor={editor}
@@ -367,7 +347,7 @@ export function TiptapEditor({
   );
 }
 
-function Toolbar({ editor, onOpenMath, onOpenGallery, onUploadImage, allowImages, canUpload }: { editor: Editor; onOpenMath: () => void; onOpenGallery: () => void; onUploadImage: (files: File[]) => void; allowImages: boolean; canUpload: boolean }) {
+function Toolbar({ editor, onOpenMath, onUploadImage, canUpload }: { editor: Editor; onOpenMath: () => void; onUploadImage: (files: File[]) => void; canUpload: boolean }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const items = [
     { icon: UndoIcon, action: () => editor.chain().focus().undo().run(), active: false },
@@ -388,7 +368,6 @@ function Toolbar({ editor, onOpenMath, onOpenGallery, onUploadImage, allowImages
     { type: "sep" as const },
     { icon: Sigma, action: onOpenMath, active: editor.isActive("blockMath") },
     ...(canUpload ? [{ icon: ImagePlusIcon, action: () => fileInputRef.current?.click(), active: false }] : []),
-    ...(allowImages ? [{ icon: ImageIcon, action: onOpenGallery, active: false }] : []),
   ];
 
   return (

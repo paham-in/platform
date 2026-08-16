@@ -105,7 +105,7 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
           <TabsTrigger value="video">Video YouTube</TabsTrigger>
         </TabsList>
         <TabsContent value="text">
-          <TiptapEditor content={content} onChange={setContent} allowImages={false} />
+          <TiptapEditor content={content} onChange={setContent} />
 
           {/* Gambar pendukung (opsional) */}
           <div className="mt-3 space-y-2">

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { RichContent } from "@/components/ui/rich-content"
@@ -14,11 +13,7 @@ import {
 import { FileText, UploadCloud, XCircle } from "lucide-react"
 import { toast } from "sonner"
 import { docxToHtml, type DocxImage } from "@/lib/docx-parser"
-import {
-  getAdminChaptersOptions,
-  getAdminSubjectsBySubjectIdImagesQueryKey,
-} from "@/lib/api/@tanstack/react-query.gen"
-import { postAdminSubjectsBySubjectIdImages } from "@/lib/api/sdk.gen"
+import { postContentTempImages } from "@/lib/api/sdk.gen"
 
 // Content materi menyimpan objectName storage (`forum/<uuid>.jpg`) — bukan URL.
 // Backend rewrite objectName → presigned URL saat serve, jadi tidak perlu
@@ -34,17 +29,12 @@ export function DocxImportDialog({
   open,
   onOpenChange,
   onImport,
-  chapterId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onImport: (html: string) => void;
-  chapterId: string;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const qc = useQueryClient()
-  const { data: chapters = [] } = useQuery(getAdminChaptersOptions())
-  const subjectId = chapters?.find((c) => c.id === Number(chapterId))?.subject_id
 
   const [parsing, setParsing] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -107,7 +97,8 @@ export function DocxImportDialog({
     }
   }
 
-  // Upload semua gambar ke gallery subject, rewrite src, lalu onImport.
+  // Upload semua gambar ke storage temp (public/temp_materials/), rewrite src,
+  // lalu onImport. Gambar dipindahkan ke lokasi permanen saat materi di-submit.
   // Dipanggil pas "Gunakan Konten Ini" — kalau dibatalkan, tidak ada upload.
   const commitImport = async () => {
     if (!baseHtml || uploading) return
@@ -118,41 +109,32 @@ export function DocxImportDialog({
 
     const note = (img: PendingImage) => (finalHtml = finalHtml.replace(img.placeholder, SKIP_NOTE))
 
-    if (images.length > 0) {
-      if (!subjectId) {
-        skipped = images.length
-        for (const img of images) note(img)
-      } else {
-        for (const img of images) {
-          const okMime = ALLOWED_MIME.includes(img.mime)
-          const tooBig = img.blob.size > MAX_IMAGE_BYTES
-          if (!okMime || tooBig) {
-            note(img)
-            skipped++
-            continue
-          }
-          try {
-            const { data } = await postAdminSubjectsBySubjectIdImages({
-              path: { subject_id: subjectId },
-              body: {
-                image: new File([img.blob], img.originalName, { type: img.mime }),
-                title: img.originalName,
-              } as any,
-            })
-            const url = data?.url
-            if (!url) {
-              note(img)
-              skipped++
-              continue
-            }
-            finalHtml = finalHtml.replace(img.placeholder, url)
-            uploaded++
-          } catch {
-            note(img)
-            skipped++
-          }
+    for (const img of images) {
+      const okMime = ALLOWED_MIME.includes(img.mime)
+      const tooBig = img.blob.size > MAX_IMAGE_BYTES
+      if (!okMime || tooBig) {
+        note(img)
+        skipped++
+        continue
+      }
+      try {
+        const { data } = await postContentTempImages({
+          body: {
+            image: new File([img.blob], img.originalName, { type: img.mime }),
+            folder: "materials",
+          } as any,
+        })
+        const url = data?.url
+        if (!url) {
+          note(img)
+          skipped++
+          continue
         }
-        qc.invalidateQueries({ queryKey: getAdminSubjectsBySubjectIdImagesQueryKey({ path: { subject_id: subjectId } }) })
+        finalHtml = finalHtml.replace(img.placeholder, url)
+        uploaded++
+      } catch {
+        note(img)
+        skipped++
       }
     }
 
@@ -188,7 +170,7 @@ export function DocxImportDialog({
         <DialogHeader>
           <DialogTitle>Import Materi dari Word</DialogTitle>
           <DialogDescription>
-            Gambar dalam dokumen ikut diimport ke galeri materi saat memakai konten ini.
+            Gambar dalam dokumen ikut diimport saat memakai konten ini.
           </DialogDescription>
         </DialogHeader>
 
@@ -221,7 +203,7 @@ export function DocxImportDialog({
         )}
         {uploading && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Spinner /> Mengunggah gambar ke galeri...
+            <Spinner /> Mengunggah gambar...
           </div>
         )}
         {fileName && !parsing && !uploading && !error && (

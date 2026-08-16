@@ -12,7 +12,6 @@ import (
 	"bimbel2/backend/internal/chapter"
 	"bimbel2/backend/internal/class"
 	"bimbel2/backend/internal/forum"
-	"bimbel2/backend/internal/gallery"
 	"bimbel2/backend/internal/invoice"
 	"bimbel2/backend/internal/jobs"
 	"bimbel2/backend/internal/tutoring"
@@ -113,9 +112,6 @@ func main() {
 	// Resource non-konten — tetap terbuka utk semua teacher.
 	class.AdminRoutes(staff, db)
 	subject.AdminRoutes(staff, db)
-	if objectStorage != nil {
-		gallery.Routes(staff, db, objectStorage)
-	}
 
 	// Kelola materi (materi + chapter + cover) — admin selalu, teacher butuh izin.
 	content := staff.Group("", middleware.ContentManager("materials"))
