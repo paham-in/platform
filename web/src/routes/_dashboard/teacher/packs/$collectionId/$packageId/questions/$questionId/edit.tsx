@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesByIdQuestionsOptions, getAdminQuestionPackagesQueryKey, patchAdminQuestionPackagesByIdQuestionsByQidMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { getAdminQuestionPackagesByIdQuestionsOptions, getAdminQuestionPackagesQueryKey, patchAdminQuestionPackagesByIdQuestionsByQidMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -23,15 +23,14 @@ function EditQuestion() {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { data: questions = [], isLoading } = useQuery(getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) } }))
-  const { data: pkg } = useQuery(getAdminQuestionPackagesByIdOptions({ path: { id: Number(packageId) } }))
 
   const question = questions.find((q) => q.id === Number(questionId))
-  const subjectId = pkg?.subject_id
   const [questionText, setQuestionText] = useState(question?.question ?? "")
   const [answers, setAnswers] = useState<{ content: string; is_correct: boolean }[]>(
     [...(question?.answers ?? []).map((a) => ({ content: a.content ?? "", is_correct: a.is_correct ?? false })), { content: "", is_correct: false }, { content: "", is_correct: false }, { content: "", is_correct: false }, { content: "", is_correct: false }].slice(0, 4)
   )
   const [explanation, setExplanation] = useState(question?.explanation ?? "")
+  const [uploadingEditors, setUploadingEditors] = useState(0)
 
   const { mutate: updateQuestion, isPending } = useMutation({
     ...patchAdminQuestionPackagesByIdQuestionsByQidMutation(),
@@ -101,7 +100,12 @@ function EditQuestion() {
 
         <div className="space-y-2">
           <Label>Pertanyaan</Label>
-          <TiptapEditor content={questionText} onChange={setQuestionText} subjectId={subjectId} galleryFolder="quiz_questions" />
+          <TiptapEditor
+            content={questionText}
+            onChange={setQuestionText}
+            tempFolder="quiz_questions"
+            onUploadingChange={(u) => setUploadingEditors((n) => n + (u ? 1 : -1))}
+          />
         </div>
 
         <div className="space-y-3">
@@ -117,8 +121,8 @@ function EditQuestion() {
                     next[i] = { ...next[i], content: html }
                     setAnswers(next)
                   }}
-                  subjectId={subjectId}
-                  galleryFolder="quiz_questions"
+                  tempFolder="quiz_answers"
+                  onUploadingChange={(u) => setUploadingEditors((n) => n + (u ? 1 : -1))}
                 />
               </div>
               <label className="mt-1 flex items-center gap-1.5 text-sm">
@@ -145,17 +149,22 @@ function EditQuestion() {
 
         <div className="space-y-2">
           <Label>Pembahasan (opsional)</Label>
-          <TiptapEditor content={explanation} onChange={setExplanation} subjectId={subjectId} galleryFolder="quiz_questions" />
+          <TiptapEditor
+            content={explanation}
+            onChange={setExplanation}
+            tempFolder="quiz_questions"
+            onUploadingChange={(u) => setUploadingEditors((n) => n + (u ? 1 : -1))}
+          />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
           <Link to="/teacher/packs/$collectionId/$packageId" params={{ collectionId, packageId }}><Button variant="outline">Batal</Button></Link>
           <Button
             onClick={save}
-            disabled={!questionText || validCount < 2 || isPending}
+            disabled={!questionText || validCount < 2 || isPending || uploadingEditors > 0}
           >
             {isPending && <Spinner />}
-            Simpan
+            {uploadingEditors > 0 ? "Mengupload gambar..." : "Simpan"}
           </Button>
         </div>
       </div>

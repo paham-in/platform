@@ -41,6 +41,8 @@ type TempDeleteResponse struct {
 var tempFolders = map[string]bool{
 	"forum_questions": true,
 	"materials":       true,
+	"quiz_questions":  true,
+	"quiz_answers":    true,
 }
 
 // UploadTemp mengunggah gambar ke folder temp untuk editor content

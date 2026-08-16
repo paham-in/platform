@@ -1,7 +1,9 @@
 package questionbank
 
 import (
+	"context"
 	"errors"
+	"log"
 
 	"bimbel2/backend/internal/models"
 	"bimbel2/backend/internal/storage"
@@ -103,6 +105,32 @@ type CreateInput struct {
 	Explanation string                    `json:"explanation"`
 }
 
+// commitContent memindahkan gambar temp ke lokasi permanen (kalau ada) lalu
+// menormalkan semua referensi gambar di content ke bentuk object name.
+func (s *Service) commitContent(content string) (string, error) {
+	if s.storage != nil {
+		var err error
+		content, err = s.storage.CommitTempImages(context.Background(), content)
+		if err != nil {
+			return "", err
+		}
+	}
+	return storage.SanitizeContentImages(content), nil
+}
+
+// deleteFiles menghapus file gambar dari storage (best-effort — file orphan
+// lebih aman daripada DB yang tidak konsisten).
+func (s *Service) deleteFiles(objects []string) {
+	if s.storage == nil {
+		return
+	}
+	for _, obj := range objects {
+		if err := s.storage.Delete(context.Background(), obj); err != nil {
+			log.Printf("[questionbank] gagal hapus aset %q: %v", obj, err)
+		}
+	}
+}
+
 func (s *Service) Create(packageID uint, input CreateInput, a Access) (*QuestionResponse, error) {
 	pkg, err := s.repo.GetPackage(packageID)
 	if err != nil {
@@ -121,24 +149,40 @@ func (s *Service) Create(packageID uint, input CreateInput, a Access) (*Question
 		return nil, errors.New("minimal 2 opsi jawaban")
 	}
 
+	committed, err := s.commitContent(input.Question)
+	if err != nil {
+		return nil, err
+	}
+	explanation, err := s.commitContent(input.Explanation)
+	if err != nil {
+		return nil, err
+	}
+
 	q := models.QuizQuestion{
 		UserID:      input.UserID,
 		PackageID:   packageID,
-		Question:    storage.SanitizeContentImages(input.Question),
-		Explanation: storage.SanitizeContentImages(input.Explanation),
+		Question:    committed,
+		Explanation: explanation,
 	}
-	// Build answers dengan sort_order sesuai urutan input.
+	// Build answers dengan sort_order sesuai urutan input + aset gambar
+	// per-jawaban (sejajar dengan q.Answers — jawaban kosong disaring).
+	answerAssets := make([][]string, 0, len(input.Answers))
 	for i, a := range input.Answers {
 		if a.Content == "" {
 			continue
 		}
+		content, err := s.commitContent(a.Content)
+		if err != nil {
+			return nil, err
+		}
 		q.Answers = append(q.Answers, models.QuizAnswer{
-			Content:   storage.SanitizeContentImages(a.Content),
+			Content:   content,
 			IsCorrect: a.IsCorrect,
 			SortOrder: i,
 		})
+		answerAssets = append(answerAssets, storage.ExtractContentImages(content))
 	}
-	if err := s.repo.Create(&q); err != nil {
+	if err := s.repo.CreateWithAssets(&q, storage.ExtractContentImages(committed), answerAssets); err != nil {
 		return nil, err
 	}
 	created, err := s.repo.Get(q.ID)
@@ -168,27 +212,75 @@ func (s *Service) Update(id uint, input UpdateInput, a Access) (*QuestionRespons
 		return nil, ErrNotOwner
 	}
 	updates := map[string]any{}
+	replaceQuestionAssets := false
+	var questionAssets []string
 	if input.Question != nil {
-		updates["question"] = storage.SanitizeContentImages(*input.Question)
-	}
-	if input.Explanation != nil {
-		updates["explanation"] = storage.SanitizeContentImages(*input.Explanation)
-	}
-	if input.Answers != nil {
-		// sanitize content jawaban sebelum disimpan, lalu update soal + replace
-		// jawaban dalam satu transaksi.
-		answers := make([]QuizAnswerInput, len(*input.Answers))
-		for i, a := range *input.Answers {
-			answers[i] = QuizAnswerInput{
-				Content:   storage.SanitizeContentImages(a.Content),
-				IsCorrect: a.IsCorrect,
-			}
-		}
-		if err := s.repo.UpdateWithAnswers(id, updates, answers); err != nil {
+		committed, err := s.commitContent(*input.Question)
+		if err != nil {
 			return nil, err
 		}
-	} else if len(updates) > 0 {
-		if err := s.repo.Update(id, updates); err != nil {
+		updates["question"] = committed
+		questionAssets = append(questionAssets, storage.ExtractContentImages(committed)...)
+		replaceQuestionAssets = true
+	}
+	if input.Explanation != nil {
+		committed, err := s.commitContent(*input.Explanation)
+		if err != nil {
+			return nil, err
+		}
+		updates["explanation"] = committed
+		questionAssets = append(questionAssets, storage.ExtractContentImages(committed)...)
+		replaceQuestionAssets = true
+	}
+
+	// diff aset soal/pembahasan: hapus file yang sudah tidak direferensikan.
+	if replaceQuestionAssets && s.storage != nil {
+		oldQuestionAssets, _, err := s.repo.ListAssets(id)
+		if err != nil {
+			return nil, err
+		}
+		s.deleteFiles(difference(oldQuestionAssets, questionAssets))
+	}
+
+	if input.Answers != nil {
+		// sanitize content jawaban sebelum disimpan, lalu update soal + replace
+		// jawaban dan asetnya dalam satu transaksi.
+		answers := make([]QuizAnswerInput, len(*input.Answers))
+		answerAssets := make([][]string, len(*input.Answers))
+		var newAnswerAssets []string
+		for i, a := range *input.Answers {
+			content, err := s.commitContent(a.Content)
+			if err != nil {
+				return nil, err
+			}
+			answers[i] = QuizAnswerInput{Content: content, IsCorrect: a.IsCorrect}
+			answerAssets[i] = storage.ExtractContentImages(content)
+			newAnswerAssets = append(newAnswerAssets, answerAssets[i]...)
+		}
+		// diff aset jawaban: hapus file jawaban lama yang tidak dipakai lagi.
+		if s.storage != nil {
+			_, oldAnswerAssets, err := s.repo.ListAssets(id)
+			if err != nil {
+				return nil, err
+			}
+			s.deleteFiles(difference(oldAnswerAssets, newAnswerAssets))
+		}
+		var qAssets []string
+		if replaceQuestionAssets {
+			qAssets = questionAssets
+		}
+		if err := s.repo.UpdateWithAssets(id, updates, answers, qAssets, answerAssets); err != nil {
+			return nil, err
+		}
+		return s.Get(id)
+	}
+
+	if len(updates) > 0 {
+		var qAssets []string
+		if replaceQuestionAssets {
+			qAssets = questionAssets
+		}
+		if err := s.repo.UpdateWithAssets(id, updates, nil, qAssets, nil); err != nil {
 			return nil, err
 		}
 	}
@@ -207,7 +299,28 @@ func (s *Service) Delete(id uint, a Access) error {
 	if !s.canManagePackage(pkg, a) {
 		return ErrNotOwner
 	}
-	return s.repo.Delete(id)
+	// hapus soal + jawaban + aset dari DB, lalu bersihkan file gambarnya.
+	assetNames, err := s.repo.DeleteWithAssets(id)
+	if err != nil {
+		return err
+	}
+	s.deleteFiles(assetNames)
+	return nil
+}
+
+// difference mengembalikan elemen a yang tidak ada di b.
+func difference(a, b []string) []string {
+	inB := make(map[string]bool, len(b))
+	for _, x := range b {
+		inB[x] = true
+	}
+	var out []string
+	for _, x := range a {
+		if !inB[x] {
+			out = append(out, x)
+		}
+	}
+	return out
 }
 
 func (s *Service) toResponse(q models.QuizQuestion) QuestionResponse {

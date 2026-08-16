@@ -44,25 +44,63 @@ func (r *Repository) Get(id uint) (*models.QuizQuestion, error) {
 	return &q, nil
 }
 
-func (r *Repository) Create(q *models.QuizQuestion) error {
-	// GORM default membungkus create has-many (soal + jawaban) dalam transaksi.
-	return r.db.Create(q).Error
+// CreateWithAssets menyimpan soal + jawaban + aset gambar (soal/pembahasan dan
+// per-jawaban) dalam satu transaksi. answerAssets sejajar dengan q.Answers
+// (jawaban kosong sudah disaring di service).
+func (r *Repository) CreateWithAssets(q *models.QuizQuestion, questionAssets []string, answerAssets [][]string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(q).Error; err != nil {
+			return err
+		}
+		for _, obj := range questionAssets {
+			if err := tx.Create(&models.QuizQuestionAsset{QuestionID: q.ID, ObjectName: obj}).Error; err != nil {
+				return err
+			}
+		}
+		for i, ans := range q.Answers {
+			for _, obj := range answerAssets[i] {
+				if err := tx.Create(&models.QuizAnswerAsset{AnswerID: ans.ID, ObjectName: obj}).Error; err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
 }
 
-// UpdateWithAnswers mengubah field soal + mengganti jawaban dalam satu
-// transaksi — kalau replace jawaban gagal, perubahan soal ikut batal.
-func (r *Repository) UpdateWithAnswers(questionID uint, updates map[string]any, answers []QuizAnswerInput) error {
+// UpdateWithAssets mengubah field soal + mengganti aset gambar & jawaban dalam
+// satu transaksi — kalau salah satu gagal, semua ikut batal. answers == nil
+// berarti jawaban tidak diubah (questionAssets boleh diganti sendiri);
+// questionAssets == nil berarti aset soal/pembahasan tidak diubah.
+func (r *Repository) UpdateWithAssets(questionID uint, updates map[string]any, answers []QuizAnswerInput, questionAssets []string, answerAssets [][]string) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		if len(updates) > 0 {
 			if err := tx.Model(&models.QuizQuestion{}).Where("id = ?", questionID).Updates(updates).Error; err != nil {
 				return err
 			}
 		}
-		return r.replaceAnswersTx(tx, questionID, answers)
+		if questionAssets != nil {
+			if err := tx.Unscoped().Where("question_id = ?", questionID).Delete(&models.QuizQuestionAsset{}).Error; err != nil {
+				return err
+			}
+			for _, obj := range questionAssets {
+				if err := tx.Create(&models.QuizQuestionAsset{QuestionID: questionID, ObjectName: obj}).Error; err != nil {
+					return err
+				}
+			}
+		}
+		if answers == nil {
+			return nil
+		}
+		// hard-delete aset jawaban lama (jawaban lama di-soft-delete di bawah)
+		if err := tx.Unscoped().Where("answer_id IN (SELECT id FROM quiz_answers WHERE question_id = ?)", questionID).Delete(&models.QuizAnswerAsset{}).Error; err != nil {
+			return err
+		}
+		return r.replaceAnswersTx(tx, questionID, answers, answerAssets)
 	})
 }
 
-func (r *Repository) replaceAnswersTx(db *gorm.DB, questionID uint, answers []QuizAnswerInput) error {
+func (r *Repository) replaceAnswersTx(db *gorm.DB, questionID uint, answers []QuizAnswerInput, answerAssets [][]string) error {
 	if err := db.Where("question_id = ?", questionID).Delete(&models.QuizAnswer{}).Error; err != nil {
 		return err
 	}
@@ -79,19 +117,59 @@ func (r *Repository) replaceAnswersTx(db *gorm.DB, questionID uint, answers []Qu
 		if err := db.Create(&ans).Error; err != nil {
 			return err
 		}
+		for _, obj := range answerAssets[i] {
+			if err := db.Create(&models.QuizAnswerAsset{AnswerID: ans.ID, ObjectName: obj}).Error; err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
 
-func (r *Repository) Update(id uint, updates map[string]any) error {
-	return r.db.Model(&models.QuizQuestion{}).Where("id = ?", id).Updates(updates).Error
+// ListAssets mengembalikan object name gambar aset soal/pembahasan dan semua
+// jawaban milik soal — dipakai untuk diff saat edit.
+func (r *Repository) ListAssets(questionID uint) (questionAssets, answerAssets []string, err error) {
+	if err = r.db.Model(&models.QuizQuestionAsset{}).Where("question_id = ?", questionID).Pluck("object_name", &questionAssets).Error; err != nil {
+		return nil, nil, err
+	}
+	if err = r.db.Model(&models.QuizAnswerAsset{}).
+		Where("answer_id IN (SELECT id FROM quiz_answers WHERE question_id = ?)", questionID).
+		Pluck("object_name", &answerAssets).Error; err != nil {
+		return nil, nil, err
+	}
+	return questionAssets, answerAssets, nil
 }
 
-func (r *Repository) Delete(id uint) error {
-	// Hard delete soal + bersihkan relasi has-many (quiz_answers).
+// DeleteWithAssets menghapus hard soal + jawaban + aset dari DB dan
+// mengembalikan object name semua gambarnya untuk dibersihkan di storage.
+func (r *Repository) DeleteWithAssets(questionID uint) ([]string, error) {
 	var q models.QuizQuestion
-	if err := r.db.Unscoped().First(&q, id).Error; err != nil {
-		return err
+	if err := r.db.Unscoped().First(&q, questionID).Error; err != nil {
+		return nil, err
 	}
-	return r.db.Unscoped().Select(clause.Associations).Delete(&q).Error
+	var names []string
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		var qNames []string
+		if err := tx.Model(&models.QuizQuestionAsset{}).Where("question_id = ?", questionID).Pluck("object_name", &qNames).Error; err != nil {
+			return err
+		}
+		var aNames []string
+		if err := tx.Model(&models.QuizAnswerAsset{}).
+			Where("answer_id IN (SELECT id FROM quiz_answers WHERE question_id = ?)", questionID).
+			Pluck("object_name", &aNames).Error; err != nil {
+			return err
+		}
+		names = append(qNames, aNames...)
+		if err := tx.Unscoped().Where("answer_id IN (SELECT id FROM quiz_answers WHERE question_id = ?)", questionID).Delete(&models.QuizAnswerAsset{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Unscoped().Where("question_id = ?", questionID).Delete(&models.QuizQuestionAsset{}).Error; err != nil {
+			return err
+		}
+		return tx.Unscoped().Select(clause.Associations).Delete(&q).Error
+	})
+	if err != nil {
+		return nil, err
+	}
+	return names, nil
 }

@@ -4,8 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesQueryKey, postAdminQuestionPackagesByIdQuestionsMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getAdminQuestionPackagesQueryKey, postAdminQuestionPackagesByIdQuestionsMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -22,10 +22,6 @@ function NewQuestion() {
   const qc = useQueryClient()
   const navigate = useNavigate()
 
-  // subject gallery = subject dari paket ini (buat GalleryPicker di editor).
-  const { data: pkg } = useQuery(getAdminQuestionPackagesByIdOptions({ path: { id: Number(packageId) } }))
-  const subjectId = pkg?.subject_id
-
   const [question, setQuestion] = useState("")
   const [answers, setAnswers] = useState<{ content: string; is_correct: boolean }[]>([
     { content: "", is_correct: false },
@@ -34,6 +30,7 @@ function NewQuestion() {
     { content: "", is_correct: false },
   ])
   const [explanation, setExplanation] = useState("")
+  const [uploadingEditors, setUploadingEditors] = useState(0)
 
   const { mutate: createQuestion, isPending } = useMutation({
     ...postAdminQuestionPackagesByIdQuestionsMutation(),
@@ -78,7 +75,12 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Pertanyaan</Label>
-          <TiptapEditor content={question} onChange={setQuestion} subjectId={subjectId} galleryFolder="quiz_questions" />
+          <TiptapEditor
+            content={question}
+            onChange={setQuestion}
+            tempFolder="quiz_questions"
+            onUploadingChange={(u) => setUploadingEditors((n) => n + (u ? 1 : -1))}
+          />
         </div>
 
         <div className="space-y-3">
@@ -94,8 +96,8 @@ function NewQuestion() {
                     next[i] = { ...next[i], content: html }
                     setAnswers(next)
                   }}
-                  subjectId={subjectId}
-                  galleryFolder="quiz_questions"
+                  tempFolder="quiz_answers"
+                  onUploadingChange={(u) => setUploadingEditors((n) => n + (u ? 1 : -1))}
                 />
               </div>
               <label className="mt-1 flex items-center gap-1.5 text-sm">
@@ -122,17 +124,22 @@ function NewQuestion() {
 
         <div className="space-y-2">
           <Label>Pembahasan (opsional)</Label>
-          <TiptapEditor content={explanation} onChange={setExplanation} subjectId={subjectId} galleryFolder="quiz_questions" />
+          <TiptapEditor
+            content={explanation}
+            onChange={setExplanation}
+            tempFolder="quiz_questions"
+            onUploadingChange={(u) => setUploadingEditors((n) => n + (u ? 1 : -1))}
+          />
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
           <Link to="/teacher/packs/$collectionId/$packageId" params={{ collectionId, packageId }}><Button variant="outline">Batal</Button></Link>
           <Button
             onClick={save}
-            disabled={!question || validCount < 2 || isPending}
+            disabled={!question || validCount < 2 || isPending || uploadingEditors > 0}
           >
             {isPending && <Spinner />}
-            Simpan
+            {uploadingEditors > 0 ? "Mengupload gambar..." : "Simpan"}
           </Button>
         </div>
       </div>

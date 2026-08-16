@@ -32,9 +32,6 @@ func Connect(cfg *config.Config) *gorm.DB {
 }
 
 func Migrate(db *gorm.DB) {
-	// clean up orphaned subject_images before AutoMigrate (FK constraint)
-	db.Exec("DELETE FROM subject_images WHERE user_id NOT IN (SELECT id FROM users)")
-
 	// migrasi rename: question_package_groups → question_package_collections.
 	// Idempotent — lewati kalau tabel baru sudah ada (rename sekali saja, lalu
 	// AutoMigrate lanjut). Blok ini harus jalan sebelum rename ke quiz_collections
@@ -130,7 +127,7 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE quiz_packages ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'published'")
 	}
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.MaterialAsset{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionImage{}, &models.ForumAnswerImage{}, &models.ForumQuestionAsset{}, &models.SubjectImage{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.QuizStudentProgress{})
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.MaterialAsset{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionImage{}, &models.ForumAnswerImage{}, &models.ForumQuestionAsset{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizQuestionAsset{}, &models.QuizAnswerAsset{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.QuizStudentProgress{})
 
 	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
 	for _, name := range []string{"student", "teacher", "admin"} {
@@ -224,12 +221,6 @@ func Migrate(db *gorm.DB) {
 		WHERE status = 'open'
 		AND id IN (SELECT DISTINCT question_id FROM forum_answers WHERE deleted_at IS NULL)`)
 
-	// migrate subject_images -- add user_id column
-	if !db.Migrator().HasColumn(&models.SubjectImage{}, "user_id") {
-		db.Exec("ALTER TABLE subject_images ADD COLUMN user_id BIGINT NOT NULL DEFAULT 0")
-		db.Exec("CREATE INDEX idx_subject_images_user_id ON subject_images(user_id)")
-	}
-
 	// migrate classes -- drop description column (tidak dipakai)
 	if db.Migrator().HasColumn(&models.Class{}, "description") {
 		db.Exec("ALTER TABLE classes DROP COLUMN description")
@@ -252,6 +243,12 @@ func Migrate(db *gorm.DB) {
 	// tabel join many2many tidak dipakai lagi (soal dimiliki paket)
 	if db.Migrator().HasTable("package_questions") {
 		db.Migrator().DropTable("package_questions")
+	}
+
+	// fitur gallery dihapus — buang tabel subject_images (sisa dari DB lama).
+	if db.Migrator().HasTable("subject_images") {
+		db.Migrator().DropTable("subject_images")
+		log.Println("Dropped table subject_images")
 	}
 
 	// migrasi: program + student_classes (buat eksplisit lewat Migrator
