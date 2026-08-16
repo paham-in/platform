@@ -109,33 +109,45 @@ func (r *Repository) ListAssetObjectNames(questionID uint) ([]string, error) {
 	return names, nil
 }
 
-// DeleteHard menghapus pertanyaan beserta jawaban, gambar, & aset content-nya
-// secara HARD delete dalam satu transaksi. Mengembalikan nama file gambar yang
-// ikut terhapus (gambar pendukung + aset content) supaya caller bisa membersihkan
-// object storage setelah commit. Semua pakai Unscoped supaya baris yang sudah
-// soft-deleted pun ikut dibersihkan.
+// DeleteHard menghapus pertanyaan beserta jawaban & aset content-nya (soal &
+// jawaban) secara HARD delete dalam satu transaksi. Mengembalikan nama file
+// gambar yang ikut terhapus supaya caller bisa membersihkan object storage
+// setelah commit. Semua pakai Unscoped supaya baris yang sudah soft-deleted pun
+// ikut dibersihkan.
 func (r *Repository) DeleteHard(id uint) ([]string, error) {
 	var fileNames []string
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		// kumpulkan nama file dulu (sebelum barisnya dihapus).
-		if err := tx.Unscoped().Model(&models.ForumQuestionImage{}).
-			Where("question_id = ?", id).
-			Pluck("file_name", &fileNames).Error; err != nil {
-			return err
-		}
 		var assetNames []string
 		if err := tx.Unscoped().Model(&models.ForumQuestionAsset{}).
 			Where("question_id = ?", id).
 			Pluck("object_name", &assetNames).Error; err != nil {
 			return err
 		}
+		var answerIDs []uint
+		if err := tx.Unscoped().Model(&models.ForumAnswer{}).
+			Where("question_id = ?", id).
+			Pluck("id", &answerIDs).Error; err != nil {
+			return err
+		}
+		var answerAssetNames []string
+		if len(answerIDs) > 0 {
+			if err := tx.Unscoped().Model(&models.ForumAnswerAsset{}).
+				Where("answer_id IN ?", answerIDs).
+				Pluck("object_name", &answerAssetNames).Error; err != nil {
+				return err
+			}
+		}
 		fileNames = append(fileNames, assetNames...)
+		fileNames = append(fileNames, answerAssetNames...)
 		// hapus anak dulu (FK constraint), lalu pertanyaannya.
 		if err := tx.Unscoped().Where("question_id = ?", id).Delete(&models.ForumAnswer{}).Error; err != nil {
 			return err
 		}
-		if err := tx.Unscoped().Where("question_id = ?", id).Delete(&models.ForumQuestionImage{}).Error; err != nil {
-			return err
+		if len(answerIDs) > 0 {
+			if err := tx.Unscoped().Where("answer_id IN ?", answerIDs).Delete(&models.ForumAnswerAsset{}).Error; err != nil {
+				return err
+			}
 		}
 		if err := tx.Unscoped().Where("question_id = ?", id).Delete(&models.ForumQuestionAsset{}).Error; err != nil {
 			return err

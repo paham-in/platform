@@ -10,14 +10,15 @@ import (
 // Bentuk tersimpan: `public/materials/<uuid>.<ext>` (gambar materi),
 // `public/quiz_questions/<uuid>.<ext>` (gambar soal & pembahasan),
 // `public/quiz_answers/<uuid>.<ext>` (gambar opsi jawaban),
-// `public/forum_questions/<uuid>.<ext>` (gambar content forum), atau
+// `public/forum_questions/<uuid>.<ext>` (gambar content pertanyaan forum),
+// `public/forum_answers/<uuid>.<ext>` (gambar content jawaban forum), atau
 // `forum/<uuid>.<ext>` (legacy). `public/questions/<uuid>.<ext>` juga masih
 // diterima sebagai legacy (gambar paket soal lama). Prefix `public/temp_<fitur>/`
 // (gambar temp editor) ikut diterima supaya bisa di-sanitize/di-extract. Bisa
 // juga berawalan URL (presigned lama / public base) — prefix URL ikut di-capture
 // untuk dinormalisasi. Query string presigned (X-Amz-*) ikut dikonsumsi supaya
 // tidak tersisa saat strip.
-var ContentImageRe = regexp.MustCompile(`(?:https?://[^"'\s]+/)?((?:public/(?:materials|quiz_questions|quiz_answers|questions|forum_questions|temp_[a-z_]+)|forum)/[0-9a-fA-F-]+\.(?:jpg|jpeg|png|gif|webp))(?:\?[^"'\s]*)?`)
+var ContentImageRe = regexp.MustCompile(`(?:https?://[^"'\s]+/)?((?:public/(?:materials|quiz_questions|quiz_answers|forum_questions|forum_answers|questions|temp_[a-z_]+)|forum)/[0-9a-fA-F-]+\.(?:jpg|jpeg|png|gif|webp))(?:\?[^"'\s]*)?`)
 
 // SanitizeContentImages menormalkan presigned URL → objectName (group 1).
 // Dipakai pas simpan: content dari editor bisa kebawa URL fresh (karena serve

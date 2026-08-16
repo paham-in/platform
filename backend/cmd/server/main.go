@@ -86,9 +86,6 @@ func main() {
 	forum.Routes(app, db, objectStorage)
 	answer.PublicRoutes(app, db, objectStorage)
 	push.PublicRoutes(app, db, cfg.VapidPublicKey)
-	if objectStorage != nil {
-		forum.PublicRoutes(app, db, objectStorage)
-	}
 
 	// Authenticated routes (any role with valid session)
 	auth := app.Group("", middleware.SessionRequired(), middleware.SessionResolver(db))
@@ -103,7 +100,6 @@ func main() {
 	answer.AuthRoutes(auth, db, objectStorage, pushSvc)
 	invoice.AuthRoutes(auth, db)
 	if objectStorage != nil {
-		forum.AuthRoutes(auth, db, objectStorage)
 		upload.AuthRoutes(auth, objectStorage)
 	}
 

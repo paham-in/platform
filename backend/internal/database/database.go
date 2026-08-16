@@ -104,10 +104,6 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE answers RENAME TO forum_answers")
 		log.Println("Renamed table answers → forum_answers")
 	}
-	if db.Migrator().HasTable("question_images") && !db.Migrator().HasTable("forum_question_images") {
-		db.Exec("ALTER TABLE question_images RENAME TO forum_question_images")
-		log.Println("Renamed table question_images → forum_question_images")
-	}
 
 	// migrate content -- add is_free flag SEBELUM AutoMigrate supaya baris existing
 	// ikut DEFAULT TRUE (konten lama jadi gratis). Model tidak lagi mendeklarasikan
@@ -127,7 +123,7 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE quiz_packages ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'published'")
 	}
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.MaterialAsset{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionImage{}, &models.ForumAnswerImage{}, &models.ForumQuestionAsset{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizQuestionAsset{}, &models.QuizAnswerAsset{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.QuizStudentProgress{})
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.MaterialAsset{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionAsset{}, &models.ForumAnswerAsset{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizQuestionAsset{}, &models.QuizAnswerAsset{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.QuizStudentProgress{})
 
 	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
 	for _, name := range []string{"student", "teacher", "admin"} {
@@ -211,11 +207,6 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE forum_questions DROP COLUMN upvotes")
 	}
 
-	// migrate question_images -- drop url column
-	if db.Migrator().HasColumn(&models.ForumQuestionImage{}, "url") {
-		db.Exec("ALTER TABLE forum_question_images DROP COLUMN url")
-	}
-
 	// backfill: pertanyaan open yang sudah punya jawaban → status answered
 	db.Exec(`UPDATE forum_questions SET status = 'answered'
 		WHERE status = 'open'
@@ -249,6 +240,14 @@ func Migrate(db *gorm.DB) {
 	if db.Migrator().HasTable("subject_images") {
 		db.Migrator().DropTable("subject_images")
 		log.Println("Dropped table subject_images")
+	}
+
+	// fitur gambar pendukung forum dihapus — buang tabel sisa (nama lama & baru).
+	for _, t := range []string{"question_images", "forum_question_images", "answer_images", "forum_answer_images"} {
+		if db.Migrator().HasTable(t) {
+			db.Migrator().DropTable(t)
+			log.Printf("Dropped table %s", t)
+		}
 	}
 
 	// migrasi: program + student_classes (buat eksplisit lewat Migrator

@@ -8,10 +8,6 @@ definitions:
         type: string
       id:
         type: integer
-      images:
-        items:
-          type: string
-        type: array
       is_owner:
         type: boolean
       plain_content:
@@ -38,15 +34,6 @@ definitions:
   answer.MessageResponse:
     properties:
       message:
-        type: string
-    type: object
-  answer.UploadResponse:
-    properties:
-      file_name:
-        type: string
-      id:
-        type: integer
-      url:
         type: string
     type: object
   chapter.ChapterResponse:
@@ -238,15 +225,6 @@ definitions:
       user_avatar:
         type: string
       user_name:
-        type: string
-    type: object
-  forum.UploadResponse:
-    properties:
-      file_name:
-        type: string
-      id:
-        type: integer
-      url:
         type: string
     type: object
   invoice.CreateInput:
@@ -4611,47 +4589,6 @@ paths:
       summary: Create answer
       tags:
       - Forum
-  /questions/{question_id}/answers/{answer_id}/images:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Mengunggah gambar pendukung ke jawaban forum (hanya guru)
-      parameters:
-      - description: Question ID
-        in: path
-        name: question_id
-        required: true
-        type: integer
-      - description: Answer ID
-        in: path
-        name: answer_id
-        required: true
-        type: integer
-      - description: File gambar
-        in: formData
-        name: image
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/answer.UploadResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/answer.ErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/answer.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Upload answer image
-      tags:
-      - Forum
   /questions/{question_id}/answers/{id}:
     delete:
       consumes:
@@ -4682,61 +4619,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete answer
-      tags:
-      - Forum
-  /questions/{question_id}/images:
-    get:
-      description: Mengembalikan daftar gambar pendukung pertanyaan forum
-      parameters:
-      - description: Question ID
-        in: path
-        name: question_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/forum.UploadResponse'
-            type: array
-      security:
-      - BearerAuth: []
-      summary: List question images
-      tags:
-      - Forum
-    post:
-      consumes:
-      - multipart/form-data
-      description: Mengunggah gambar pendukung ke pertanyaan forum
-      parameters:
-      - description: Question ID
-        in: path
-        name: question_id
-        required: true
-        type: integer
-      - description: File gambar
-        in: formData
-        name: image
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/forum.UploadResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Upload question image
       tags:
       - Forum
   /student-classes:

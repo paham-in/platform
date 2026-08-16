@@ -172,17 +172,17 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 	if err := tx.Unscoped().Where("teacher_id = ? OR student_id = ?", id, id).Delete(&models.Booking{}).Error; err != nil {
 		return err
 	}
-	// pertanyaan forum milik user + gambar & jawabannya
+	// pertanyaan forum milik user + aset content & jawabannya
 	var qids []uint
 	tx.Model(&models.ForumQuestion{}).Where("user_id = ?", id).Pluck("id", &qids)
 	if len(qids) > 0 {
-		if err := tx.Unscoped().Where("question_id IN ?", qids).Delete(&models.ForumQuestionImage{}).Error; err != nil {
+		if err := tx.Unscoped().Where("question_id IN ?", qids).Delete(&models.ForumQuestionAsset{}).Error; err != nil {
 			return err
 		}
 		var ansIDs []uint
 		tx.Model(&models.ForumAnswer{}).Unscoped().Where("question_id IN ?", qids).Pluck("id", &ansIDs)
 		if len(ansIDs) > 0 {
-			if err := tx.Unscoped().Where("answer_id IN ?", ansIDs).Delete(&models.ForumAnswerImage{}).Error; err != nil {
+			if err := tx.Unscoped().Where("answer_id IN ?", ansIDs).Delete(&models.ForumAnswerAsset{}).Error; err != nil {
 				return err
 			}
 		}
@@ -197,7 +197,7 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 	var ownAnsIDs []uint
 	tx.Model(&models.ForumAnswer{}).Unscoped().Where("user_id = ?", id).Pluck("id", &ownAnsIDs)
 	if len(ownAnsIDs) > 0 {
-		if err := tx.Unscoped().Where("answer_id IN ?", ownAnsIDs).Delete(&models.ForumAnswerImage{}).Error; err != nil {
+		if err := tx.Unscoped().Where("answer_id IN ?", ownAnsIDs).Delete(&models.ForumAnswerAsset{}).Error; err != nil {
 			return err
 		}
 	}

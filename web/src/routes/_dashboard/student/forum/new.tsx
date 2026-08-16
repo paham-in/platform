@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -17,11 +17,10 @@ import {
   postQuestionsMutation,
   getQuestionsQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { postQuestionsByQuestionIdImages } from "@/lib/api/sdk.gen"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { ArrowLeft, ImagePlus, Sparkles, X } from "lucide-react"
+import { ArrowLeft, Sparkles } from "lucide-react"
 
 function NewQuestion() {
   const qc = useQueryClient()
@@ -31,41 +30,15 @@ function NewQuestion() {
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [content, setContent] = useState("")
   const [subjectId, setSubjectId] = useState("")
-  const [images, setImages] = useState<File[]>([])
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
-  const [uploading, setUploading] = useState(false)
   const [editorUploading, setEditorUploading] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
 
   const { mutate: createQuestion, isPending } = useMutation({
     ...postQuestionsMutation(),
-    onSuccess: async (data) => {
-      const questionId = data?.id
-      if (!questionId) {
-        qc.invalidateQueries({ queryKey: getQuestionsQueryKey() })
-        toast.success("Pertanyaan berhasil dibuat")
-        navigate({ to: "/student/forum" })
-        return
-      }
-
-      // upload images
-      if (images.length > 0) {
-        setUploading(true)
-        let ok = true
-        for (const file of images) {
-          try {
-            await postQuestionsByQuestionIdImages({ path: { question_id: questionId }, body: { image: file } })
-          } catch {
-            ok = false
-            toast.error(`Gagal upload ${file.name}`)
-          }
-        }
-        setUploading(false)
-        if (ok) toast.success("Semua gambar berhasil diupload")
-      }
-
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: getQuestionsQueryKey() })
+      toast.success("Pertanyaan berhasil dibuat")
       navigate({ to: "/student/forum" })
     },
     onError: (err: any) => {
@@ -80,20 +53,6 @@ function NewQuestion() {
         subject_id: subjectId ? Number(subjectId) : undefined,
       },
     })
-  }
-
-  const addFiles = (files: FileList | null) => {
-    if (!files) return
-    const maxSize = 5 * 1024 * 1024
-    const valid: File[] = []
-    for (const f of files) {
-      if (f.size > maxSize) {
-        toast.error(`${f.name} terlalu besar (maks 5MB)`)
-      } else {
-        valid.push(f)
-      }
-    }
-    setImages((prev) => [...prev, ...valid])
   }
 
   if (locked) {
@@ -166,46 +125,11 @@ function NewQuestion() {
           <TiptapEditor content={content} onChange={setContent} tempFolder="forum_questions" onUploadingChange={setEditorUploading} />
         </div>
 
-        {/* Images */}
-        <div className="space-y-2">
-          <Label>Gambar Pendukung (opsional)</Label>
-          <p className="text-xs text-muted-foreground">Format: JPG, PNG, GIF, WebP. Maks 5MB per file.</p>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/jpeg,image/png,image/gif,image/webp"
-            multiple
-            className="hidden"
-            onChange={(e) => addFiles(e.target.files)}
-          />
-          <div className="flex flex-wrap gap-2">
-            {images.map((f, i) => (
-              <div key={i} className="relative h-20 w-20 overflow-hidden rounded-lg border">
-                <img src={URL.createObjectURL(f)} alt="" className="h-full w-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => setImages((prev) => prev.filter((_, j) => j !== i))}
-                  className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white text-xs"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className="flex h-20 w-20 items-center justify-center rounded-lg border border-dashed text-muted-foreground hover:bg-muted/50"
-            >
-              <ImagePlus className="h-6 w-6" />
-            </button>
-          </div>
-        </div>
-
         <div className="flex justify-end gap-3">
           <Link to="/student/forum"><Button variant="outline">Batal</Button></Link>
-          <Button onClick={submit} disabled={!content || !subjectId || isPending || uploading || editorUploading}>
-            {(isPending || uploading || editorUploading) && <Spinner />}
-            {uploading || editorUploading ? "Mengupload gambar..." : "Kirim"}
+          <Button onClick={submit} disabled={!content || !subjectId || isPending || editorUploading}>
+            {(isPending || editorUploading) && <Spinner />}
+            {editorUploading ? "Mengupload gambar..." : "Kirim"}
           </Button>
         </div>
       </div>

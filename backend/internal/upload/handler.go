@@ -40,6 +40,7 @@ type TempDeleteResponse struct {
 // tempFolders: whitelist folder temp yang boleh dipakai.
 var tempFolders = map[string]bool{
 	"forum_questions": true,
+	"forum_answers":   true,
 	"materials":       true,
 	"quiz_questions":  true,
 	"quiz_answers":    true,

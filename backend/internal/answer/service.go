@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"html"
+	"log"
 	"regexp"
 	"strings"
 
@@ -43,27 +44,29 @@ func (s *Service) SetStorage(store *storage.ObjectStorage) {
 	s.store = store
 }
 
+// commitContent memindahkan gambar temp ke lokasi permanen (kalau ada) lalu
+// menormalkan semua referensi gambar di content ke bentuk object name.
+func (s *Service) commitContent(content string) (string, error) {
+	if s.store != nil {
+		var err error
+		content, err = s.store.CommitTempImages(context.Background(), content)
+		if err != nil {
+			return "", err
+		}
+	}
+	return storage.SanitizeContentImages(content), nil
+}
+
+// RewriteContent mengganti object name gambar di content → URL akses (untuk serve).
+func (s *Service) RewriteContent(content string) string {
+	if s.store == nil {
+		return content
+	}
+	return s.store.RewriteContentImages(content)
+}
+
 func (s *Service) ListByQuestion(questionID uint) ([]models.ForumAnswer, error) {
 	return s.repo.ListByQuestion(questionID)
-}
-
-// ListImages mengembalikan gambar pendukung semua jawaban di satu pertanyaan.
-func (s *Service) ListImages(questionID uint) ([]models.ForumAnswerImage, error) {
-	return s.repo.ListImages(questionID)
-}
-
-// GetAnswer mengambil jawaban berdasarkan ID (untuk cek kepemilikan upload gambar).
-func (s *Service) GetAnswer(id uint) (*models.ForumAnswer, error) {
-	return s.repo.GetByID(id)
-}
-
-// AddImage mencatat gambar pendukung milik sebuah jawaban.
-func (s *Service) AddImage(answerID uint, objectName string) (*models.ForumAnswerImage, error) {
-	rec := models.ForumAnswerImage{AnswerID: answerID, FileName: objectName}
-	if err := s.repo.db.Create(&rec).Error; err != nil {
-		return nil, err
-	}
-	return &rec, nil
 }
 
 func (s *Service) Delete(id, userID uint) error {
@@ -75,22 +78,18 @@ func (s *Service) Delete(id, userID uint) error {
 		return errors.New("bukan pemilik jawaban")
 	}
 
-	images, err := s.repo.ListImagesByAnswer(id)
+	objectNames, err := s.repo.DeleteWithAssets(id)
 	if err != nil {
-		return err
-	}
-	if err := s.repo.Delete(id); err != nil {
-		return err
-	}
-	if err := s.repo.DeleteImageRows(id); err != nil {
 		return err
 	}
 
 	// hapus file gambar dari storage (best-effort — jangan gagalkan hapus
 	// jawaban kalau storage bermasalah).
 	if s.store != nil {
-		for _, img := range images {
-			_ = s.store.Delete(context.Background(), img.FileName)
+		for _, obj := range objectNames {
+			if err := s.store.Delete(context.Background(), obj); err != nil {
+				log.Printf("[answer] gagal hapus aset %q: %v", obj, err)
+			}
 		}
 	}
 	return nil
@@ -106,18 +105,27 @@ func (s *Service) Create(questionID, userID uint, content, videoURL string) (*mo
 		return nil, errors.New("tidak bisa menjawab pertanyaan sendiri")
 	}
 
+	committed, err := s.commitContent(content)
+	if err != nil {
+		return nil, err
+	}
+
 	answer := models.ForumAnswer{
 		QuestionID:   questionID,
 		UserID:       userID,
-		Content:      content,
-		PlainContent: stripHTML(content),
+		Content:      committed,
+		PlainContent: stripHTML(committed),
 		VideoURL:     videoURL,
 	}
 
-	// Insert jawaban + update status pertanyaan dalam satu transaksi — kalau
-	// update status gagal, jawaban ikut batal (bukan jawaban yatim + status "open").
+	// Insert jawaban + aset content + update status pertanyaan dalam satu
+	// transaksi — kalau update status gagal, jawaban ikut batal (bukan jawaban
+	// yatim + status "open").
 	if err := s.repo.db.Transaction(func(tx *gorm.DB) error {
 		if err := s.repo.CreateWithDB(tx, &answer); err != nil {
+			return err
+		}
+		if err := s.repo.CreateAssetsWithDB(tx, answer.ID, storage.ExtractContentImages(committed)); err != nil {
 			return err
 		}
 		return s.questionRepo.MarkAnsweredWithDB(tx, questionID)

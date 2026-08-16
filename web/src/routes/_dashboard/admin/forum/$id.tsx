@@ -8,7 +8,6 @@ import {
   getQuestionsByQuestionIdAnswersOptions,
   getQuestionsByQuestionIdAnswersQueryKey,
   deleteQuestionsByQuestionIdAnswersByIdMutation,
-  getQuestionsByQuestionIdImagesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
@@ -35,9 +34,6 @@ function ForumDetail() {
   const { data: question, isLoading } = useQuery(getQuestionsByIdOptions({ path: { id: questionId } }))
   const { data: answers = [] } = useQuery(
     getQuestionsByQuestionIdAnswersOptions({ path: { question_id: questionId } })
-  )
-  const { data: images = [] } = useQuery(
-    getQuestionsByQuestionIdImagesOptions({ path: { question_id: questionId } })
   )
 
   const { mutate: deleteAnswer } = useMutation({
@@ -98,21 +94,6 @@ function ForumDetail() {
         <RichContent html={question.content} />
       )}
 
-      {/* Images */}
-      {images.length > 0 && (
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {images.map((img) => (
-            <a key={img.id} href={img.url} target="_blank" rel="noreferrer">
-              <img
-                src={img.url}
-                alt=""
-                className="h-40 w-full rounded-lg border object-cover transition-opacity hover:opacity-80"
-              />
-            </a>
-          ))}
-        </div>
-      )}
-
       {/* Answers */}
       <section className="mt-10 space-y-4">
         <h2 className="text-lg font-semibold">Jawaban ({answers.length})</h2>
@@ -169,19 +150,6 @@ function ForumDetail() {
             </div>
             {a.content && <RichContent html={a.content} />}
             {a.video_url && <YoutubeEmbed url={a.video_url} className="mt-3" />}
-            {a.images && a.images.length > 0 && (
-              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {a.images.map((url) => (
-                  <a key={url} href={url} target="_blank" rel="noreferrer">
-                    <img
-                      src={url}
-                      alt=""
-                      className="h-40 w-full rounded-lg border object-cover transition-opacity hover:opacity-80"
-                    />
-                  </a>
-                ))}
-              </div>
-            )}
           </div>
         ))}
       </section>
