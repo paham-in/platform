@@ -31,6 +31,7 @@ function EditQuestion() {
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [content, setContent] = useState("")
   const [subjectId, setSubjectId] = useState("")
+  const [editorUploading, setEditorUploading] = useState(false)
 
   useEffect(() => {
     if (question?.subject_id != null && subjectId === "") {
@@ -118,16 +119,16 @@ function EditQuestion() {
           <p className="text-xs text-muted-foreground">
             Tarik & lepas gambar ke editor untuk mengunggahnya langsung.
           </p>
-          <TiptapEditor content={question.content ?? ""} onChange={setContent} allowImages={false} tempFolder="forum_questions" />
+          <TiptapEditor content={question.content ?? ""} onChange={setContent} allowImages={false} tempFolder="forum_questions" onUploadingChange={setEditorUploading} />
         </div>
 
         <div className="flex justify-end gap-3">
           <Link to="/student/forum/$id" params={{ id }}>
             <Button variant="outline">Batal</Button>
           </Link>
-          <Button onClick={submit} disabled={!content || !subjectId || isPending}>
+          <Button onClick={submit} disabled={!content || !subjectId || isPending || editorUploading}>
             {isPending && <Spinner />}
-            Simpan Perubahan
+            {editorUploading ? "Mengupload gambar..." : "Simpan Perubahan"}
           </Button>
         </div>
       </div>

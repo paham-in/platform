@@ -14,7 +14,8 @@ import {
   StrikethroughIcon,
   UndoIcon,
 } from "lucide-react"
-import { useEditor, EditorContent, type Editor } from "@tiptap/react"
+import { Node as TipTapNode, mergeAttributes } from "@tiptap/core"
+import { useEditor, EditorContent, NodeViewWrapper, ReactNodeViewRenderer, type Editor } from "@tiptap/react"
 import type { EditorView } from "@tiptap/pm/view"
 import StarterKit from "@tiptap/starter-kit"
 import Underline from "@tiptap/extension-underline"
@@ -26,6 +27,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { MathInputDialog } from "./math-input-dialog"
 import { GalleryPicker } from "./gallery-picker"
+import { Spinner } from "@/components/ui/spinner"
 import { postContentTempImages } from "@/lib/api/sdk.gen"
 import {
   Dialog,
@@ -59,6 +61,42 @@ const ToolbarButton = ({
   </button>
 );
 
+// UploadPlaceholder: node sementara untuk gambar yang sedang diunggah. Tampil
+// sebagai kotak dashed dengan spinner (mirip area drag & drop), lalu diganti
+// node gambar saat upload selesai. Atribut `id` dipakai untuk mengidentifikasi
+// node per-upload.
+const UploadPlaceholder = TipTapNode.create({
+  name: "uploadPlaceholder",
+  group: "block",
+  atom: true,
+  selectable: false,
+  draggable: false,
+  addAttributes() {
+    return {
+      id: { default: null },
+    }
+  },
+  parseHTML() {
+    return [{ tag: "div[data-upload-placeholder]" }]
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["div", mergeAttributes(HTMLAttributes, { "data-upload-placeholder": "" })]
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(UploadPlaceholderView)
+  },
+})
+
+function UploadPlaceholderView() {
+  return (
+    <NodeViewWrapper>
+      <div className="flex h-40 items-center justify-center rounded-lg border-2 border-dashed border-muted bg-muted/20">
+        <Spinner className="size-6 text-muted-foreground" />
+      </div>
+    </NodeViewWrapper>
+  )
+}
+
 export function TiptapEditor({
   content,
   onChange,
@@ -67,6 +105,7 @@ export function TiptapEditor({
   subjectId,
   galleryFolder = "materials",
   tempFolder,
+  onUploadingChange,
 }: {
   content: string;
   onChange: (html: string) => void;
@@ -75,12 +114,18 @@ export function TiptapEditor({
   subjectId?: number;
   galleryFolder?: "materials" | "quiz_questions";
   tempFolder?: string;
+  onUploadingChange?: (uploading: boolean) => void;
 }) {
   const [mathOpen, setMathOpen] = useState(false)
   const [editLatex, setEditLatex] = useState<string | null>(null)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [resizeOpen, setResizeOpen] = useState(false)
+  const [pendingUploads, setPendingUploads] = useState(0)
   const editorElRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    onUploadingChange?.(pendingUploads > 0)
+  }, [pendingUploads, onUploadingChange])
 
   // uploadTemp mengunggah gambar ke storage temp lalu mengembalikan URL-nya.
   // Gambar dipindahkan ke lokasi permanen saat content di-submit (backend).
@@ -95,11 +140,54 @@ export function TiptapEditor({
     }
   }
 
-  const insertImageAt = (view: EditorView, url: string, pos?: number) => {
-    const node = view.state.schema.nodes.image.create({ src: url })
+  // insertPlaceholder menyisipkan node kotak dashed + spinner (feedback loading)
+  // lalu mengembalikan id-nya — dipakai untuk mengganti node saat upload selesai.
+  const insertPlaceholder = (view: EditorView, pos?: number): string => {
+    const id = crypto.randomUUID()
+    const node = view.state.schema.nodes.uploadPlaceholder.create({ id })
     const target = pos ?? view.state.selection.to
     view.dispatch(view.state.tr.insert(target, node))
     view.focus()
+    return id
+  }
+
+  const replacePlaceholder = (view: EditorView, id: string, url: string) => {
+    view.state.doc.descendants((node, nodePos) => {
+      if (node.type.name === "uploadPlaceholder" && node.attrs.id === id) {
+        const image = view.state.schema.nodes.image.create({ src: url })
+        view.dispatch(view.state.tr.replaceWith(nodePos, nodePos + node.nodeSize, image))
+        return false
+      }
+    })
+  }
+
+  const removePlaceholder = (view: EditorView, id: string) => {
+    view.state.doc.descendants((node, nodePos) => {
+      if (node.type.name === "uploadPlaceholder" && node.attrs.id === id) {
+        view.dispatch(view.state.tr.delete(nodePos, nodePos + node.nodeSize))
+        return false
+      }
+    })
+  }
+
+  // uploadImages menyisipkan placeholder langsung (feedback loading), lalu
+  // menggantinya dengan URL hasil upload. Kalau gagal, placeholder dihapus.
+  const uploadImages = (view: EditorView, files: File[], pos?: number) => {
+    let insertPos = pos
+    for (const f of files) {
+      const id = insertPlaceholder(view, insertPos)
+      if (insertPos != null) insertPos += 1
+      setPendingUploads((n) => n + 1)
+      void uploadTemp(f).then((url) => {
+        try {
+          if (url) replacePlaceholder(view, id, url)
+          else removePlaceholder(view, id)
+        } catch {
+          // editor sudah di-unmount — transaksi dibuang
+        }
+        setPendingUploads((n) => n - 1)
+      })
+    }
   }
 
   const editor = useEditor({
@@ -111,12 +199,13 @@ export function TiptapEditor({
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Mathematics,
       ImageExt,
+      UploadPlaceholder,
     ],
     content,
     editable,
     editorProps: {
-      // drag & drop gambar: unggah ke storage temp, lalu sisipkan ke editor
-      // dari URL hasil upload (bukan blob lokal).
+      // drag & drop gambar: sisipkan placeholder, unggah ke storage temp, lalu
+      // ganti src-nya dengan URL hasil upload (bukan blob lokal).
       handleDrop: (view, event) => {
         if (!tempFolder) return false
         const files = Array.from(event.dataTransfer?.files ?? [])
@@ -124,12 +213,7 @@ export function TiptapEditor({
         if (!imgs.length) return false
         event.preventDefault()
         const coords = view.posAtCoords({ left: event.clientX, top: event.clientY })
-        const pos = coords?.pos
-        for (const f of imgs) {
-          void uploadTemp(f).then((url) => {
-            if (url) insertImageAt(view, url, pos)
-          })
-        }
+        uploadImages(view, imgs, coords?.pos)
         return true
       },
       handlePaste: (view, event) => {
@@ -138,11 +222,7 @@ export function TiptapEditor({
         const imgs = files.filter((f) => f.type.startsWith("image/"))
         if (!imgs.length) return false
         event.preventDefault()
-        for (const f of imgs) {
-          void uploadTemp(f).then((url) => {
-            if (url) insertImageAt(view, url)
-          })
-        }
+        uploadImages(view, imgs)
         return true
       },
     },

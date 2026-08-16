@@ -35,6 +35,7 @@ function NewQuestion() {
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
   const [uploading, setUploading] = useState(false)
+  const [editorUploading, setEditorUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const { mutate: createQuestion, isPending } = useMutation({
@@ -162,7 +163,7 @@ function NewQuestion() {
           <p className="text-xs text-muted-foreground">
             Tarik & lepas gambar ke editor untuk mengunggahnya langsung.
           </p>
-          <TiptapEditor content={content} onChange={setContent} allowImages={false} tempFolder="forum_questions" />
+          <TiptapEditor content={content} onChange={setContent} allowImages={false} tempFolder="forum_questions" onUploadingChange={setEditorUploading} />
         </div>
 
         {/* Images */}
@@ -202,9 +203,9 @@ function NewQuestion() {
 
         <div className="flex justify-end gap-3">
           <Link to="/student/forum"><Button variant="outline">Batal</Button></Link>
-          <Button onClick={submit} disabled={!content || !subjectId || isPending || uploading}>
-            {(isPending || uploading) && <Spinner />}
-            {uploading ? "Mengupload gambar..." : "Kirim"}
+          <Button onClick={submit} disabled={!content || !subjectId || isPending || uploading || editorUploading}>
+            {(isPending || uploading || editorUploading) && <Spinner />}
+            {uploading || editorUploading ? "Mengupload gambar..." : "Kirim"}
           </Button>
         </div>
       </div>
