@@ -13,9 +13,12 @@ import { toast } from "sonner";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E"]
 
-function stripHtml(html: string): string {
+// isEmptyContent: opsi dianggap kosong kalau tidak ada teks DAN tidak ada
+// gambar/rumus (opsi berisi gambar doang tetap valid).
+function isEmptyContent(html: string): boolean {
   const doc = new DOMParser().parseFromString(html, "text/html")
-  return (doc.body.textContent || "").trim()
+  const text = (doc.body.textContent || "").trim()
+  return text === "" && !doc.body.querySelector("img, [data-type='inline-math'], [data-type='block-math']")
 }
 
 function EditQuestion() {
@@ -68,7 +71,7 @@ function EditQuestion() {
   }
 
   const save = () => {
-    const validAnswers = answers.filter((a) => stripHtml(a.content) !== "")
+    const validAnswers = answers.filter((a) => !isEmptyContent(a.content))
     updateQuestion({
       path: { id: Number(packageId), qid: Number(questionId) },
       body: {
@@ -87,7 +90,7 @@ function EditQuestion() {
     })
   }
 
-  const validCount = answers.filter((a) => stripHtml(a.content) !== "").length
+  const validCount = answers.filter((a) => !isEmptyContent(a.content)).length
 
   return (
     <main className="p-6">
