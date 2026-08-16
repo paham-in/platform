@@ -1632,6 +1632,16 @@ definitions:
       teacher_name:
         type: string
     type: object
+  upload.TempDeleteRequest:
+    properties:
+      url:
+        type: string
+    type: object
+  upload.TempDeleteResponse:
+    properties:
+      ok:
+        type: boolean
+    type: object
   upload.TempUploadErrorResponse:
     properties:
       error:
@@ -4134,6 +4144,38 @@ paths:
       tags:
       - Classes
   /content/temp-images:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus gambar temp (public/temp_<folder>/) dari storage. Hanya
+        object temp di folder whitelist yang boleh dihapus.
+      parameters:
+      - description: URL atau object name gambar temp
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/upload.TempDeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/upload.TempDeleteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/upload.TempUploadErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/upload.TempUploadErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete temp image
+      tags:
+      - Upload
     post:
       consumes:
       - multipart/form-data

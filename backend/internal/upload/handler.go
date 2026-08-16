@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image/jpeg"
 	"io"
+	"strings"
 
 	"bimbel2/backend/internal/storage"
 
@@ -26,6 +27,14 @@ type TempUploadResponse struct {
 
 type TempUploadErrorResponse struct {
 	Error string `json:"error"`
+}
+
+type TempDeleteRequest struct {
+	URL string `json:"url"`
+}
+
+type TempDeleteResponse struct {
+	OK bool `json:"ok"`
 }
 
 // tempFolders: whitelist folder temp yang boleh dipakai. Untuk sekarang cuma
@@ -102,7 +111,41 @@ func (h *Handler) UploadTemp(c *fiber.Ctx) error {
 	})
 }
 
+// DeleteTemp menghapus gambar temp dari storage
+// @Summary      Delete temp image
+// @Description  Menghapus gambar temp (public/temp_<folder>/) dari storage. Hanya object temp di folder whitelist yang boleh dihapus.
+// @Tags         Upload
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body TempDeleteRequest true "URL atau object name gambar temp"
+// @Success      200 {object} TempDeleteResponse
+// @Failure      400 {object} TempUploadErrorResponse
+// @Failure      500 {object} TempUploadErrorResponse
+// @Router       /content/temp-images [delete]
+func (h *Handler) DeleteTemp(c *fiber.Ctx) error {
+	var req TempDeleteRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(TempUploadErrorResponse{Error: "body tidak valid"})
+	}
+	m := storage.TempContentImageRe.FindStringSubmatch(req.URL)
+	if len(m) != 2 {
+		return c.Status(400).JSON(TempUploadErrorResponse{Error: "object temp tidak valid"})
+	}
+	obj := m[1]
+	rest := strings.TrimPrefix(obj, "public/temp_")
+	slash := strings.Index(rest, "/")
+	if slash <= 0 || !tempFolders[rest[:slash]] {
+		return c.Status(400).JSON(TempUploadErrorResponse{Error: "object temp tidak valid"})
+	}
+	if err := h.storage.Delete(c.Context(), obj); err != nil {
+		return c.Status(500).JSON(TempUploadErrorResponse{Error: "gagal menghapus file"})
+	}
+	return c.Status(200).JSON(TempDeleteResponse{OK: true})
+}
+
 func AuthRoutes(auth fiber.Router, store *storage.ObjectStorage) {
 	h := NewHandler(store)
 	auth.Post("/content/temp-images", h.UploadTemp)
+	auth.Delete("/content/temp-images", h.DeleteTemp)
 }

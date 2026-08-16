@@ -3570,6 +3570,55 @@
                         }
                     }
                 }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus gambar temp (public/temp_\u003cfolder\u003e/) dari storage. Hanya object temp di folder whitelist yang boleh dihapus.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Upload"
+                ],
+                "summary": "Delete temp image",
+                "parameters": [
+                    {
+                        "description": "URL atau object name gambar temp",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/upload.TempDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/upload.TempDeleteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/upload.TempUploadErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/upload.TempUploadErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/invoices": {
@@ -7822,6 +7871,22 @@
                 },
                 "teacher_name": {
                     "type": "string"
+                }
+            }
+        },
+        "upload.TempDeleteRequest": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "upload.TempDeleteResponse": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
                 }
             }
         },

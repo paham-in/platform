@@ -998,6 +998,14 @@ export type TutoringUploadSessionEvidenceResponse = {
     teacher_name?: string;
 };
 
+export type UploadTempDeleteRequest = {
+    url?: string;
+};
+
+export type UploadTempDeleteResponse = {
+    ok?: boolean;
+};
+
 export type UploadTempUploadErrorResponse = {
     error?: string;
 };
@@ -3413,6 +3421,38 @@ export type GetClassesResponses = {
 };
 
 export type GetClassesResponse = GetClassesResponses[keyof GetClassesResponses];
+
+export type DeleteContentTempImagesData = {
+    /**
+     * URL atau object name gambar temp
+     */
+    body: UploadTempDeleteRequest;
+    path?: never;
+    query?: never;
+    url: '/content/temp-images';
+};
+
+export type DeleteContentTempImagesErrors = {
+    /**
+     * Bad Request
+     */
+    400: UploadTempUploadErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: UploadTempUploadErrorResponse;
+};
+
+export type DeleteContentTempImagesError = DeleteContentTempImagesErrors[keyof DeleteContentTempImagesErrors];
+
+export type DeleteContentTempImagesResponses = {
+    /**
+     * OK
+     */
+    200: UploadTempDeleteResponse;
+};
+
+export type DeleteContentTempImagesResponse = DeleteContentTempImagesResponses[keyof DeleteContentTempImagesResponses];
 
 export type PostContentTempImagesData = {
     body: {

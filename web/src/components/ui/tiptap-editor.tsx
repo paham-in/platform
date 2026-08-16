@@ -4,7 +4,8 @@ import {
   Heading1Icon,
   Heading2Icon,
   Heading3Icon,
-  ImageIcon,
+ImageIcon,
+  ImagePlusIcon,
   ItalicIcon,
   ListIcon,
   ListOrderedIcon,
@@ -12,11 +13,14 @@ import {
   RedoIcon,
   Sigma,
   StrikethroughIcon,
+  Trash2Icon,
   UndoIcon,
 } from "lucide-react"
 import { Node as TipTapNode, mergeAttributes } from "@tiptap/core"
 import { useEditor, EditorContent, NodeViewWrapper, ReactNodeViewRenderer, type Editor } from "@tiptap/react"
+import { BubbleMenu } from "@tiptap/react/menus"
 import type { EditorView } from "@tiptap/pm/view"
+import { NodeSelection } from "@tiptap/pm/state"
 import StarterKit from "@tiptap/starter-kit"
 import Underline from "@tiptap/extension-underline"
 import TextAlign from "@tiptap/extension-text-align"
@@ -28,15 +32,7 @@ import { cn } from "@/lib/utils"
 import { MathInputDialog } from "./math-input-dialog"
 import { GalleryPicker } from "./gallery-picker"
 import { Spinner } from "@/components/ui/spinner"
-import { postContentTempImages } from "@/lib/api/sdk.gen"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { postContentTempImages, deleteContentTempImages } from "@/lib/api/sdk.gen"
 
 const ToolbarButton = ({
   active,
@@ -120,8 +116,6 @@ export function TiptapEditor({
   const [mathOpen, setMathOpen] = useState(false)
   const [editLatex, setEditLatex] = useState<string | null>(null)
   const [galleryOpen, setGalleryOpen] = useState(false)
-  const [resizeOpen, setResizeOpen] = useState(false)
-  const [resizeAnchor, setResizeAnchor] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
   const [pendingUploads, setPendingUploads] = useState(0)
   const editorElRef = useRef<HTMLDivElement>(null)
 
@@ -265,9 +259,6 @@ export function TiptapEditor({
               break
             }
           }
-          const r = (img as HTMLElement).getBoundingClientRect()
-            setResizeAnchor({ left: r.left, top: r.top, width: r.width, height: r.height })
-            setResizeOpen(true)
         }
         return
       }
@@ -293,12 +284,33 @@ export function TiptapEditor({
 
   const handleResize = (pct: number) => {
     editor.chain().focus().updateAttributes("image", { width: `${pct}%` }).run()
-    setResizeOpen(false)
+  }
+
+  const handleDeleteImage = async () => {
+    const sel = editor.state.selection
+    const src = sel instanceof NodeSelection && sel.node.type.name === "image"
+      ? (sel.node.attrs.src as string)
+      : ""
+    if (src && /public\/temp_[a-z_]+/.test(src)) {
+      const res = await deleteContentTempImages({ body: { url: src } })
+      if (res.error) {
+        toast.error(res.error.error || "Gagal menghapus gambar")
+        return
+      }
+    }
+    editor.chain().focus().deleteSelection().run()
   }
 
   return (
     <div className="rounded-md border">
-      <Toolbar editor={editor} onOpenMath={openMathForInsert} onOpenGallery={() => setGalleryOpen(true)} allowImages={allowImages} />
+      <Toolbar
+        editor={editor}
+        onOpenMath={openMathForInsert}
+        onOpenGallery={() => setGalleryOpen(true)}
+        onUploadImage={(files) => uploadImages(editor.view, files)}
+        allowImages={allowImages}
+        canUpload={!!tempFolder}
+      />
       <div ref={editorElRef}>
         <EditorContent
           editor={editor}
@@ -321,31 +333,42 @@ export function TiptapEditor({
         />
       )}
 
-      <DropdownMenu open={resizeOpen} onOpenChange={setResizeOpen}>
-        {resizeAnchor && (
-          <div
-            className="pointer-events-none fixed z-50"
-            style={{ left: resizeAnchor.left, top: resizeAnchor.top, width: resizeAnchor.width, height: resizeAnchor.height }}
+      <BubbleMenu
+        editor={editor}
+        appendTo={document.body}
+        shouldShow={({ editor }: { editor: Editor }) => {
+          const sel = editor.state.selection
+          return sel instanceof NodeSelection && sel.node.type.name === "image"
+        }}
+        className="flex items-center gap-0.5 rounded-xl border bg-background p-1 shadow-lg"
+      >
+        {[25, 50, 75, 100].map((pct) => (
+          <button
+            key={pct}
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => handleResize(pct)}
+            className="flex h-7 min-w-10 items-center justify-center rounded-lg px-2 text-xs font-medium transition-colors hover:bg-muted"
           >
-            <DropdownMenuTrigger aria-label="Ukuran gambar" className="pointer-events-auto block h-full w-full" />
-          </div>
-        )}
-        <DropdownMenuContent align="end" sideOffset={8} className="w-auto min-w-36">
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Ukuran Gambar</DropdownMenuLabel>
-            {[25, 50, 75, 100].map((pct) => (
-              <DropdownMenuItem key={pct} onClick={() => handleResize(pct)}>
-                {pct}%
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            {pct}%
+          </button>
+        ))}
+        <div className="mx-1 h-4 w-px bg-border" />
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => void handleDeleteImage()}
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-destructive transition-colors hover:bg-destructive/10"
+        >
+          <Trash2Icon className="h-4 w-4" />
+        </button>
+      </BubbleMenu>
     </div>
   );
 }
 
-function Toolbar({ editor, onOpenMath, onOpenGallery, allowImages }: { editor: Editor; onOpenMath: () => void; onOpenGallery: () => void; allowImages: boolean }) {
+function Toolbar({ editor, onOpenMath, onOpenGallery, onUploadImage, allowImages, canUpload }: { editor: Editor; onOpenMath: () => void; onOpenGallery: () => void; onUploadImage: (files: File[]) => void; allowImages: boolean; canUpload: boolean }) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const items = [
     { icon: UndoIcon, action: () => editor.chain().focus().undo().run(), active: false },
     { icon: RedoIcon, action: () => editor.chain().focus().redo().run(), active: false },
@@ -364,6 +387,7 @@ function Toolbar({ editor, onOpenMath, onOpenGallery, allowImages }: { editor: E
     { icon: QuoteIcon, action: () => editor.chain().focus().toggleBlockquote().run(), active: editor.isActive("blockquote") },
     { type: "sep" as const },
     { icon: Sigma, action: onOpenMath, active: editor.isActive("blockMath") },
+    ...(canUpload ? [{ icon: ImagePlusIcon, action: () => fileInputRef.current?.click(), active: false }] : []),
     ...(allowImages ? [{ icon: ImageIcon, action: onOpenGallery, active: false }] : []),
   ];
 
@@ -377,6 +401,19 @@ function Toolbar({ editor, onOpenMath, onOpenGallery, allowImages }: { editor: E
             <item.icon className="h-4 w-4" />
           </ToolbarButton>
         ),
+      )}
+      {canUpload && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files?.length) onUploadImage(Array.from(e.target.files))
+            e.target.value = ""
+          }}
+        />
       )}
     </div>
   );
