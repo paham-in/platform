@@ -13,8 +13,9 @@ import { Spinner } from "@/components/ui/spinner"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { getPushPublicKey, postPushSubscribe } from "@/lib/api/sdk.gen"
-import { Loader2, Save, Bell, BellOff } from "lucide-react"
+import { Loader2, Save, Bell, BellOff, Download } from "lucide-react"
 import { toast } from "sonner"
+import { usePwaInstall } from "@/lib/hooks/use-pwa-install"
 
 function SettingsPage() {
   const qc = useQueryClient()
@@ -27,6 +28,7 @@ function SettingsPage() {
   )
   const [notifSubscribing, setNotifSubscribing] = useState(false)
   const [showNotifHelp, setShowNotifHelp] = useState(false)
+  const { canInstall, installed, install, iOS } = usePwaInstall()
 
   if (user && !initialized) {
     setName(user.name ?? "")
@@ -74,7 +76,7 @@ function SettingsPage() {
         return
       }
 
-      const reg = await navigator.serviceWorker.register("/sw.js")
+      const reg = await navigator.serviceWorker.ready
       const pub = await getPushPublicKey()
       const pubKey = pub?.data?.public_key
       if (!pubKey) {
@@ -200,6 +202,41 @@ function SettingsPage() {
             >
               {notifSubscribing ? <Spinner /> : notifPermission === "granted" ? "Aktif" : notifPermission === "denied" ? "Buka Pengaturan" : "Aktifkan"}
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Download className="h-5 w-5" /> Instal Aplikasi
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Instal paham.in ke perangkatmu untuk membuka aplikasi lebih cepat, lengkap dengan ikon di layar utama.
+          </p>
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="flex items-center gap-3">
+              <Download className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">
+                  {installed ? "Terpasang" : "Belum terpasang"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {installed
+                    ? "Aplikasi sudah tersedia di layar utama perangkatmu."
+                    : iOS
+                      ? "Ketuk ikon Bagikan di Safari, lalu pilih 'Tambah ke Layar Utama'."
+                      : "Pasang aplikasi agar bisa diakses seperti aplikasi native."}
+                </p>
+              </div>
+            </div>
+            {!installed && !iOS && (
+              <Button size="sm" onClick={install} disabled={!canInstall}>
+                Pasang
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
