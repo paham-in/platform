@@ -62,7 +62,7 @@ function MyQuestions() {
   }
 
   return (
-    <main className="p-6">
+    <main className="p-4 md:p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Pertanyaan Saya</h1>
         <Link to="/student/forum/new">

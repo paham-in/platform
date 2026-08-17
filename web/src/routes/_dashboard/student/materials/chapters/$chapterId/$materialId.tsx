@@ -35,14 +35,14 @@ function MaterialDetail() {
 
   if (!material) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <p className="text-muted-foreground">Materi tidak ditemukan</p>
       </main>
     )
   }
 
   return (
-    <main className="w-full max-w-3xl p-6">
+    <main className="w-full max-w-3xl p-4 md:p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">{material.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">

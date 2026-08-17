@@ -137,15 +137,15 @@ function EditMaterial() {
 
   if (isLoading && !loaded) {
     return (
-      <main className="p-6">
-        <div className="mx-auto max-w-4xl space-y-6">
+      <main className="p-4 md:p-6">
+        <div className="mx-auto max-w-4xl space-y-4 md:space-y-6">
           <div>
             <Skeleton className="h-4 w-16" />
             <Skeleton className="mt-2 mb-1 h-8 w-40" />
             <Skeleton className="h-4 w-64" />
           </div>
           <Card>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 md:space-y-6">
               <div className="space-y-2">
                 <Skeleton className="h-4 w-12" />
                 <Skeleton className="h-9 w-full" />
@@ -167,7 +167,7 @@ function EditMaterial() {
 
   if (isError) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <Card>
           <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
             <p className="text-muted-foreground">Materi tidak ditemukan atau kamu tidak punya akses ke materi ini.</p>
@@ -179,15 +179,15 @@ function EditMaterial() {
 
   return (
     <>
-      <main className="p-6">
-        <div className="mx-auto max-w-4xl space-y-6">
+      <main className="p-4 md:p-6">
+        <div className="mx-auto max-w-4xl space-y-4 md:space-y-6">
           <div>
             <h1 className="mb-1 text-2xl font-bold tracking-tight">Edit Materi</h1>
             <p className="text-sm text-muted-foreground">Perbarui materi teks atau video untuk bab ini.</p>
           </div>
 
           <Card>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 md:space-y-6">
               <div className="space-y-2">
                 <Label>Judul</Label>
                 <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul materi" />

@@ -76,7 +76,7 @@ function AttendanceDetail() {
   }
 
   return (
-    <main className="p-6">
+    <main className="p-4 md:p-6">
       <div className="mb-4">
         <h1 className="text-2xl font-bold tracking-tight">{user?.name ?? "—"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{user?.email ?? ""}</p>

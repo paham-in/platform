@@ -68,8 +68,8 @@ function NewQuestion() {
   const validCount = answers.filter((a) => !isEmptyContent(a.content)).length
 
   return (
-    <main className="p-6">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <main className="p-4 md:p-6">
+      <div className="mx-auto max-w-3xl space-y-4 md:space-y-6">
         <h1 className="text-2xl font-bold tracking-tight">Tambah Soal</h1>
 
         <div className="space-y-2">

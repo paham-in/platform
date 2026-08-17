@@ -50,7 +50,7 @@ function AdminTeacherSubjects() {
 
   return (
     <>
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <h1 className="mb-4 text-2xl font-bold tracking-tight">Mata Pelajaran Guru</h1>
         <p className="mb-4 text-sm text-muted-foreground">
           Atur mata pelajaran yang diampu setiap guru. Guru tidak bisa mengubahnya sendiri.

@@ -14,13 +14,13 @@ function TeacherDashboard() {
   )
 
   return (
-    <main className="p-6">
-      <div className="space-y-6">
+    <main className="p-4 md:p-6">
+      <div className="space-y-4 md:space-y-6">
         <div className="flex items-center justify-between">
           <div><h2 className="text-2xl font-bold tracking-tight">Dashboard Guru</h2><p className="text-muted-foreground">Kelola materi dan jawab pertanyaan siswa, {user?.name}.</p></div>
           <Button onClick={() => {}}><Plus className="mr-1 h-4 w-4" /> Buat Materi</Button>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { icon: FileText, label: "Materi Dibuat", value: "24", color: "text-blue-600 bg-blue-100" },
             { icon: MessageSquare, label: "Pertanyaan Terjawab", value: "43", color: "text-green-600 bg-green-100" },
@@ -64,7 +64,7 @@ function TeacherDashboard() {
             </p>
           </CardContent>
         </Card>
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
           <Card><CardHeader><CardTitle>Materi Terbaru</CardTitle></CardHeader><CardContent>
             {[{ title: "Trigonometri Dasar", subject: "Matematika", status: "Published" }, { title: "Hukum Newton", subject: "Fisika", status: "Draft" }].map((m, i) => (
               <div key={i} className="flex items-center justify-between border-b py-3 last:border-0">

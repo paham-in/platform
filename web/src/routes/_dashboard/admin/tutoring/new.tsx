@@ -142,7 +142,7 @@ function AdminTutoringNew() {
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
   return (
-    <main className="p-6">
+    <main className="p-4 md:p-6">
       <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Tambah Booking Manual</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -151,7 +151,7 @@ function AdminTutoringNew() {
         </div>
 
       <Card className="gap-0 pt-0 pb-0">
-        <CardContent className="space-y-6 p-6">
+        <CardContent className="space-y-4 md:space-y-6 p-6">
           <div className="space-y-2">
             <Label htmlFor="admin-booking-student">Murid</Label>
             <Combobox

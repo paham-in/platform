@@ -14,7 +14,7 @@ function CollectionDetail() {
 
   if (isLoading) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <Skeleton className="mb-1 h-8 w-48" />
         <Skeleton className="mb-6 h-4 w-64" />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -33,7 +33,7 @@ function CollectionDetail() {
 
   if (isError || !collection) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <p className="text-muted-foreground">Koleksi paket soal tidak ditemukan.</p>
       </main>
     )
@@ -42,7 +42,7 @@ function CollectionDetail() {
   const totalQ = collection.packages?.reduce((sum, pkg) => sum + (pkg.questions?.length ?? 0), 0) ?? 0
 
   return (
-    <main className="w-full max-w-5xl p-6">
+    <main className="w-full max-w-5xl p-4 md:p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">{collection.name}</h1>
         <p className="mt-2 text-sm text-muted-foreground">

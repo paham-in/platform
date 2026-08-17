@@ -57,7 +57,7 @@ function ForumDetail() {
 
   if (!question) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <p className="text-muted-foreground">Pertanyaan tidak ditemukan</p>
       </main>
     )
@@ -66,7 +66,7 @@ function ForumDetail() {
   const isOwner = question.is_owner
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-6">
+    <main className="mx-auto w-full max-w-3xl p-4 md:p-6">
       <div className="mb-2 flex items-center gap-2">
         {question.subject_name && (
           <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">

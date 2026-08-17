@@ -118,15 +118,15 @@ function NewMaterial() {
 
   return (
     <>
-      <main className="p-6">
-        <div className="mx-auto max-w-4xl space-y-6">
+      <main className="p-4 md:p-6">
+        <div className="mx-auto max-w-4xl space-y-4 md:space-y-6">
           <div>
             <h1 className="mb-1 text-2xl font-bold tracking-tight">Tambah Materi</h1>
             <p className="text-sm text-muted-foreground">Buat materi teks atau video untuk bab ini.</p>
           </div>
 
           <Card>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 md:space-y-6">
               <div className="space-y-2">
                 <Label>Judul</Label>
                 <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul materi" />

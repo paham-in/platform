@@ -68,7 +68,7 @@ function DevReset() {
   })
 
   return (
-    <main className="flex flex-col gap-4 p-6">
+    <main className="flex flex-col gap-4 p-4 md:p-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dev Tools</h1>
         <p className="mt-1 text-sm text-muted-foreground">

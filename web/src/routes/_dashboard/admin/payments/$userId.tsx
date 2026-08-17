@@ -91,7 +91,7 @@ function PaymentsDetail() {
 
   if (!isLoading && !user) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <div className="flex flex-col items-center gap-4 py-12">
           <p className="text-muted-foreground">User tidak ditemukan</p>
         </div>
@@ -100,7 +100,7 @@ function PaymentsDetail() {
   }
 
   return (
-    <main className="p-6">
+    <main className="p-4 md:p-6">
       <div className="mb-4">
         <div>
           {isLoading || !user ? (

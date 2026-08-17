@@ -91,7 +91,7 @@ function StudentSubscribe() {
   }
 
   return (
-    <main className="p-6">
+    <main className="p-4 md:p-6">
       <h1 className="mb-1 text-2xl font-bold tracking-tight">Langganan</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Pilih kelas & produk. Setelah pembayaran diverifikasi admin, akses kelas kamu aktif.
@@ -107,7 +107,7 @@ function StudentSubscribe() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <div className="flex max-w-3xl flex-col gap-6">
+        <div className="flex max-w-3xl flex-col gap-4 md:gap-6">
           <div className="max-w-xs space-y-1.5">
             <Label htmlFor="subscribe-class">Kelas</Label>
             <Select

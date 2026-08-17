@@ -19,7 +19,7 @@ function PackageDetail() {
 
   if (isLoading) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <Skeleton className="mb-1 h-8 w-64" />
         <Skeleton className="mb-6 h-4 w-48" />
         <div className="space-y-3">
@@ -35,7 +35,7 @@ function PackageDetail() {
 
   if (isError || !pkg) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <p className="text-muted-foreground">Paket soal tidak ditemukan.</p>
       </main>
     )
@@ -45,7 +45,7 @@ function PackageDetail() {
   const completed = progress?.completed_count ?? 0
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-6">
+    <main className="mx-auto w-full max-w-3xl p-4 md:p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">{pkg.name}</h1>
         <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">

@@ -9,8 +9,8 @@ function UserDashboard() {
   const { data: user } = useQuery(getMeOptions())
 
   return (
-    <main className="p-6">
-      <div className="space-y-6">
+    <main className="p-4 md:p-6">
+      <div className="space-y-4 md:space-y-6">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Halo, {user?.name}!</h2>
           <p className="mt-1 text-muted-foreground">

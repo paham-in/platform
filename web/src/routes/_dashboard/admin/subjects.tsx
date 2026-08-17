@@ -115,7 +115,7 @@ function AdminSubjects() {
 
   return (
     <>
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <h1 className="mb-4 text-2xl font-bold tracking-tight">Mata Pelajaran</h1>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-1 flex-wrap items-center gap-2">

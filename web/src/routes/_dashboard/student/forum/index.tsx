@@ -109,7 +109,7 @@ function ForumPage() {
 
   if (isLoading) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <div className="mb-6 flex items-center justify-between">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-9 w-40" />
@@ -145,7 +145,7 @@ function ForumPage() {
   }
 
   return (
-    <main className="p-6">
+    <main className="p-4 md:p-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-bold tracking-tight">Forum</h1>
         <NewQuestionAction locked={locked} />

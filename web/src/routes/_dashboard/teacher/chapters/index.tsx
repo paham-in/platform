@@ -298,7 +298,7 @@ function AdminChapters() {
 
   if (isError) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <Card>
           <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
             <p className="text-muted-foreground">Gagal memuat daftar bab.</p>
@@ -316,7 +316,7 @@ function AdminChapters() {
 
   return (
     <>
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <h1 className="text-2xl font-bold tracking-tight">BAB</h1>
         <div className="mb-4 mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-1 flex-wrap items-center gap-4">

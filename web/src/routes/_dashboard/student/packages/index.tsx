@@ -11,7 +11,7 @@ function PackagesPage() {
 
   if (isLoading) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <Skeleton className="mb-1 h-8 w-32" />
         <Skeleton className="mb-6 h-4 w-64" />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -29,7 +29,7 @@ function PackagesPage() {
   }
 
   return (
-    <main className="p-6">
+    <main className="p-4 md:p-6">
       <h1 className="mb-1 text-2xl font-bold tracking-tight">Paket Soal</h1>
       <p className="mb-6 text-sm text-muted-foreground">Kumpulan paket soal per kelas untuk latihanmu.</p>
 

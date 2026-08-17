@@ -13,11 +13,11 @@ function StudentDashboard() {
   const today = format(new Date(), "yyyy-MM-dd")
 
   return (
-    <main className="p-6">
-      <div className="space-y-6">
+    <main className="p-4 md:p-6">
+      <div className="space-y-4 md:space-y-6">
         <h2 className="text-2xl font-bold tracking-tight">Dashboard Murid</h2>
         <p className="text-muted-foreground">Selamat datang kembali, {user?.name}! Lanjutkan belajarmu.</p>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { icon: BookOpen, label: "Materi Diakses", value: "12", color: "text-blue-600 bg-blue-100" },
             { icon: TrendingUp, label: "Progress Belajar", value: "65%", color: "text-green-600 bg-green-100" },
@@ -55,7 +55,7 @@ function StudentDashboard() {
             </div>
           </CardContent>
         </Card>
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Langganan & Akses</CardTitle>

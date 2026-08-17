@@ -115,7 +115,7 @@ function WorkPage() {
 
   if (questionsLoading) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <Skeleton className="mb-4 h-8 w-64" />
         <Skeleton className="mb-6 h-2 w-full" />
         <Card>
@@ -134,7 +134,7 @@ function WorkPage() {
 
   if (total === 0) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <Empty className="py-20">
           <EmptyHeader>
             <EmptyMedia variant="icon"><FileQuestion /></EmptyMedia>
@@ -147,7 +147,7 @@ function WorkPage() {
   }
 
   return (
-    <main className="flex flex-col gap-6 p-6 lg:flex-row">
+    <main className="flex flex-col gap-4 md:gap-6 p-4 md:p-6 lg:flex-row">
       {/* Left column: question content */}
       <div className="flex-1 min-w-0">
         <div className="mb-4 flex items-center gap-2">

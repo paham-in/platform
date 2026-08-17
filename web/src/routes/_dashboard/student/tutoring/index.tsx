@@ -98,12 +98,12 @@ function StudentTutoringIndex() {
   const upcomingSessions = sessions.filter((s) => s.status !== "cancelled")
 
   return (
-    <main className="p-6">
+    <main className="p-4 md:p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Les Privat</h1>
         <p className="text-sm text-muted-foreground">Booking jadwal les dengan guru</p>
       </div>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
       <div>
         <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-semibold">Booking Saya</h2>

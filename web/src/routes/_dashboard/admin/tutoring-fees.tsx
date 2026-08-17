@@ -192,13 +192,13 @@ function AdminSettings() {
   )
 
   return (
-    <main className="p-6">
+    <main className="p-4 md:p-6">
       <h1 className="mb-1 text-2xl font-bold tracking-tight">Tarif Produk</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Konfigurasi harga per kelas untuk les privat dan konten (materi + paket soal + forum).
       </p>
 
-      <div className="flex max-w-2xl flex-col gap-6">
+      <div className="flex max-w-2xl flex-col gap-4 md:gap-6">
         {/* Fee Guru */}
         <Card>
           <CardHeader>

@@ -199,7 +199,7 @@ function ChapterMaterials() {
 
   if (isLoading) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <Skeleton className="mb-2 h-4 w-24" />
         <Skeleton className="mb-1 h-8 w-48" />
         <Skeleton className="mb-5 h-4 w-64" />
@@ -239,7 +239,7 @@ function ChapterMaterials() {
 
   if (isError) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <Card>
           <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
             <p className="text-muted-foreground">Gagal memuat daftar materi.</p>
@@ -257,7 +257,7 @@ function ChapterMaterials() {
 
   return (
     <>
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         {chapter && (
           <p className="mb-1 text-sm text-muted-foreground">{chapter.title}</p>
         )}

@@ -70,7 +70,7 @@ function EditQuestion() {
 
   if (!question || !question.is_owner) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <div className="mx-auto max-w-2xl space-y-4">
           <p className="text-muted-foreground">Pertanyaan tidak ditemukan atau bukan milikmu</p>
         </div>
@@ -79,8 +79,8 @@ function EditQuestion() {
   }
 
   return (
-    <main className="p-6">
-      <div className="mx-auto max-w-2xl space-y-6">
+    <main className="p-4 md:p-6">
+      <div className="mx-auto max-w-2xl space-y-4 md:space-y-6">
         <h1 className="text-2xl font-bold tracking-tight">Edit Pertanyaan</h1>
 
         <div className="space-y-2">

@@ -47,7 +47,7 @@ function EditQuestion() {
 
   if (isLoading) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <div className="mx-auto max-w-3xl space-y-4">
           <Skeleton className="h-8 w-40" />
           <Skeleton className="h-24 w-full" />
@@ -59,7 +59,7 @@ function EditQuestion() {
 
   if (!question) {
     return (
-      <main className="p-6">
+      <main className="p-4 md:p-6">
         <div className="flex flex-col items-center gap-4 py-12">
           <p className="text-muted-foreground">Soal tidak ditemukan</p>
         </div>
@@ -90,8 +90,8 @@ function EditQuestion() {
   const validCount = answers.filter((a) => !isEmptyContent(a.content)).length
 
   return (
-    <main className="p-6">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <main className="p-4 md:p-6">
+      <div className="mx-auto max-w-3xl space-y-4 md:space-y-6">
         <h1 className="text-2xl font-bold tracking-tight">Edit Soal</h1>
 
         <div className="space-y-2">
