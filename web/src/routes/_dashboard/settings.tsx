@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -106,9 +106,6 @@ function SettingsPage() {
     }
   }
 
-  // Tampilkan dialog instruksi cara mengubah izin notifikasi di browser.
-  const openBrowserSettings = () => setShowNotifHelp(true)
-
   // Deteksi browser untuk menampilkan instruksi yang sesuai.
   const browserName = (() => {
     const ua = navigator.userAgent
@@ -119,8 +116,42 @@ function SettingsPage() {
     return "Browser"
   })()
 
-  const notifHelpSteps =
-    browserName === "Chrome" || browserName === "Edge"
+  // PWA yang di-install: chrome://settings tidak bisa dibuka dari window standalone,
+  // satu-satunya jalan adalah Site Settings lewat long-press ikon aplikasi.
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as { standalone?: boolean }).standalone === true
+
+  // Chromium (Chrome/Edge) di mode browser bisa lompat langsung ke halaman izin
+  // notifikasi. Kalau gagal (PWA standalone / diblokir) → fallback ke dialog instruksi.
+  const openBrowserSettings = () => {
+    if (!isStandalone) {
+      const url =
+        browserName === "Chrome"
+          ? "chrome://settings/content/notifications"
+          : browserName === "Edge"
+            ? "edge://settings/content/notifications"
+            : null
+      if (url) {
+        try {
+          const win = window.open(url, "_blank")
+          if (win) return
+        } catch {
+          // diblokir — fall through ke dialog
+        }
+      }
+    }
+    setShowNotifHelp(true)
+  }
+
+  const notifHelpSteps = isStandalone
+    ? [
+        "Tekan lama ikon paham.in di layar utama HP",
+        "Pilih 'Site Settings' (Setelan Situs)",
+        "Ketuk 'Notifications', lalu ubah menjadi 'Izinkan'",
+        "Kembali ke aplikasi, lalu klik 'Aktifkan'",
+      ]
+    : browserName === "Chrome" || browserName === "Edge"
       ? [
           `Buka ikon gembok di samping alamat situs (${browserName})`,
           "Klik 'Izin situs' atau 'Notifikasi'",
@@ -162,6 +193,20 @@ function SettingsPage() {
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
         </CardContent>
+        <CardFooter>
+          <Button
+            onClick={handleSave}
+            disabled={updateProfile.isPending}
+            className="w-full"
+          >
+            {updateProfile.isPending ? (
+              <Spinner />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            Simpan
+          </Button>
+        </CardFooter>
       </Card>
 
       <Card>
@@ -240,21 +285,6 @@ function SettingsPage() {
           </div>
         </CardContent>
       </Card>
-
-      <div>
-        <Button
-          onClick={handleSave}
-          disabled={updateProfile.isPending}
-          className="w-full"
-        >
-          {updateProfile.isPending ? (
-            <Spinner />
-          ) : (
-            <Save className="mr-2 h-4 w-4" />
-          )}
-          Simpan
-        </Button>
-      </div>
       </div>
 
       <Dialog open={showNotifHelp} onOpenChange={setShowNotifHelp}>
