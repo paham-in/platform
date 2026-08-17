@@ -13,24 +13,39 @@ function StudentDashboard() {
   const { data: classes = [], isLoading: programsLoading } = useQuery(getStudentClassesOptions())
   const today = format(new Date(), "yyyy-MM-dd")
 
+  const stats = [
+    { icon: BookOpen, label: "Materi Diakses", value: "12", color: "text-blue-600 bg-blue-100" },
+    { icon: TrendingUp, label: "Progress Belajar", value: "65%", color: "text-green-600 bg-green-100" },
+    { icon: Clock, label: "Sesi Terakhir", value: "2 jam", color: "text-orange-600 bg-orange-100" },
+    { icon: CheckCircle2, label: "Materi Selesai", value: "8", color: "text-purple-600 bg-purple-100" },
+  ]
+
   return (
     <main className="p-4 md:p-6">
       <div className="space-y-4 md:space-y-6">
         <h2 className="text-2xl font-bold tracking-tight">Dashboard Murid</h2>
         <p className="text-muted-foreground">Selamat datang kembali, {user?.name}! Lanjutkan belajarmu.</p>
-        <div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { icon: BookOpen, label: "Materi Diakses", value: "12", color: "text-blue-600 bg-blue-100" },
-            { icon: TrendingUp, label: "Progress Belajar", value: "65%", color: "text-green-600 bg-green-100" },
-            { icon: Clock, label: "Sesi Terakhir", value: "2 jam", color: "text-orange-600 bg-orange-100" },
-            { icon: CheckCircle2, label: "Materi Selesai", value: "8", color: "text-purple-600 bg-purple-100" },
-          ].map((s) => (
+        <div className="hidden gap-4 md:gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((s) => (
             <Card key={s.label}><CardContent className="flex flex-col gap-3">
               <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></div>
               <div><div className="text-2xl font-bold">{s.value}</div><div className="text-sm text-muted-foreground">{s.label}</div></div>
             </CardContent></Card>
           ))}
         </div>
+        <Card className="sm:hidden">
+          <CardContent className="divide-y">
+            {stats.map((s) => (
+              <div key={s.label} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></div>
+                <div>
+                  <div className="text-xl font-bold">{s.value}</div>
+                  <div className="text-sm text-muted-foreground">{s.label}</div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
