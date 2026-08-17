@@ -7,6 +7,7 @@ import {
   Link,
   Outlet,
   useNavigate,
+  useRouter,
   useRouterState,
 } from "@tanstack/react-router";
 import {
@@ -19,7 +20,7 @@ import {
 import { useEffect, useState } from "react";
 import { sidebarGroups, type SidebarGroup as SidebarGroupData } from "@/lib/sidebar";
 import { CommandMenu } from "@/components/command-menu";
-import { RouteTransition } from "@/components/route-transition";
+import { getNavStack, RouteTransition, setResetInProgress } from "@/components/route-transition";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { homeForRoles, requiredRoleForPath, roleLabel } from "@/lib/role";
 import {
@@ -95,8 +96,46 @@ function AppSidebar({
 }) {
   const { pathname } = useRouterState().location;
   const { setOpenMobile } = useSidebar();
+  const router = useRouter();
+  const navigate = useNavigate();
   const isActive = (to?: string) => !!to && (pathname === to || pathname.startsWith(to + "/"));
   const closeMobile = () => setOpenMobile(false);
+
+  const dashboardTo = groups
+    .flatMap((g) => g.items)
+    .map((i) => i.to)
+    .find((t) => !!t && t.endsWith("/dashboard"));
+
+  const goSection = (to: string) => {
+    closeMobile();
+    if (pathname === to) return;
+    const stack = getNavStack();
+    const dIdx = dashboardTo ? stack.indexOf(dashboardTo) : -1;
+    const steps = dIdx >= 0 ? stack.length - 1 - dIdx : -1;
+    if (to === dashboardTo) {
+      if (steps > 0) {
+        setResetInProgress(true);
+        const cleanup = router.subscribe("onResolved", () => {
+          cleanup();
+          setResetInProgress(false);
+        });
+        router.history.go(-steps);
+      } else {
+        navigate({ to: to as never });
+      }
+      return;
+    }
+    if (steps > 0) {
+      setResetInProgress(true);
+      const cleanup = router.subscribe("onResolved", () => {
+        cleanup();
+        void navigate({ to: to as never }).finally(() => setResetInProgress(false));
+      });
+      router.history.go(-steps);
+    } else {
+      navigate({ to: to as never });
+    }
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -142,7 +181,7 @@ function AppSidebar({
                           <SidebarMenuSubItem key={sub.label}>
                             <SidebarMenuSubButton
                               isActive={isActive(sub.to)}
-                              render={<Link to={sub.to} onClick={closeMobile} />}
+                              render={<Link to={sub.to} onClick={(e) => { e.preventDefault(); goSection(sub.to) }} />}
                             >
                               <span>{sub.label}</span>
                             </SidebarMenuSubButton>
@@ -156,7 +195,7 @@ function AppSidebar({
                     <SidebarMenuButton
                       tooltip={item.label}
                       isActive={isActive(item.to)}
-                      render={<Link to={item.to!} onClick={closeMobile} />}
+                      render={<Link to={item.to!} onClick={(e) => { e.preventDefault(); goSection(item.to!) }} />}
                     >
                       <item.icon />
                       <span>{item.label}</span>
