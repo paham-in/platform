@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -21,6 +21,8 @@ function WorkPage() {
   const { collectionId, packageId } = useParams({ from: "/_dashboard/student/packages/$collectionId/$packageId/work/" })
   const navigate = useNavigate({ from: Route.fullPath })
   const qc = useQueryClient()
+  const packageIdNum = Number(packageId)
+  const paramsOk = Number.isFinite(packageIdNum)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedAnswerId, setSelectedAnswerId] = useState<number | null>(null)
   const [revealed, setRevealed] = useState(false)
@@ -28,13 +30,15 @@ function WorkPage() {
   const [isCorrect, setIsCorrect] = useState(false)
   const [correctAnswerIds, setCorrectAnswerIds] = useState<Set<number>>(new Set())
 
-  const { data: questions = [], isLoading: questionsLoading } = useQuery(
-    getQuestionPackagesByIdWorkQuestionsOptions({ path: { id: Number(packageId) } })
-  )
+  const { data: questions = [], isLoading: questionsLoading } = useQuery({
+    ...getQuestionPackagesByIdWorkQuestionsOptions({ path: { id: packageIdNum } }),
+    enabled: paramsOk,
+  })
 
-  const { data: progress } = useQuery(
-    getQuestionPackagesByIdWorkProgressOptions({ path: { id: Number(packageId) } })
-  )
+  const { data: progress } = useQuery({
+    ...getQuestionPackagesByIdWorkProgressOptions({ path: { id: packageIdNum } }),
+    enabled: paramsOk,
+  })
 
   const submitMutation = useMutation({
     ...postQuestionPackagesByIdWorkSubmitMutation(),
@@ -43,7 +47,7 @@ function WorkPage() {
       setIsCorrect(data.is_correct ?? false)
       setExplanation(data.explanation ?? "")
       setCorrectAnswerIds(new Set(data.correct_answer_ids ?? []))
-      qc.invalidateQueries({ queryKey: getQuestionPackagesByIdWorkProgressQueryKey({ path: { id: Number(packageId) } }) })
+      qc.invalidateQueries({ queryKey: getQuestionPackagesByIdWorkProgressQueryKey({ path: { id: packageIdNum } }) })
       if (data.is_correct) {
         toast.success("Jawaban benar!")
       } else {
@@ -71,11 +75,17 @@ function WorkPage() {
     if (typeof q === "number" && q >= 0 && q < total) {
       setCurrentIndex(q)
     }
-  }, [])
+  }, [q, total])
 
+  const isFirstRender = useRef(true)
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    if (q === currentIndex) return
     navigate({ search: (prev) => ({ ...prev, q: currentIndex }), replace: true })
-  }, [currentIndex])
+  }, [currentIndex, q, navigate])
 
   // Restore from progress API when navigating to an already-answered question
   useEffect(() => {
@@ -102,9 +112,17 @@ function WorkPage() {
   const handleSubmit = () => {
     if (selectedAnswerId === null || !currentQuestion) return
     submitMutation.mutate({
-      path: { id: Number(packageId) },
+      path: { id: packageIdNum },
       body: { question_id: currentQuestion.id, answer_id: selectedAnswerId },
     })
+  }
+
+  const goBackToPackage = () => {
+    if (Number.isFinite(Number(collectionId)) && Number.isFinite(packageIdNum)) {
+      navigate({ to: "/student/packages/$collectionId/$packageId", params: { collectionId, packageId } })
+    } else {
+      navigate({ to: "/student/packages" })
+    }
   }
 
   const goToQuestion = (index: number) => {
@@ -151,7 +169,7 @@ function WorkPage() {
       {/* Left column: question content */}
       <div className="flex-1 min-w-0">
         <div className="mb-4 flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/student/packages/$collectionId/$packageId", params: { collectionId, packageId } })}>
+          <Button variant="ghost" size="icon" onClick={goBackToPackage}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm text-muted-foreground">Kembali ke paket</span>
