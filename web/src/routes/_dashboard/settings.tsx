@@ -16,10 +16,15 @@ import { getPushPublicKey, postPushSubscribe } from "@/lib/api/sdk.gen"
 import { Loader2, Save, Bell, BellOff, Download } from "lucide-react"
 import { toast } from "sonner"
 import { usePwaInstall } from "@/lib/hooks/use-pwa-install"
+import { format, parseISO } from "date-fns"
+import { id } from "date-fns/locale"
 
 function SettingsPage() {
   const qc = useQueryClient()
   const { data: user, isLoading: userLoading } = useQuery(getMeOptions())
+
+  const buildTime = import.meta.env.VITE_BUILD_TIME as string | undefined
+  const commitSha = import.meta.env.VITE_COMMIT_SHA as string | undefined
 
   const [name, setName] = useState("")
   const [initialized, setInitialized] = useState(false)
@@ -286,6 +291,14 @@ function SettingsPage() {
         </CardContent>
       </Card>
       </div>
+
+      {(buildTime || commitSha) && (
+        <p className="mt-4 text-xs text-muted-foreground">
+          {buildTime && `Versi build: ${format(parseISO(buildTime), "d MMM yyyy, HH:mm", { locale: id })}`}
+          {buildTime && commitSha && " · "}
+          {commitSha && `Commit: ${commitSha.slice(0, 7)}`}
+        </p>
+      )}
 
       <Dialog open={showNotifHelp} onOpenChange={setShowNotifHelp}>
         <DialogContent>

@@ -8,6 +8,10 @@ WORKDIR /app
 # nilai env dibake ke bundle saat build (Vite)
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_BUILD_TIME
+ENV VITE_BUILD_TIME=$VITE_BUILD_TIME
+ARG VITE_COMMIT_SHA
+ENV VITE_COMMIT_SHA=$VITE_COMMIT_SHA
 
 # cache dependencies
 COPY package.json package-lock.json* ./
