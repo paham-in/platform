@@ -99,7 +99,6 @@ function AppSidebar({
   const { pathname } = useRouterState().location;
   const { setOpenMobile } = useSidebar();
   const router = useRouter();
-  const navigate = useNavigate();
   const isActive = (to?: string) => !!to && (pathname === to || pathname.startsWith(to + "/"));
   const closeMobile = () => setOpenMobile(false);
 
@@ -139,7 +138,7 @@ function AppSidebar({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" onClick={() => { closeMobile(); navigate({ to: "/" }); }}>
+            <div className="flex h-14 items-center gap-2 px-3">
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
                 p
               </div>
@@ -147,7 +146,7 @@ function AppSidebar({
                 <span className="font-semibold">paham.in</span>
                 <span className="text-xs text-muted-foreground">{userName}</span>
               </div>
-            </SidebarMenuButton>
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
