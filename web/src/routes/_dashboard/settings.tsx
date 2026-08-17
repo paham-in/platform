@@ -256,40 +256,38 @@ function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Download className="h-5 w-5" /> Instal Aplikasi
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Instal paham.in ke perangkatmu untuk membuka aplikasi lebih cepat, lengkap dengan ikon di layar utama.
-          </p>
-          <div className="flex items-center justify-between rounded-lg border p-3">
-            <div className="flex items-center gap-3">
-              <Download className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">
-                  {installed ? "Terpasang" : "Belum terpasang"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {installed
-                    ? "Aplikasi sudah tersedia di layar utama perangkatmu."
-                    : iOS
+      {!installed && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Download className="h-5 w-5" /> Instal Aplikasi
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Instal paham.in ke perangkatmu untuk membuka aplikasi lebih cepat, lengkap dengan ikon di layar utama.
+            </p>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="flex items-center gap-3">
+                <Download className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">Belum terpasang</p>
+                  <p className="text-xs text-muted-foreground">
+                    {iOS
                       ? "Ketuk ikon Bagikan di Safari, lalu pilih 'Tambah ke Layar Utama'."
                       : "Pasang aplikasi agar bisa diakses seperti aplikasi native."}
-                </p>
+                  </p>
+                </div>
               </div>
+              {!iOS && (
+                <Button size="sm" onClick={install} disabled={!canInstall}>
+                  Pasang
+                </Button>
+              )}
             </div>
-            {!installed && !iOS && (
-              <Button size="sm" onClick={install} disabled={!canInstall}>
-                Pasang
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
       </div>
 
       {(buildTime || commitSha) && (
