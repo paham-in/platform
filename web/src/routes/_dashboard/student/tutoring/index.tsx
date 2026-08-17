@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Spinner } from "@/components/ui/spinner"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   getTutoringBookingsOptions,
@@ -23,7 +24,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { Loader2, Plus, UserRound, Users, CalendarX2, CalendarDays } from "lucide-react"
+import { CalendarX2, Plus, UserRound, Users, CalendarDays } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -94,8 +95,6 @@ function StudentTutoringIndex() {
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getTutoringSessionsOptions())
   const [cancelTarget, setCancelTarget] = useState<TutoringListBookingsResponse | null>(null)
 
-  if (bookingsLoading) return <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-
   const upcomingSessions = sessions.filter((s) => s.status !== "cancelled")
 
   return (
@@ -110,7 +109,7 @@ function StudentTutoringIndex() {
           <h2 className="text-lg font-semibold">Booking Saya</h2>
           <Button onClick={() => navigate({ to: "/student/tutoring/new" })}><Plus className="mr-1 h-4 w-4" /> Tambah Booking</Button>
         </div>
-        <Card className="pt-0 gap-0 pb-0">
+        <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -125,7 +124,17 @@ function StudentTutoringIndex() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {bookings.length === 0 ? (
+                {bookingsLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="p-4">
+                      <div className="space-y-3">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <Skeleton key={i} className="h-12 w-full" />
+                        ))}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : bookings.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7}>
                       <Empty className="border-0 p-8">
@@ -155,6 +164,45 @@ function StudentTutoringIndex() {
             </Table>
           </CardContent>
         </Card>
+        <Card className="gap-0 py-0 md:hidden">
+          <CardContent className="p-0">
+            {bookingsLoading ? (
+              <div className="space-y-3 p-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : bookings.length === 0 ? (
+              <Empty className="p-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
+                  <EmptyTitle>Belum ada booking</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="divide-y">
+                {bookings.map((b) => (
+                  <div key={b.id} className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{b.teacher_name || "—"}</p>
+                        <div className="mt-1">{modeBadge(b.mode)}</div>
+                        <p className="mt-2 text-sm text-muted-foreground">{b.date} · {b.start_time} - {b.end_time}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{b.session_count ?? 1}× pertemuan</p>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-2">
+                        {statusBadge(b.status!)}
+                        {canCancel(b) && (
+                          <Button variant="outline" size="sm" onClick={() => setCancelTarget(b)}>Batalkan</Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div>
@@ -162,7 +210,7 @@ function StudentTutoringIndex() {
           <h2 className="text-lg font-semibold">Pertemuan Mendatang</h2>
           <span className="text-sm text-muted-foreground">Jadwal aktif setelah pembayaran dikonfirmasi admin</span>
         </div>
-        <Card className="pt-0 gap-0 pb-0">
+        <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -175,7 +223,15 @@ function StudentTutoringIndex() {
               </TableHeader>
               <TableBody>
                 {sessionsLoading ? (
-                  <TableRow><TableCell colSpan={4} className="p-8 text-center"><Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" /></TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={4} className="p-4">
+                      <div className="space-y-3">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <Skeleton key={i} className="h-12 w-full" />
+                        ))}
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 ) : upcomingSessions.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4}>
@@ -199,6 +255,36 @@ function StudentTutoringIndex() {
                 ))}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+        <Card className="gap-0 py-0 md:hidden">
+          <CardContent className="p-0">
+            {sessionsLoading ? (
+              <div className="space-y-3 p-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : upcomingSessions.length === 0 ? (
+              <Empty className="p-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon"><CalendarDays /></EmptyMedia>
+                  <EmptyTitle>Belum ada jadwal pertemuan</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="divide-y">
+                {upcomingSessions.map((s) => (
+                  <div key={s.id} className="flex items-start justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{s.teacher_name}</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">{s.date} · {s.start_time} - {s.end_time}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Terjadwal</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
