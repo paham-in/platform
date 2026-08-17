@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, redirect } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -7,6 +7,10 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { client } from "@/lib/api/client.gen"
+import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { homeForRoles } from "@/lib/role"
+import { queryClient } from "@/router"
+import type { GetMeResponse } from "@/lib/api/types.gen"
 
 function LoginPage() {
   const googleLogin = () => {
@@ -47,5 +51,16 @@ function LoginPage() {
 }
 
 export const Route = createFileRoute("/login")({
+  beforeLoad: async () => {
+    if (!localStorage.getItem("token")) return
+    let user: GetMeResponse | undefined
+    try {
+      user = await queryClient.fetchQuery(getMeOptions())
+    } catch (e) {
+      if ((e as { status?: number }).status === 401) localStorage.removeItem("token")
+      return
+    }
+    throw redirect({ to: homeForRoles(user.roles as string[]) })
+  },
   component: LoginPage,
 })

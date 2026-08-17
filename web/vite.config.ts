@@ -29,7 +29,7 @@ export default defineConfig({
         lang: "id",
         display: "standalone",
         orientation: "portrait",
-        start_url: "/",
+        start_url: "/login",
         scope: "/",
         theme_color: "#008236",
         background_color: "#ffffff",

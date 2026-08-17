@@ -24,15 +24,6 @@
       (() => {
         const standalone =
           window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
-        if (standalone && !localStorage.getItem("token")) {
-          location.replace("/login");
-        }
-      })();
-    </script>
-    <script>
-      (() => {
-        const standalone =
-          window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
         if (standalone) {
           document
             .querySelector('meta[name="viewport"]')

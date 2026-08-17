@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { buttonVariants } from "@/components/ui/button"
@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
-import { getMeOptions, getClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { homeForRoles } from "@/lib/role"
+import { getClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
 import Navbar from "@/sections/Navbar"
 import Footer from "@/sections/Footer"
 import {
@@ -175,20 +174,7 @@ function CountUp({ value }: { value: string }) {
 }
 
 function LandingPage() {
-  const navigate = useNavigate()
-  const token = typeof window !== "undefined" && localStorage.getItem("token")
-  const { data: user, isPending: mePending } = useQuery({ ...getMeOptions(), enabled: !!token, retry: false })
   const { data: classes = [], isLoading: classesLoading } = useQuery(getClassesOptions())
-  const isStandalone =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    (navigator as { standalone?: boolean }).standalone === true
-
-  useEffect(() => {
-    if (!isStandalone) return
-    if (token && mePending) return
-    navigate({ to: user ? homeForRoles(user.roles as string[]) : "/login" })
-  }, [isStandalone, token, mePending, user, navigate])
-
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
