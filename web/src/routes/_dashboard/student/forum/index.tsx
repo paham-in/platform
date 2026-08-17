@@ -225,7 +225,7 @@ function ForumPage() {
           </EmptyContent>
         </Empty>
       ) : (
-        <div className="columns-2 gap-4">
+        <div className="columns-1 gap-4 md:columns-2">
           {questions.map((q) => (
             <Card key={q.id} className="mb-4 break-inside-avoid transition-colors hover:bg-muted/40">
               <Link
