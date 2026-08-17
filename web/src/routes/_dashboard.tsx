@@ -267,22 +267,17 @@ function DashboardLayout() {
         onLogoutClick={() => setLogoutConfirmOpen(true)}
       />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-4 border-b bg-background px-4">
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4 md:gap-4">
           <SidebarTrigger className="-ml-1" />
+          <div className="flex-1" />
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="icon"
             onClick={() => setCommandOpen(true)}
             aria-label="Cari menu atau halaman"
-            className="gap-2 px-3"
           >
             <Search />
-            <span className="hidden md:inline">Cari halaman...</span>
-            <kbd className="hidden h-5 items-center gap-0.5 rounded-md border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground md:inline-flex">
-              <span>⌘</span>K
-            </kbd>
           </Button>
-          <div className="flex-1" />
           <ThemeToggle compact />
           <div className="flex items-center gap-2">
             <DropdownMenu>
