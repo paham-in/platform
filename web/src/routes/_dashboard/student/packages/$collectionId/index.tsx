@@ -3,7 +3,7 @@ import { createFileRoute, Link, Outlet, useParams } from "@tanstack/react-router
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getQuestionPackageCollectionsByIdOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { ArrowLeft, FileText, Layers, Sparkles, ChevronRight } from "lucide-react"
+import { FileText, Layers, Sparkles, ChevronRight } from "lucide-react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function CollectionDetail() {
@@ -43,13 +43,6 @@ function CollectionDetail() {
 
   return (
     <main className="w-full max-w-5xl p-6">
-      <Link
-        to="/student/packages"
-        className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> Paket Soal
-      </Link>
-
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">{collection.name}</h1>
         <p className="mt-2 text-sm text-muted-foreground">

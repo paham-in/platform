@@ -25,7 +25,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, FileText, Type, Video } from "lucide-react";
+import { FileText, Type, Video } from "lucide-react";
 import { toast } from "sonner";
 import { useDraft } from "@/lib/use-draft";
 import { extractYoutubeId, isValidYoutubeUrl } from "@/lib/youtube";
@@ -171,9 +171,6 @@ function EditMaterial() {
         <Card>
           <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
             <p className="text-muted-foreground">Materi tidak ditemukan atau kamu tidak punya akses ke materi ini.</p>
-            <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId }}>
-              <Button variant="outline">Kembali ke Daftar Materi</Button>
-            </Link>
           </CardContent>
         </Card>
       </main>
@@ -185,14 +182,7 @@ function EditMaterial() {
       <main className="p-6">
         <div className="mx-auto max-w-4xl space-y-6">
           <div>
-            <Link
-              to="/teacher/chapters/$chapterId/materials"
-              params={{ chapterId }}
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="h-4 w-4" /> Kembali
-            </Link>
-            <h1 className="mt-2 mb-1 text-2xl font-bold tracking-tight">Edit Materi</h1>
+            <h1 className="mb-1 text-2xl font-bold tracking-tight">Edit Materi</h1>
             <p className="text-sm text-muted-foreground">Perbarui materi teks atau video untuk bab ini.</p>
           </div>
 

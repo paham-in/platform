@@ -19,7 +19,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 function EditQuestion() {
   const qc = useQueryClient()
@@ -72,13 +72,6 @@ function EditQuestion() {
     return (
       <main className="p-6">
         <div className="mx-auto max-w-2xl space-y-4">
-          <Link
-            to="/student/forum/$id"
-            params={{ id }}
-            className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" /> Kembali ke Pertanyaan
-          </Link>
           <p className="text-muted-foreground">Pertanyaan tidak ditemukan atau bukan milikmu</p>
         </div>
       </main>
@@ -88,14 +81,6 @@ function EditQuestion() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-2xl space-y-6">
-        <Link
-          to="/student/forum/$id"
-          params={{ id }}
-          className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Kembali ke Pertanyaan
-        </Link>
-
         <h1 className="text-2xl font-bold tracking-tight">Edit Pertanyaan</h1>
 
         <div className="space-y-2">

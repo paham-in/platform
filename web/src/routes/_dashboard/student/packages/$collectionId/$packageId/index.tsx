@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RichContent } from "@/components/ui/rich-content"
 import { getQuestionPackagesByIdOptions, getQuestionPackagesByIdWorkProgressOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { ArrowLeft, FileQuestion, Layers, PlayCircle } from "lucide-react"
+import { FileQuestion, Layers, PlayCircle } from "lucide-react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function PackageDetail() {
@@ -46,14 +46,6 @@ function PackageDetail() {
 
   return (
     <main className="mx-auto w-full max-w-3xl p-6">
-      <Link
-        to="/student/packages/$collectionId"
-        params={{ collectionId }}
-        className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> {pkg.collection_name || "Kembali"}
-      </Link>
-
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">{pkg.name}</h1>
         <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">

@@ -21,7 +21,7 @@ import {
   getUsersSearchOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListTeachersResponse, UserAdminListUsersResponse } from "@/lib/api/types.gen"
-import { CalendarIcon, CheckCircle2, ChevronLeft, Search, Users, X, UserX } from "lucide-react"
+import { CalendarIcon, CheckCircle2, Search, Users, X, UserX } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { addWeeks, format } from "date-fns"
 import { id } from "date-fns/locale"
@@ -191,9 +191,6 @@ function NewBooking() {
   return (
     <main className="p-6">
       <div className="mb-6">
-        <Link to="/student/tutoring" className="mb-2 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-          <ChevronLeft className="h-4 w-4" /> Kembali
-        </Link>
         <h1 className="text-2xl font-bold tracking-tight">Booking Baru</h1>
         <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam dulu, lalu pilih guru — atau kirim tanpa guru.</p>
       </div>

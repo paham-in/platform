@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
@@ -41,10 +41,7 @@ function UserSubscribe() {
 
   return (
     <main className="mx-auto w-full max-w-2xl p-6">
-      <Link to="/user/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
-        ← Kembali
-      </Link>
-      <h1 className="mt-4 text-2xl font-bold tracking-tight">Berlangganan</h1>
+      <h1 className="text-2xl font-bold tracking-tight">Berlangganan</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Pilih paket untuk membuka semua materi & paket soal premium.
       </p>

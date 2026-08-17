@@ -7,7 +7,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link, useParams } from "@tanstack/react-router"
-import { Loader2, ArrowLeft, FileText } from "lucide-react"
+import { Loader2, FileText } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function ChapterDetail() {
@@ -32,13 +32,6 @@ function ChapterDetail() {
 
   return (
     <main className="p-6">
-      <Link
-        to="/student/materials"
-        className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> Kembali
-      </Link>
-
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">{chapter?.title ?? "BAB"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">

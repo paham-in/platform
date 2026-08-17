@@ -11,7 +11,7 @@ import { PreviewQuestionDialog, DeleteQuestionDialog, EditPackageDialog } from "
 import { useQuery } from "@tanstack/react-query"
 import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesByIdQuestionsOptions, getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { QuestionbankQuestionResponse, QuestionpackagePackageResponse } from "@/lib/api/types.gen"
-import { ArrowLeft, ChevronLeft, ChevronRight, Eye, MoreVertical, Pencil, Plus, Search, SearchX, Trash2, UploadCloud, X, FileQuestion } from "lucide-react"
+import { ChevronLeft, ChevronRight, Eye, MoreVertical, Pencil, Plus, Search, SearchX, Trash2, UploadCloud, X, FileQuestion } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function stripHtml(html: string): string {
@@ -59,17 +59,6 @@ function PackageQuestions() {
   return (
     <>
       <main className="p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <Link to="/teacher/packs/$collectionId" params={{ collectionId }} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Paket Soal
-          </Link>
-          {pkg && (
-            <>
-              <span className="text-sm text-muted-foreground">/</span>
-              <span className="text-sm font-medium">{pkg.name}</span>
-            </>
-          )}
-        </div>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">

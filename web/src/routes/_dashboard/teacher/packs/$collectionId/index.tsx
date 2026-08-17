@@ -10,7 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAdminQuestionPackageCollectionsOptions, getAdminQuestionPackageCollectionsQueryKey, getAdminQuestionPackagesOptions, getAdminQuestionPackagesQueryKey, getMeOptions, patchAdminQuestionPackagesByIdMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { CreatePackageDialog, DeletePackageDialog, EditPackageDialog } from "@/components/teacher/packs";
 import type { QuestionpackagePackageResponse, QuestionpackageCollectionResponse } from "@/lib/api/types.gen";
-import { ArrowLeft, Eye, EyeOff, ListChecks, MoreVertical, Pencil, Plus, Trash2, FolderOpen } from "lucide-react";
+import { Eye, EyeOff, ListChecks, MoreVertical, Pencil, Plus, Trash2, FolderOpen } from "lucide-react";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { toast } from "sonner";
 
@@ -62,21 +62,9 @@ function CollectionPackages() {
   return (
     <>
       <main className="p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <Link to="/teacher/packs" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 h-4" /> Paket Soal
-          </Link>
-          {collection && (
-            <>
-              <span className="text-sm text-muted-foreground">/</span>
-              <span className="text-sm font-medium">{collection.name}</span>
-            </>
-          )}
-        </div>
-
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Paket Soal</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{collection?.name ?? "Paket Soal"}</h1>
             {collection && (
               <p className="text-sm text-muted-foreground">{collection.class_name || "Kelas tidak diketahui"}</p>
             )}

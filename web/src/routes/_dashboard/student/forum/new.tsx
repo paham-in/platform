@@ -20,7 +20,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { ArrowLeft, Sparkles } from "lucide-react"
+import { Sparkles } from "lucide-react"
 
 function NewQuestion() {
   const qc = useQueryClient()
@@ -59,12 +59,6 @@ function NewQuestion() {
     return (
       <main className="p-6">
         <div className="mx-auto max-w-2xl space-y-6">
-          <Link
-            to="/student/forum"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" /> Kembali ke Forum
-          </Link>
           <Card>
             <CardContent className="flex flex-col items-center gap-4 p-10 text-center">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -92,14 +86,7 @@ function NewQuestion() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-2xl space-y-6">
-        <Link
-          to="/student/forum"
-          className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Kembali ke Forum
-        </Link>
-
-        <h1 className="text-2xl font-bold tracking-tight">Pertanyaan Baru</h1>
+<h1 className="text-2xl font-bold tracking-tight">Pertanyaan Baru</h1>
 
         <div className="space-y-2">
           <Label>Subjek (wajib)</Label>

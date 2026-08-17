@@ -7,8 +7,8 @@ import { RichContent } from "@/components/ui/rich-content"
 import { Badge } from "@/components/ui/badge"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getAdminQuestionPackagesByIdQuestionsOptions, getAdminQuestionPackagesQueryKey, postAdminQuestionPackagesByIdQuestionsMutation } from "@/lib/api/@tanstack/react-query.gen"
-import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router"
-import { ArrowLeft, UploadCloud, FileText, CheckCircle2, XCircle, Download, HelpCircle } from "lucide-react"
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
+import { UploadCloud, FileText, CheckCircle2, XCircle, Download, HelpCircle } from "lucide-react"
 import { toast } from "sonner"
 import { unzipDocx, parseDocumentXml, buildQuestions, generateTemplateDocx, type ImportQuestion } from "@/lib/docx-parser"
 
@@ -121,10 +121,6 @@ function ImportQuestions() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-4xl space-y-6">
-        <Link to="/teacher/packs/$collectionId/$packageId" params={{ collectionId, packageId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" /> Kembali
-        </Link>
-
         <h1 className="text-2xl font-bold tracking-tight">Import Soal dari Word</h1>
 
         {/* Cara penulisan format */}

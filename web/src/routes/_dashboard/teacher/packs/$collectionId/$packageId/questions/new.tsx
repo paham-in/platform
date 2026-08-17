@@ -7,7 +7,7 @@ import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminQuestionPackagesQueryKey, postAdminQuestionPackagesByIdQuestionsMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+
 import { toast } from "sonner";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E"]
@@ -70,10 +70,6 @@ function NewQuestion() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-3xl space-y-6">
-        <Link to="/teacher/packs/$collectionId/$packageId" params={{ collectionId, packageId }} className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" /> Kembali
-        </Link>
-
         <h1 className="text-2xl font-bold tracking-tight">Tambah Soal</h1>
 
         <div className="space-y-2">

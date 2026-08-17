@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ArrowLeft, CalendarIcon, Loader2, UserX, X } from "lucide-react"
+import { CalendarIcon, Loader2, UserX, X } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
@@ -143,17 +143,12 @@ function AdminTutoringNew() {
 
   return (
     <main className="p-6">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
+      <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Tambah Booking Manual</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Daftarkan les privat untuk murid secara manual. Langsung disetujui + buat sesi & invoice.
           </p>
         </div>
-        <Button variant="outline" onClick={() => navigate({ to: "/admin/tutoring" })}>
-          <ArrowLeft className="mr-1 h-4 w-4" /> Kembali
-        </Button>
-      </div>
 
       <Card className="gap-0 pt-0 pb-0">
         <CardContent className="space-y-6 p-6">

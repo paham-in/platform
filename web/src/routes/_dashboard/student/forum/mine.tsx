@@ -19,7 +19,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Loader2, Plus, Trash2, ArrowLeft, MessageSquare } from "lucide-react"
+import { Loader2, Plus, Trash2, MessageSquare } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function MyQuestions() {
@@ -64,12 +64,7 @@ function MyQuestions() {
   return (
     <main className="p-6">
       <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to="/student/forum" className="text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tight">Pertanyaan Saya</h1>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight">Pertanyaan Saya</h1>
         <Link to="/student/forum/new">
           <Button>
             <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru

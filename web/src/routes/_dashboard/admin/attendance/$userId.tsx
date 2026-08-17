@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { getAdminTutoringEvidenceOptions, getAdminUsersOptions, getAdminTutoringReportOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { Check, CheckCircle2, ChevronLeft, ClipboardCheck, MoreVertical, X, XCircle } from "lucide-react"
+import { Check, CheckCircle2, ClipboardCheck, MoreVertical, X, XCircle } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ApproveEvidenceDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
@@ -77,9 +77,6 @@ function AttendanceDetail() {
 
   return (
     <main className="p-6">
-      <Link to="/admin/attendance" search={{ status }} className="mb-2 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="h-4 w-4" /> Kembali
-      </Link>
       <div className="mb-4">
         <h1 className="text-2xl font-bold tracking-tight">{user?.name ?? "—"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{user?.email ?? ""}</p>

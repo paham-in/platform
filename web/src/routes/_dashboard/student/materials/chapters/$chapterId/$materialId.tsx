@@ -5,8 +5,8 @@ import {
   getSubjectsOptions,
   getClassesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { createFileRoute, Link, useParams } from "@tanstack/react-router"
-import { Loader2, ArrowLeft } from "lucide-react"
+import { createFileRoute, useParams } from "@tanstack/react-router"
+import { Loader2 } from "lucide-react"
 import { RichContent } from "@/components/ui/rich-content"
 
 function extractYoutubeId(url: string): string {
@@ -43,14 +43,6 @@ function MaterialDetail() {
 
   return (
     <main className="w-full max-w-3xl p-6">
-      <Link
-        to="/student/materials/chapters/$id"
-        params={{ id: chapterId }}
-        className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> Kembali
-      </Link>
-
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">{material.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">

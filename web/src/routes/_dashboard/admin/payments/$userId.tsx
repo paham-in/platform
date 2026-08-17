@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -94,9 +94,6 @@ function PaymentsDetail() {
       <main className="p-6">
         <div className="flex flex-col items-center gap-4 py-12">
           <p className="text-muted-foreground">User tidak ditemukan</p>
-          <Link to="/admin/payments">
-            <Button variant="outline">Kembali</Button>
-          </Link>
         </div>
       </main>
     )

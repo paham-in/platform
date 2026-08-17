@@ -24,7 +24,6 @@ import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-r
 import { z } from "zod";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   BookOpen,
   ChevronLeft,
   ChevronRight,
@@ -259,17 +258,9 @@ function ChapterMaterials() {
   return (
     <>
       <main className="p-6">
-        <div className="mb-2 flex items-center gap-2">
-          <Link to="/teacher/chapters" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> BAB
-          </Link>
-          {chapter && (
-            <>
-              <span className="text-sm text-muted-foreground">/</span>
-              <span className="text-sm font-medium">{chapter.title}</span>
-            </>
-          )}
-        </div>
+        {chapter && (
+          <p className="mb-1 text-sm text-muted-foreground">{chapter.title}</p>
+        )}
         <h1 className="mb-1 text-2xl font-bold tracking-tight">Materi</h1>
         {chapter && (
           <p className="mb-5 text-sm text-muted-foreground">
