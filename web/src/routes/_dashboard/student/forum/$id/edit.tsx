@@ -17,7 +17,7 @@ import {
   putQuestionsByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 
@@ -108,9 +108,7 @@ function EditQuestion() {
         </div>
 
         <div className="flex justify-end gap-3">
-          <Link to="/student/forum/$id" params={{ id }}>
-            <Button variant="outline">Batal</Button>
-          </Link>
+          <Button variant="outline" onClick={() => navigate({ to: "/student/forum/$id", params: { id } })}>Batal</Button>
           <Button onClick={submit} disabled={!content || !subjectId || isPending || editorUploading}>
             {isPending && <Spinner />}
             {editorUploading ? "Mengupload gambar..." : "Simpan Perubahan"}

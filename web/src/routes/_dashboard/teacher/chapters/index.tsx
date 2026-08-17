@@ -48,7 +48,7 @@ import {
 import { postAdminChaptersByIdCover } from "@/lib/api/sdk.gen";
 import type { ChapterChapterResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import {
   BookOpen,
@@ -544,13 +544,13 @@ function AdminChapters() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Link
-                        to="/teacher/chapters/$chapterId/materials"
-                        params={{ chapterId: String(c.id!) }}
+                      <button
+                        type="button"
+                        onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId: String(c.id!) } })}
                         className="font-medium hover:underline"
                       >
                         {c.title}
-                      </Link>
+                      </button>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{c.class_name}</TableCell>
                     <TableCell className="text-muted-foreground">{c.subject_name}</TableCell>
@@ -568,11 +568,9 @@ function AdminChapters() {
                             <MoreVertical className="h-4 w-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
-                            <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId: String(c.id!) }}>
-                              <DropdownMenuItem>
-                                <BookOpen className="h-4 w-4" /> Materi
-                              </DropdownMenuItem>
-                            </Link>
+                            <DropdownMenuItem onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId: String(c.id!) } })}>
+                              <BookOpen className="h-4 w-4" /> Materi
+                            </DropdownMenuItem>
                             {canManage && (
                               <>
                                 <DropdownMenuItem onClick={() => openEdit(c)}>

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
@@ -8,6 +8,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { format } from "date-fns"
 
 function StudentDashboard() {
+  const navigate = useNavigate()
   const { data: user } = useQuery(getMeOptions())
   const { data: classes = [], isLoading: programsLoading } = useQuery(getStudentClassesOptions())
   const today = format(new Date(), "yyyy-MM-dd")
@@ -46,11 +47,11 @@ function StudentDashboard() {
                 { icon: Calendar, label: "Kalender", desc: "Lihat jadwal belajarmu", to: "/student/calendar" as const },
                 { icon: CreditCard, label: "Pembayaran", desc: "Langganan & invoice", to: "/student/payments" as const },
               ].map((a) => (
-                <Link key={a.label} to={a.to} className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                <button key={a.label} type="button" onClick={() => navigate({ to: a.to })} className="flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-colors hover:bg-muted/50">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><a.icon className="h-5 w-5" /></div>
                   <div className="flex-1"><p className="text-sm font-medium">{a.label}</p><p className="text-xs text-muted-foreground">{a.desc}</p></div>
                   <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                </Link>
+                </button>
               ))}
             </div>
           </CardContent>
@@ -77,9 +78,9 @@ function StudentDashboard() {
                     </EmptyDescription>
                   </EmptyHeader>
                   <EmptyContent>
-                    <Link to="/student/payments" className="text-sm font-medium text-primary hover:underline">
+                    <button type="button" onClick={() => navigate({ to: "/student/payments" })} className="text-sm font-medium text-primary hover:underline">
                       Lihat halaman pembayaran →
-                    </Link>
+                    </button>
                   </EmptyContent>
                 </Empty>
               ) : (

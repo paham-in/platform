@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -89,6 +89,7 @@ function CancelBookingDialog({ booking, onClose }: { booking: TutoringListBookin
 }
 
 function StudentTutoringIndex() {
+  const navigate = useNavigate()
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getTutoringBookingsOptions())
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getTutoringSessionsOptions())
   const [cancelTarget, setCancelTarget] = useState<TutoringListBookingsResponse | null>(null)
@@ -107,7 +108,7 @@ function StudentTutoringIndex() {
       <div>
         <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-semibold">Booking Saya</h2>
-          <Link to="/student/tutoring/new"><Button><Plus className="mr-1 h-4 w-4" /> Tambah Booking</Button></Link>
+          <Button onClick={() => navigate({ to: "/student/tutoring/new" })}><Plus className="mr-1 h-4 w-4" /> Tambah Booking</Button>
         </div>
         <Card className="pt-0 gap-0 pb-0">
           <CardContent className="p-0">

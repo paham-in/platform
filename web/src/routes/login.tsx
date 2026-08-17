@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router"
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -13,6 +13,7 @@ import { queryClient } from "@/router"
 import type { GetMeResponse } from "@/lib/api/types.gen"
 
 function LoginPage() {
+  const navigate = useNavigate()
   const googleLogin = () => {
     const baseUrl = client.getConfig().baseUrl || "http://localhost:8080/"
     window.location.href = `${baseUrl.replace(/\/+$/, "")}/auth/google`
@@ -22,10 +23,10 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <Link to="/" className="mx-auto flex w-fit items-center gap-2">
+          <button type="button" onClick={() => navigate({ to: "/" })} className="mx-auto flex w-fit items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">p</div>
             <span className="text-xl font-bold">paham.in</span>
-          </Link>
+          </button>
           <CardTitle className="mt-4">Masuk</CardTitle>
           <p className="text-sm text-muted-foreground">Gunakan akun Google untuk masuk</p>
         </CardHeader>

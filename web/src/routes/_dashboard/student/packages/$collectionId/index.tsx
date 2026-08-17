@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link, Outlet, useParams } from "@tanstack/react-router"
+import { createFileRoute, Outlet, useNavigate, useParams } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getQuestionPackageCollectionsByIdOptions } from "@/lib/api/@tanstack/react-query.gen"
@@ -7,6 +7,7 @@ import { FileText, Layers, Sparkles, ChevronRight } from "lucide-react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function CollectionDetail() {
+  const navigate = useNavigate()
   const { collectionId } = useParams({ from: "/_dashboard/student/packages/$collectionId/" })
   const { data: collection, isLoading, isError } = useQuery(
     getQuestionPackageCollectionsByIdOptions({ path: { id: Number(collectionId) } })
@@ -69,8 +70,12 @@ function CollectionDetail() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {collection.packages?.map((pkg) => (
-            <Link key={pkg.id} to="/student/packages/$collectionId/$packageId" params={{ collectionId, packageId: String(pkg.id!) }}>
-              <Card className="group cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
+            <Card key={pkg.id} className="group cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/student/packages/$collectionId/$packageId", params: { collectionId, packageId: String(pkg.id!) } })}
+                className="block w-full rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
                 <CardContent>
                   <div className="flex items-start gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -87,8 +92,8 @@ function CollectionDetail() {
                     <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                   </div>
                 </CardContent>
-              </Card>
-            </Link>
+              </button>
+            </Card>
           ))}
         </div>
       )}

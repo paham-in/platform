@@ -9,7 +9,7 @@ import {
   getQuestionsByQuestionIdAnswersQueryKey,
   deleteQuestionsByQuestionIdAnswersByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { createFileRoute, Link, useParams } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { Loader2, Trash2, MessageCircle, Pencil } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -28,6 +28,7 @@ import {
 
 function ForumDetail() {
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const { id } = useParams({ from: "/_dashboard/student/forum/$id" })
   const questionId = Number(id)
 
@@ -74,13 +75,13 @@ function ForumDetail() {
           </span>
         )}
         {isOwner && (
-          <Link
-            to="/student/forum/$id/edit"
-            params={{ id }}
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/student/forum/$id/edit", params: { id } })}
             className="ml-auto inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground"
           >
             <Pencil className="h-3.5 w-3.5" /> Edit
-          </Link>
+          </button>
         )}
       </div>
 

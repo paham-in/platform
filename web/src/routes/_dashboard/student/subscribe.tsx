@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { format, addDays, addMonths, parseISO, differenceInCalendarDays } from "date-fns"
@@ -200,9 +200,7 @@ function StudentSubscribe() {
                 )}
               </CardContent>
               <CardFooter>
-                <Link to="/student/tutoring/new" className="w-full">
-                  <Button className="w-full" variant="outline">Booking Les Privat</Button>
-                </Link>
+                <Button className="w-full" variant="outline" onClick={() => navigate({ to: "/student/tutoring/new" })}>Booking Les Privat</Button>
               </CardFooter>
             </Card>
           </div>

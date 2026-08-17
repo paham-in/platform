@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
@@ -167,9 +167,11 @@ function AttendanceIndex() {
                   <TableCell className="tabular-nums">{r.count}</TableCell>
                   <TableCell className="tabular-nums font-medium">{r.feeUnpaid > 0 ? fmtRp(r.feeUnpaid) : "—"}</TableCell>
                   <TableCell className="pr-6">
-                    <Link to="/admin/attendance/$userId" params={{ userId: String(r.id) }} search={{ status }}>
-                      <Button variant="outline" size="sm">Lihat Sesi</Button>
-                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate({ to: "/admin/attendance/$userId", params: { userId: String(r.id) }, search: { status } })}
+                    >Lihat Sesi</Button>
                   </TableCell>
                 </TableRow>
               ))}

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link, useParams } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -9,6 +9,7 @@ import { FileQuestion, Layers, PlayCircle } from "lucide-react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function PackageDetail() {
+  const navigate = useNavigate()
   const { collectionId, packageId } = useParams({ from: "/_dashboard/student/packages/$collectionId/$packageId/" })
   const { data: pkg, isLoading, isError } = useQuery(
     getQuestionPackagesByIdOptions({ path: { id: Number(packageId) } })
@@ -55,12 +56,10 @@ function PackageDetail() {
         {pkg.description ? <p className="mt-2 text-sm text-muted-foreground">{pkg.description}</p> : null}
         {total > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Link to="/student/packages/$collectionId/$packageId/work" params={{ collectionId, packageId }}>
-              <Button>
-                <PlayCircle className="mr-1 h-4 w-4" />
-                {completed > 0 ? `Lanjutkan (${completed}/${total})` : "Kerjakan Soal"}
-              </Button>
-            </Link>
+            <Button onClick={() => navigate({ to: "/student/packages/$collectionId/$packageId/work", params: { collectionId, packageId } })}>
+              <PlayCircle className="mr-1 h-4 w-4" />
+              {completed > 0 ? `Lanjutkan (${completed}/${total})` : "Kerjakan Soal"}
+            </Button>
             {completed > 0 && (
               <span className="text-sm text-muted-foreground">
                 {completed} dari {total} soal sudah dikerjakan

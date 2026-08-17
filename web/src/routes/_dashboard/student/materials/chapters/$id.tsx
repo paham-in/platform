@@ -6,11 +6,12 @@ import {
   getClassesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link, useParams } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { Loader2, FileText } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function ChapterDetail() {
+  const navigate = useNavigate()
   const { id } = useParams({ from: "/_dashboard/student/materials/chapters/$id" })
   const { data: materials = [], isLoading } = useQuery(getMaterialsOptions())
   const { data: allChapters = [] } = useQuery(getChaptersOptions())
@@ -49,25 +50,30 @@ function ChapterDetail() {
           </Empty>
         )}
         {chapterMaterials.map((m) => (
-          <Link key={m.id} to="/student/materials/chapters/$chapterId/$materialId" params={{ chapterId: id, materialId: String(m.id!) }}>
-            <Card className="overflow-hidden transition-colors hover:bg-muted/50">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <FileText className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{m.title}</h3>
-                    <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                      m.status === "published" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                    }`}>
-                      {m.status === "published" ? "Published" : "Draft"}
-                    </span>
-                  </div>
+          <button
+          key={m.id}
+          type="button"
+          onClick={() => navigate({ to: "/student/materials/chapters/$chapterId/$materialId", params: { chapterId: id, materialId: String(m.id!) } })}
+          className="block w-full text-left"
+        >
+          <Card className="overflow-hidden transition-colors hover:bg-muted/50">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <FileText className="h-4 w-4 text-primary" />
                 </div>
-              </CardContent>
-            </Card>
-          </Link>
+                <div>
+                  <h3 className="font-medium">{m.title}</h3>
+                  <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                    m.status === "published" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                  }`}>
+                    {m.status === "published" ? "Published" : "Draft"}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </button>
         ))}
       </div>
     </main>

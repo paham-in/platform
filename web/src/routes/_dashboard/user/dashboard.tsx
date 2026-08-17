@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useQuery } from "@tanstack/react-query"
@@ -6,6 +6,7 @@ import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { BookOpen, CreditCard, Sparkles } from "lucide-react"
 
 function UserDashboard() {
+  const navigate = useNavigate()
   const { data: user } = useQuery(getMeOptions())
 
   return (
@@ -30,11 +31,9 @@ function UserDashboard() {
                   Kamu bisa mengakses materi & paket soal gratis. Upgrade untuk membuka semua konten.
                 </p>
               </div>
-              <Link to="/user/subscribe">
-                <Button className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto" onClick={() => navigate({ to: "/user/subscribe" })}>
                   <CreditCard className="mr-1 h-4 w-4" /> Berlangganan
                 </Button>
-              </Link>
             </CardContent>
           </Card>
 
@@ -49,9 +48,7 @@ function UserDashboard() {
                   Jelajahi materi gratis yang tersedia sekarang.
                 </p>
               </div>
-              <Link to="/user/materials">
-                <Button variant="outline" className="w-full sm:w-auto">Lihat Materi</Button>
-              </Link>
+              <Button variant="outline" className="w-full sm:w-auto" onClick={() => navigate({ to: "/user/materials" })}>Lihat Materi</Button>
             </CardContent>
           </Card>
         </div>

@@ -6,11 +6,12 @@ import {
   getClassesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Loader2, BookOpen, FileText } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function UserMaterials() {
+  const navigate = useNavigate()
   const { data: materials = [], isLoading } = useQuery(getMaterialsOptions())
   const { data: allChapters = [] } = useQuery(getChaptersOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
@@ -48,10 +49,11 @@ function UserMaterials() {
         {materials.map((m) => {
           const chapter = allChapters.find((c) => c.id === m.chapter_id)
           return (
-            <Link
+            <button
               key={m.id}
-              to="/user/materials/$materialId"
-              params={{ materialId: String(m.id!) }}
+              type="button"
+              onClick={() => navigate({ to: "/user/materials/$materialId", params: { materialId: String(m.id!) } })}
+              className="w-full text-left"
             >
               <Card className="cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
                 <CardContent className="p-4">
@@ -68,7 +70,7 @@ function UserMaterials() {
                   </div>
                 </CardContent>
               </Card>
-            </Link>
+            </button>
           )
         })}
       </div>
@@ -82,9 +84,9 @@ function UserMaterials() {
             <p className="font-semibold">Ingin akses semua materi?</p>
             <p className="text-sm text-muted-foreground">Berlangganan sekarang untuk membuka konten premium.</p>
           </div>
-          <Link to="/user/subscribe" className="ml-auto">
+          <button type="button" onClick={() => navigate({ to: "/user/subscribe" })} className="ml-auto">
             <span className="text-sm font-medium text-primary hover:underline">Berlangganan</span>
-          </Link>
+          </button>
         </div>
       </div>
     </main>

@@ -16,7 +16,7 @@ import {
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Plus, Search, SearchX, Funnel, X, MessageSquare, Sparkles } from "lucide-react"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -45,21 +45,18 @@ function formatDate(iso?: string): string {
 }
 
 function NewQuestionAction({ locked, size }: { locked: boolean; size?: "default" | "sm" }) {
+  const navigate = useNavigate()
   if (locked) {
     return (
-      <Link to="/student/subscribe">
-        <Button size={size}>
-          <Sparkles className="mr-1 h-4 w-4" /> Berlangganan untuk Bertanya
-        </Button>
-      </Link>
+      <Button size={size} onClick={() => navigate({ to: "/student/subscribe" })}>
+        <Sparkles className="mr-1 h-4 w-4" /> Berlangganan untuk Bertanya
+      </Button>
     )
   }
   return (
-    <Link to="/student/forum/new">
-      <Button size={size}>
-        <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
-      </Button>
-    </Link>
+    <Button size={size} onClick={() => navigate({ to: "/student/forum/new" })}>
+      <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
+    </Button>
   )
 }
 
@@ -194,9 +191,7 @@ function ForumPage() {
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Link to="/student/forum/mine">
-          <Button variant="outline" size="sm">Pertanyaan Saya</Button>
-        </Link>
+        <Button variant="outline" size="sm" onClick={() => navigate({ to: "/student/forum/mine" })}>Pertanyaan Saya</Button>
       </div>
 
       {questions.length === 0 ? (
@@ -228,10 +223,10 @@ function ForumPage() {
         <div className="columns-1 gap-4 md:columns-2">
           {questions.map((q) => (
             <Card key={q.id} className="mb-4 break-inside-avoid transition-colors hover:bg-muted/40">
-              <Link
-                to="/student/forum/$id"
-                params={{ id: String(q.id!) }}
-                className="block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/student/forum/$id", params: { id: String(q.id!) } })}
+                className="block w-full rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <CardContent>
                   <div className="flex gap-3">
@@ -282,7 +277,7 @@ function ForumPage() {
                     </div>
                   )}
                 </CardContent>
-              </Link>
+              </button>
             </Card>
           ))}
         </div>

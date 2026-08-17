@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +18,7 @@ const TIER_LABEL = {
 } as const;
 
 function CollectionsPage() {
+  const navigate = useNavigate();
   const { data: user } = useQuery(getMeOptions());
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_question_packages;
   // koleksi bisa dikelola kalau punya izin DAN (admin, koleksi sendiri, atau koleksi tanpa pemilik)
@@ -74,9 +75,9 @@ function CollectionsPage() {
                 ) : collections.map((collection) => (
                   <TableRow key={collection.id}>
                     <TableCell className="pl-6 font-medium">
-                      <Link to="/teacher/packs/$collectionId" params={{ collectionId: String(collection.id!) }} className="hover:underline">
+                      <button type="button" onClick={() => navigate({ to: "/teacher/packs/$collectionId", params: { collectionId: String(collection.id!) } })} className="hover:underline">
                         {collection.name}
-                      </Link>
+                      </button>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{collection.class_name || "-"}</TableCell>
                     <TableCell>

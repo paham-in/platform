@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { z } from "zod"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -80,12 +80,8 @@ function PackageQuestions() {
           {canManage && canEditPkg && (
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setEditTarget(pkg ?? null)}><Pencil className="mr-1 h-4 w-4" /> Edit Paket</Button>
-              <Link to="/teacher/packs/$collectionId/$packageId/import" params={{ collectionId, packageId }}>
-                <Button variant="outline"><UploadCloud className="mr-1 h-4 w-4" /> Import dari Word</Button>
-              </Link>
-              <Link to="/teacher/packs/$collectionId/$packageId/questions/new" params={{ collectionId, packageId }}>
-                <Button><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
-              </Link>
+              <Button variant="outline" onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId/import", params: { collectionId, packageId } })}><UploadCloud className="mr-1 h-4 w-4" /> Import dari Word</Button>
+              <Button onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId/questions/new", params: { collectionId, packageId } })}><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
             </div>
           )}
         </div>
@@ -173,11 +169,9 @@ function PackageQuestions() {
                           </DropdownMenuItem>
                           {canManage && canEditPkg && (
                             <>
-                              <Link to="/teacher/packs/$collectionId/$packageId/questions/$questionId/edit" params={{ collectionId, packageId, questionId: String(q.id!) }}>
-                                <DropdownMenuItem>
-                                  <Pencil className="h-4 w-4" /> Edit
-                                </DropdownMenuItem>
-                              </Link>
+                              <DropdownMenuItem onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId/questions/$questionId/edit", params: { collectionId, packageId, questionId: String(q.id!) } })}>
+                                <Pencil className="h-4 w-4" /> Edit
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => setDeleteConfirm(q)}>
                                 <Trash2 className="h-4 w-4" /> Hapus
                               </DropdownMenuItem>

@@ -20,7 +20,7 @@ import {
   patchAdminMaterialsByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
@@ -327,11 +327,9 @@ function ChapterMaterials() {
             </DropdownMenu>
           </div>
           {canManage && (
-            <Link to="/teacher/chapters/$chapterId/materials/new" params={{ chapterId }}>
-              <Button>
-                <Plus className="mr-1 h-4 w-4" /> Tambah Materi
-              </Button>
-            </Link>
+            <Button onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/new", params: { chapterId } })}>
+              <Plus className="mr-1 h-4 w-4" /> Tambah Materi
+            </Button>
           )}
         </div>
         <Card className="pt-0 gap-0 pb-0">
@@ -376,11 +374,9 @@ function ChapterMaterials() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <Link to="/user/materials/$materialId" params={{ materialId: String(m.id!) }}>
-                            <DropdownMenuItem>
-                              <Eye className="h-4 w-4" /> Lihat
-                            </DropdownMenuItem>
-                          </Link>
+                          <DropdownMenuItem onClick={() => navigate({ to: "/user/materials/$materialId", params: { materialId: String(m.id!) } })}>
+                            <Eye className="h-4 w-4" /> Lihat
+                          </DropdownMenuItem>
                           {canManage && canEdit(m) && (
                             <>
                               <DropdownMenuItem onClick={() => {
@@ -389,11 +385,9 @@ function ChapterMaterials() {
                               }}>
                                 {m.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {m.status === "published" ? "Jadikan Draft" : "Publikasikan"}
                               </DropdownMenuItem>
-                              <Link to="/teacher/chapters/$chapterId/materials/$materialId/edit" params={{ chapterId, materialId: String(m.id!) }}>
-                                <DropdownMenuItem>
-                                  <Pencil className="h-4 w-4" /> Edit
-                                </DropdownMenuItem>
-                              </Link>
+                              <DropdownMenuItem onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/$materialId/edit", params: { chapterId, materialId: String(m.id!) } })}>
+                                <Pencil className="h-4 w-4" /> Edit
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => setDeleteConfirm({ id: m.id!, name: m.title! })}>
                                 <Trash2 className="h-4 w-4" /> Hapus
                               </DropdownMenuItem>
@@ -433,11 +427,9 @@ function ChapterMaterials() {
                               <X className="mr-1 h-4 w-4" /> Bersihkan filter
                             </Button>
                           ) : canManage ? (
-                            <Link to="/teacher/chapters/$chapterId/materials/new" params={{ chapterId }}>
-                              <Button size="sm">
-                                <Plus className="mr-1 h-4 w-4" /> Tambah materi pertama
-                              </Button>
-                            </Link>
+                            <Button size="sm" onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/new", params: { chapterId } })}>
+                              <Plus className="mr-1 h-4 w-4" /> Tambah materi pertama
+                            </Button>
                           ) : null}
                         </EmptyContent>
                       </Empty>

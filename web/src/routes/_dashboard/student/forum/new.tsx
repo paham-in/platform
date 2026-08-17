@@ -18,7 +18,7 @@ import {
   getQuestionsQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { Sparkles } from "lucide-react"
 
@@ -71,11 +71,9 @@ function NewQuestion() {
                   pertanyaan baru, berlangganan konten atau les privat dulu yuk.
                 </p>
               </div>
-              <Link to="/student/subscribe">
-                <Button>
-                  <Sparkles className="mr-1 h-4 w-4" /> Lihat Langganan
-                </Button>
-              </Link>
+              <Button onClick={() => navigate({ to: "/student/subscribe" })}>
+                <Sparkles className="mr-1 h-4 w-4" /> Lihat Langganan
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -113,7 +111,7 @@ function NewQuestion() {
         </div>
 
         <div className="flex justify-end gap-3">
-          <Link to="/student/forum"><Button variant="outline">Batal</Button></Link>
+          <Button variant="outline" onClick={() => navigate({ to: "/student/forum" })}>Batal</Button>
           <Button onClick={submit} disabled={!content || !subjectId || isPending || editorUploading}>
             {(isPending || editorUploading) && <Spinner />}
             {editorUploading ? "Mengupload gambar..." : "Kirim"}

@@ -24,7 +24,7 @@ import {
   patchAdminMaterialsByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { FileText, Type, Video } from "lucide-react";
 import { toast } from "sonner";
 import { useDraft } from "@/lib/use-draft";
@@ -272,9 +272,7 @@ function EditMaterial() {
               </label>
             </CardContent>
             <CardFooter className="justify-end gap-3 border-t">
-              <Link to="/teacher/chapters/$chapterId/materials" params={{ chapterId }}>
-                <Button variant="outline" type="button">Batal</Button>
-              </Link>
+              <Button variant="outline" type="button" onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId } })}>Batal</Button>
               <Button onClick={save} disabled={!title || isPending || editorUploading || (type === "video" && !videoUrl)}>
                 {isPending && <Spinner />}
                 {editorUploading ? "Mengupload gambar..." : "Simpan"}

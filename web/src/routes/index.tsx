@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { buttonVariants } from "@/components/ui/button"
@@ -174,6 +174,7 @@ function CountUp({ value }: { value: string }) {
 }
 
 function LandingPage() {
+  const navigate = useNavigate()
   const { data: classes = [], isLoading: classesLoading } = useQuery(getClassesOptions())
   return (
     <div className="flex min-h-screen flex-col">
@@ -199,9 +200,13 @@ function LandingPage() {
                 Platform belajar online dengan materi berkualitas, video interaktif, dan forum tanya-jawab bersama guru berpengalaman. Raih prestasi terbaikmu!
               </p>
               <div className="animate-fade-up mt-8 flex flex-col items-center justify-center gap-4 [animation-delay:0.24s] sm:flex-row">
-                <Link to="/login" className={cn(buttonVariants({ size: "lg" }), "group w-full sm:w-auto")}>
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/login" })}
+                  className={cn(buttonVariants({ size: "lg" }), "group w-full sm:w-auto")}
+                >
                   Mulai Belajar <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
+                </button>
                 <a href="#features" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "group w-full sm:w-auto")}>
                   Lihat Fitur <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </a>
@@ -283,10 +288,14 @@ function LandingPage() {
                         <PriceRow icon={Users} label="Les Kelompok" value={cls.group_price} suffix="/ pertemuan" />
                       </CardContent>
                       <CardFooter>
-                        <Link to="/login" className={cn(buttonVariants(), "group/cta w-full")}>
+                        <button
+                          type="button"
+                          onClick={() => navigate({ to: "/login" })}
+                          className={cn(buttonVariants(), "group/cta w-full")}
+                        >
                           Mulai Belajar
                           <ArrowRight className="h-4 w-4 transition-transform group-hover/cta:translate-x-0.5" />
-                        </Link>
+                        </button>
                       </CardFooter>
                     </Card>
                   </Reveal>
@@ -378,12 +387,13 @@ function LandingPage() {
                     Gabung ribuan siswa lainnya. Mulai belajar gratis sekarang!
                   </p>
                   <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                    <Link
-                      to="/login"
+                    <button
+                      type="button"
+                      onClick={() => navigate({ to: "/login" })}
                       className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "group w-full sm:w-auto")}
                     >
                       Masuk Sekarang <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>

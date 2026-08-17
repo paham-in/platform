@@ -17,7 +17,7 @@ import {
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Search, SearchX, BookOpen, ChevronRight, GraduationCap, Layers, Funnel, X } from "lucide-react"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -182,34 +182,39 @@ function MaterialsPage() {
           </Empty>
         ) : (
           chapters.map((c) => (
-            <Link key={c.id} to="/student/materials/chapters/$id" params={{ id: String(c.id!) }}>
-              <Card className="group cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
-                {c.cover_url ? (
-                  <img src={c.cover_url} alt="" className="aspect-video w-full object-cover" />
-                ) : (
-                  <div className="flex aspect-video w-full items-center justify-center bg-muted/30">
-                    <BookOpen className="h-8 w-8 text-muted-foreground/40" />
-                  </div>
-                )}
-                <CardContent>
-                  <h3 className="font-semibold">{c.title}</h3>
-                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      <GraduationCap className="h-3 w-3" />
-                      {className(c.class_id)}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Layers className="h-3 w-3" />
-                      {subjectName(c.subject_id)}
-                    </span>
-                    {c.material_count ? <span>{c.material_count} materi</span> : null}
-                  </div>
-                  <span className="mt-2 inline-flex items-center text-xs font-medium text-primary">
-                    Lihat <ChevronRight className="ml-0.5 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+            <button
+            key={c.id}
+            type="button"
+            onClick={() => navigate({ to: "/student/materials/chapters/$id", params: { id: String(c.id!) } })}
+            className="block w-full text-left"
+          >
+            <Card className="group cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
+              {c.cover_url ? (
+                <img src={c.cover_url} alt="" className="aspect-video w-full object-cover" />
+              ) : (
+                <div className="flex aspect-video w-full items-center justify-center bg-muted/30">
+                  <BookOpen className="h-8 w-8 text-muted-foreground/40" />
+                </div>
+              )}
+              <CardContent>
+                <h3 className="font-semibold">{c.title}</h3>
+                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <GraduationCap className="h-3 w-3" />
+                    {className(c.class_id)}
                   </span>
-                </CardContent>
-              </Card>
-            </Link>
+                  <span className="inline-flex items-center gap-1">
+                    <Layers className="h-3 w-3" />
+                    {subjectName(c.subject_id)}
+                  </span>
+                  {c.material_count ? <span>{c.material_count} materi</span> : null}
+                </div>
+                <span className="mt-2 inline-flex items-center text-xs font-medium text-primary">
+                  Lihat <ChevronRight className="ml-0.5 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </CardContent>
+            </Card>
+          </button>
           ))
         )}
       </div>

@@ -17,13 +17,14 @@ import {
   deleteQuestionsByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { Loader2, Plus, Trash2, MessageSquare } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function MyQuestions() {
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const { data: questions = [], isLoading } = useQuery(
     getQuestionsOptions({ query: { mine: true } })
   )
@@ -65,11 +66,9 @@ function MyQuestions() {
     <main className="p-4 md:p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Pertanyaan Saya</h1>
-        <Link to="/student/forum/new">
-          <Button>
+        <Button onClick={() => navigate({ to: "/student/forum/new" })}>
             <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
           </Button>
-        </Link>
       </div>
 
       <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
@@ -82,9 +81,12 @@ function MyQuestions() {
           </Empty>
         )}
         {questions.map((q) => (
-          <Link key={q.id} to="/student/forum/$id" params={{ id: String(q.id!) }}>
-            <Card className="overflow-hidden transition-colors hover:bg-muted/50">
-              <CardContent className="p-5">
+          <Card
+            key={q.id}
+            onClick={() => navigate({ to: "/student/forum/$id", params: { id: String(q.id!) } })}
+            className="cursor-pointer overflow-hidden transition-colors hover:bg-muted/50"
+          >
+            <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-wrap gap-1.5">
                     <StatusBadge status={q.status ?? "open"} />
@@ -99,7 +101,7 @@ function MyQuestions() {
                     size="icon"
                     className="mt-0.5 h-6 w-6 shrink-0 text-destructive hover:text-destructive"
                     onClick={(e) => {
-                      e.preventDefault()
+                      e.stopPropagation()
                       setDeleteId(q.id!)
                     }}
                   >
@@ -120,8 +122,7 @@ function MyQuestions() {
                   <span className="truncate">{q.user_name}</span>
                 </div>
               </CardContent>
-            </Card>
-          </Link>
+          </Card>
         ))}
       </div>
 

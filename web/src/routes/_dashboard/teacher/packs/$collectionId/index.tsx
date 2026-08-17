@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,6 +29,7 @@ const statusLabels: Record<string, string> = {
 function CollectionPackages() {
   const { collectionId } = useParams({ from: "/_dashboard/teacher/packs/$collectionId/" });
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data: user } = useQuery(getMeOptions());
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_question_packages;
   // paket bisa dikelola kalau punya izin DAN (admin, paket sendiri, atau paket tanpa pemilik)
@@ -115,9 +116,9 @@ function CollectionPackages() {
                 ) : packages.map((pkg) => (
                   <TableRow key={pkg.id}>
                     <TableCell className="pl-6 font-medium">
-                      <Link to="/teacher/packs/$collectionId/$packageId" params={{ collectionId, packageId: String(pkg.id!) }} className="hover:underline">
+                      <button type="button" onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId: String(pkg.id!) } })} className="hover:underline">
                         {pkg.name}
-                      </Link>
+                      </button>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{pkg.subject_name || "-"}</TableCell>
                     <TableCell className="max-w-[300px] truncate text-muted-foreground">{pkg.description || "-"}</TableCell>
@@ -134,11 +135,9 @@ function CollectionPackages() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <Link to="/teacher/packs/$collectionId/$packageId" params={{ collectionId, packageId: String(pkg.id!) }}>
-                            <DropdownMenuItem>
-                              <ListChecks className="h-4 w-4" /> Soal
-                            </DropdownMenuItem>
-                          </Link>
+                          <DropdownMenuItem onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId: String(pkg.id!) } })}>
+                            <ListChecks className="h-4 w-4" /> Soal
+                          </DropdownMenuItem>
                           {canManage && canEdit(pkg) && (
                             <>
                               <DropdownMenuItem onClick={() => {

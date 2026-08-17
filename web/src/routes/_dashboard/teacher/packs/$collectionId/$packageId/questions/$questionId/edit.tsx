@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAdminQuestionPackagesByIdQuestionsOptions, getAdminQuestionPackagesQueryKey, patchAdminQuestionPackagesByIdQuestionsByQidMutation } from "@/lib/api/@tanstack/react-query.gen";
-import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 
 import { toast } from "sonner";
 
@@ -154,7 +154,7 @@ function EditQuestion() {
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Link to="/teacher/packs/$collectionId/$packageId" params={{ collectionId, packageId }}><Button variant="outline">Batal</Button></Link>
+          <Button variant="outline" onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId } })}>Batal</Button>
           <Button
             onClick={save}
             disabled={!questionText || validCount < 2 || isPending || uploadingEditors > 0}

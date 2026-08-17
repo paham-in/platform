@@ -1,10 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions, getAdminMaterialsOptions, getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { Users, GraduationCap, BookOpen, FileText, BookMarked, ChevronRight, CreditCard } from "lucide-react"
 
 function AdminDashboard() {
+  const navigate = useNavigate()
   const { data: allUsers = [] } = useQuery(getAdminUsersOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const { data: allMaterials = [] } = useQuery(getAdminMaterialsOptions())
@@ -49,11 +50,11 @@ function AdminDashboard() {
                 { icon: BookMarked, label: "Mata Pelajaran", desc: "Atur mata pelajaran", to: "/admin/subjects" as const },
                 { icon: CreditCard, label: "Pembayaran", desc: "Kelola invoice & status", to: "/admin/payments" as const },
               ].map((a) => (
-                <Link key={a.label} to={a.to} className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50">
+                <button key={a.label} type="button" onClick={() => navigate({ to: a.to })} className="flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-colors hover:bg-muted/50">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><a.icon className="h-5 w-5" /></div>
                   <div className="flex-1"><p className="text-sm font-medium">{a.label}</p><p className="text-xs text-muted-foreground">{a.desc}</p></div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </Link>
+                </button>
               ))}
             </div>
           </CardContent></Card>

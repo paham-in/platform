@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -469,7 +469,7 @@ function NewBooking() {
           </div>
 
           <div className="flex flex-wrap justify-end gap-2">
-            <Link to="/student/tutoring"><Button variant="outline">Batal</Button></Link>
+            <Button variant="outline" onClick={() => navigate({ to: "/student/tutoring" })}>Batal</Button>
             <Button onClick={handleBook} disabled={!canSubmit}>
               {isPending && <Spinner />}
               Kirim Booking

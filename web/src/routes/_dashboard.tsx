@@ -4,7 +4,6 @@ import { getMeOptions, getMeQueryKey, postLogoutMutation, getAdminDevTablesOptio
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createFileRoute,
-  Link,
   Outlet,
   useNavigate,
   useRouter,
@@ -65,6 +64,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 function AccessDenied({ requiredRole, userRoles }: { requiredRole: string; userRoles: string[] }) {
+  const navigate = useNavigate();
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
@@ -76,9 +76,9 @@ function AccessDenied({ requiredRole, userRoles }: { requiredRole: string; userR
           Halaman ini khusus untuk role {roleLabel(requiredRole)}. Akun kamu tidak punya akses ke sini.
         </p>
       </div>
-      <Link to={homeForRoles(userRoles)}>
-        <Button>Kembali ke Dashboard</Button>
-      </Link>
+      <Button onClick={() => navigate({ to: homeForRoles(userRoles) as never })}>
+        Kembali ke Dashboard
+      </Button>
     </main>
   );
 }
@@ -142,7 +142,7 @@ function AppSidebar({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<Link to="/" onClick={closeMobile} />}>
+            <SidebarMenuButton size="lg" onClick={() => { closeMobile(); navigate({ to: "/" }); }}>
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
                 p
               </div>
@@ -181,7 +181,7 @@ function AppSidebar({
                           <SidebarMenuSubItem key={sub.label}>
                             <SidebarMenuSubButton
                               isActive={isActive(sub.to)}
-                              render={<Link to={sub.to} onClick={(e) => { e.preventDefault(); goSection(sub.to) }} />}
+                              onClick={() => goSection(sub.to)}
                             >
                               <span>{sub.label}</span>
                             </SidebarMenuSubButton>
@@ -195,7 +195,7 @@ function AppSidebar({
                     <SidebarMenuButton
                       tooltip={item.label}
                       isActive={isActive(item.to)}
-                      render={<Link to={item.to!} onClick={(e) => { e.preventDefault(); goSection(item.to!) }} />}
+                      onClick={() => goSection(item.to!)}
                     >
                       <item.icon />
                       <span>{item.label}</span>

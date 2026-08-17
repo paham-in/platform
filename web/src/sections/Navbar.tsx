@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Link } from "@tanstack/react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 
@@ -17,6 +17,7 @@ const dashboardLink = (roles?: string[]) => {
 }
 
 export default function Navbar() {
+  const navigate = useNavigate()
   const token = typeof window !== "undefined" && localStorage.getItem("token")
   const { data: user } = useQuery({ ...getMeOptions(), enabled: !!token })
   const dashTo = token && user ? dashboardLink(user.roles as string[]) : "/login"
@@ -46,9 +47,9 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           <ThemeToggle compact />
           {localStorage.getItem("token") ? (
-            <Button size="sm" render={<Link to={dashTo} />}>Dashboard</Button>
+            <Button size="sm" onClick={() => navigate({ to: dashTo as never })}>Dashboard</Button>
           ) : (
-            <Button size="sm" render={<Link to="/login" />}>Masuk</Button>
+            <Button size="sm" onClick={() => navigate({ to: "/login" })}>Masuk</Button>
           )}
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getQuestionPackageCollectionsOptions } from "@/lib/api/@tanstack/react-query.gen"
@@ -7,6 +7,7 @@ import { FolderOpen, Sparkles, Layers } from "lucide-react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function PackagesPage() {
+  const navigate = useNavigate()
   const { data: collections = [], isLoading, isError } = useQuery(getQuestionPackageCollectionsOptions())
 
   if (isLoading) {
@@ -55,8 +56,12 @@ function PackagesPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {collections.map((collection) => (
-            <Link key={collection.id} to="/student/packages/$collectionId" params={{ collectionId: String(collection.id!) }}>
-              <Card className="group cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
+            <Card key={collection.id} className="group cursor-pointer overflow-hidden transition-colors hover:bg-muted/50">
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/student/packages/$collectionId", params: { collectionId: String(collection.id!) } })}
+                className="block w-full rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
                 <CardContent>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
@@ -82,8 +87,8 @@ function PackagesPage() {
                     )}
                   </div>
                 </CardContent>
-              </Card>
-            </Link>
+              </button>
+            </Card>
           ))}
         </div>
       )}
