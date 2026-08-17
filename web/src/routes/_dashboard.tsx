@@ -13,6 +13,7 @@ import {
   ChevronRight,
   LogOut,
   Search,
+  Settings,
   Shield,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -55,6 +56,12 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function AccessDenied({ requiredRole, userRoles }: { requiredRole: string; userRoles: string[] }) {
   return (
@@ -278,12 +285,28 @@ function DashboardLayout() {
           <div className="flex-1" />
           <ThemeToggle compact />
           <div className="flex items-center gap-2">
-            {user?.avatar_url ? (
-              <img src={user.avatar_url} alt="" className="h-7 w-7 rounded-full" />
-            ) : (
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{user?.name?.[0]}</div>
-            )}
-            <span className="text-sm text-muted-foreground">{user?.name}</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<Button variant="ghost" className="h-8 w-8 rounded-full p-0" aria-label="Menu akun" />}
+              >
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url} alt="" className="h-7 w-7 rounded-full" />
+                ) : (
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{user?.name?.[0]}</div>
+                )}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
+                  <Settings />
+                  <span>Pengaturan</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={() => setLogoutConfirmOpen(true)}>
+                  <LogOut />
+                  <span>Keluar</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <span className="hidden text-sm text-muted-foreground md:inline">{user?.name}</span>
           </div>
         </header>
         <RouteTransition>
