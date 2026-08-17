@@ -243,7 +243,7 @@ function ForumPage() {
                           )}
                         </div>
                         <p className="mt-1.5 font-heading text-[15px] font-semibold leading-snug">{q.plain_content}</p>
-                        <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
                           <span className="font-medium text-foreground">{q.user_name}</span>
                           {formatDate(q.created_at) && <span>• {formatDate(q.created_at)}</span>}
                           {q.answer_count !== undefined && (
