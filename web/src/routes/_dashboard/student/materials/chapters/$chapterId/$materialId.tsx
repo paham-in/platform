@@ -6,7 +6,7 @@ import {
   getClassesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useParams } from "@tanstack/react-router"
-import { Loader2 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { RichContent } from "@/components/ui/rich-content"
 
 function extractYoutubeId(url: string): string {
@@ -27,9 +27,16 @@ function MaterialDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <main className="w-full max-w-3xl p-4 md:p-6">
+        <Skeleton className="h-9 w-2/3" />
+        <Skeleton className="mt-3 h-4 w-40" />
+        <Skeleton className="mt-8 aspect-video w-full rounded-xl" />
+        <div className="mt-8 space-y-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+      </main>
     )
   }
 
