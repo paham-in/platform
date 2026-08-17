@@ -18,6 +18,7 @@ import {
 import { useEffect, useState } from "react";
 import { sidebarGroups, type SidebarGroup as SidebarGroupData } from "@/lib/sidebar";
 import { CommandMenu } from "@/components/command-menu";
+import { RouteTransition } from "@/components/route-transition";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { homeForRoles, requiredRoleForPath, roleLabel } from "@/lib/role";
 import {
@@ -285,9 +286,9 @@ function DashboardLayout() {
             <span className="text-sm text-muted-foreground">{user?.name}</span>
           </div>
         </header>
-        <div className="flex flex-1 flex-col">
+        <RouteTransition>
           {denied ? <AccessDenied requiredRole={requiredRole!} userRoles={userRoles} /> : <Outlet />}
-        </div>
+        </RouteTransition>
       </SidebarInset>
 
       <AlertDialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
