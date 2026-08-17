@@ -190,7 +190,7 @@ function SettingsPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nama</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off"/>
           </div>
         </CardContent>
         <CardFooter>

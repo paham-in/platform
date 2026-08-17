@@ -43,11 +43,11 @@ export function CreateUserDialog({ onClose }: CreateUserDialogProps) {
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label htmlFor="new-user-name">Nama</Label>
-            <Input id="new-user-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama lengkap" />
+            <Input id="new-user-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama lengkap" autoComplete="off"/>
           </div>
           <div className="space-y-2">
             <Label htmlFor="new-user-email">Email</Label>
-            <Input id="new-user-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@contoh.com" />
+            <Input id="new-user-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@contoh.com" autoComplete="off"/>
           </div>
           <p className="text-xs text-muted-foreground">
             Akses kelas diberikan terpisah — otomatis setelah invoice langganan/les lunas, atau manual lewat halaman Hak Akses Murid.

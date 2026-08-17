@@ -100,7 +100,7 @@ function AttendanceIndex() {
             className="pl-9 pr-9"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-          />
+          autoComplete="off"/>
           {searchInput && (
             <button
               type="button"

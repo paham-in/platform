@@ -72,7 +72,7 @@ export function ProgramFormDialog({ program, onClose }: ProgramFormDialogProps) 
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nama program (cth: Sekolah, UTBK, Kedinasan)"
-            />
+            autoComplete="off"/>
           </div>
           <div className="space-y-2">
             <Label htmlFor="desc">Deskripsi</Label>
@@ -81,7 +81,7 @@ export function ProgramFormDialog({ program, onClose }: ProgramFormDialogProps) 
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
               placeholder="Deskripsi singkat (opsional)"
-            />
+            autoComplete="off"/>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="outline" onClick={onClose}>Batal</Button>

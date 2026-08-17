@@ -115,7 +115,7 @@ export function SubjectFormDialog({ subject, onClose }: SubjectFormDialogProps) 
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nama mata pelajaran"
-            />
+            autoComplete="off"/>
           </div>
           <div className="space-y-2">
             <Label htmlFor="subject-program">Program</Label>

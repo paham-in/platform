@@ -361,7 +361,7 @@ function AdminTutoringNew() {
                     type="time"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                  />
+                  autoComplete="off"/>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="admin-booking-end">Jam Selesai</Label>
@@ -370,7 +370,7 @@ function AdminTutoringNew() {
                     type="time"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
-                  />
+                  autoComplete="off"/>
                 </div>
               </div>
               {startTime !== "" && endTime !== "" && !(startTime < endTime) && (
@@ -430,7 +430,7 @@ function AdminTutoringNew() {
 
               <div className="space-y-2">
                 <Label>Catatan (opsional)</Label>
-                <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Materi yang ingin dibahas..." />
+                <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Materi yang ingin dibahas..." autoComplete="off"/>
               </div>
 
               <div className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3">

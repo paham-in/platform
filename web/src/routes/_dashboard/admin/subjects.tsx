@@ -130,7 +130,7 @@ function AdminSubjects() {
                   setSearchInput(e.target.value);
                   setPage(1);
                 }}
-              />
+              autoComplete="off"/>
               {searchInput && (
                 <button
                   type="button"

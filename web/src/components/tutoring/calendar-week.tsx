@@ -292,16 +292,16 @@ export function CalendarWeek({
           <div className="grid gap-3 text-sm">
             <div className="grid gap-1.5">
               <label className="text-xs font-medium text-muted-foreground">Tanggal</label>
-              <Input type="date" value={reschedDate} min={format(new Date(), "yyyy-MM-dd")} onChange={(e) => setReschedDate(e.target.value)} />
+              <Input type="date" value={reschedDate} min={format(new Date(), "yyyy-MM-dd")} onChange={(e) => setReschedDate(e.target.value)} autoComplete="off"/>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Mulai</label>
-                <Input type="time" value={reschedStart} onChange={(e) => setReschedStart(e.target.value)} />
+                <Input type="time" value={reschedStart} onChange={(e) => setReschedStart(e.target.value)} autoComplete="off"/>
               </div>
               <div className="grid gap-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Selesai</label>
-                <Input type="time" value={reschedEnd} onChange={(e) => setReschedEnd(e.target.value)} />
+                <Input type="time" value={reschedEnd} onChange={(e) => setReschedEnd(e.target.value)} autoComplete="off"/>
               </div>
             </div>
           </div>

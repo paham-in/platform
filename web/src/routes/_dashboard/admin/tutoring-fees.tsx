@@ -221,7 +221,7 @@ function AdminSettings() {
                     onChange={(e) => setFee(e.target.value)}
                     className="w-28"
                     aria-invalid={feeInvalid}
-                  />
+                  autoComplete="off"/>
                   <span className="text-sm text-muted-foreground">%</span>
                 </div>
                 {feeInvalid && <p className="text-xs text-destructive">Masukkan angka 0–100.</p>}
@@ -292,7 +292,7 @@ function AdminSettings() {
                                   [cls.id!]: { private: e.target.value, group: prev[cls.id!]?.group ?? "" },
                                 }))
                               }
-                            />
+                            autoComplete="off"/>
                             {pvValid && Number(pv) > 0 && (
                               <p className="text-xs text-muted-foreground">
                                 Fee guru: {fmtRp(teacherFee(pv))}
@@ -315,7 +315,7 @@ function AdminSettings() {
                                   [cls.id!]: { private: prev[cls.id!]?.private ?? "", group: e.target.value },
                                 }))
                               }
-                            />
+                            autoComplete="off"/>
                             {gvValid && Number(gv) > 0 && (
                               <p className="text-xs text-muted-foreground">
                                 Fee guru: {fmtRp(teacherFee(gv))}
@@ -390,7 +390,7 @@ function AdminSettings() {
                             onChange={(e) =>
                               setContentPrices((prev) => ({ ...prev, [cls.id!]: e.target.value }))
                             }
-                          />
+                          autoComplete="off"/>
                         </TableCell>
                       </TableRow>
                     )

@@ -87,7 +87,7 @@ export function ClassFormDialog({ class: cls, programId, onClose }: ClassFormDia
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nama kelas (cth: Kelas 10 IPA)"
-            />
+            autoComplete="off"/>
             <p className="text-xs text-muted-foreground">
               Harga kelas diatur di Pengaturan → Harga per Kelas.
             </p>

@@ -58,7 +58,7 @@ export function CreatePackageDialog({ onClose, collectionId, collectionName }: C
               onChange={(e) => setName(e.target.value)}
               placeholder="Nama paket soal"
               autoFocus
-            />
+            autoComplete="off"/>
           </div>
 
           <div className="space-y-2">
@@ -83,7 +83,7 @@ export function CreatePackageDialog({ onClose, collectionId, collectionName }: C
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Deskripsi paket..."
               className="min-h-[80px]"
-            />
+            autoComplete="off"/>
           </div>
         </div>
 

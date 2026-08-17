@@ -56,7 +56,7 @@ export function CreateCollectionDialog({ onClose }: CreateCollectionDialogProps)
               onChange={(e) => setName(e.target.value)}
               placeholder="Contoh: UTS 1"
               autoFocus
-            />
+            autoComplete="off"/>
           </div>
 
           <div className="space-y-2">
@@ -81,7 +81,7 @@ export function CreateCollectionDialog({ onClose }: CreateCollectionDialogProps)
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Deskripsi koleksi..."
               className="min-h-[80px]"
-            />
+            autoComplete="off"/>
           </div>
 
           <label className="flex items-center gap-3 rounded-lg border p-4">

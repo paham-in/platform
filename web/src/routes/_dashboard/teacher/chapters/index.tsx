@@ -331,7 +331,7 @@ function AdminChapters() {
                   setSearchInput(e.target.value);
                   setPage(1);
                 }}
-              />
+              autoComplete="off"/>
               {searchInput && (
                 <button
                   type="button"
@@ -389,7 +389,7 @@ function AdminChapters() {
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
                     placeholder="Judul bab"
-                  />
+                  autoComplete="off"/>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cover">Sampul (opsional)</Label>
@@ -406,7 +406,7 @@ function AdminChapters() {
                       type="file"
                       accept="image/jpeg,image/png,image/gif,image/webp"
                       aria-invalid={!!coverError}
-                      onChange={handleCoverChange}
+                      onChange={handleCoverChange} autoComplete="off"
                     />
                   </div>
                   {coverError ? (
@@ -471,7 +471,7 @@ function AdminChapters() {
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                     placeholder="Deskripsi singkat"
                     rows={2}
-                  />
+                  autoComplete="off"/>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="order">Urutan</Label>
@@ -481,7 +481,7 @@ function AdminChapters() {
                     min={0}
                     value={form.order}
                     onChange={(e) => setForm({ ...form, order: Number(e.target.value) })}
-                  />
+                  autoComplete="off"/>
                 </div>
                 <div className="flex justify-end gap-3 pt-2">
                   <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>

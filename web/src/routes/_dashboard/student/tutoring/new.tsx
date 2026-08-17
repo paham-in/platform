@@ -437,7 +437,7 @@ function NewBooking() {
                 onChange={(e) => setSessionCount(Math.max(1, Number(e.target.value) || 1))}
                 onBlur={() => setSessionCount(Math.min(12, Math.max(1, sessionCount)))}
                 className="w-24 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              />
+              autoComplete="off"/>
               <span className="text-sm text-muted-foreground">kali</span>
             </div>
             {startDate && (
@@ -452,7 +452,7 @@ function NewBooking() {
         <div className="space-y-4 border-t pt-6">
           <div className="space-y-1.5">
             <Label htmlFor="new-note">Catatan (opsional)</Label>
-            <Input id="new-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Materi yang ingin dibahas..." />
+            <Input id="new-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Materi yang ingin dibahas..." autoComplete="off"/>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-muted/50 px-4 py-3">
@@ -503,7 +503,7 @@ function NewBooking() {
               onChange={(e) => setFriendQuery(e.target.value)}
               placeholder="Cari nama atau email teman"
               autoFocus
-            />
+            autoComplete="off"/>
           </InputGroup>
 
           <div className="max-h-72 space-y-1.5 overflow-y-auto pr-1">

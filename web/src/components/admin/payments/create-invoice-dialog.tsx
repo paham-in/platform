@@ -73,7 +73,7 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
           </div>
           <div className="space-y-1.5">
             <Label>Jumlah (Rp)</Label>
-            <Input type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="100000" />
+            <Input type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="100000" autoComplete="off"/>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
@@ -138,7 +138,7 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
           </div>
           <div className="space-y-1.5">
             <Label>Catatan (opsional)</Label>
-            <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Pembayaran..." />
+            <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Pembayaran..." autoComplete="off"/>
           </div>
         </div>
         <DialogFooter>

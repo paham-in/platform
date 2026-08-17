@@ -45,7 +45,7 @@ export function EditEmailDialog({ user, onClose }: EditEmailDialogProps) {
             <p className="text-xs text-muted-foreground">Email lama: {user.email}</p>
           </div>
           <div className="space-y-2">
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@contoh.com" />
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@contoh.com" autoComplete="off"/>
           </div>
           <p className="text-xs text-muted-foreground">
             Set email dummy = email Google murid supaya login berikutnya otomatis ter-link. Kalau murid sudah punya akun Google di sistem, gunakan "Hubungkan ke Akun Google" di menu aksi.

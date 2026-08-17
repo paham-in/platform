@@ -190,7 +190,7 @@ function EditMaterial() {
             <CardContent className="space-y-4 md:space-y-6">
               <div className="space-y-2">
                 <Label>Judul</Label>
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul materi" />
+                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul materi" autoComplete="off"/>
               </div>
 
               {/* Type picker */}
@@ -243,7 +243,7 @@ function EditMaterial() {
                     value={videoUrl}
                     onChange={(e) => setVideoUrl(e.target.value)}
                     placeholder="https://www.youtube.com/watch?v=abc123"
-                  />
+                  autoComplete="off"/>
                   {videoUrl && isValidYoutubeUrl(videoUrl) ? (
                     <div className="overflow-hidden rounded-2xl border">
                       <iframe

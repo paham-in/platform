@@ -277,7 +277,7 @@ function ChapterMaterials() {
                 className="pl-9 pr-9"
                 value={searchInput}
                 onChange={(e) => { setSearchInput(e.target.value); setPage(1); }}
-              />
+              autoComplete="off"/>
               {searchInput && (
                 <button
                   type="button"

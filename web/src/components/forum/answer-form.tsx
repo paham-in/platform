@@ -88,7 +88,7 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
               placeholder="https://www.youtube.com/watch?v=abc123"
-            />
+            autoComplete="off"/>
             {videoUrl && <YoutubeEmbed url={videoUrl} className="mt-2" />}
           </div>
         </TabsContent>
