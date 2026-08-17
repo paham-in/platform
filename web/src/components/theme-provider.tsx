@@ -34,15 +34,26 @@ export function ThemeProvider({
     const root = document.documentElement;
     root.classList.remove("light", "dark");
 
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-      root.classList.add(systemTheme);
-      return;
-    }
+    const resolved =
+      theme === "system"
+        ? window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light"
+        : theme;
+    root.classList.add(resolved);
 
-    root.classList.add(theme);
+    document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
+      const bg = getComputedStyle(root).getPropertyValue("--background").trim();
+      const ctx = document.createElement("canvas").getContext("2d");
+      if (!bg || !ctx) return;
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, 1, 1);
+      const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+      meta.setAttribute(
+        "content",
+        `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`
+      );
+    });
   }, [theme]);
 
   const value = {
