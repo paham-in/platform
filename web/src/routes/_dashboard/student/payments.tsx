@@ -9,6 +9,13 @@ import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
 import { CreditCard, CheckCircle2, Clock, ReceiptText, Loader2 } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
+function formatDate(iso?: string): string {
+  if (!iso) return ""
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+}
+
 function StudentPayments() {
   const { data: invoices = [], isLoading } = useQuery(getInvoicesOptions())
 
@@ -39,7 +46,7 @@ function StudentPayments() {
           <p className="text-muted-foreground">Daftar tagihan dan status pembayaran kamu.</p>
         </div>
 
-        <div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="hidden gap-4 md:gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((s) => (
             <Card key={s.label}><CardContent className="flex flex-col gap-3">
               <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></div>
@@ -53,7 +60,23 @@ function StudentPayments() {
           ))}
         </div>
 
-        <Card className="pt-0 gap-0 pb-0">
+        <Card className="sm:hidden">
+          <CardContent className="divide-y">
+            {stats.map((s) => (
+              <div key={s.label} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></div>
+                <div>
+                  <div className="text-xl font-bold">
+                    {s.label === "Jumlah Invoice" ? s.value : `Rp ${s.value.toLocaleString("id-ID")}`}
+                  </div>
+                  <div className="text-sm text-muted-foreground">{s.label}</div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -81,7 +104,7 @@ function StudentPayments() {
                   invoices.map((inv: InvoiceInvoiceResponse) => (
                     <TableRow key={inv.id}>
                       <TableCell className="pl-6 font-medium">
-                        {inv.start_date} — {inv.end_date}
+                        {formatDate(inv.start_date)} — {formatDate(inv.end_date)}
                       </TableCell>
                       <TableCell>Rp {inv.amount?.toLocaleString("id-ID")}</TableCell>
                       <TableCell>
@@ -98,12 +121,48 @@ function StudentPayments() {
                       <TableCell className="max-w-[200px] truncate text-muted-foreground">
                         {inv.note || "-"}
                       </TableCell>
-                      <TableCell className="pr-6 text-muted-foreground">{inv.created_at}</TableCell>
+                      <TableCell className="pr-6 text-muted-foreground">{formatDate(inv.created_at)}</TableCell>
                     </TableRow>
                   ))
                 )}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+        <Card className="gap-0 py-0 md:hidden">
+          <CardContent className="p-0">
+            {invoices.length === 0 ? (
+              <Empty className="p-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon"><ReceiptText /></EmptyMedia>
+                  <EmptyTitle>Belum ada invoice</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="divide-y">
+                {invoices.map((inv) => (
+                  <div key={inv.id} className="flex items-start justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{formatDate(inv.start_date)} — {formatDate(inv.end_date)}</p>
+                      <p className="mt-0.5 text-lg font-bold">Rp {inv.amount?.toLocaleString("id-ID")}</p>
+                      {inv.note && (
+                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{inv.note}</p>
+                      )}
+                      <p className="mt-1 text-xs text-muted-foreground">Dibuat {formatDate(inv.created_at)}</p>
+                    </div>
+                    {inv.status === "paid" ? (
+                      <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                        Lunas
+                      </span>
+                    ) : (
+                      <span className="shrink-0 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">
+                        Pending
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
