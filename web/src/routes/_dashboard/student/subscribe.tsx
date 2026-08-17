@@ -12,6 +12,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   getClassesOptions,
   getInvoicesQueryKey,
   getStudentClassesOptions,
@@ -35,6 +45,7 @@ function StudentSubscribe() {
 
   const [classId, setClassId] = useState("")
   const [duration, setDuration] = useState("1")
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   // default kelas: yang sudah diakses student (kalau ada), else kelas pertama
   useEffect(() => {
@@ -168,7 +179,7 @@ function StudentSubscribe() {
                   <p className="text-xs text-muted-foreground">Total</p>
                   <p className="text-lg font-bold">{contentPrice > 0 ? fmtRp(contentPrice * months) : "—"}</p>
                 </div>
-                <Button onClick={handleSubscribe} disabled={contentPrice <= 0 || subscribe.isPending}>
+                <Button onClick={() => setConfirmOpen(true)} disabled={contentPrice <= 0 || subscribe.isPending}>
                   {subscribe.isPending ? <Spinner /> : "Langganan"}
                 </Button>
               </CardFooter>
@@ -205,6 +216,28 @@ function StudentSubscribe() {
             </Card>
           </div>
         </div>
+      )}
+
+      {confirmOpen && contentPrice > 0 && (
+        <AlertDialog open onOpenChange={(o) => !o && setConfirmOpen(false)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Konfirmasi Langganan</AlertDialogTitle>
+              <AlertDialogDescription>
+                Kamu akan berlangganan konten <span className="font-medium text-foreground">{cls?.name}</span> selama {months} bulan
+                dengan total {fmtRp(contentPrice * months)}. Akses berlaku hingga{" "}
+                {format(parseISO(resultExpiry), "dd MMM yyyy")}.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={subscribe.isPending}>Batal</AlertDialogCancel>
+              <AlertDialogAction onClick={handleSubscribe} disabled={subscribe.isPending}>
+                {subscribe.isPending && <Spinner />}
+                Ya, Langganan
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </main>
   )
