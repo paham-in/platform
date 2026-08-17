@@ -14,11 +14,11 @@ import {
   getQuestionPackagesByIdWorkProgressQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { QuestionpackageSubmitAnswerResponse } from "@/lib/api/types.gen"
-import { ArrowLeft, ArrowRight, CheckCircle2, XCircle, ChevronLeft, FileQuestion } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle2, XCircle, FileQuestion } from "lucide-react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 function WorkPage() {
-  const { collectionId, packageId } = useParams({ from: "/_dashboard/student/packages/$collectionId/$packageId/work/" })
+  const { packageId } = useParams({ from: "/_dashboard/student/packages/$collectionId/$packageId/work/" })
   const navigate = useNavigate({ from: Route.fullPath })
   const qc = useQueryClient()
   const packageIdNum = Number(packageId)
@@ -117,14 +117,6 @@ function WorkPage() {
     })
   }
 
-  const goBackToPackage = () => {
-    if (Number.isFinite(Number(collectionId)) && Number.isFinite(packageIdNum)) {
-      navigate({ to: "/student/packages/$collectionId/$packageId", params: { collectionId, packageId } })
-    } else {
-      navigate({ to: "/student/packages" })
-    }
-  }
-
   const goToQuestion = (index: number) => {
     if (index >= 0 && index < total) {
       setCurrentIndex(index)
@@ -137,7 +129,7 @@ function WorkPage() {
         <Skeleton className="mb-4 h-8 w-64" />
         <Skeleton className="mb-6 h-2 w-full" />
         <Card>
-          <CardContent className="p-6">
+          <CardContent>
             <Skeleton className="mb-4 h-4 w-full" />
             <Skeleton className="mb-2 h-4 w-3/4" />
             <Skeleton className="mb-6 h-4 w-1/2" />
@@ -168,13 +160,6 @@ function WorkPage() {
     <main className="flex flex-col gap-4 md:gap-6 p-4 md:p-6 lg:flex-row">
       {/* Left column: question content */}
       <div className="flex-1 min-w-0">
-        <div className="mb-4 flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={goBackToPackage}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm text-muted-foreground">Kembali ke paket</span>
-        </div>
-
         <div className="mb-6">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium">Soal {currentIndex + 1} dari {total}</span>
@@ -189,12 +174,9 @@ function WorkPage() {
         </div>
 
         <Card className="mb-4">
-          <CardContent className="p-6">
+          <CardContent>
             <div className="mb-6">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                {currentIndex + 1}
-              </span>
-              <div className="mt-3">
+              <div>
                 {currentQuestion.question ? (
                   <RichContent html={currentQuestion.question} className="prose-sm" />
                 ) : (
@@ -272,7 +254,7 @@ function WorkPage() {
       <aside className="w-full shrink-0 lg:w-64">
         <div className="lg:sticky lg:top-6">
           <Card>
-            <CardContent className="p-4">
+            <CardContent>
               <p className="mb-3 text-sm font-medium text-muted-foreground">
                 {completedCount} / {total} selesai
               </p>
