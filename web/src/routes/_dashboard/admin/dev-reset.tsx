@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
+import { usePageTitle } from "@/components/page-title"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   AlertDialog,
@@ -28,6 +29,7 @@ import {
 import type { DevresetTableInfo } from "@/lib/api/types.gen"
 
 function DevReset() {
+  usePageTitle("Dev Tools")
   const qc = useQueryClient()
   const { data, isLoading } = useQuery(getAdminDevTablesOptions())
   const [confirmTable, setConfirmTable] = useState<DevresetTableInfo | null>(null)

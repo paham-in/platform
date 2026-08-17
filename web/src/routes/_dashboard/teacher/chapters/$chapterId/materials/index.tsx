@@ -60,6 +60,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePageTitle } from "@/components/page-title";
 
 const perPage = 10;
 
@@ -109,6 +110,7 @@ const materialsSearchSchema = z.object({
 });
 
 function ChapterMaterials() {
+  usePageTitle("Materi");
   const { chapterId } = useParams({ from: "/_dashboard/teacher/chapters/$chapterId/materials/" });
   const qc = useQueryClient();
   const navigate = useNavigate({ from: Route.fullPath });

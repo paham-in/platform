@@ -16,12 +16,14 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { usePageTitle } from "@/components/page-title"
 
 const paymentsSearchSchema = z.object({
   search: z.string().optional(),
 })
 
 function PaymentsIndex() {
+  usePageTitle("Pembayaran")
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam } = Route.useSearch()
   const { data: users = [], isLoading } = useQuery(

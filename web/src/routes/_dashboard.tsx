@@ -10,6 +10,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import {
+  ArrowLeft,
   ChevronRight,
   LogOut,
   Search,
@@ -17,9 +18,10 @@ import {
   Shield,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { PageTitleProvider, usePageTitleValue } from "@/components/page-title";
 import { sidebarGroups, type SidebarGroup as SidebarGroupData } from "@/lib/sidebar";
 import { CommandMenu } from "@/components/command-menu";
-import { getNavStack, RouteTransition, setResetInProgress } from "@/components/route-transition";
+import { getNavStack, resetNavStack, RouteTransition, setResetInProgress } from "@/components/route-transition";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { homeForRoles, requiredRoleForPath, roleLabel } from "@/lib/role";
 import {
@@ -112,28 +114,23 @@ function AppSidebar({
     const stack = getNavStack();
     const dIdx = dashboardTo ? stack.indexOf(dashboardTo) : -1;
     const steps = dIdx >= 0 ? stack.length - 1 - dIdx : -1;
-    if (to === dashboardTo) {
-      if (steps > 0) {
-        setResetInProgress(true);
-        const cleanup = router.subscribe("onResolved", () => {
-          cleanup();
-          setResetInProgress(false);
-        });
-        router.history.go(-steps);
-      } else {
-        navigate({ to: to as never });
-      }
-      return;
-    }
-    if (steps > 0) {
-      setResetInProgress(true);
+    setResetInProgress(true);
+    const finish = () => {
+      resetNavStack();
       const cleanup = router.subscribe("onResolved", () => {
         cleanup();
-        void navigate({ to: to as never }).finally(() => setResetInProgress(false));
+        setResetInProgress(false);
+      });
+      router.history.replace(to);
+    };
+    if (steps > 0) {
+      const cleanup = router.subscribe("onResolved", () => {
+        cleanup();
+        finish();
       });
       router.history.go(-steps);
     } else {
-      navigate({ to: to as never });
+      finish();
     }
   };
 
@@ -224,6 +221,62 @@ function AppSidebar({
   );
 }
 
+function MobilePageTitle() {
+  const title = usePageTitleValue();
+  if (!title) return null;
+  return <span className="min-w-0 max-w-[45vw] truncate text-sm font-semibold md:hidden">{title}</span>;
+}
+
+const MAIN_PATHS = [
+  ...sidebarGroups
+    .flatMap((g) => g.items)
+    .flatMap((i) => (i.to ? [i.to] : (i.items ?? []).map((s) => s.to))),
+  "/user/dashboard",
+  "/user/materials",
+  "/user/subscribe",
+];
+
+function isMainPath(pathname: string): boolean {
+  const p = pathname.replace(/\/+$/, "");
+  return MAIN_PATHS.includes(p);
+}
+
+function sectionHomeFor(pathname: string): string | undefined {
+  let best: string | undefined;
+  for (const m of MAIN_PATHS) {
+    if (pathname === m || pathname.startsWith(m + "/")) {
+      if (!best || m.length > best.length) best = m;
+    }
+  }
+  return best;
+}
+
+function HeaderNav() {
+  const { isMobile } = useSidebar();
+  const router = useRouter();
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { data: user } = useQuery(getMeOptions());
+  const userRoles = (user?.roles as string[]) ?? [];
+
+  const goBack = () => {
+    if (getNavStack().length > 1) {
+      router.history.back();
+    } else {
+      navigate({ to: (sectionHomeFor(pathname) ?? homeForRoles(userRoles)) as never });
+    }
+  };
+
+  if (isMobile && !isMainPath(pathname)) {
+    return (
+      <Button variant="ghost" size="icon" className="-ml-1" aria-label="Kembali" onClick={goBack}>
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
+    );
+  }
+  return <SidebarTrigger className="-ml-1" />;
+}
+
 function DashboardLayout() {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -306,46 +359,49 @@ function DashboardLayout() {
         onLogoutClick={() => setLogoutConfirmOpen(true)}
       />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4 md:gap-4">
-          <SidebarTrigger className="-ml-1" />
-          <div className="flex-1" />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCommandOpen(true)}
-            aria-label="Cari menu atau halaman"
-          >
-            <Search />
-          </Button>
-          <ThemeToggle compact />
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={<Button variant="ghost" className="h-8 w-8 rounded-full p-0" aria-label="Menu akun" />}
-              >
-                {user?.avatar_url ? (
-                  <img src={user.avatar_url} alt="" className="h-7 w-7 rounded-full" />
-                ) : (
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{user?.name?.[0]}</div>
-                )}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
-                  <Settings />
-                  <span>Pengaturan</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem variant="destructive" onClick={() => setLogoutConfirmOpen(true)}>
-                  <LogOut />
-                  <span>Keluar</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <span className="hidden text-sm text-muted-foreground md:inline">{user?.name}</span>
-          </div>
-        </header>
-        <RouteTransition>
-          {denied ? <AccessDenied requiredRole={requiredRole!} userRoles={userRoles} /> : <Outlet />}
-        </RouteTransition>
+        <PageTitleProvider>
+          <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4 md:gap-4">
+            <HeaderNav />
+            <MobilePageTitle />
+            <div className="flex-1" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCommandOpen(true)}
+              aria-label="Cari menu atau halaman"
+            >
+              <Search />
+            </Button>
+            <ThemeToggle compact />
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={<Button variant="ghost" className="h-8 w-8 rounded-full p-0" aria-label="Menu akun" />}
+                >
+                  {user?.avatar_url ? (
+                    <img src={user.avatar_url} alt="" className="h-7 w-7 rounded-full" />
+                  ) : (
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{user?.name?.[0]}</div>
+                  )}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
+                    <Settings />
+                    <span>Pengaturan</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem variant="destructive" onClick={() => setLogoutConfirmOpen(true)}>
+                    <LogOut />
+                    <span>Keluar</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <span className="hidden text-sm text-muted-foreground md:inline">{user?.name}</span>
+            </div>
+          </header>
+          <RouteTransition>
+            {denied ? <AccessDenied requiredRole={requiredRole!} userRoles={userRoles} /> : <Outlet />}
+          </RouteTransition>
+        </PageTitleProvider>
       </SidebarInset>
 
       <AlertDialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>

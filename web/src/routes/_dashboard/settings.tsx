@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
+import { usePageTitle } from "@/components/page-title"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { getPushPublicKey, postPushSubscribe } from "@/lib/api/sdk.gen"
@@ -20,6 +21,7 @@ import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
 
 function SettingsPage() {
+  usePageTitle("Pengaturan")
   const qc = useQueryClient()
   const { data: user, isLoading: userLoading } = useQuery(getMeOptions())
 

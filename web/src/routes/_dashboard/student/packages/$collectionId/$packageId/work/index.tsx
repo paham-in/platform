@@ -16,8 +16,10 @@ import {
 import type { QuestionpackageSubmitAnswerResponse } from "@/lib/api/types.gen"
 import { ArrowLeft, ArrowRight, CheckCircle2, XCircle, FileQuestion } from "lucide-react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { usePageTitle } from "@/components/page-title"
 
 function WorkPage() {
+  usePageTitle("Kerjakan Soal")
   const { packageId } = useParams({ from: "/_dashboard/student/packages/$collectionId/$packageId/work/" })
   const navigate = useNavigate({ from: Route.fullPath })
   const qc = useQueryClient()

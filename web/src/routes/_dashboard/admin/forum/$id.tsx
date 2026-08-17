@@ -14,6 +14,7 @@ import { toast } from "sonner"
 import { Loader2, Trash2, MessageCircle } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { AnswerForm } from "@/components/forum"
+import { usePageTitle } from "@/components/page-title"
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -35,6 +36,8 @@ function ForumDetail() {
   const { data: answers = [] } = useQuery(
     getQuestionsByQuestionIdAnswersOptions({ path: { question_id: questionId } })
   )
+
+  usePageTitle(question?.plain_content ?? "Forum")
 
   const { mutate: deleteAnswer } = useMutation({
     ...deleteQuestionsByQuestionIdAnswersByIdMutation(),

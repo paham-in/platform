@@ -27,6 +27,7 @@ import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/comp
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { GrantClassDialog } from "@/components/admin/student-classes";
+import { usePageTitle } from "@/components/page-title";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,6 +56,7 @@ const studentClassesSearchSchema = z.object({
 });
 
 function AdminStudentClasses() {
+  usePageTitle("Hak Akses Murid");
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam, class: classFilter, program: programFilter } = Route.useSearch()
   const [searchInput, setSearchInput] = useState(searchParam ?? "")

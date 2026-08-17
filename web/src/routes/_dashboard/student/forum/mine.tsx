@@ -21,8 +21,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { Loader2, Plus, Trash2, MessageSquare } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { usePageTitle } from "@/components/page-title"
 
 function MyQuestions() {
+  usePageTitle("Pertanyaan Saya")
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { data: questions = [], isLoading } = useQuery(

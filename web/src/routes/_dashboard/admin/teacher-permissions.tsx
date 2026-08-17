@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { TeacherPermissionsDialog } from "@/components/admin/users"
+import { usePageTitle } from "@/components/page-title"
 
 // Badge izin: pill hijau kalau diizinkan; outline muted kalau tidak.
 function PermBadge({ granted, label }: { granted: boolean; label: string }) {
@@ -25,6 +26,7 @@ function PermBadge({ granted, label }: { granted: boolean; label: string }) {
 }
 
 function AdminTeacherPermissions() {
+  usePageTitle("Hak Akses Guru")
   const { data: teachers = [], isLoading } = useQuery(
     getAdminUsersOptions({ query: { role: "teacher" } })
   )

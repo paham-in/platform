@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RoleBadge, CreateUserDialog, EditRoleDialog, DeleteUserDialog, ConnectGoogleDialog } from "@/components/admin/users"
+import { usePageTitle } from "@/components/page-title"
 
 const usersSearchSchema = z.object({
   role: z.enum(["student", "teacher", "admin"]).optional(),
@@ -28,6 +29,7 @@ const usersSearchSchema = z.object({
 })
 
 function AdminUsers() {
+  usePageTitle("Kelola User")
   const navigate = useNavigate({ from: Route.fullPath })
   const { role: roleFilter, search } = Route.useSearch()
   const [searchInput, setSearchInput] = useState(search ?? "")

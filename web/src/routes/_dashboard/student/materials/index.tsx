@@ -21,6 +21,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Search, SearchX, BookOpen, ChevronRight, GraduationCap, Layers, Funnel, X } from "lucide-react"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { usePageTitle } from "@/components/page-title"
 
 const materialsSearchSchema = z.object({
   search: z.string().optional(),
@@ -28,6 +29,7 @@ const materialsSearchSchema = z.object({
 })
 
 function MaterialsPage() {
+  usePageTitle("Materi")
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam, subject: subjectParam } = Route.useSearch()
   const { data: chapters = [], isLoading, isError } = useQuery(

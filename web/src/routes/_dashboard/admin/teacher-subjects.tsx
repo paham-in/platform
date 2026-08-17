@@ -18,12 +18,14 @@ import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/comp
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { TeacherSubjectsDialog } from "@/components/admin/users"
+import { usePageTitle } from "@/components/page-title"
 
 const teacherSubjectsSearchSchema = z.object({
   search: z.string().optional(),
 })
 
 function AdminTeacherSubjects() {
+  usePageTitle("Mata Pelajaran Guru")
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam } = Route.useSearch()
   const [searchInput, setSearchInput] = useState(searchParam ?? "")

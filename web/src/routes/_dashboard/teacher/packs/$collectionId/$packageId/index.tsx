@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { PreviewQuestionDialog, DeleteQuestionDialog, EditPackageDialog } from "@/components/teacher/packs"
+import { usePageTitle } from "@/components/page-title"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesByIdQuestionsOptions, getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { QuestionbankQuestionResponse, QuestionpackagePackageResponse } from "@/lib/api/types.gen"
@@ -32,6 +33,7 @@ function PackageQuestions() {
   const { data: pkg } = useQuery(getAdminQuestionPackagesByIdOptions({ path: { id: Number(packageId) } }))
   // paket bisa dikelola kalau punya izin DAN (admin, paket sendiri, atau paket tanpa pemilik)
   const canEditPkg = !!pkg && (user?.roles?.includes("admin") || pkg.author_id === user?.id || !pkg.author_id)
+  usePageTitle(pkg?.name ?? "Paket Soal")
   const { data: questions = [], isLoading } = useQuery(
     getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) }, query: { search: search || undefined } })
   )

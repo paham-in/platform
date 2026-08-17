@@ -7,6 +7,7 @@ import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAdminQuestionPackagesQueryKey, postAdminQuestionPackagesByIdQuestionsMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { usePageTitle } from "@/components/page-title";
 
 import { toast } from "sonner";
 
@@ -21,6 +22,7 @@ function isEmptyContent(html: string): boolean {
 }
 
 function NewQuestion() {
+  usePageTitle("Tambah Soal")
   const { collectionId, packageId } = useParams({ from: "/_dashboard/teacher/packs/$collectionId/$packageId/questions/new" })
   const qc = useQueryClient()
   const navigate = useNavigate()

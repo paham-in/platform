@@ -25,6 +25,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
+import { usePageTitle } from "@/components/page-title"
 
 function ForumDetail() {
   const qc = useQueryClient()
@@ -36,6 +37,8 @@ function ForumDetail() {
   const { data: answers = [] } = useQuery(
     getQuestionsByQuestionIdAnswersOptions({ path: { question_id: questionId } })
   )
+
+  usePageTitle(question?.plain_content ?? "Forum")
 
   const { mutate: deleteAnswer } = useMutation({
     ...deleteQuestionsByQuestionIdAnswersByIdMutation(),

@@ -10,6 +10,11 @@ export function getNavStack(): string[] {
   return pathStack
 }
 
+export function resetNavStack() {
+  pathStack = []
+  currentDirection = null
+}
+
 export function setResetInProgress(v: boolean) {
   if (resetInProgress === v) return
   resetInProgress = v

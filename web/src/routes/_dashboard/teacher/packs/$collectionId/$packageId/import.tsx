@@ -11,6 +11,7 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { UploadCloud, FileText, CheckCircle2, XCircle, Download, HelpCircle } from "lucide-react"
 import { toast } from "sonner"
 import { unzipDocx, parseDocumentXml, buildQuestions, generateTemplateDocx, type ImportQuestion } from "@/lib/docx-parser"
+import { usePageTitle } from "@/components/page-title"
 
 function stripHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html")
@@ -22,6 +23,7 @@ function normalizeQuestion(html: string): string {
 }
 
 function ImportQuestions() {
+  usePageTitle("Import Soal dari Word")
   const { collectionId, packageId } = useParams({ from: "/_dashboard/teacher/packs/$collectionId/$packageId/import" })
   const qc = useQueryClient()
   const navigate = useNavigate()

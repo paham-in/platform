@@ -27,6 +27,7 @@ import { addWeeks, format } from "date-fns"
 import { id } from "date-fns/locale"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { usePageTitle } from "@/components/page-title"
 
 const SESSION_MINUTES = 90
 
@@ -56,6 +57,7 @@ function perWeekFor(start: string, end: string): number | null {
 }
 
 function NewBooking() {
+  usePageTitle("Booking Baru")
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { data: subjects = [] } = useQuery(getSubjectsOptions())

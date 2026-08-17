@@ -8,6 +8,7 @@ import { getInvoicesOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
 import { CreditCard, CheckCircle2, Clock, ReceiptText, Loader2 } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { usePageTitle } from "@/components/page-title"
 
 function formatDate(iso?: string): string {
   if (!iso) return ""
@@ -17,6 +18,7 @@ function formatDate(iso?: string): string {
 }
 
 function StudentPayments() {
+  usePageTitle("Riwayat Pembayaran")
   const { data: invoices = [], isLoading } = useQuery(getInvoicesOptions())
 
   if (isLoading) {

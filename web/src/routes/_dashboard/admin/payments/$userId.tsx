@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CreateInvoiceDialog, DeleteInvoiceDialog, ToggleInvoiceDialog } from "@/components/admin/payments"
+import { usePageTitle } from "@/components/page-title"
 import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
 
 const paymentsDetailSearchSchema = z.object({
@@ -73,6 +74,7 @@ function PaymentsDetail() {
   ]
 
   const user = users.find((u) => u.id === Number(userId))
+  usePageTitle(user?.name ?? "Pengguna")
   const isLoading = usersLoading || invoicesLoading
 
   const allSelected = invoices.length > 0 && selectedIds.size === invoices.length

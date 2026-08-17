@@ -21,6 +21,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
+import { usePageTitle } from "@/components/page-title"
 
 const forumSearchSchema = z.object({
   search: z.string().optional(),
@@ -33,6 +34,7 @@ const statusOptions = [
 ]
 
 function TeacherForum() {
+  usePageTitle("Forum")
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam, unanswered: unansweredParam } = Route.useSearch()
   const [searchInput, setSearchInput] = useState(searchParam ?? "")

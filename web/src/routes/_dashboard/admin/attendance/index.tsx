@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { getAdminTutoringEvidenceOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { usePageTitle } from "@/components/page-title"
 
 const attendanceIndexSearchSchema = z.object({
   status: z.enum(["review", "done"]).optional(),
@@ -32,6 +33,7 @@ const statusOptions = [
 const fmtRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`
 
 function AttendanceIndex() {
+  usePageTitle("Validasi & Fee Guru")
   const navigate = useNavigate({ from: Route.fullPath })
   const { status, search: searchParam } = Route.useSearch()
   const { data: sessions = [], isLoading } = useQuery(

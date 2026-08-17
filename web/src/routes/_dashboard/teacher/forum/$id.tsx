@@ -16,8 +16,10 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import type { AnswerAnswerResponse } from "@/lib/api/types.gen"
 import { DeleteAnswerDialog } from "@/components/teacher/forum"
 import { AnswerForm } from "@/components/forum"
+import { usePageTitle } from "@/components/page-title"
 
 function ForumDetail() {
+  usePageTitle("Detail Forum")
   const { id } = useParams({ from: "/_dashboard/teacher/forum/$id" })
   const questionId = Number(id)
 

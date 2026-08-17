@@ -9,8 +9,10 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Loader2, BookOpen, FileText } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { usePageTitle } from "@/components/page-title"
 
 function UserMaterials() {
+  usePageTitle("Materi Gratis")
   const navigate = useNavigate()
   const { data: materials = [], isLoading } = useQuery(getMaterialsOptions())
   const { data: allChapters = [] } = useQuery(getChaptersOptions())

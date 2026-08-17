@@ -82,6 +82,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
+import { usePageTitle } from "@/components/page-title";
 
 const COVER_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const COVER_MAX = 5 * 1024 * 1024;
@@ -93,6 +94,7 @@ const chaptersSearchSchema = z.object({
 });
 
 function AdminChapters() {
+  usePageTitle("BAB");
   const qc = useQueryClient();
   const navigate = useNavigate({ from: Route.fullPath });
   const { search, classId } = Route.useSearch();

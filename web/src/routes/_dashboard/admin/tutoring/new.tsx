@@ -33,6 +33,7 @@ import {
   getAdminClassesOptions,
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
+import { usePageTitle } from "@/components/page-title"
 
 const countOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12]
 const modeOptions = [
@@ -54,6 +55,7 @@ function perWeekFor(start: string, end: string): number | null {
 }
 
 function AdminTutoringNew() {
+  usePageTitle("Tambah Booking Manual")
   const qc = useQueryClient()
   const navigate = useNavigate({ from: Route.fullPath })
   const { data: students = [] } = useQuery(getAdminStudentsOptions())

@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAdminQuestionPackageCollectionsOptions, getAdminQuestionPackageCollectionsQueryKey, getAdminQuestionPackagesOptions, getAdminQuestionPackagesQueryKey, getMeOptions, patchAdminQuestionPackagesByIdMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { CreatePackageDialog, DeletePackageDialog, EditPackageDialog } from "@/components/teacher/packs";
 import type { QuestionpackagePackageResponse, QuestionpackageCollectionResponse } from "@/lib/api/types.gen";
+import { usePageTitle } from "@/components/page-title";
 import { Eye, EyeOff, ListChecks, MoreVertical, Pencil, Plus, Trash2, FolderOpen } from "lucide-react";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { toast } from "sonner";
@@ -59,6 +60,8 @@ function CollectionPackages() {
   const cid = Number(collectionId);
   const collection = collections.find((g) => g.id === cid) as QuestionpackageCollectionResponse | undefined;
   const packages = (allPackages ?? []).filter((p) => p.collection_id === cid).slice(0, PACKS_PER_PAGE);
+
+  usePageTitle(collection?.name ?? "Paket Soal")
 
   return (
     <>

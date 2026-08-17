@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { usePageTitle } from "@/components/page-title"
 import {
   getAdminSettingsOptions,
   getAdminSettingsQueryKey,
@@ -36,6 +37,7 @@ const priceNorm = (s: string) => (priceNum(s) === 0 ? "" : s)
 type TutoringPrices = Record<number, { private: string; group: string }>
 
 function AdminSettings() {
+  usePageTitle("Tarif Produk")
   const qc = useQueryClient()
   const { data: settings, isLoading: settingsLoading } = useQuery(getAdminSettingsOptions())
   const { data: classes = [], isLoading: classesLoading } = useQuery(getAdminClassesOptions())

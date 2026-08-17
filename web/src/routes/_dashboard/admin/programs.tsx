@@ -48,8 +48,10 @@ import {
   AssignOrphanDialog,
 } from "@/components/admin/programs";
 import { ClassFormDialog, DeleteClassDialog } from "@/components/admin/classes";
+import { usePageTitle } from "@/components/page-title";
 
 function AdminPrograms() {
+  usePageTitle("Program");
   const { data: programs = [], isLoading } = useQuery(getAdminProgramsOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
   const [expanded, setExpanded] = useState<Set<number>>(new Set());

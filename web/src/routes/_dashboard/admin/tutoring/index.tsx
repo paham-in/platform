@@ -24,6 +24,7 @@ import { Plus, Trash2, UserRound, Users, CalendarX2 } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState } from "react"
 import { toast } from "sonner"
+import { usePageTitle } from "@/components/page-title"
 
 const adminTutoringSearchSchema = z.object({})
 
@@ -161,6 +162,7 @@ function DeleteBookingDialog({ booking, onClose }: { booking: TutoringListBookin
 }
 
 function AdminTutoring() {
+  usePageTitle("Les Privat")
   const navigate = useNavigate({ from: Route.fullPath })
   const { data: bookings = [], isLoading } = useQuery(getAdminTutoringBookingsOptions())
   const [assignBooking, setAssignBooking] = useState<TutoringListBookingsResponse | null>(null)

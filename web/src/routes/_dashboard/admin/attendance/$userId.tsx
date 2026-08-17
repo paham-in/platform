@@ -11,6 +11,7 @@ import { Check, CheckCircle2, ClipboardCheck, MoreVertical, X, XCircle } from "l
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ApproveEvidenceDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
+import { usePageTitle } from "@/components/page-title"
 import { useState } from "react"
 
 const attendanceDetailSearchSchema = z.object({
@@ -48,6 +49,7 @@ function AttendanceDetail() {
   const [feeTarget, setFeeTarget] = useState<TutoringListSessionsResponse | null>(null)
 
   const user = users.find((u) => u.id === Number(userId))
+  usePageTitle(user?.name ?? "Validasi & Fee Guru")
   const studentSessions = sessions.filter((s) => s.student_id === Number(userId))
   const studentReports = reports.filter((r) => r.student_id === Number(userId))
 

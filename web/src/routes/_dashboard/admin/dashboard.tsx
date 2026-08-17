@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { usePageTitle } from "@/components/page-title"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions, getAdminMaterialsOptions, getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { Users, GraduationCap, BookOpen, FileText, BookMarked, ChevronRight, CreditCard } from "lucide-react"
 
 function AdminDashboard() {
+  usePageTitle("Dashboard Admin")
   const navigate = useNavigate()
   const { data: allUsers = [] } = useQuery(getAdminUsersOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())

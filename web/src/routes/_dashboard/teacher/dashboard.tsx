@@ -6,8 +6,10 @@ import { getMeOptions, getQuestionsOptions } from "@/lib/api/@tanstack/react-que
 import { FileText, MessageSquare, HelpCircle, Users, Plus, BookOpen, ChevronRight } from "lucide-react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
+import { usePageTitle } from "@/components/page-title"
 
 function TeacherDashboard() {
+  usePageTitle("Dashboard Guru")
   const { data: user } = useQuery(getMeOptions())
   const { data: unansweredQuestions = [], isLoading: isLoadingQuestions } = useQuery(
     getQuestionsOptions({ query: { unanswered: true } })

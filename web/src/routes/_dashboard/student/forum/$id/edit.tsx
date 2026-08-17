@@ -20,8 +20,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import { usePageTitle } from "@/components/page-title"
 
 function EditQuestion() {
+  usePageTitle("Edit Pertanyaan")
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { id } = useParams({ from: "/_dashboard/student/forum/$id/edit" })

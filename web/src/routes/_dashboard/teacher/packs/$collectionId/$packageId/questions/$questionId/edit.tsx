@@ -8,6 +8,7 @@ import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAdminQuestionPackagesByIdQuestionsOptions, getAdminQuestionPackagesQueryKey, patchAdminQuestionPackagesByIdQuestionsByQidMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { usePageTitle } from "@/components/page-title";
 
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ function isEmptyContent(html: string): boolean {
 }
 
 function EditQuestion() {
+  usePageTitle("Edit Soal")
   const { collectionId, packageId, questionId } = useParams({ from: "/_dashboard/teacher/packs/$collectionId/$packageId/questions/$questionId/edit" })
   const qc = useQueryClient()
   const navigate = useNavigate()

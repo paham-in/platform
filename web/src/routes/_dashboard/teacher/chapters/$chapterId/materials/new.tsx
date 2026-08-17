@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { DocxImportDialog } from "@/components/ui/docx-import-dialog";
+import { usePageTitle } from "@/components/page-title";
 import {
   getAdminMaterialsQueryKey,
   postAdminMaterialsMutation,
@@ -45,6 +46,7 @@ const typeOptions = [
 ] as const;
 
 function NewMaterial() {
+  usePageTitle("Tambah Materi");
   const { chapterId } = useParams({ from: "/_dashboard/teacher/chapters/$chapterId/materials/new" });
   const qc = useQueryClient();
   const navigate = useNavigate();

@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Earnings } from "@/components/teacher/tutoring/earnings"
+import { usePageTitle } from "@/components/page-title"
 
 function TeacherTutoringEarningsPage() {
+  usePageTitle("Pendapatan Les")
   return (
     <main className="p-4 md:p-6">
       <div className="mb-6">

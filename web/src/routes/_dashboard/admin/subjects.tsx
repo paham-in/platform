@@ -44,12 +44,14 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { SubjectFormDialog, DeleteSubjectDialog } from "@/components/admin/subjects";
+import { usePageTitle } from "@/components/page-title";
 const subjectsSearchSchema = z.object({
   search: z.string().optional(),
   class: z.coerce.number().optional(),
 });
 
 function AdminSubjects() {
+  usePageTitle("Mata Pelajaran");
   const navigate = useNavigate({ from: Route.fullPath });
   const { search: searchParam, class: classParam } = Route.useSearch();
   const { data: subjects = [], isLoading } = useQuery(

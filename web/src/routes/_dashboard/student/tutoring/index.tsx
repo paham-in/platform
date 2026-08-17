@@ -27,6 +27,7 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import { CalendarX2, Plus, UserRound, Users, CalendarDays } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { usePageTitle } from "@/components/page-title"
 
 function statusBadge(s: string) {
   const styles: Record<string, string> = {
@@ -90,6 +91,7 @@ function CancelBookingDialog({ booking, onClose }: { booking: TutoringListBookin
 }
 
 function StudentTutoringIndex() {
+  usePageTitle("Les Privat")
   const navigate = useNavigate()
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getTutoringBookingsOptions())
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getTutoringSessionsOptions())

@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { getQuestionPackageCollectionsByIdOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { FileText, Layers, Sparkles, ChevronRight } from "lucide-react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { usePageTitle } from "@/components/page-title"
 
 function CollectionDetail() {
   const navigate = useNavigate()
@@ -12,6 +13,8 @@ function CollectionDetail() {
   const { data: collection, isLoading, isError } = useQuery(
     getQuestionPackageCollectionsByIdOptions({ path: { id: Number(collectionId) } })
   )
+
+  usePageTitle(collection?.name ?? "Paket Soal")
 
   if (isLoading) {
     return (

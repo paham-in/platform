@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { BookingRequests } from "@/components/teacher/tutoring/booking-requests"
+import { usePageTitle } from "@/components/page-title"
 
 function TeacherTutoringRequestsPage() {
+  usePageTitle("Permintaan Les")
   return (
     <main className="p-4 md:p-6">
       <div className="mb-6">
