@@ -230,6 +230,33 @@ export type MaterialUpdateInput = {
     video_url?: string;
 };
 
+export type NotificationErrorResponse = {
+    error?: string;
+};
+
+export type NotificationListNotificationsResponse = {
+    notifications?: Array<NotificationNotificationResponse>;
+    total?: number;
+};
+
+export type NotificationMessageResponse = {
+    message?: string;
+};
+
+export type NotificationNotificationResponse = {
+    body?: string;
+    created_at?: string;
+    id?: number;
+    is_read?: boolean;
+    title?: string;
+    type?: string;
+    url?: string;
+};
+
+export type NotificationUnreadCountResponse = {
+    count?: number;
+};
+
 export type ProgramClassInfo = {
     id?: number;
     name?: string;
@@ -3503,6 +3530,93 @@ export type PatchMeResponses = {
 };
 
 export type PatchMeResponse = PatchMeResponses[keyof PatchMeResponses];
+
+export type GetNotificationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Jumlah data per halaman (default 20)
+         */
+        limit?: number;
+        /**
+         * Offset data (default 0)
+         */
+        offset?: number;
+    };
+    url: '/notifications';
+};
+
+export type GetNotificationsResponses = {
+    /**
+     * OK
+     */
+    200: NotificationListNotificationsResponse;
+};
+
+export type GetNotificationsResponse = GetNotificationsResponses[keyof GetNotificationsResponses];
+
+export type PatchNotificationsReadAllData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/read-all';
+};
+
+export type PatchNotificationsReadAllResponses = {
+    /**
+     * OK
+     */
+    200: NotificationMessageResponse;
+};
+
+export type PatchNotificationsReadAllResponse = PatchNotificationsReadAllResponses[keyof PatchNotificationsReadAllResponses];
+
+export type GetNotificationsUnreadCountData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/notifications/unread-count';
+};
+
+export type GetNotificationsUnreadCountResponses = {
+    /**
+     * OK
+     */
+    200: NotificationUnreadCountResponse;
+};
+
+export type GetNotificationsUnreadCountResponse = GetNotificationsUnreadCountResponses[keyof GetNotificationsUnreadCountResponses];
+
+export type PatchNotificationsByIdReadData = {
+    body?: never;
+    path: {
+        /**
+         * Notification ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/notifications/{id}/read';
+};
+
+export type PatchNotificationsByIdReadErrors = {
+    /**
+     * Bad Request
+     */
+    400: NotificationErrorResponse;
+};
+
+export type PatchNotificationsByIdReadError = PatchNotificationsByIdReadErrors[keyof PatchNotificationsByIdReadErrors];
+
+export type PatchNotificationsByIdReadResponses = {
+    /**
+     * OK
+     */
+    200: NotificationMessageResponse;
+};
+
+export type PatchNotificationsByIdReadResponse = PatchNotificationsByIdReadResponses[keyof PatchNotificationsByIdReadResponses];
 
 export type GetPushPublicKeyData = {
     body?: never;

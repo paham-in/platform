@@ -23,6 +23,7 @@ import { sidebarGroups, type SidebarGroup as SidebarGroupData } from "@/lib/side
 import { CommandMenu } from "@/components/command-menu";
 import { getNavStack, resetNavStack, RouteTransition, setResetInProgress } from "@/components/route-transition";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationBell } from "@/components/notification-bell";
 import { homeForRoles, requiredRoleForPath, roleLabel } from "@/lib/role";
 import {
   Collapsible,
@@ -371,6 +372,7 @@ function DashboardLayout() {
             >
               <Search />
             </Button>
+            <NotificationBell />
             <ThemeToggle compact />
             <div className="flex items-center gap-2">
               <DropdownMenu>

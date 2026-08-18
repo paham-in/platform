@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/notification"
 	"bimbel2/backend/internal/setting"
 
 	"gorm.io/gorm"
@@ -20,10 +21,15 @@ type Service struct {
 	repo     *Repository
 	db       *gorm.DB
 	settings *setting.Service
+	notifSvc *notification.Service
 }
 
 func NewService(repo *Repository, db *gorm.DB, settings *setting.Service) *Service {
 	return &Service{repo: repo, db: db, settings: settings}
+}
+
+func (s *Service) SetNotificationService(n *notification.Service) {
+	s.notifSvc = n
 }
 
 // sessionFee menghitung fee guru utk satu sesi: persentase dari harga sesi.
@@ -209,6 +215,9 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingRequest) (*
 		if err != nil {
 			return nil, err
 		}
+		if s.notifSvc != nil && input.TeacherID != nil {
+			s.notifyTeacherNewBooking(*input.TeacherID, input.Date, input.StartTime, input.EndTime, resp.ID)
+		}
 		return resp, nil
 	}
 
@@ -238,6 +247,9 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingRequest) (*
 		return nil, err
 	}
 	r := newCreateBookingResponse(*created)
+	if s.notifSvc != nil && input.TeacherID != nil {
+		s.notifyTeacherNewBooking(*input.TeacherID, booking.Date, booking.StartTime, booking.EndTime, booking.ID)
+	}
 	return &r, nil
 }
 
@@ -477,6 +489,10 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 		if err != nil {
 			return nil, err
 		}
+		if s.notifSvc != nil {
+			s.notifyTeacherNewBooking(input.TeacherID, input.Date, input.StartTime, input.EndTime, resp.ID)
+			s.notifSvc.Notify(input.StudentID, "Les dikonfirmasi", fmt.Sprintf("Booking les %s %s telah dikonfirmasi admin", input.Mode, input.Date), "tutoring", "/dashboard/tutoring")
+		}
 		return resp, nil
 	}
 
@@ -522,6 +538,10 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 	})
 	if err != nil {
 		return nil, err
+	}
+	if s.notifSvc != nil {
+		s.notifyTeacherNewBooking(input.TeacherID, input.Date, input.StartTime, input.EndTime, resp.ID)
+		s.notifSvc.Notify(input.StudentID, "Les dikonfirmasi", fmt.Sprintf("Booking les %s %s telah dikonfirmasi admin", input.Mode, input.Date), "tutoring", "/dashboard/tutoring")
 	}
 	return resp, nil
 }
@@ -700,6 +720,17 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Updat
 		return nil, err
 	}
 	r := newUpdateBookingStatusResponse(*updated)
+
+	if s.notifSvc != nil {
+		title := "Booking les dikonfirmasi"
+		if status == "rejected" {
+			title = "Booking les ditolak"
+		}
+		for _, b := range targets {
+			s.notifSvc.Notify(b.StudentID, title, fmt.Sprintf("Booking les %s %s oleh guru %s", booking.Mode, booking.Date, title), "tutoring", "/dashboard/tutoring")
+		}
+	}
+
 	return &r, nil
 }
 
@@ -1015,6 +1046,13 @@ func (s *Service) RescheduleSession(sessionID, teacherID uint, input UpdateSessi
 		return nil, err
 	}
 	r := newUpdateSessionResponse(*updated)
+
+	if s.notifSvc != nil && session.Booking != nil {
+		s.notifSvc.Notify(session.Booking.StudentID, "Sesi dijadwalkan ulang",
+			fmt.Sprintf("Sesi tanggal %s %s dipindah ke %s %s", session.Date, session.StartTime, input.Date, input.StartTime),
+			"tutoring", "/dashboard/tutoring")
+	}
+
 	return &r, nil
 }
 
@@ -1035,6 +1073,13 @@ func (s *Service) CancelSession(sessionID, teacherID uint) (*CancelSessionRespon
 		return nil, err
 	}
 	r := newCancelSessionResponse(*updated)
+
+	if s.notifSvc != nil && session.Booking != nil {
+		s.notifSvc.Notify(session.Booking.StudentID, "Sesi les dibatalkan",
+			fmt.Sprintf("Sesi tanggal %s %s telah dibatalkan oleh guru", session.Date, session.StartTime),
+			"tutoring", "/dashboard/tutoring")
+	}
+
 	return &r, nil
 }
 
@@ -1255,4 +1300,11 @@ func generateToken() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(b), nil
+}
+
+// notifyTeacherNewBooking mengirim notifikasi ke guru ada booking baru.
+func (s *Service) notifyTeacherNewBooking(teacherID uint, date, startTime, endTime string, bookingID uint) {
+	s.notifSvc.Notify(teacherID, "Booking les baru",
+		fmt.Sprintf("Ada booking les %s %s %s-%s yang menunggu persetujuan", date, startTime, endTime, date),
+		"tutoring", fmt.Sprintf("/dashboard/tutoring"))
 }

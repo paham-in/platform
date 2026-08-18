@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/notification"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -178,18 +179,20 @@ func (h *Handler) AdminDeleteInvoice(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "invoice berhasil dihapus"})
 }
 
-func AuthRoutes(auth fiber.Router, db *gorm.DB) {
+func AuthRoutes(auth fiber.Router, db *gorm.DB, notifSvc *notification.Service) {
 	repo := NewRepository(db)
 	svc := NewService(repo, db)
+	svc.SetNotificationService(notifSvc)
 	h := NewHandler(svc)
 
 	auth.Get("/invoices", h.MyInvoices)
 	auth.Post("/subscribe", h.Subscribe)
 }
 
-func AdminRoutes(admin fiber.Router, db *gorm.DB) {
+func AdminRoutes(admin fiber.Router, db *gorm.DB, notifSvc *notification.Service) {
 	repo := NewRepository(db)
 	svc := NewService(repo, db)
+	svc.SetNotificationService(notifSvc)
 	h := NewHandler(svc)
 
 	admin.Get("/invoices", h.AdminListInvoices)

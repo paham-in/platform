@@ -6,6 +6,7 @@ import (
 
 	"bimbel2/backend/internal/middleware"
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/notification"
 	"bimbel2/backend/internal/storage"
 
 	"github.com/gofiber/fiber/v2"
@@ -373,10 +374,11 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage) 
 	admin.Delete("/questions/:id", h.AdminDeleteQuestion)
 }
 
-func Routes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
+func Routes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage, notifSvc *notification.Service) {
 	repo := NewRepository(db)
 	svc := NewService(repo)
 	svc.SetStorage(store)
+	svc.SetNotificationService(notifSvc)
 	h := NewHandler(svc, db)
 
 	app.Get("/questions", middleware.OptionalSessionResolver(db), h.ListQuestions)

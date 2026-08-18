@@ -14,6 +14,7 @@ import (
 	"bimbel2/backend/internal/forum"
 	"bimbel2/backend/internal/invoice"
 	"bimbel2/backend/internal/jobs"
+	"bimbel2/backend/internal/notification"
 	"bimbel2/backend/internal/tutoring"
 	"bimbel2/backend/internal/material"
 	"bimbel2/backend/internal/push"
@@ -79,11 +80,16 @@ func main() {
 		})
 	})
 
+	pushSvc := push.NewService(db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
+	notifRepo := notification.NewRepository(db)
+	notifSvc := notification.NewService(notifRepo)
+	notifSvc.SetPushService(pushSvc)
+
 	user.Routes(app, db)
 	user.OAuthRoutes(app, db, cfg)
 	subject.Routes(app, db)
 	class.PublicRoutes(app, db)
-	forum.Routes(app, db, objectStorage)
+	forum.Routes(app, db, objectStorage, notifSvc)
 	answer.PublicRoutes(app, db, objectStorage)
 	push.PublicRoutes(app, db, cfg.VapidPublicKey)
 
@@ -93,12 +99,12 @@ func main() {
 	chapter.PublicRoutes(auth, db, objectStorage)
 	material.PublicRoutes(auth, db, objectStorage)
 	questionpackage.AuthRoutes(auth, db, objectStorage)
-	studentclass.AuthRoutes(auth, db)
-		tutoring.Routes(auth, db, objectStorage, settingSvc)
-	pushSvc := push.NewService(db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
+	studentclass.AuthRoutes(auth, db, notifSvc)
+		tutoring.Routes(auth, db, objectStorage, settingSvc, notifSvc)
 	push.Routes(auth, db, cfg.VapidPublicKey, cfg.VapidPrivateKey, cfg.VapidSubject)
-	answer.AuthRoutes(auth, db, objectStorage, pushSvc)
-	invoice.AuthRoutes(auth, db)
+	notification.Routes(auth, db)
+	answer.AuthRoutes(auth, db, objectStorage, pushSvc, notifSvc)
+	invoice.AuthRoutes(auth, db, notifSvc)
 	if objectStorage != nil {
 		upload.AuthRoutes(auth, objectStorage)
 	}
@@ -125,11 +131,11 @@ func main() {
 	admin := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin"))
 	user.AdminRoutes(admin, db)
 	forum.AdminRoutes(admin, db, objectStorage)
-	invoice.AdminRoutes(admin, db)
+	invoice.AdminRoutes(admin, db, notifSvc)
 	program.AdminRoutes(admin, db)
-	studentclass.AdminRoutes(admin, db)
+	studentclass.AdminRoutes(admin, db, notifSvc)
 	setting.AdminRoutes(admin, db, cfg.TeacherFeePercent)
-	tutoring.AdminRoutes(admin, db, objectStorage, settingSvc)
+	tutoring.AdminRoutes(admin, db, objectStorage, settingSvc, notifSvc)
 	devreset.AdminRoutes(admin, db, cfg, jobRunner)
 
 	// background job: hapus sesi kedaluwarsa tiap jam, bukti kehadiran lewat masa

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/notification"
 	"bimbel2/backend/internal/storage"
 )
 
@@ -23,6 +24,7 @@ func stripHTML(s string) string {
 type Service struct {
 	repo    *Repository
 	storage *storage.ObjectStorage
+	notifSvc *notification.Service
 }
 
 func NewService(repo *Repository) *Service {
@@ -33,6 +35,11 @@ func NewService(repo *Repository) *Service {
 // file gambar saat pertanyaan dihapus).
 func (s *Service) SetStorage(store *storage.ObjectStorage) {
 	s.storage = store
+}
+
+// SetNotificationService menginjeksi notification service untuk in-app notifikasi.
+func (s *Service) SetNotificationService(n *notification.Service) {
+	s.notifSvc = n
 }
 
 // deleteWithCleanup menghapus pertanyaan secara hard + atomic bersama jawaban
@@ -95,6 +102,28 @@ func (s *Service) Create(userID uint, content string, subjectID *uint) (*models.
 	if err := s.repo.CreateWithAssets(&question, storage.ExtractContentImages(committed)); err != nil {
 		return nil, err
 	}
+
+	// Kirim notifikasi ke semua teacher bahwa ada pertanyaan baru.
+	if s.notifSvc != nil {
+		body := stripHTML(committed)
+		if len(body) > 80 {
+			body = body[:80] + "..."
+		}
+		teacherIDs, err := s.notifSvc.ListAllTeacherIDs()
+		if err == nil && len(teacherIDs) > 0 {
+			var userName string
+			var u models.User
+			if err := s.repo.db.First(&u, userID).Error; err == nil {
+				userName = u.Name
+			}
+			if userName == "" {
+				userName = "Seseorang"
+			}
+			title := userName + " bertanya"
+			s.notifSvc.NotifyBatch(teacherIDs, title, body, "forum_question", "/teacher/forum/"+formatUint(question.ID))
+		}
+	}
+
 	return &question, nil
 }
 
@@ -175,4 +204,18 @@ func (s *Service) GetByID(id uint) (*models.ForumQuestion, error) {
 
 func (s *Service) GetUser(userID uint) (*models.User, error) {
 	return s.repo.GetUserByID(userID)
+}
+
+func formatUint(v uint) string {
+	if v == 0 {
+		return "0"
+	}
+	buf := [20]byte{}
+	i := len(buf)
+	for v > 0 {
+		i--
+		buf[i] = byte('0' + v%10)
+		v /= 10
+	}
+	return string(buf[i:])
 }

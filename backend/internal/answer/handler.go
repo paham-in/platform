@@ -7,6 +7,7 @@ import (
 
 	"bimbel2/backend/internal/middleware"
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/notification"
 	"bimbel2/backend/internal/push"
 	"bimbel2/backend/internal/storage"
 
@@ -204,11 +205,12 @@ func PublicRoutes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage) {
 	app.Get("/questions/:question_id/answers", middleware.OptionalSessionResolver(db), h.ListAnswers)
 }
 
-func AuthRoutes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage, pushSvc *push.Service) {
+func AuthRoutes(app fiber.Router, db *gorm.DB, store *storage.ObjectStorage, pushSvc *push.Service, notifSvc *notification.Service) {
 	repo := NewRepository(db)
 	questionRepo := NewQuestionRepository(db)
 	svc := NewService(repo, questionRepo)
 	svc.SetPushService(pushSvc)
+	svc.SetNotificationService(notifSvc)
 	svc.SetStorage(store)
 	h := NewHandler(svc)
 

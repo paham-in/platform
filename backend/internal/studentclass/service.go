@@ -2,8 +2,10 @@ package studentclass
 
 import (
 	"errors"
+	"fmt"
 
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/notification"
 
 	"gorm.io/gorm"
 )
@@ -30,12 +32,17 @@ type StudentClassResponse struct {
 }
 
 type Service struct {
-	repo *Repository
-	db   *gorm.DB
+	repo     *Repository
+	db       *gorm.DB
+	notifSvc *notification.Service
 }
 
 func NewService(repo *Repository, db *gorm.DB) *Service {
 	return &Service{repo: repo, db: db}
+}
+
+func (s *Service) SetNotificationService(n *notification.Service) {
+	s.notifSvc = n
 }
 
 type ListFilter struct {
@@ -95,6 +102,15 @@ func (s *Service) Create(input CreateInput) (*StudentClassResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if s.notifSvc != nil {
+		var cls models.Class
+		s.db.First(&cls, input.ClassID)
+		title := "Akses kelas diberikan"
+		body := fmt.Sprintf("Kamu mendapatkan akses ke kelas %s hingga %s", cls.Name, input.Expiry)
+		s.notifSvc.Notify(input.UserID, title, body, "student_class", "/dashboard/my-classes")
+	}
+
 	r := s.toResponse(*created)
 	return &r, nil
 }

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"bimbel2/backend/internal/notification"
 	"bimbel2/backend/internal/setting"
 	"bimbel2/backend/internal/storage"
 
@@ -667,9 +668,10 @@ func (h *Handler) AdminToggleFeePaid(c *fiber.Ctx) error {
 	return c.JSON(session)
 }
 
-func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settings *setting.Service) {
+func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settings *setting.Service, notifSvc *notification.Service) {
 	repo := NewRepository(db)
 	svc := NewService(repo, db, settings)
+	svc.SetNotificationService(notifSvc)
 	h := NewHandler(svc, store)
 
 	admin.Get("/tutoring/bookings", h.AdminListBookings)
@@ -683,9 +685,10 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage, 
 	admin.Patch("/tutoring/fees/:id", h.AdminToggleFeePaid)
 }
 
-func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settings *setting.Service) {
+func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settings *setting.Service, notifSvc *notification.Service) {
 	repo := NewRepository(db)
 	svc := NewService(repo, db, settings)
+	svc.SetNotificationService(notifSvc)
 	h := NewHandler(svc, store)
 
 	auth.Get("/tutoring/teachers", h.ListTeachers)

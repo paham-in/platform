@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/notification"
 	"bimbel2/backend/internal/push"
 	"bimbel2/backend/internal/storage"
 
@@ -27,6 +28,7 @@ type Service struct {
 	repo         *Repository
 	questionRepo *QuestionRepository
 	pushSvc      *push.Service
+	notifSvc     *notification.Service
 	store        *storage.ObjectStorage
 }
 
@@ -37,6 +39,11 @@ func NewService(repo *Repository, questionRepo *QuestionRepository) *Service {
 // SetPushService menginjeksi push service untuk notifikasi (opsional).
 func (s *Service) SetPushService(p *push.Service) {
 	s.pushSvc = p
+}
+
+// SetNotificationService menginjeksi notification service untuk in-app notifikasi.
+func (s *Service) SetNotificationService(n *notification.Service) {
+	s.notifSvc = n
 }
 
 // SetStorage menginjeksi storage untuk membersihkan file gambar saat hapus jawaban.
@@ -133,8 +140,8 @@ func (s *Service) Create(questionID, userID uint, content, videoURL string) (*mo
 		return nil, err
 	}
 
-	// Kirim push notification ke pemilik pertanyaan (student).
-	if s.pushSvc != nil {
+	// Kirim push notification + in-app notifikasi ke pemilik pertanyaan (student).
+	if s.pushSvc != nil || s.notifSvc != nil {
 		title := "Pertanyaanmu dijawab"
 		body := stripHTML(content)
 		if body == "" && videoURL != "" {
@@ -143,7 +150,12 @@ func (s *Service) Create(questionID, userID uint, content, videoURL string) (*mo
 		if len(body) > 80 {
 			body = body[:80] + "..."
 		}
-		s.pushSvc.NotifyUser(question.UserID, title, body, "/student/forum/"+formatUint(questionID))
+		notifURL := "/student/forum/" + formatUint(questionID)
+		if s.notifSvc != nil {
+			s.notifSvc.Notify(question.UserID, title, body, "forum_answer", notifURL)
+		} else if s.pushSvc != nil {
+			s.pushSvc.NotifyUser(question.UserID, title, body, notifURL)
+		}
 	}
 
 	// reload with User preloaded

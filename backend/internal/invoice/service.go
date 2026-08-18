@@ -2,10 +2,12 @@ package invoice
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"time"
 
 	"bimbel2/backend/internal/models"
+	"bimbel2/backend/internal/notification"
 
 	"gorm.io/gorm"
 )
@@ -23,12 +25,17 @@ type InvoiceResponse struct {
 }
 
 type Service struct {
-	repo *Repository
-	db   *gorm.DB
+	repo    *Repository
+	db      *gorm.DB
+	notifSvc *notification.Service
 }
 
 func NewService(repo *Repository, db *gorm.DB) *Service {
 	return &Service{repo: repo, db: db}
+}
+
+func (s *Service) SetNotificationService(n *notification.Service) {
+	s.notifSvc = n
 }
 
 var dateRegex = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
@@ -87,6 +94,11 @@ func (s *Service) Create(input CreateInput) (*InvoiceResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if s.notifSvc != nil {
+		s.notifSvc.Notify(input.UserID, "Invoice baru", fmt.Sprintf("Tagihan sebesar Rp%.0f telah dibuat", input.Amount), "invoice", "/dashboard/invoices")
+	}
+
 	r := toResponse(*created)
 	return &r, nil
 }
@@ -157,6 +169,11 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if newStatus == "paid" && s.notifSvc != nil {
+		s.notifSvc.Notify(invoice.UserID, "Pembayaran dikonfirmasi", fmt.Sprintf("Invoice sebesar Rp%.0f telah lunas", invoice.Amount), "invoice", "/dashboard/invoices")
+	}
+
 	r := toResponse(*updated)
 	return &r, nil
 }

@@ -3,6 +3,8 @@ package studentclass
 import (
 	"strconv"
 
+	"bimbel2/backend/internal/notification"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -122,17 +124,19 @@ func (h *Handler) MyStudentClasses(c *fiber.Ctx) error {
 	return c.JSON(sp)
 }
 
-func AuthRoutes(auth fiber.Router, db *gorm.DB) {
+func AuthRoutes(auth fiber.Router, db *gorm.DB, notifSvc *notification.Service) {
 	repo := NewRepository(db)
 	svc := NewService(repo, db)
+	svc.SetNotificationService(notifSvc)
 	h := NewHandler(svc)
 
 	auth.Get("/student-classes", h.MyStudentClasses)
 }
 
-func AdminRoutes(admin fiber.Router, db *gorm.DB) {
+func AdminRoutes(admin fiber.Router, db *gorm.DB, notifSvc *notification.Service) {
 	repo := NewRepository(db)
 	svc := NewService(repo, db)
+	svc.SetNotificationService(notifSvc)
 	h := NewHandler(svc)
 
 	admin.Get("/student-classes", h.AdminListStudentClasses)
