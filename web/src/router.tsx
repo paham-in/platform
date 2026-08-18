@@ -4,7 +4,7 @@ import { routeTree } from "./routeTree.gen"
 
 export const queryClient = new QueryClient()
 
-export const router = createRouter({ routeTree, context: { queryClient } })
+export const router = createRouter({ routeTree, context: { queryClient }, scrollRestoration: true })
 
 declare module "@tanstack/react-router" {
   interface Register {
