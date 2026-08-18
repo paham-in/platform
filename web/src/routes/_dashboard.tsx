@@ -97,7 +97,7 @@ function AppSidebar({
   onLogoutClick: () => void;
 }) {
   const { pathname } = useRouterState().location;
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { setOpenMobile } = useSidebar();
   const router = useRouter();
   const isActive = (to?: string) => !!to && (pathname === to || pathname.startsWith(to + "/"));
   const closeMobile = () => setOpenMobile(false);
@@ -120,7 +120,7 @@ function AppSidebar({
         cleanup();
         setResetInProgress(false);
       });
-      router.navigate({ to, replace: !isMobile });
+      router.history.replace(to);
     };
     if (steps > 0) {
       const cleanup = router.subscribe("onResolved", () => {
