@@ -66,12 +66,12 @@ function StudentPayments() {
           <CardContent className="divide-y">
             {stats.map((s) => (
               <div key={s.label} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></div>
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${s.color}`}><s.icon className="h-4 w-4" /></div>
                 <div>
-                  <div className="text-xl font-bold">
+                  <div className="text-base font-semibold">
                     {s.label === "Jumlah Invoice" ? s.value : `Rp ${s.value.toLocaleString("id-ID")}`}
                   </div>
-                  <div className="text-sm text-muted-foreground">{s.label}</div>
+                  <div className="text-xs text-muted-foreground">{s.label}</div>
                 </div>
               </div>
             ))}
@@ -106,7 +106,7 @@ function StudentPayments() {
                   invoices.map((inv: InvoiceInvoiceResponse) => (
                     <TableRow key={inv.id}>
                       <TableCell className="pl-6 font-medium">
-                        {formatDate(inv.start_date)} — {formatDate(inv.end_date)}
+                        {formatDate(inv.start_date)} - {formatDate(inv.end_date)}
                       </TableCell>
                       <TableCell>Rp {inv.amount?.toLocaleString("id-ID")}</TableCell>
                       <TableCell>
@@ -145,8 +145,8 @@ function StudentPayments() {
                 {invoices.map((inv) => (
                   <div key={inv.id} className="flex items-start justify-between gap-3 p-4">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium">{formatDate(inv.start_date)} — {formatDate(inv.end_date)}</p>
-                      <p className="mt-0.5 text-lg font-bold">Rp {inv.amount?.toLocaleString("id-ID")}</p>
+                      <p className="text-xs font-medium text-muted-foreground">{formatDate(inv.start_date)} - {formatDate(inv.end_date)}</p>
+                      <p className="mt-0.5 text-base font-semibold">Rp {inv.amount?.toLocaleString("id-ID")}</p>
                       {inv.note && (
                         <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{inv.note}</p>
                       )}

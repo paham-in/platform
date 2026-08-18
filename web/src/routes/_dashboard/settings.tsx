@@ -200,16 +200,15 @@ function SettingsPage() {
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off"/>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="justify-end">
           <Button
             onClick={handleSave}
             disabled={updateProfile.isPending}
-            className="w-full"
           >
             {updateProfile.isPending ? (
               <Spinner />
             ) : (
-              <Save className="mr-2 h-4 w-4" />
+              <Save />
             )}
             Simpan
           </Button>
@@ -286,13 +285,13 @@ function SettingsPage() {
       )}
       </div>
 
-      {(buildTime || commitSha) && (
-        <p className="mt-4 text-xs text-muted-foreground">
-          {buildTime && `Versi build: ${format(parseISO(buildTime), "d MMM yyyy, HH:mm", { locale: id })}`}
-          {buildTime && commitSha && " · "}
-          {commitSha && `Commit: ${commitSha.slice(0, 7)}`}
-        </p>
-      )}
+      <p className="mt-4 text-xs text-muted-foreground">
+        {buildTime
+          ? `Versi build: ${format(parseISO(buildTime), "d MMM yyyy, HH:mm", { locale: id })}`
+          : "Development Mode"}
+        {buildTime && commitSha && " · "}
+        {commitSha && `Commit: ${commitSha.slice(0, 7)}`}
+      </p>
 
       <Dialog open={showNotifHelp} onOpenChange={setShowNotifHelp}>
         <DialogContent>
