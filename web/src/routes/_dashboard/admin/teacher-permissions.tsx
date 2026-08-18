@@ -40,7 +40,7 @@ function AdminTeacherPermissions() {
   return (
     <>
       <main className="p-4 md:p-6">
-        <h1 className="mb-4 text-2xl font-bold tracking-tight">Hak Akses Guru</h1>
+        <h1 className="hidden md:block mb-4 text-2xl font-bold tracking-tight">Hak Akses Guru</h1>
         <p className="mb-4 text-sm text-muted-foreground">
           Atur guru mana yang boleh membuat, mengubah, dan menghapus materi & paket soal. Guru tanpa
           izin tidak bisa mengelola konten platform.

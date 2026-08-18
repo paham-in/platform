@@ -54,7 +54,7 @@ function MaterialDetail() {
   return (
     <main className="w-full max-w-3xl p-4 md:p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">{material.title}</h1>
+        <h1 className="hidden md:block text-3xl font-bold tracking-tight">{material.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {cls?.name ?? "-"} • {sub?.name ?? "-"}
           <span className="ml-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">

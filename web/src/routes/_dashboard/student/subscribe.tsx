@@ -105,7 +105,7 @@ function StudentSubscribe() {
 
   return (
     <main className="p-4 md:p-6">
-      <h1 className="mb-1 text-2xl font-bold tracking-tight">Langganan</h1>
+      <h1 className="hidden md:block mb-1 text-2xl font-bold tracking-tight">Langganan</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Pilih kelas & produk. Setelah pembayaran diverifikasi admin, akses kelas kamu aktif.
       </p>

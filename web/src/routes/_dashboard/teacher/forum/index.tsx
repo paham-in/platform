@@ -72,7 +72,7 @@ function TeacherForum() {
 
   return (
     <main className="p-4 md:p-6">
-      <h1 className="mb-4 text-2xl font-bold tracking-tight">Forum</h1>
+      <h1 className="hidden md:block mb-4 text-2xl font-bold tracking-tight">Forum</h1>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative w-full max-w-sm flex-1">

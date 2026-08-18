@@ -42,7 +42,7 @@ function ChapterDetail() {
       ) : (
         <>
           <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-tight">{chapter?.title ?? "BAB"}</h1>
+            <h1 className="hidden md:block text-2xl font-bold tracking-tight">{chapter?.title ?? "BAB"}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {cls?.name ?? "-"} • {sub?.name ?? "-"}
             </p>

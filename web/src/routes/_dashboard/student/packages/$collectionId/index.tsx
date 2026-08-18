@@ -48,7 +48,7 @@ function CollectionDetail() {
   return (
     <main className="w-full max-w-5xl p-4 md:p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">{collection.name}</h1>
+        <h1 className="hidden md:block text-3xl font-bold tracking-tight">{collection.name}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {collection.class_name} • {collection.package_count ?? 0} paket • {totalQ} soal
           <span className={`ml-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${

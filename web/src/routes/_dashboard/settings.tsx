@@ -187,7 +187,7 @@ function SettingsPage() {
 
   return (
     <main className="p-4 md:p-6">
-      <h1 className="mb-6 text-2xl font-bold tracking-tight">Pengaturan</h1>
+      <h1 className="hidden md:block mb-6 text-2xl font-bold tracking-tight">Pengaturan</h1>
 
       <div className="flex max-w-lg flex-col gap-4">
       <Card>

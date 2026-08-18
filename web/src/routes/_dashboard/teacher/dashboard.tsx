@@ -19,7 +19,7 @@ function TeacherDashboard() {
     <main className="p-4 md:p-6">
       <div className="space-y-4 md:space-y-6">
         <div className="flex items-center justify-between">
-          <div><h2 className="text-2xl font-bold tracking-tight">Dashboard Guru</h2><p className="text-muted-foreground">Kelola materi dan jawab pertanyaan siswa, {user?.name}.</p></div>
+          <div><h2 className="hidden md:block text-2xl font-bold tracking-tight">Dashboard Guru</h2><p className="text-muted-foreground">Kelola materi dan jawab pertanyaan siswa, {user?.name}.</p></div>
           <Button onClick={() => {}}><Plus className="mr-1 h-4 w-4" /> Buat Materi</Button>
         </div>
         <div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-4">

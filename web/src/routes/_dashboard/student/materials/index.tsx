@@ -94,7 +94,7 @@ function MaterialsPage() {
   if (isError) {
     return (
       <main className="p-4 md:p-6">
-        <h1 className="mb-6 text-2xl font-bold tracking-tight">Materi</h1>
+        <h1 className="hidden md:block mb-6 text-2xl font-bold tracking-tight">Materi</h1>
         <Card>
           <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
             <p className="text-muted-foreground">Gagal memuat daftar materi.</p>
@@ -107,7 +107,7 @@ function MaterialsPage() {
 
   return (
     <main className="p-4 md:p-6">
-      <h1 className="mb-1 text-2xl font-bold tracking-tight">Materi</h1>
+      <h1 className="hidden md:block mb-1 text-2xl font-bold tracking-tight">Materi</h1>
       <p className="mb-6 text-sm text-muted-foreground">Jelajahi materi dari semua bab.</p>
 
       <div className="mb-6 flex flex-wrap items-center gap-2">

@@ -76,7 +76,7 @@ function AdminUsers() {
     <>
       <main className="p-4 md:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold tracking-tight">Kelola User</h1>
+          <h1 className="hidden md:block text-2xl font-bold tracking-tight">Kelola User</h1>
           <Button onClick={() => setCreateOpen(true)}>
             <Plus className="mr-1 h-4 w-4" /> Tambah User
           </Button>

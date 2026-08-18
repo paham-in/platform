@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   ChevronRight,
   LogOut,
+  Menu,
   Search,
   Settings,
   Shield,
@@ -252,7 +253,7 @@ function sectionHomeFor(pathname: string): string | undefined {
 }
 
 function HeaderNav() {
-  const { isMobile } = useSidebar();
+  const { isMobile, toggleSidebar } = useSidebar();
   const router = useRouter();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -271,6 +272,13 @@ function HeaderNav() {
     return (
       <Button variant="ghost" size="icon" className="-ml-1" aria-label="Kembali" onClick={goBack}>
         <ArrowLeft className="h-5 w-5" />
+      </Button>
+    );
+  }
+  if (isMobile) {
+    return (
+      <Button variant="ghost" size="icon" className="-ml-1" aria-label="Buka menu" onClick={toggleSidebar}>
+        <Menu className="h-5 w-5" />
       </Button>
     );
   }

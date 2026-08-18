@@ -94,7 +94,7 @@ function EditQuestion() {
   return (
     <main className="p-4 md:p-6">
       <div className="mx-auto max-w-3xl space-y-4 md:space-y-6">
-        <h1 className="text-2xl font-bold tracking-tight">Edit Soal</h1>
+        <h1 className="hidden md:block text-2xl font-bold tracking-tight">Edit Soal</h1>
 
         <div className="space-y-2">
           <Label>Pertanyaan</Label>

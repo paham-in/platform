@@ -22,7 +22,7 @@ function AdminDashboard() {
   return (
     <main className="p-4 md:p-6">
       <div className="space-y-4 md:space-y-6">
-        <h2 className="text-2xl font-bold tracking-tight">Dashboard Admin</h2>
+        <h2 className="hidden md:block text-2xl font-bold tracking-tight">Dashboard Admin</h2>
         <p className="text-muted-foreground">Kelola seluruh pengguna dan konten platform.</p>
         <div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((s) => (

@@ -68,7 +68,7 @@ function CollectionPackages() {
       <main className="p-4 md:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{collection?.name ?? "Paket Soal"}</h1>
+            <h1 className="hidden md:block text-2xl font-bold tracking-tight">{collection?.name ?? "Paket Soal"}</h1>
             {collection && (
               <p className="text-sm text-muted-foreground">{collection.class_name || "Kelas tidak diketahui"}</p>
             )}

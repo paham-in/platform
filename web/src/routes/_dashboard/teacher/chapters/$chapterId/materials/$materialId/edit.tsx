@@ -184,7 +184,7 @@ function EditMaterial() {
       <main className="p-4 md:p-6">
         <div className="mx-auto max-w-4xl space-y-4 md:space-y-6">
           <div>
-            <h1 className="mb-1 text-2xl font-bold tracking-tight">Edit Materi</h1>
+            <h1 className="hidden md:block mb-1 text-2xl font-bold tracking-tight">Edit Materi</h1>
             <p className="text-sm text-muted-foreground">Perbarui materi teks atau video untuk bab ini.</p>
           </div>
 

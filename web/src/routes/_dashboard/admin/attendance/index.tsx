@@ -87,7 +87,7 @@ function AttendanceIndex() {
   return (
     <main className="p-4 md:p-6">
       <div className="mb-4">
-        <h1 className="text-2xl font-bold tracking-tight">Validasi & Fee Guru</h1>
+        <h1 className="hidden md:block text-2xl font-bold tracking-tight">Validasi & Fee Guru</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Pilih murid untuk menyetujui bukti kehadiran guru dan mencatat pembayaran fee per pertemuan.
         </p>

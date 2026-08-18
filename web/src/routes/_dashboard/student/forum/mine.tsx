@@ -67,7 +67,7 @@ function MyQuestions() {
   return (
     <main className="p-4 md:p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Pertanyaan Saya</h1>
+        <h1 className="hidden md:block text-2xl font-bold tracking-tight">Pertanyaan Saya</h1>
         <Button onClick={() => navigate({ to: "/student/forum/new" })}>
             <Plus className="mr-1 h-4 w-4" /> Pertanyaan Baru
           </Button>

@@ -7,7 +7,7 @@ function TeacherTutoringRequestsPage() {
   return (
     <main className="p-4 md:p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Permintaan Les</h1>
+        <h1 className="hidden md:block text-2xl font-bold tracking-tight">Permintaan Les</h1>
         <p className="text-sm text-muted-foreground">Setujui atau tolak permintaan les dari murid</p>
       </div>
       <BookingRequests />

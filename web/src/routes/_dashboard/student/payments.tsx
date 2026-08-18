@@ -44,7 +44,7 @@ function StudentPayments() {
     <main className="p-4 md:p-6">
       <div className="space-y-4 md:space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Riwayat Pembayaran</h2>
+          <h2 className="hidden md:block text-2xl font-bold tracking-tight">Riwayat Pembayaran</h2>
           <p className="text-muted-foreground">Daftar tagihan dan status pembayaran kamu.</p>
         </div>
 

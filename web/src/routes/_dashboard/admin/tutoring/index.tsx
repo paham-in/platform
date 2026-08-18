@@ -172,7 +172,7 @@ function AdminTutoring() {
     <main className="p-4 md:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Les Privat</h1>
+          <h1 className="hidden md:block text-2xl font-bold tracking-tight">Les Privat</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Semua booking les privat dari seluruh murid dan guru.
           </p>

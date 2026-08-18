@@ -88,7 +88,7 @@ function ForumDetail() {
         )}
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight">{question.plain_content?.slice(0, 120)}</h1>
+      <h1 className="hidden md:block text-2xl font-bold tracking-tight">{question.plain_content?.slice(0, 120)}</h1>
 
       <div className="mt-3 flex items-center gap-3 text-sm text-muted-foreground">
         {question.user_avatar ? (

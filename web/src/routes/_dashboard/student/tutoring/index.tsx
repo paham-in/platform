@@ -102,7 +102,7 @@ function StudentTutoringIndex() {
   return (
     <main className="p-4 md:p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Les Privat</h1>
+        <h1 className="hidden md:block text-2xl font-bold tracking-tight">Les Privat</h1>
         <p className="text-sm text-muted-foreground">Booking jadwal les dengan guru</p>
       </div>
       <div className="space-y-4 md:space-y-6">

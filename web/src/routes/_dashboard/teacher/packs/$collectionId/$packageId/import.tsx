@@ -123,7 +123,7 @@ function ImportQuestions() {
   return (
     <main className="p-4 md:p-6">
       <div className="mx-auto max-w-4xl space-y-4 md:space-y-6">
-        <h1 className="text-2xl font-bold tracking-tight">Import Soal dari Word</h1>
+        <h1 className="hidden md:block text-2xl font-bold tracking-tight">Import Soal dari Word</h1>
 
         {/* Cara penulisan format */}
         <Card>

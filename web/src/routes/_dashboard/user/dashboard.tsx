@@ -15,7 +15,7 @@ function UserDashboard() {
     <main className="p-4 md:p-6">
       <div className="space-y-4 md:space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Halo, {user?.name}!</h2>
+          <h2 className="hidden md:block text-2xl font-bold tracking-tight">Halo, {user?.name}!</h2>
           <p className="mt-1 text-muted-foreground">
             Akun kamu belum berlangganan. Berlangganan untuk akses semua materi & paket soal.
           </p>

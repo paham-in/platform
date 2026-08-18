@@ -319,7 +319,7 @@ function AdminChapters() {
   return (
     <>
       <main className="p-4 md:p-6">
-        <h1 className="text-2xl font-bold tracking-tight">BAB</h1>
+        <h1 className="hidden md:block text-2xl font-bold tracking-tight">BAB</h1>
         <div className="mb-4 mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-1 flex-wrap items-center gap-4">
             <div className="relative max-w-sm flex-1">
