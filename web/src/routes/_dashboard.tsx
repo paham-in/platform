@@ -97,7 +97,7 @@ function AppSidebar({
   onLogoutClick: () => void;
 }) {
   const { pathname } = useRouterState().location;
-  const { setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const router = useRouter();
   const isActive = (to?: string) => !!to && (pathname === to || pathname.startsWith(to + "/"));
   const closeMobile = () => setOpenMobile(false);
@@ -120,7 +120,7 @@ function AppSidebar({
         cleanup();
         setResetInProgress(false);
       });
-      router.history.replace(to);
+      router.navigate({ to, replace: !isMobile });
     };
     if (steps > 0) {
       const cleanup = router.subscribe("onResolved", () => {
@@ -259,7 +259,7 @@ function HeaderNav() {
   const userRoles = (user?.roles as string[]) ?? [];
 
   const goBack = () => {
-    if (getNavStack().length > 1) {
+    if (window.history.length > 1) {
       router.history.back();
     } else {
       navigate({ to: (sectionHomeFor(pathname) ?? homeForRoles(userRoles)) as never });
