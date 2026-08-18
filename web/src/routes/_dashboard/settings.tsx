@@ -216,6 +216,7 @@ function SettingsPage() {
         </CardFooter>
       </Card>
 
+      {notifPermission !== "granted" && (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -257,6 +258,7 @@ function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {!installed && (
         <Card>
