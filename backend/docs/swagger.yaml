@@ -356,6 +356,47 @@ definitions:
       video_url:
         type: string
     type: object
+  notification.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  notification.ListNotificationsResponse:
+    properties:
+      notifications:
+        items:
+          $ref: '#/definitions/notification.NotificationResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  notification.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  notification.NotificationResponse:
+    properties:
+      body:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_read:
+        type: boolean
+      title:
+        type: string
+      type:
+        type: string
+      url:
+        type: string
+    type: object
+  notification.UnreadCountResponse:
+    properties:
+      count:
+        type: integer
+    type: object
   program.ClassInfo:
     properties:
       id:
@@ -4199,6 +4240,85 @@ paths:
       summary: Update profile
       tags:
       - Auth
+  /notifications:
+    get:
+      description: Mengembalikan daftar notifikasi milik user yang login
+      parameters:
+      - description: Jumlah data per halaman (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset data (default 0)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/notification.ListNotificationsResponse'
+      security:
+      - BearerAuth: []
+      summary: List notifications
+      tags:
+      - Notification
+  /notifications/{id}/read:
+    patch:
+      description: Menandai satu notifikasi sudah dibaca
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/notification.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/notification.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mark notification read
+      tags:
+      - Notification
+  /notifications/read-all:
+    patch:
+      description: Menandai semua notifikasi user sudah dibaca
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/notification.MessageResponse'
+      security:
+      - BearerAuth: []
+      summary: Mark all notifications read
+      tags:
+      - Notification
+  /notifications/unread-count:
+    get:
+      description: Mengembalikan jumlah notifikasi yang belum dibaca
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/notification.UnreadCountResponse'
+      security:
+      - BearerAuth: []
+      summary: Unread notification count
+      tags:
+      - Notification
   /push/public-key:
     get:
       description: Mengembalikan VAPID public key untuk web push
