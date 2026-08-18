@@ -229,31 +229,23 @@ function SettingsPage() {
           </p>
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div className="flex items-center gap-3">
-              {notifPermission === "granted" ? (
-                <Bell className="h-5 w-5 text-green-600" />
-              ) : (
-                <BellOff className="h-5 w-5 text-muted-foreground" />
-              )}
+              <BellOff className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">
-                  {notifPermission === "granted" ? "Notifikasi aktif" : "Notifikasi nonaktif"}
-                </p>
+                <p className="text-sm font-medium">Notifikasi nonaktif</p>
                 <p className="text-xs text-muted-foreground">
-                  {notifPermission === "granted"
-                    ? "Kamu akan menerima notifikasi di browser."
-                    : notifPermission === "denied"
-                      ? "Izin ditolak. Ubah di pengaturan browser untuk mengaktifkan."
-                      : "Belum diaktifkan."}
+                  {notifPermission === "denied"
+                    ? "Izin ditolak. Ubah di pengaturan browser untuk mengaktifkan."
+                    : "Belum diaktifkan."}
                 </p>
               </div>
             </div>
             <Button
-              variant={notifPermission === "granted" ? "outline" : "default"}
+              variant="default"
               size="sm"
               onClick={notifPermission === "denied" ? openBrowserSettings : enableNotifications}
-              disabled={notifPermission === "granted" || notifSubscribing}
+              disabled={notifSubscribing}
             >
-              {notifSubscribing ? <Spinner /> : notifPermission === "granted" ? "Aktif" : notifPermission === "denied" ? "Buka Pengaturan" : "Aktifkan"}
+              {notifSubscribing ? <Spinner /> : notifPermission === "denied" ? "Buka Pengaturan" : "Aktifkan"}
             </Button>
           </div>
         </CardContent>
