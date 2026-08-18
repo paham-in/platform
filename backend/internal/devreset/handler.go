@@ -295,6 +295,28 @@ func (h *Handler) RunTempImageCleanup(c *fiber.Ctx) error {
 	})
 }
 
+// RunNotificationCleanup menjalankan job pembersihan notifikasi lama secara manual
+// @Summary      Run notification cleanup job
+// @Description  Menghapus notifikasi yang sudah dibaca dan lebih dari 7 hari
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} RunJobResponse
+// @Failure      500 {object} ErrorResponse
+// @Router       /admin/dev/cron/notification-cleanup [post]
+func (h *Handler) RunNotificationCleanup(c *fiber.Ctx) error {
+	deleted, err := h.jobs.NotificationCleanup()
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal bersihkan notifikasi: " + err.Error()})
+	}
+	return c.JSON(RunJobResponse{
+		Job:     "notification-cleanup",
+		Deleted: deleted,
+		Message: fmt.Sprintf("%d notifikasi lama dihapus", deleted),
+	})
+}
+
 func AdminRoutes(admin fiber.Router, db *gorm.DB, cfg *config.Config, jobRunner *jobs.Runner) {
 	h := NewHandler(db, cfg, jobRunner)
 	// GET selalu diregistrasi (FE butuh flag enabled buat hide menu).
@@ -305,5 +327,6 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, cfg *config.Config, jobRunner 
 		admin.Post("/dev/cron/session-cleanup", h.RunSessionCleanup)
 		admin.Post("/dev/cron/evidence-cleanup", h.RunEvidenceCleanup)
 		admin.Post("/dev/cron/temp-image-cleanup", h.RunTempImageCleanup)
+		admin.Post("/dev/cron/notification-cleanup", h.RunNotificationCleanup)
 	}
 }

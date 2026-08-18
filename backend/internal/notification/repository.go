@@ -1,6 +1,8 @@
 package notification
 
 import (
+	"time"
+
 	"bimbel2/backend/internal/models"
 
 	"gorm.io/gorm"
@@ -74,4 +76,12 @@ func (r *Repository) ListTeacherIDs() ([]uint, error) {
 		Where("roles.name = ?", "teacher").
 		Pluck("user_roles.user_id", &userIDs).Error
 	return userIDs, err
+}
+
+// DeleteReadOlderThan hard-deletes notifications that are read and older than cutoff.
+func (r *Repository) DeleteReadOlderThan(cutoff time.Time) (int64, error) {
+	result := r.db.Unscoped().
+		Where("is_read = ? AND created_at < ?", true, cutoff).
+		Delete(&models.Notification{})
+	return result.RowsAffected, result.Error
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 
+	"bimbel2/backend/internal/notification"
 	"bimbel2/backend/internal/storage"
 	"bimbel2/backend/internal/tutoring"
 	"bimbel2/backend/internal/user"
@@ -20,6 +21,7 @@ import (
 type Runner struct {
 	sessionRepo   *user.SessionRepository
 	tutoringRepo  *tutoring.Repository
+	notifRepo     *notification.Repository
 	objectStorage *storage.ObjectStorage
 	retentionDays int
 }
@@ -28,6 +30,7 @@ func New(db *gorm.DB, objectStorage *storage.ObjectStorage, retentionDays int) *
 	return &Runner{
 		sessionRepo:   user.NewSessionRepository(db),
 		tutoringRepo:  tutoring.NewRepository(db),
+		notifRepo:     notification.NewRepository(db),
 		objectStorage: objectStorage,
 		retentionDays: retentionDays,
 	}
@@ -165,5 +168,34 @@ func (r *Runner) StartTempImageCleanup() {
 		return
 	}
 	c.Start()
+}
+
+// NotificationCleanup hard-deletes notifikasi yang sudah dibaca dan lebih dari 7 hari.
+// Mengembalikan jumlah notifikasi yang dihapus.
+func (r *Runner) NotificationCleanup() (int64, error) {
+	cutoff := time.Now().AddDate(0, 0, -7)
+	return r.notifRepo.DeleteReadOlderThan(cutoff)
+}
+
+// StartNotificationCleanup menjalankan cleanup notifikasi tiap hari pukul 00:00.
+func (r *Runner) StartNotificationCleanup() {
+	r.runNotificationCleanup()
+	c := cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)))
+	if _, err := c.AddFunc("0 0 * * *", r.runNotificationCleanup); err != nil {
+		log.Printf("[notification-cleanup] gagal daftarkan jadwal: %v", err)
+		return
+	}
+	c.Start()
+}
+
+func (r *Runner) runNotificationCleanup() {
+	deleted, err := r.NotificationCleanup()
+	if err != nil {
+		log.Printf("[notification-cleanup] gagal hapus notifikasi: %v", err)
+		return
+	}
+	if deleted > 0 {
+		log.Printf("[notification-cleanup] %d notifikasi lama dihapus", deleted)
+	}
 }
 

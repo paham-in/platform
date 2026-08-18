@@ -143,6 +143,7 @@ func main() {
 	jobRunner.StartSessionCleanup()
 	jobRunner.StartEvidenceCleanup()
 	jobRunner.StartTempImageCleanup()
+	jobRunner.StartNotificationCleanup()
 
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)
