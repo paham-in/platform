@@ -49,6 +49,14 @@ func (r *Repository) UnreadCount(userID uint) (int64, error) {
 	return count, err
 }
 
+func (r *Repository) GetByPublicID(publicID string) (*models.Notification, error) {
+	var n models.Notification
+	if err := r.db.Where("public_id = ?", publicID).First(&n).Error; err != nil {
+		return nil, err
+	}
+	return &n, nil
+}
+
 func (r *Repository) MarkRead(userID, id uint) error {
 	return r.db.Model(&models.Notification{}).
 		Where("user_id = ? AND id = ?", userID, id).

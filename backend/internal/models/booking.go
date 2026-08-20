@@ -4,6 +4,7 @@ import "gorm.io/gorm"
 
 type Booking struct {
 	gorm.Model
+	PublicID     string `gorm:"size:36;uniqueIndex;not null" json:"public_id"`
 	TeacherID    *uint  `gorm:"index" json:"teacher_id"`                    // nil = belum ada guru, ditangani admin
 	Teacher      *User  `gorm:"foreignKey:TeacherID" json:"teacher,omitempty"`
 	StudentID    uint   `gorm:"not null;index" json:"student_id"`
@@ -21,4 +22,11 @@ type Booking struct {
 	ClassID      *uint  `gorm:"index" json:"class_id,omitempty"`       // snapshot kelas murid saat booking
 	Sessions     []TutoringSession `gorm:"foreignKey:BookingID" json:"sessions,omitempty"`
 	Invoice      *Invoice          `gorm:"foreignKey:BookingID" json:"invoice,omitempty"`
+}
+
+func (b *Booking) BeforeCreate(tx *gorm.DB) error {
+	if b.PublicID == "" {
+		b.PublicID = NewPublicID()
+	}
+	return nil
 }

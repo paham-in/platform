@@ -479,6 +479,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/dev/cron/notification-cleanup": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus notifikasi yang sudah dibaca dan lebih dari 7 hari",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Run notification cleanup job",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.RunJobResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/dev/cron/session-cleanup": {
             "post": {
                 "security": [
@@ -3829,8 +3863,8 @@ const docTemplate = `{
                 "summary": "Mark notification read",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Notification ID",
+                        "type": "string",
+                        "description": "Notification public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -3971,8 +4005,8 @@ const docTemplate = `{
                 "summary": "Get visible question package collection",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Collection ID",
+                        "type": "string",
+                        "description": "Collection Public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4051,8 +4085,8 @@ const docTemplate = `{
                 "summary": "Get visible question package",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Package ID",
+                        "type": "string",
+                        "description": "Package Public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4100,8 +4134,8 @@ const docTemplate = `{
                 "summary": "Get work progress",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Package ID",
+                        "type": "string",
+                        "description": "Package Public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4143,8 +4177,8 @@ const docTemplate = `{
                 "summary": "Get work questions",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Package ID",
+                        "type": "string",
+                        "description": "Package Public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4189,8 +4223,8 @@ const docTemplate = `{
                 "summary": "Submit answer",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Package ID",
+                        "type": "string",
+                        "description": "Package Public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -5268,6 +5302,9 @@ const docTemplate = `{
                 "plain_content": {
                     "type": "string"
                 },
+                "public_id": {
+                    "type": "string"
+                },
                 "user_avatar": {
                     "type": "string"
                 },
@@ -5579,6 +5616,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "plain_content": {
+                    "type": "string"
+                },
+                "public_id": {
                     "type": "string"
                 },
                 "status": {
@@ -6135,6 +6175,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/questionpackage.PackageResponse"
                     }
+                },
+                "public_id": {
+                    "type": "string"
                 }
             }
         },
@@ -6227,6 +6270,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "public_id": {
                     "type": "string"
                 },
                 "questions": {

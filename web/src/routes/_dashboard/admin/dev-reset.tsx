@@ -24,7 +24,9 @@ import {
   getAdminDevTablesOptions,
   getAdminDevTablesQueryKey,
   postAdminDevCronEvidenceCleanupMutation,
+  postAdminDevCronNotificationCleanupMutation,
   postAdminDevCronSessionCleanupMutation,
+  postAdminDevCronTempImageCleanupMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { DevresetTableInfo } from "@/lib/api/types.gen"
 
@@ -64,6 +66,24 @@ function DevReset() {
     ...postAdminDevCronEvidenceCleanupMutation(),
     onSuccess: (data) => {
       toast.success(data.message || "Pembersihan bukti selesai")
+      qc.invalidateQueries({ queryKey: getAdminDevTablesQueryKey() })
+    },
+    onError: (err: any) => toast.error(err?.error || "Gagal menjalankan job"),
+  })
+
+  const runTempImageCleanup = useMutation({
+    ...postAdminDevCronTempImageCleanupMutation(),
+    onSuccess: (data) => {
+      toast.success(data.message || "Pembersihan gambar temp selesai")
+      qc.invalidateQueries({ queryKey: getAdminDevTablesQueryKey() })
+    },
+    onError: (err: any) => toast.error(err?.error || "Gagal menjalankan job"),
+  })
+
+  const runNotificationCleanup = useMutation({
+    ...postAdminDevCronNotificationCleanupMutation(),
+    onSuccess: (data) => {
+      toast.success(data.message || "Pembersihan notifikasi selesai")
       qc.invalidateQueries({ queryKey: getAdminDevTablesQueryKey() })
     },
     onError: (err: any) => toast.error(err?.error || "Gagal menjalankan job"),
@@ -125,6 +145,40 @@ function DevReset() {
                 disabled={runEvidenceCleanup.isPending}
               >
                 {runEvidenceCleanup.isPending && <Spinner />}
+                Jalankan Sekarang
+              </Button>
+            </div>
+            <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+              <div>
+                <p className="font-medium">Bersihkan Gambar Temp</p>
+                <p className="text-xs text-muted-foreground">
+                  Hapus gambar temp (upload yang tidak di-submit) yang berumur lebih dari 24 jam. Berjalan otomatis tiap 24 jam.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => runTempImageCleanup.mutate({})}
+                disabled={runTempImageCleanup.isPending}
+              >
+                {runTempImageCleanup.isPending && <Spinner />}
+                Jalankan Sekarang
+              </Button>
+            </div>
+            <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+              <div>
+                <p className="font-medium">Bersihkan Notifikasi Lama</p>
+                <p className="text-xs text-muted-foreground">
+                  Hapus notifikasi yang sudah dibaca dan berumur lebih dari 7 hari. Berjalan otomatis tiap 24 jam.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => runNotificationCleanup.mutate({})}
+                disabled={runNotificationCleanup.isPending}
+              >
+                {runNotificationCleanup.isPending && <Spinner />}
                 Jalankan Sekarang
               </Button>
             </div>

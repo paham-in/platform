@@ -331,5 +331,27 @@ func Migrate(db *gorm.DB) {
 		db.Model(&models.Subject{}).Where("program_id IS NULL").Update("program_id", sekolah.ID)
 	}
 
+	// migrate public_id: tambah kolom UUID v4 untuk public-facing resources.
+	// Backfill existing rows dengan gen_random_uuid() (PostgreSQL native).
+	publicIDModels := []struct {
+		model interface{}
+		table string
+	}{
+		{&models.User{}, "users"},
+		{&models.ForumQuestion{}, "forum_questions"},
+		{&models.ForumAnswer{}, "forum_answers"},
+		{&models.QuizPackage{}, "quiz_packages"},
+		{&models.QuizCollection{}, "quiz_collections"},
+		{&models.Booking{}, "bookings"},
+		{&models.Invoice{}, "invoices"},
+		{&models.Notification{}, "notifications"},
+	}
+	for _, t := range publicIDModels {
+		if !db.Migrator().HasColumn(t.model, "public_id") {
+			db.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN public_id VARCHAR(36) NOT NULL DEFAULT ''", t.table))
+		}
+		db.Exec(fmt.Sprintf("UPDATE %s SET public_id = gen_random_uuid()::text WHERE public_id = '' OR public_id IS NULL", t.table))
+	}
+
 	log.Println("Migration completed")
 }

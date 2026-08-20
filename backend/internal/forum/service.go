@@ -120,7 +120,7 @@ func (s *Service) Create(userID uint, content string, subjectID *uint) (*models.
 				userName = "Seseorang"
 			}
 			title := userName + " bertanya"
-			s.notifSvc.NotifyBatch(teacherIDs, title, body, "forum_question", "/teacher/forum/"+formatUint(question.ID))
+			s.notifSvc.NotifyBatch(teacherIDs, title, body, "forum_question", "/teacher/forum/"+question.PublicID)
 		}
 	}
 
@@ -202,20 +202,10 @@ func (s *Service) GetByID(id uint) (*models.ForumQuestion, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *Service) GetUser(userID uint) (*models.User, error) {
-	return s.repo.GetUserByID(userID)
+func (s *Service) GetByPublicID(publicID string) (*models.ForumQuestion, error) {
+	return s.repo.GetByPublicID(publicID)
 }
 
-func formatUint(v uint) string {
-	if v == 0 {
-		return "0"
-	}
-	buf := [20]byte{}
-	i := len(buf)
-	for v > 0 {
-		i--
-		buf[i] = byte('0' + v%10)
-		v /= 10
-	}
-	return string(buf[i:])
+func (s *Service) GetUser(userID uint) (*models.User, error) {
+	return s.repo.GetUserByID(userID)
 }

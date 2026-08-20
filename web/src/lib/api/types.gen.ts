@@ -10,6 +10,7 @@ export type AnswerAnswerResponse = {
     id?: number;
     is_owner?: boolean;
     plain_content?: string;
+    public_id?: string;
     user_avatar?: string;
     user_name?: string;
     video_url?: string;
@@ -144,6 +145,7 @@ export type ForumQuestionResponse = {
     id?: number;
     is_owner?: boolean;
     plain_content?: string;
+    public_id?: string;
     status?: string;
     subject_id?: number;
     subject_name?: string;
@@ -366,6 +368,7 @@ export type QuestionpackageCollectionResponse = {
     name?: string;
     package_count?: number;
     packages?: Array<QuestionpackagePackageResponse>;
+    public_id?: string;
 };
 
 export type QuestionpackageCollectionUpdateInput = {
@@ -405,6 +408,7 @@ export type QuestionpackagePackageResponse = {
     id?: number;
     is_free?: boolean;
     name?: string;
+    public_id?: string;
     questions?: Array<QuestionpackagePackageQuestionResponse>;
     status?: string;
     subject_id?: number;
@@ -1432,6 +1436,31 @@ export type PostAdminDevCronEvidenceCleanupResponses = {
 };
 
 export type PostAdminDevCronEvidenceCleanupResponse = PostAdminDevCronEvidenceCleanupResponses[keyof PostAdminDevCronEvidenceCleanupResponses];
+
+export type PostAdminDevCronNotificationCleanupData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/dev/cron/notification-cleanup';
+};
+
+export type PostAdminDevCronNotificationCleanupErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: DevresetErrorResponse;
+};
+
+export type PostAdminDevCronNotificationCleanupError = PostAdminDevCronNotificationCleanupErrors[keyof PostAdminDevCronNotificationCleanupErrors];
+
+export type PostAdminDevCronNotificationCleanupResponses = {
+    /**
+     * OK
+     */
+    200: DevresetRunJobResponse;
+};
+
+export type PostAdminDevCronNotificationCleanupResponse = PostAdminDevCronNotificationCleanupResponses[keyof PostAdminDevCronNotificationCleanupResponses];
 
 export type PostAdminDevCronSessionCleanupData = {
     body?: never;
@@ -3592,9 +3621,9 @@ export type PatchNotificationsByIdReadData = {
     body?: never;
     path: {
         /**
-         * Notification ID
+         * Notification public ID
          */
-        id: number;
+        id: string;
     };
     query?: never;
     url: '/notifications/{id}/read';
@@ -3684,9 +3713,9 @@ export type GetQuestionPackageCollectionsByIdData = {
     body?: never;
     path: {
         /**
-         * Collection ID
+         * Collection Public ID
          */
-        id: number;
+        id: string;
     };
     query?: never;
     url: '/question-package-collections/{id}';
@@ -3734,9 +3763,9 @@ export type GetQuestionPackagesByIdData = {
     body?: never;
     path: {
         /**
-         * Package ID
+         * Package Public ID
          */
-        id: number;
+        id: string;
     };
     query?: never;
     url: '/question-packages/{id}';
@@ -3768,9 +3797,9 @@ export type GetQuestionPackagesByIdWorkProgressData = {
     body?: never;
     path: {
         /**
-         * Package ID
+         * Package Public ID
          */
-        id: number;
+        id: string;
     };
     query?: never;
     url: '/question-packages/{id}/work/progress';
@@ -3798,9 +3827,9 @@ export type GetQuestionPackagesByIdWorkQuestionsData = {
     body?: never;
     path: {
         /**
-         * Package ID
+         * Package Public ID
          */
-        id: number;
+        id: string;
     };
     query?: never;
     url: '/question-packages/{id}/work/questions';
@@ -3831,9 +3860,9 @@ export type PostQuestionPackagesByIdWorkSubmitData = {
     body: QuestionpackageSubmitAnswerInput;
     path: {
         /**
-         * Package ID
+         * Package Public ID
          */
-        id: number;
+        id: string;
     };
     query?: never;
     url: '/question-packages/{id}/work/submit';

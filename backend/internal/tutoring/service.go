@@ -646,6 +646,10 @@ func hasOverlap(start1, end1, start2, end2 int) bool {
 	return start1 < end2 && start2 < end1
 }
 
+func (s *Service) GetBookingByPublicID(publicID string) (*models.Booking, error) {
+	return s.repo.GetBookingByPublicID(publicID)
+}
+
 func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*UpdateBookingStatusResponse, error) {
 	valid := map[string]bool{"confirmed": true, "rejected": true}
 	if !valid[status] {

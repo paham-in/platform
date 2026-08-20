@@ -12,6 +12,8 @@ definitions:
         type: boolean
       plain_content:
         type: string
+      public_id:
+        type: string
       user_avatar:
         type: string
       user_name:
@@ -213,6 +215,8 @@ definitions:
       is_owner:
         type: boolean
       plain_content:
+        type: string
+      public_id:
         type: string
       status:
         type: string
@@ -573,6 +577,8 @@ definitions:
         items:
           $ref: '#/definitions/questionpackage.PackageResponse'
         type: array
+      public_id:
+        type: string
     type: object
   questionpackage.CollectionUpdateInput:
     properties:
@@ -632,6 +638,8 @@ definitions:
       is_free:
         type: boolean
       name:
+        type: string
+      public_id:
         type: string
       questions:
         items:
@@ -2172,6 +2180,27 @@ paths:
       summary: Run evidence cleanup job
       tags:
       - Dev
+  /admin/dev/cron/notification-cleanup:
+    post:
+      consumes:
+      - application/json
+      description: Menghapus notifikasi yang sudah dibaca dan lebih dari 7 hari
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/devreset.RunJobResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/devreset.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Run notification cleanup job
+      tags:
+      - Admin
   /admin/dev/cron/session-cleanup:
     post:
       description: Jalankan manual job hapus sesi kedaluwarsa (development)
@@ -4268,11 +4297,11 @@ paths:
     patch:
       description: Menandai satu notifikasi sudah dibaca
       parameters:
-      - description: Notification ID
+      - description: Notification public ID
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -4388,11 +4417,11 @@ paths:
       - application/json
       description: Mengambil detail koleksi paket soal beserta paket di dalamnya
       parameters:
-      - description: Collection ID
+      - description: Collection Public ID
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -4439,11 +4468,11 @@ paths:
       - application/json
       description: Mengambil detail paket soal. Paket premium hanya untuk yang punya
       parameters:
-      - description: Package ID
+      - description: Package Public ID
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -4471,11 +4500,11 @@ paths:
       description: Mengembalikan jumlah soal yang sudah dikerjakan + ID soal yang
         selesai + jawaban terpilih + pembahasan
       parameters:
-      - description: Package ID
+      - description: Package Public ID
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -4499,11 +4528,11 @@ paths:
       description: Mengembalikan soal dalam paket untuk dikerjakan student (tanpa
         kunci jawaban)
       parameters:
-      - description: Package ID
+      - description: Package Public ID
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -4528,11 +4557,11 @@ paths:
       - application/json
       description: Menyimpan jawaban student dan mengembalikan hasil + pembahasan
       parameters:
-      - description: Package ID
+      - description: Package Public ID
         in: path
         name: id
         required: true
-        type: integer
+        type: string
       - description: Data jawaban
         in: body
         name: body

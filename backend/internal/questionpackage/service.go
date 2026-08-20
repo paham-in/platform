@@ -15,23 +15,25 @@ type PackageQuestionResponse struct {
 
 // PackageResponse
 type PackageResponse struct {
-	ID            uint                     `json:"id"`
-	Name          string                   `json:"name"`
-	AuthorID      uint                     `json:"author_id,omitempty"`
-	Description   string                   `json:"description"`
-	SubjectID     uint                     `json:"subject_id"`
-	SubjectName   string                   `json:"subject_name"`
-	IsFree        bool                     `json:"is_free"`
-	Status        string                   `json:"status"`
-	CollectionID  uint                     `json:"collection_id"`
-	CollectionName string                  `json:"collection_name"`
+	ID            uint                      `json:"id"`
+	PublicID      string                    `json:"public_id"`
+	Name          string                    `json:"name"`
+	AuthorID      uint                      `json:"author_id,omitempty"`
+	Description   string                    `json:"description"`
+	SubjectID     uint                      `json:"subject_id"`
+	SubjectName   string                    `json:"subject_name"`
+	IsFree        bool                      `json:"is_free"`
+	Status        string                    `json:"status"`
+	CollectionID  uint                      `json:"collection_id"`
+	CollectionName string                   `json:"collection_name"`
 	Questions     []PackageQuestionResponse `json:"questions"`
-	CreatedAt     string                   `json:"created_at"`
+	CreatedAt     string                    `json:"created_at"`
 }
 
 // CollectionResponse
 type CollectionResponse struct {
 	ID           uint              `json:"id"`
+	PublicID     string            `json:"public_id"`
 	Name         string            `json:"name"`
 	AuthorID     uint              `json:"author_id,omitempty"`
 	ClassID      uint              `json:"class_id"`
@@ -383,6 +385,54 @@ func (s *Service) GetCollection(id uint, classIDs []uint) (*CollectionResponse, 
 	return &r, nil
 }
 
+func (s *Service) GetByPublicID(publicID string, a Access) (*PackageResponse, error) {
+	pkg, err := s.repo.GetByPublicID(publicID)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	if !s.canViewPackage(pkg, a) {
+		return nil, ErrNotFound
+	}
+	r := s.toResponse(*pkg)
+	return &r, nil
+}
+
+func (s *Service) GetVisibleByPublicID(publicID string, classIDs []uint) (*PackageResponse, error) {
+	pkg, err := s.repo.GetByPublicID(publicID)
+	if err != nil {
+		return nil, err
+	}
+	if pkg.CollectionID == nil {
+		return nil, ErrNoAccess
+	}
+	if pkg.Status != "published" && classIDs != nil {
+		return nil, ErrNoAccess
+	}
+	if classIDs != nil && !pkg.Collection.IsFree {
+		allowed := false
+		for _, cid := range classIDs {
+			if cid == pkg.Collection.ClassID {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			return nil, ErrNoAccess
+		}
+	}
+	r := s.toResponse(*pkg)
+	return &r, nil
+}
+
+func (s *Service) GetCollectionByPublicID(publicID string, classIDs []uint) (*CollectionResponse, error) {
+	collection, err := s.repo.GetCollectionByPublicID(publicID, classIDs)
+	if err != nil {
+		return nil, err
+	}
+	r := s.toCollectionResponse(*collection)
+	return &r, nil
+}
+
 func (s *Service) toResponse(pkg models.QuizPackage) PackageResponse {
 	questions := make([]PackageQuestionResponse, len(pkg.Questions))
 	for i, q := range pkg.Questions {
@@ -399,6 +449,7 @@ func (s *Service) toResponse(pkg models.QuizPackage) PackageResponse {
 	}
 	return PackageResponse{
 		ID:             pkg.ID,
+		PublicID:       pkg.PublicID,
 		Name:           pkg.Name,
 		AuthorID:       pkg.AuthorID,
 		Description:    pkg.Description,
@@ -420,6 +471,7 @@ func (s *Service) toCollectionResponse(g models.QuizCollection) CollectionRespon
 	}
 	return CollectionResponse{
 		ID:           g.ID,
+		PublicID:     g.PublicID,
 		Name:         g.Name,
 		AuthorID:     g.AuthorID,
 		ClassID:      g.ClassID,

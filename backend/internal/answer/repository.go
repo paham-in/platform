@@ -62,6 +62,14 @@ func (r *Repository) GetByID(id uint) (*models.ForumAnswer, error) {
 	return &a, nil
 }
 
+func (r *Repository) GetByPublicID(publicID string) (*models.ForumAnswer, error) {
+	var a models.ForumAnswer
+	if err := r.db.Where("public_id = ?", publicID).First(&a).Error; err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
 // DeleteWithAssets menghapus jawaban beserta aset content-nya dalam satu
 // transaksi. Mengembalikan object name aset supaya caller bisa membersihkan
 // object storage setelah commit.

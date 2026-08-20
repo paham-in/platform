@@ -83,6 +83,7 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 	for i, q := range questions {
 		r := QuestionResponse{
 			ID:           q.ID,
+			PublicID:     q.PublicID,
 			Content:      h.svc.RewriteContent(q.Content),
 			PlainContent: q.PlainContent,
 			Status:       q.Status,
@@ -123,18 +124,16 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 // @Router       /questions/{id} [get]
 func (h *Handler) GetQuestion(c *fiber.Ctx) error {
 	userID := userIDFrom(c)
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
-	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
-	}
+	publicID := c.Params("id")
 
-	question, err := h.svc.GetByID(uint(id))
+	question, err := h.svc.GetByPublicID(publicID)
 	if err != nil {
 		return c.Status(404).JSON(ErrorResponse{Error: "pertanyaan tidak ditemukan"})
 	}
 
 	r := QuestionResponse{
 		ID:           question.ID,
+		PublicID:     question.PublicID,
 		Content:      h.svc.RewriteContent(question.Content),
 		PlainContent: question.PlainContent,
 		Status:       question.Status,
@@ -207,6 +206,7 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 	user, _ := h.svc.GetUser(userID)
 	return c.Status(201).JSON(QuestionResponse{
 		ID:           question.ID,
+		PublicID:     question.PublicID,
 		Content:      question.Content,
 		PlainContent: question.PlainContent,
 		Status:       question.Status,
@@ -236,9 +236,10 @@ func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
 		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
 	}
 
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	publicID := c.Params("id")
+	q, err := h.svc.GetByPublicID(publicID)
 	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+		return c.Status(404).JSON(ErrorResponse{Error: "pertanyaan tidak ditemukan"})
 	}
 
 	var input CreateQuestionInput
@@ -248,7 +249,6 @@ func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
 	if input.Content == "" {
 		return c.Status(400).JSON(ErrorResponse{Error: "content wajib diisi"})
 	}
-	// subjek wajib — tiap pertanyaan harus masuk ke mata pelajaran tertentu.
 	if input.SubjectID == 0 {
 		return c.Status(400).JSON(ErrorResponse{Error: "subject_id wajib diisi"})
 	}
@@ -257,7 +257,7 @@ func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "subjek tidak ditemukan"})
 	}
 
-	question, err := h.svc.Update(uint(id), userID, input.Content, &input.SubjectID)
+	question, err := h.svc.Update(q.ID, userID, input.Content, &input.SubjectID)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
@@ -265,6 +265,7 @@ func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
 	user, _ := h.svc.GetUser(userID)
 	return c.JSON(QuestionResponse{
 		ID:           question.ID,
+		PublicID:     question.PublicID,
 		Content:      h.svc.RewriteContent(question.Content),
 		PlainContent: question.PlainContent,
 		Status:       question.Status,
@@ -287,13 +288,14 @@ func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
 // @Success      200 {object} MessageResponse
 // @Router       /questions/{id} [delete]
 func (h *Handler) DeleteQuestion(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	publicID := c.Params("id")
+	q, err := h.svc.GetByPublicID(publicID)
 	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+		return c.Status(404).JSON(ErrorResponse{Error: "pertanyaan tidak ditemukan"})
 	}
 
 	userID := userIDFrom(c)
-	if err := h.svc.Delete(uint(id), userID); err != nil {
+	if err := h.svc.Delete(q.ID, userID); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(MessageResponse{Message: "berhasil dihapus"})
@@ -301,6 +303,7 @@ func (h *Handler) DeleteQuestion(c *fiber.Ctx) error {
 
 type QuestionResponse struct {
 	ID           uint          `json:"id"`
+	PublicID     string        `json:"public_id"`
 	Content      string        `json:"content"`
 	PlainContent string        `json:"plain_content"`
 	Status       string        `json:"status"`

@@ -43,6 +43,14 @@ func (r *Repository) Get(id uint) (*models.QuizPackage, error) {
 	return &pkg, nil
 }
 
+func (r *Repository) GetByPublicID(publicID string) (*models.QuizPackage, error) {
+	var pkg models.QuizPackage
+	if err := r.db.Preload("Questions").Preload("Subject").Preload("Collection").Where("public_id = ?", publicID).First(&pkg).Error; err != nil {
+		return nil, err
+	}
+	return &pkg, nil
+}
+
 // ListVisible untuk akses murid/user. Paket tanpa koleksi atau ber-status draft
 // tidak pernah dikembalikan. classIDs non-nil membatasi koleksi premium ke kelas
 // tertentu (nil = semua kelas, staff). Koleksi free selalu ikut.
@@ -207,6 +215,22 @@ func (r *Repository) GetCollection(id uint, classIDs []uint) (*models.QuizCollec
 		q = q.Preload("Packages.Subject").Preload("Packages.Questions")
 	}
 	if err := q.First(&collection, id).Error; err != nil {
+		return nil, err
+	}
+	return &collection, nil
+}
+
+func (r *Repository) GetCollectionByPublicID(publicID string, classIDs []uint) (*models.QuizCollection, error) {
+	var collection models.QuizCollection
+	q := r.db.Preload("Class")
+	if classIDs != nil {
+		q = q.Preload("Packages", func(db *gorm.DB) *gorm.DB {
+			return db.Where("status = ?", "published")
+		}).Preload("Packages.Subject").Preload("Packages.Questions")
+	} else {
+		q = q.Preload("Packages.Subject").Preload("Packages.Questions")
+	}
+	if err := q.Where("public_id = ?", publicID).First(&collection).Error; err != nil {
 		return nil, err
 	}
 	return &collection, nil

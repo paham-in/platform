@@ -48,6 +48,14 @@ func (r *Repository) Get(id uint) (*models.Invoice, error) {
 	return &invoice, nil
 }
 
+func (r *Repository) GetByPublicID(publicID string) (*models.Invoice, error) {
+	var invoice models.Invoice
+	if err := r.db.Preload("User").Where("public_id = ?", publicID).First(&invoice).Error; err != nil {
+		return nil, err
+	}
+	return &invoice, nil
+}
+
 func (r *Repository) Create(invoice *models.Invoice) error {
 	return r.db.Create(invoice).Error
 }

@@ -4,6 +4,7 @@ import "gorm.io/gorm"
 
 type Invoice struct {
 	gorm.Model
+	PublicID  string  `gorm:"size:36;uniqueIndex;not null" json:"public_id"`
 	UserID    uint    `gorm:"not null;index" json:"user_id"`
 	User      *User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	Amount    float64 `gorm:"not null" json:"amount"`
@@ -13,4 +14,11 @@ type Invoice struct {
 	Note      string  `gorm:"size:500" json:"note"`
 	ClassID   *uint   `gorm:"index" json:"class_id,omitempty"`
 	BookingID *uint   `gorm:"index" json:"booking_id,omitempty"` // tautan invoice↔booking les privat
+}
+
+func (i *Invoice) BeforeCreate(tx *gorm.DB) error {
+	if i.PublicID == "" {
+		i.PublicID = NewPublicID()
+	}
+	return nil
 }

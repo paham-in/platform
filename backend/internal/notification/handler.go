@@ -80,7 +80,7 @@ func (h *Handler) UnreadCount(c *fiber.Ctx) error {
 // @Tags         Notification
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "Notification ID"
+// @Param        id path string true "Notification public ID"
 // @Success      200 {object} MessageResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /notifications/{id}/read [patch]
@@ -90,12 +90,13 @@ func (h *Handler) MarkRead(c *fiber.Ctx) error {
 		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
 	}
 
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	publicID := c.Params("id")
+	notif, err := h.svc.GetByPublicID(publicID)
 	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+		return c.Status(404).JSON(ErrorResponse{Error: "notifikasi tidak ditemukan"})
 	}
 
-	if err := h.svc.MarkRead(userID, uint(id)); err != nil {
+	if err := h.svc.MarkRead(userID, notif.ID); err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menandai notifikasi"})
 	}
 

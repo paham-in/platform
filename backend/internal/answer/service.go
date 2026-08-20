@@ -150,7 +150,7 @@ func (s *Service) Create(questionID, userID uint, content, videoURL string) (*mo
 		if len(body) > 80 {
 			body = body[:80] + "..."
 		}
-		notifURL := "/student/forum/" + formatUint(questionID)
+		notifURL := "/student/forum/" + question.PublicID
 		if s.notifSvc != nil {
 			s.notifSvc.Notify(question.UserID, title, body, "forum_answer", notifURL)
 		} else if s.pushSvc != nil {
@@ -165,21 +165,6 @@ func (s *Service) Create(questionID, userID uint, content, videoURL string) (*mo
 	return &answer, nil
 }
 
-// formatUint helper kecil untuk mengubah uint jadi string.
-func formatUint(v uint) string {
-	if v == 0 {
-		return "0"
-	}
-	buf := [20]byte{}
-	i := len(buf)
-	for v > 0 {
-		i--
-		buf[i] = byte('0' + v%10)
-		v /= 10
-	}
-	return string(buf[i:])
-}
-
 // Tiny repo interface for question lookup to avoid circular import
 type QuestionRepository struct {
 	db *gorm.DB
@@ -192,6 +177,14 @@ func NewQuestionRepository(db *gorm.DB) *QuestionRepository {
 func (r *QuestionRepository) GetByID(id uint) (*models.ForumQuestion, error) {
 	var q models.ForumQuestion
 	if err := r.db.First(&q, id).Error; err != nil {
+		return nil, err
+	}
+	return &q, nil
+}
+
+func (r *QuestionRepository) GetByPublicID(publicID string) (*models.ForumQuestion, error) {
+	var q models.ForumQuestion
+	if err := r.db.Where("public_id = ?", publicID).First(&q).Error; err != nil {
 		return nil, err
 	}
 	return &q, nil

@@ -4,6 +4,7 @@ import "gorm.io/gorm"
 
 type QuizPackage struct {
 	gorm.Model
+	PublicID     string         `gorm:"size:36;uniqueIndex;not null" json:"public_id"`
 	Name         string         `gorm:"size:200;not null" json:"name"`
 	AuthorID     uint           `gorm:"index" json:"author_id,omitempty"`
 	Description  string         `gorm:"size:500" json:"description"`
@@ -15,6 +16,13 @@ type QuizPackage struct {
 	Questions    []QuizQuestion `gorm:"foreignKey:PackageID" json:"questions"`
 	Subject      Subject        `gorm:"foreignKey:SubjectID" json:"-"`
 	Collection   QuizCollection `gorm:"foreignKey:CollectionID" json:"-"`
+}
+
+func (p *QuizPackage) BeforeCreate(tx *gorm.DB) error {
+	if p.PublicID == "" {
+		p.PublicID = NewPublicID()
+	}
+	return nil
 }
 
 // TableName override supaya GORM pake quiz_packages.

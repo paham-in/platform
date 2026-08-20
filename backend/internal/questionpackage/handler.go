@@ -315,17 +315,14 @@ func (h *Handler) MyPackages(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "Package ID"
+// @Param        id path string true "Package Public ID"
 // @Success      200 {object} PackageResponse
 // @Failure      404 {object} ErrorResponse
 // @Failure      403 {object} ErrorResponse
 // @Router       /question-packages/{id} [get]
 func (h *Handler) MyPackage(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
-	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
-	}
-	pkg, err := h.svc.GetVisible(uint(id), h.scopeClassIDs(c))
+	publicID := c.Params("id")
+	pkg, err := h.svc.GetVisibleByPublicID(publicID, h.scopeClassIDs(c))
 	if err != nil {
 		if errors.Is(err, ErrNoAccess) {
 			return c.Status(403).JSON(ErrorResponse{Error: "paket ini belum tersedia untukmu"})
@@ -359,18 +356,15 @@ func (h *Handler) MyCollections(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "Collection ID"
+// @Param        id path string true "Collection Public ID"
 // @Success      200 {object} CollectionResponse
 // @Failure      404 {object} ErrorResponse
 // @Failure      403 {object} ErrorResponse
 // @Router       /question-package-collections/{id} [get]
 func (h *Handler) MyCollection(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
-	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
-	}
+	publicID := c.Params("id")
 	classIDs := h.scopeClassIDs(c)
-	collection, err := h.svc.GetCollection(uint(id), classIDs)
+	collection, err := h.svc.GetCollectionByPublicID(publicID, classIDs)
 	if err != nil {
 		return c.Status(404).JSON(ErrorResponse{Error: "koleksi tidak ditemukan"})
 	}
@@ -397,23 +391,20 @@ func (h *Handler) MyCollection(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "Package ID"
+// @Param        id path string true "Package Public ID"
 // @Success      200 {array} WorkQuestionResponse
 // @Failure      403 {object} ErrorResponse
 // @Router       /question-packages/{id}/work/questions [get]
 func (h *Handler) WorkQuestions(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	publicID := c.Params("id")
+	pkg, err := h.svc.GetVisibleByPublicID(publicID, h.scopeClassIDs(c))
 	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
-	}
-	// Cek akses saja (tidak perlu paket penuh, cuma pastikan student boleh).
-	if _, err := h.svc.GetVisible(uint(id), h.scopeClassIDs(c)); err != nil {
 		if errors.Is(err, ErrNoAccess) {
 			return c.Status(403).JSON(ErrorResponse{Error: "paket ini belum tersedia untukmu"})
 		}
 		return c.Status(404).JSON(ErrorResponse{Error: "paket tidak ditemukan"})
 	}
-	questions, err := h.svc.ListQuestionsForPackage(uint(id))
+	questions, err := h.svc.ListQuestionsForPackage(pkg.ID)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil soal"})
 	}
@@ -454,20 +445,15 @@ type WorkAnswerResponse struct {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id    path int           true "Package ID"
+// @Param        id    path string          true "Package Public ID"
 // @Param        body  body SubmitAnswerInput true "Data jawaban"
 // @Success      200 {object} SubmitAnswerResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /question-packages/{id}/work/submit [post]
 func (h *Handler) SubmitAnswer(c *fiber.Ctx) error {
-	packageID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	publicID := c.Params("id")
+	pkg, err := h.svc.GetVisibleByPublicID(publicID, h.scopeClassIDs(c))
 	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
-	}
-	// Cek akses dulu — konsisten dengan endpoint kerja lainnya (WorkQuestions,
-	// GetWorkProgress). Tanpa ini user tanpa langganan bisa submit & menerima
-	// pembahasan paket premium.
-	if _, err := h.svc.GetVisible(uint(packageID), h.scopeClassIDs(c)); err != nil {
 		if errors.Is(err, ErrNoAccess) {
 			return c.Status(403).JSON(ErrorResponse{Error: "paket ini belum tersedia untukmu"})
 		}
@@ -481,7 +467,7 @@ func (h *Handler) SubmitAnswer(c *fiber.Ctx) error {
 	if input.QuestionID == 0 {
 		return c.Status(400).JSON(ErrorResponse{Error: "question_id wajib diisi"})
 	}
-	isCorrect, explanation, correctAnswerIDs, err := h.svc.SubmitAnswer(userID, uint(packageID), input.QuestionID, input.AnswerID)
+	isCorrect, explanation, correctAnswerIDs, err := h.svc.SubmitAnswer(userID, pkg.ID, input.QuestionID, input.AnswerID)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
@@ -510,16 +496,13 @@ type SubmitAnswerResponse struct {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "Package ID"
+// @Param        id path string true "Package Public ID"
 // @Success      200 {object} WorkProgressResponse
 // @Failure      403 {object} ErrorResponse
 // @Router       /question-packages/{id}/work/progress [get]
 func (h *Handler) GetWorkProgress(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
-	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
-	}
-	pkg, err := h.svc.GetVisible(uint(id), h.scopeClassIDs(c))
+	publicID := c.Params("id")
+	pkg, err := h.svc.GetVisibleByPublicID(publicID, h.scopeClassIDs(c))
 	if err != nil {
 		if errors.Is(err, ErrNoAccess) {
 			return c.Status(403).JSON(ErrorResponse{Error: "paket ini belum tersedia untukmu"})
@@ -527,12 +510,12 @@ func (h *Handler) GetWorkProgress(c *fiber.Ctx) error {
 		return c.Status(404).JSON(ErrorResponse{Error: "paket tidak ditemukan"})
 	}
 	userID := c.Locals("user_id").(uint)
-	completedIDs, err := h.svc.GetStudentProgress(userID, uint(id))
+	completedIDs, err := h.svc.GetStudentProgress(userID, pkg.ID)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil progress"})
 	}
 	total := len(pkg.Questions)
-	selectedAnswers, explanations, isCorrectMap, correctAnswerIDs, err := h.svc.GetProgressDetail(userID, uint(id))
+	selectedAnswers, explanations, isCorrectMap, correctAnswerIDs, err := h.svc.GetProgressDetail(userID, pkg.ID)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil detail progress"})
 	}

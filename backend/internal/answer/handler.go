@@ -2,7 +2,6 @@ package answer
 
 import (
 	"regexp"
-	"strconv"
 	"time"
 
 	"bimbel2/backend/internal/middleware"
@@ -29,6 +28,7 @@ type ErrorResponse struct {
 
 type AnswerResponse struct {
 	ID           uint   `json:"id"`
+	PublicID     string `json:"public_id"`
 	Content      string `json:"content"`
 	PlainContent string `json:"plain_content"`
 	VideoURL     string `json:"video_url"`
@@ -82,12 +82,13 @@ func userIDFrom(c *fiber.Ctx) uint {
 // @Success      200 {array} AnswerResponse
 // @Router       /questions/{question_id}/answers [get]
 func (h *Handler) ListAnswers(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("question_id"), 10, 64)
+	questionPublicID := c.Params("question_id")
+	question, err := h.svc.questionRepo.GetByPublicID(questionPublicID)
 	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+		return c.Status(404).JSON(ErrorResponse{Error: "pertanyaan tidak ditemukan"})
 	}
 
-	answers, err := h.svc.ListByQuestion(uint(id))
+	answers, err := h.svc.ListByQuestion(question.ID)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
 	}
@@ -97,6 +98,7 @@ func (h *Handler) ListAnswers(c *fiber.Ctx) error {
 	for i, a := range answers {
 		result[i] = AnswerResponse{
 			ID:           a.ID,
+			PublicID:     a.PublicID,
 			Content:      h.svc.RewriteContent(a.Content),
 			PlainContent: a.PlainContent,
 			VideoURL:     a.VideoURL,
@@ -128,9 +130,10 @@ func (h *Handler) CreateAnswer(c *fiber.Ctx) error {
 		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
 	}
 
-	questionID, err := strconv.ParseUint(c.Params("question_id"), 10, 64)
+	questionPublicID := c.Params("question_id")
+	question, err := h.svc.questionRepo.GetByPublicID(questionPublicID)
 	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+		return c.Status(404).JSON(ErrorResponse{Error: "pertanyaan tidak ditemukan"})
 	}
 
 	var input CreateAnswerInput
@@ -140,8 +143,6 @@ func (h *Handler) CreateAnswer(c *fiber.Ctx) error {
 	if input.Content == "" && input.VideoURL == "" {
 		return c.Status(400).JSON(ErrorResponse{Error: "content atau video_url wajib diisi"})
 	}
-	// hanya guru yang boleh menjawab — admin/student read-only supaya jawaban
-	// di forum benar-benar akurat.
 	if !hasTeacherRole(c) {
 		return c.Status(403).JSON(ErrorResponse{Error: "hanya guru yang bisa menjawab pertanyaan"})
 	}
@@ -149,13 +150,14 @@ func (h *Handler) CreateAnswer(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "format video_url tidak valid"})
 	}
 
-	answer, err := h.svc.Create(uint(questionID), userID, input.Content, input.VideoURL)
+	answer, err := h.svc.Create(question.ID, userID, input.Content, input.VideoURL)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 
 	return c.Status(201).JSON(AnswerResponse{
 		ID:           answer.ID,
+		PublicID:     answer.PublicID,
 		Content:      h.svc.RewriteContent(answer.Content),
 		PlainContent: answer.PlainContent,
 		VideoURL:     answer.VideoURL,
@@ -184,12 +186,13 @@ func (h *Handler) DeleteAnswer(c *fiber.Ctx) error {
 		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
 	}
 
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	answerPublicID := c.Params("id")
+	a, err := h.svc.repo.GetByPublicID(answerPublicID)
 	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+		return c.Status(404).JSON(ErrorResponse{Error: "jawaban tidak ditemukan"})
 	}
 
-	if err := h.svc.Delete(uint(id), userID); err != nil {
+	if err := h.svc.Delete(a.ID, userID); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
 	return c.JSON(MessageResponse{Message: "berhasil dihapus"})

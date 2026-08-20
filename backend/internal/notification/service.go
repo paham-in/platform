@@ -103,6 +103,10 @@ func (s *Service) UnreadCount(userID uint) (int64, error) {
 	return s.repo.UnreadCount(userID)
 }
 
+func (s *Service) GetByPublicID(publicID string) (*models.Notification, error) {
+	return s.repo.GetByPublicID(publicID)
+}
+
 func (s *Service) MarkRead(userID, id uint) error {
 	return s.repo.MarkRead(userID, id)
 }

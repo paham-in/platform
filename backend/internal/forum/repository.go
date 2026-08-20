@@ -55,6 +55,20 @@ func (r *Repository) GetByID(id uint) (*models.ForumQuestion, error) {
 	return &q, nil
 }
 
+func (r *Repository) GetByPublicID(publicID string) (*models.ForumQuestion, error) {
+	var q models.ForumQuestion
+	if err := r.db.
+		Preload("User").
+		Preload("Subject").
+		Preload("Answers", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at desc").Preload("User")
+		}).
+		Where("public_id = ?", publicID).First(&q).Error; err != nil {
+		return nil, err
+	}
+	return &q, nil
+}
+
 func (r *Repository) Create(q *models.ForumQuestion) error {
 	return r.db.Create(q).Error
 }

@@ -209,6 +209,14 @@ func (r *Repository) GetBooking(id uint) (*models.Booking, error) {
 	return r.GetBookingWithDB(r.db, id)
 }
 
+func (r *Repository) GetBookingByPublicID(publicID string) (*models.Booking, error) {
+	var b models.Booking
+	if err := r.db.Preload("Student").Preload("Teacher").Preload("Subject").Where("public_id = ?", publicID).First(&b).Error; err != nil {
+		return nil, err
+	}
+	return &b, nil
+}
+
 // GetBookingWithDB membaca booking via koneksi tertentu (bisa tx). Dipakai saat
 // query harus melihat row yang baru ditulis di transaksi yang belum commit.
 func (r *Repository) GetBookingWithDB(db *gorm.DB, id uint) (*models.Booking, error) {

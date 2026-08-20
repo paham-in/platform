@@ -511,16 +511,17 @@ func (h *Handler) UpdateBookingStatus(c *fiber.Ctx) error {
 		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
 	}
 
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	publicID := c.Params("id")
+	existing, err := h.svc.GetBookingByPublicID(publicID)
 	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+		return c.Status(404).JSON(ErrorResponse{Error: "booking tidak ditemukan"})
 	}
 	var input UpdateBookingStatusRequest
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 	userID := c.Locals("user_id").(uint)
-	booking, err := h.svc.UpdateBookingStatus(uint(id), userID, input.Status)
+	booking, err := h.svc.UpdateBookingStatus(existing.ID, userID, input.Status)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
@@ -539,12 +540,13 @@ func (h *Handler) UpdateBookingStatus(c *fiber.Ctx) error {
 // @Failure      400 {object} ErrorResponse
 // @Router       /tutoring/bookings/{id}/cancel [post]
 func (h *Handler) CancelBooking(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	publicID := c.Params("id")
+	existing, err := h.svc.GetBookingByPublicID(publicID)
 	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+		return c.Status(404).JSON(ErrorResponse{Error: "booking tidak ditemukan"})
 	}
 	userID := c.Locals("user_id").(uint)
-	booking, err := h.svc.CancelBooking(uint(id), userID)
+	booking, err := h.svc.CancelBooking(existing.ID, userID)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
