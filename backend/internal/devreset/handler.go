@@ -89,6 +89,7 @@ var tables = []tableDef{
 	{name: "forum_answer_assets", label: "Asset Jawaban Forum", desc: "Asset/gambar pada jawaban forum"},
 	{name: "quiz_student_progresses", label: "Progress Jawaban", desc: "Jawaban student per soal paket"},
 	{name: "teacher_subjects", label: "Guru–Mapel", desc: "Mapel yang diajar guru"},
+	{name: "teacher_permissions", label: "Izin Guru", desc: "Hak akses guru kelola materi/paket soal"},
 	{name: "push_subscriptions", label: "Subs Push", desc: "Langganan notifikasi push"},
 	{name: "programs", label: "Program", desc: "Program belajar"},
 	{name: "student_class_enrollments", label: "Hak Akses Murid", desc: "Akses murid ke kelas"},

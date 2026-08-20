@@ -12,11 +12,8 @@ type User struct {
 	Password     *string   `gorm:"size:255" json:"-"`
 	Roles        []Role    `gorm:"many2many:user_roles;" json:"roles"`
 	Subjects     []Subject `gorm:"many2many:teacher_subjects;" json:"subjects"`
-	PaymentStatus string   `gorm:"size:20;default:pending" json:"payment_status"`
-	// Izin kelola konten (teacher). Admin selalu bypass. Default false = guru
-	// existing dicabut akses tulis; admin beri manual lewat UI.
-	CanManageMaterials        bool `gorm:"default:false" json:"can_manage_materials"`
-	CanManageQuestionPackages bool `gorm:"default:false" json:"can_manage_question_packages"`
+	PaymentStatus     string             `gorm:"size:20;default:pending" json:"payment_status"`
+	TeacherPermission *TeacherPermission `gorm:"foreignKey:UserID" json:"-"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {

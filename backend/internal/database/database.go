@@ -123,7 +123,7 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE quiz_packages ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'published'")
 	}
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.MaterialAsset{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionAsset{}, &models.ForumAnswerAsset{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizQuestionAsset{}, &models.QuizAnswerAsset{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClassEnrollment{}, &models.Setting{}, &models.QuizStudentProgress{}, &models.Notification{})
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.MaterialAsset{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionAsset{}, &models.ForumAnswerAsset{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizQuestionAsset{}, &models.QuizAnswerAsset{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClassEnrollment{}, &models.Setting{}, &models.QuizStudentProgress{}, &models.Notification{}, &models.TeacherPermission{})
 
 	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
 	for _, name := range []string{"student", "teacher", "admin"} {
@@ -366,6 +366,20 @@ func Migrate(db *gorm.DB) {
 			db.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN public_id VARCHAR(36) NOT NULL DEFAULT ''", t.table))
 		}
 		db.Exec(fmt.Sprintf("UPDATE %s SET public_id = gen_random_uuid()::text WHERE public_id = '' OR public_id IS NULL", t.table))
+	}
+
+	// migrasi: pindah izin guru dari kolom users → tabel teacher_permissions
+	if db.Migrator().HasColumn(&models.User{}, "can_manage_materials") {
+		db.Exec(`INSERT INTO teacher_permissions (user_id, can_manage_materials, can_manage_question_packages, created_at, updated_at)
+			SELECT id, can_manage_materials, can_manage_question_packages, NOW(), NOW()
+			FROM users WHERE can_manage_materials = true OR can_manage_question_packages = true
+			ON CONFLICT (user_id) DO UPDATE SET
+				can_manage_materials = EXCLUDED.can_manage_materials,
+				can_manage_question_packages = EXCLUDED.can_manage_question_packages,
+				updated_at = NOW()`)
+		db.Exec("ALTER TABLE users DROP COLUMN can_manage_materials")
+		db.Exec("ALTER TABLE users DROP COLUMN can_manage_question_packages")
+		log.Println("Migrated teacher permissions: users columns → teacher_permissions table")
 	}
 
 	log.Println("Migration completed")

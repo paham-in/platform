@@ -116,7 +116,7 @@ func main() {
 	subject.AdminRoutes(staff, db)
 
 	// Kelola materi (materi + chapter + cover) — admin selalu, teacher butuh izin.
-	content := staff.Group("", middleware.ContentManager("materials"))
+	content := staff.Group("", middleware.ContentManager(db, "materials"))
 	material.AdminRoutes(content, db, objectStorage)
 	chapter.AdminRoutes(content, db, objectStorage)
 	if objectStorage != nil {
@@ -124,7 +124,7 @@ func main() {
 	}
 
 	// Kelola paket soal (paket + soal) — admin selalu, teacher butuh izin.
-	packs := staff.Group("", middleware.ContentManager("question_packages"))
+	packs := staff.Group("", middleware.ContentManager(db, "question_packages"))
 	questionpackage.Routes(packs, db, objectStorage)
 	questionbank.Routes(packs, db, objectStorage)
 

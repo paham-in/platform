@@ -101,7 +101,7 @@ func RoleAllowed(allowedRoles ...string) fiber.Handler {
 // Admin selalu bypass. Teacher butuh kolom izin yang sesuai utk operasi TULIS
 // (POST/PATCH/DELETE); operasi baca (GET/HEAD) selalu diizinkan — guru perlu
 // membuka materi/paket soal saat mengajar walau tanpa izin kelola.
-func ContentManager(resource string) fiber.Handler {
+func ContentManager(db *gorm.DB, resource string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		roles, ok := c.Locals("roles").([]string)
 		if ok {
@@ -119,13 +119,15 @@ func ContentManager(resource string) fiber.Handler {
 		if !ok || u == nil {
 			return c.Status(403).JSON(fiber.Map{"error": "Forbidden"})
 		}
+		var tp models.TeacherPermission
+		db.Where("user_id = ?", u.ID).First(&tp)
 		switch resource {
 		case "materials":
-			if u.CanManageMaterials {
+			if tp.CanManageMaterials {
 				return c.Next()
 			}
 		case "question_packages":
-			if u.CanManageQuestionPackages {
+			if tp.CanManageQuestionPackages {
 				return c.Next()
 			}
 		}

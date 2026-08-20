@@ -59,6 +59,19 @@ func subjectInfos(subjects []models.Subject) []SubjectInfo {
 	return res
 }
 
+func tpBool(u *models.TeacherPermission, field string) bool {
+	if u == nil {
+		return false
+	}
+	switch field {
+	case "materials":
+		return u.CanManageMaterials
+	case "packages":
+		return u.CanManageQuestionPackages
+	}
+	return false
+}
+
 // AuthResponse dipakai service OAuth (GoogleCallback redirect) — bukan response
 // JSON handler, jadi tetap shared sebagai DTO service.
 type AuthResponse struct {
@@ -89,8 +102,8 @@ func newMeResponse(u models.User) MeResponse {
 		AvatarURL:                 u.AvatarURL,
 		PaymentStatus:             u.PaymentStatus,
 		Subjects:                  subjectInfos(u.Subjects),
-		CanManageMaterials:        u.CanManageMaterials,
-		CanManageQuestionPackages: u.CanManageQuestionPackages,
+		CanManageMaterials:        tpBool(u.TeacherPermission, "materials"),
+		CanManageQuestionPackages: tpBool(u.TeacherPermission, "packages"),
 	}
 }
 
@@ -117,8 +130,8 @@ func newUpdateProfileResponse(u models.User) UpdateProfileResponse {
 		AvatarURL:                 u.AvatarURL,
 		PaymentStatus:             u.PaymentStatus,
 		Subjects:                  subjectInfos(u.Subjects),
-		CanManageMaterials:        u.CanManageMaterials,
-		CanManageQuestionPackages: u.CanManageQuestionPackages,
+		CanManageMaterials:        tpBool(u.TeacherPermission, "materials"),
+		CanManageQuestionPackages: tpBool(u.TeacherPermission, "packages"),
 	}
 }
 
@@ -151,8 +164,8 @@ func newAdminListUsersResponse(u models.User) AdminListUsersResponse {
 		HasPassword:               u.Password != nil,
 		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
 		Subjects:                  subjectInfos(u.Subjects),
-		CanManageMaterials:        u.CanManageMaterials,
-		CanManageQuestionPackages: u.CanManageQuestionPackages,
+		CanManageMaterials:        tpBool(u.TeacherPermission, "materials"),
+		CanManageQuestionPackages: tpBool(u.TeacherPermission, "packages"),
 	}
 }
 
@@ -185,8 +198,8 @@ func newAdminCreateUserResponse(u models.User) AdminCreateUserResponse {
 		HasPassword:               u.Password != nil,
 		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
 		Subjects:                  subjectInfos(u.Subjects),
-		CanManageMaterials:        u.CanManageMaterials,
-		CanManageQuestionPackages: u.CanManageQuestionPackages,
+		CanManageMaterials:        tpBool(u.TeacherPermission, "materials"),
+		CanManageQuestionPackages: tpBool(u.TeacherPermission, "packages"),
 	}
 }
 
@@ -219,8 +232,8 @@ func newAdminMergeUserResponse(u models.User) AdminMergeUserResponse {
 		HasPassword:               u.Password != nil,
 		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
 		Subjects:                  subjectInfos(u.Subjects),
-		CanManageMaterials:        u.CanManageMaterials,
-		CanManageQuestionPackages: u.CanManageQuestionPackages,
+		CanManageMaterials:        tpBool(u.TeacherPermission, "materials"),
+		CanManageQuestionPackages: tpBool(u.TeacherPermission, "packages"),
 	}
 }
 
@@ -253,7 +266,7 @@ func newAdminUpdateTeacherSubjectsResponse(u models.User) AdminUpdateTeacherSubj
 		HasPassword:               u.Password != nil,
 		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
 		Subjects:                  subjectInfos(u.Subjects),
-		CanManageMaterials:        u.CanManageMaterials,
-		CanManageQuestionPackages: u.CanManageQuestionPackages,
+		CanManageMaterials:        tpBool(u.TeacherPermission, "materials"),
+		CanManageQuestionPackages: tpBool(u.TeacherPermission, "packages"),
 	}
 }

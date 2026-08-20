@@ -2,7 +2,7 @@ package user
 
 // — handler: AdminCreateUser (POST /admin/users) —
 // Membuat akun murid manual (misal murid yang belum punya akun sendiri).
-// Akses kelas diatur terpisah lewat student_classes setelah admin approve langganan.
+// Akses kelas diatur terpisah lewat student_class_enrollments setelah admin approve langganan.
 type AdminCreateUserRequest struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`

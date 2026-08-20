@@ -16,7 +16,7 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 
 func (r *UserRepository) Get(id uint) (*models.User, error) {
 	var user models.User
-	if err := r.db.Preload("Roles").Preload("Subjects").First(&user, id).Error; err != nil {
+	if err := r.db.Preload("Roles").Preload("Subjects").Preload("TeacherPermission").First(&user, id).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -49,7 +49,7 @@ func (r *UserRepository) UpdateEmail(id uint, email string) error {
 }
 
 func (r *UserRepository) List(search string, role string) ([]models.User, error) {
-	query := r.db.Preload("Roles").Preload("Subjects").Order("created_at desc")
+	query := r.db.Preload("Roles").Preload("Subjects").Preload("TeacherPermission").Order("created_at desc")
 
 	if search != "" {
 		like := "%" + search + "%"
@@ -147,6 +147,10 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 	}
 	// pivot many2many roles
 	if err := tx.Exec("DELETE FROM user_roles WHERE user_id = ?", id).Error; err != nil {
+		return err
+	}
+	// izin guru
+	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.TeacherPermission{}).Error; err != nil {
 		return err
 	}
 	// mata pelajaran yang diajar (teacher)
@@ -278,10 +282,25 @@ func (r *UserRepository) UpdateName(id uint, name string) error {
 	return r.db.Model(&models.User{}).Where("id = ?", id).Update("name", name).Error
 }
 
-// UpdatePermissions mengubah izin kelola konten (materi / paket soal) user.
-// updates dipakai map field yang diset saja (nilai dari request).
+// UpdatePermissions mengubah izin kelola konten (materi / paket soal) guru.
+// Upsert ke tabel teacher_permissions.
 func (r *UserRepository) UpdatePermissions(id uint, updates map[string]any) error {
-	return r.db.Model(&models.User{}).Where("id = ?", id).Updates(updates).Error
+	tp := models.TeacherPermission{UserID: id}
+	err := r.db.Where("user_id = ?", id).First(&tp).Error
+	if err == gorm.ErrRecordNotFound {
+		tp = models.TeacherPermission{UserID: id}
+		if v, ok := updates["can_manage_materials"]; ok {
+			tp.CanManageMaterials = v.(bool)
+		}
+		if v, ok := updates["can_manage_question_packages"]; ok {
+			tp.CanManageQuestionPackages = v.(bool)
+		}
+		return r.db.Create(&tp).Error
+	}
+	if err != nil {
+		return err
+	}
+	return r.db.Model(&tp).Updates(updates).Error
 }
 
 func (r *UserRepository) SetTeacherSubjects(userID uint, subjectIDs []uint) error {
