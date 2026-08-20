@@ -4,7 +4,7 @@ import { startOfWeek, parseISO, isValid, format } from "date-fns"
 import { CalendarWeek } from "@/components/tutoring/calendar-week"
 import { usePageTitle } from "@/components/page-title"
 import { getTutoringSessionsOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { Loader2 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { z } from "zod"
 
 const calendarSearchSchema = z.object({
@@ -24,7 +24,52 @@ function StudentCalendarPage() {
   const { week } = Route.useSearch()
   const { data: sessions = [], isLoading } = useQuery(getTutoringSessionsOptions())
 
-  if (isLoading) return <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+  if (isLoading) {
+    return (
+      <main className="p-4 md:p-6">
+        <div className="mb-6">
+          <Skeleton className="hidden md:block h-8 w-32" />
+          <Skeleton className="mt-1 h-4 w-48" />
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex gap-1.5">
+              <Skeleton className="h-8 w-8" />
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-8 w-8" />
+            </div>
+            <Skeleton className="h-4 w-36" />
+          </div>
+          <div className="overflow-x-auto rounded-lg border">
+            <div className="min-w-[720px]">
+              <div className="flex border-b bg-muted/30">
+                <div className="w-14 shrink-0" />
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <div key={i} className="flex-1 border-l py-2 text-center">
+                    <Skeleton className="mx-auto h-3 w-8" />
+                    <Skeleton className="mx-auto mt-1 h-4 w-6" />
+                  </div>
+                ))}
+              </div>
+              <div className="flex">
+                <div className="w-14 shrink-0 space-y-0 pt-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="ml-auto mr-2 mb-[36px] h-3 w-8" />
+                  ))}
+                </div>
+                {Array.from({ length: 7 }).map((_, day) => (
+                  <div key={day} className="flex-1 border-l p-1">
+                    {day % 3 === 0 && <Skeleton className="mb-1 h-10 w-full rounded-md" />}
+                    {day % 2 === 0 && <Skeleton className="h-8 w-full rounded-md" />}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
 
   const weekStart = parseWeekStart(week)
 
