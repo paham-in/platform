@@ -27,7 +27,7 @@ func AccessibleClassIDs(c *fiber.Ctx, db *gorm.DB) []uint {
 	}
 	today := time.Now().Format("2006-01-02")
 	var ids []uint
-	if err := db.Model(&models.StudentClass{}).
+	if err := db.Model(&models.StudentClassEnrollment{}).
 		Where("user_id = ? AND expiry >= ?", userID, today).
 		Distinct("class_id").Pluck("class_id", &ids).Error; err != nil {
 		return nil
@@ -53,7 +53,7 @@ func CanAccessClass(c *fiber.Ctx, db *gorm.DB, classID uint) bool {
 	}
 	today := time.Now().Format("2006-01-02")
 	var n int64
-	if err := db.Model(&models.StudentClass{}).
+	if err := db.Model(&models.StudentClassEnrollment{}).
 		Where("user_id = ? AND class_id = ? AND expiry >= ?", userID, classID, today).
 		Count(&n).Error; err != nil {
 		return false

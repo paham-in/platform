@@ -84,7 +84,7 @@ export const sidebarGroups: SidebarGroup[] = [
         icon: Users,
         items: [
           { label: "Kelola User", to: "/admin/users" },
-          { label: "Hak Akses Murid", to: "/admin/student-classes" },
+          { label: "Hak Akses Murid", to: "/admin/student-class-enrollments" },
           { label: "Hak Akses Guru", to: "/admin/teacher-permissions" },
         ],
       },

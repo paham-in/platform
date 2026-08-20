@@ -92,7 +92,7 @@ var tables = []tableDef{
 	{name: "teacher_subjects", label: "Guru–Mapel", desc: "Mapel yang diajar guru"},
 	{name: "push_subscriptions", label: "Subs Push", desc: "Langganan notifikasi push"},
 	{name: "programs", label: "Program", desc: "Program belajar"},
-	{name: "student_classes", label: "Hak Akses Murid", desc: "Akses murid ke kelas"},
+	{name: "student_class_enrollments", label: "Hak Akses Murid", desc: "Akses murid ke kelas"},
 	{name: "settings", label: "Pengaturan", desc: "Konfigurasi aplikasi"},
 }
 

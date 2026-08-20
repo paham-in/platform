@@ -15,7 +15,7 @@ import {
   getTutoringTeachersOptions,
   postTutoringBookingsMutation,
   getTutoringBookingsQueryKey,
-  getStudentClassesOptions,
+  getStudentClassEnrollmentsOptions,
   getClassesOptions,
   getSubjectsOptions,
   getUsersSearchOptions,
@@ -61,7 +61,7 @@ function NewBooking() {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
-  const { data: myClasses = [] } = useQuery(getStudentClassesOptions())
+  const { data: myClasses = [] } = useQuery(getStudentClassEnrollmentsOptions())
   const { data: classes = [] } = useQuery(getClassesOptions())
 
   const [subjectId, setSubjectId] = useState("")

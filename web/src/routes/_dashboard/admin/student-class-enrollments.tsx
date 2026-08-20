@@ -12,13 +12,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  getAdminStudentClassesOptions,
-  getAdminStudentClassesQueryKey,
-  deleteAdminStudentClassesByIdMutation,
+  getAdminStudentClassEnrollmentsOptions,
+  getAdminStudentClassEnrollmentsQueryKey,
+  deleteAdminStudentClassEnrollmentsByIdMutation,
   getAdminProgramsOptions,
   getClassesOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
-import type { StudentclassStudentClassResponse } from "@/lib/api/types.gen";
+import type { StudentclassStudentClassEnrollmentResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
@@ -26,7 +26,7 @@ import { ChevronLeft, ChevronRight, Plus, Trash2, KeyRound, MoreVertical, Search
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { GrantClassDialog } from "@/components/admin/student-classes";
+import { GrantClassDialog } from "@/components/admin/student-class-enrollments";
 import { usePageTitle } from "@/components/page-title";
 import {
   DropdownMenu,
@@ -63,7 +63,7 @@ function AdminStudentClasses() {
   const { data: classes = [] } = useQuery(getClassesOptions())
   const { data: programs = [] } = useQuery(getAdminProgramsOptions())
   const { data: items = [], isLoading } = useQuery(
-    getAdminStudentClassesOptions({
+    getAdminStudentClassEnrollmentsOptions({
       query: {
         search: searchParam || undefined,
         class_id: classFilter,
@@ -73,7 +73,7 @@ function AdminStudentClasses() {
   );
   const [page, setPage] = useState(1);
   const [grantOpen, setGrantOpen] = useState(false);
-  const [revokeTarget, setRevokeTarget] = useState<StudentclassStudentClassResponse | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<StudentclassStudentClassEnrollmentResponse | null>(null);
   const perPage = 8;
 
   // sync URL → local search input (e.g. back/forward, manual URL edit)
@@ -279,15 +279,15 @@ function AdminStudentClasses() {
 }
 
 function RevokeDialog({ access, onClose }: {
-  access: StudentclassStudentClassResponse
+  access: StudentclassStudentClassEnrollmentResponse
   onClose: () => void
 }) {
   const qc = useQueryClient()
   const { mutate: revoke, isPending } = useMutation({
-    ...deleteAdminStudentClassesByIdMutation(),
+    ...deleteAdminStudentClassEnrollmentsByIdMutation(),
     onSuccess: () => {
       toast.success("Akses berhasil dicabut")
-      qc.invalidateQueries({ queryKey: getAdminStudentClassesQueryKey() })
+      qc.invalidateQueries({ queryKey: getAdminStudentClassEnrollmentsQueryKey() })
       onClose()
     },
     onError: (err: any) => toast.error(err.error || "Gagal mencabut akses"),
@@ -315,7 +315,7 @@ function RevokeDialog({ access, onClose }: {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/admin/student-classes")({
+export const Route = createFileRoute("/_dashboard/admin/student-class-enrollments")({
   component: AdminStudentClasses,
   validateSearch: studentClassesSearchSchema,
 });

@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
-import { getMeOptions, getStudentClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getMeOptions, getStudentClassEnrollmentsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { BookMarked, BookOpen, TrendingUp, Clock, CheckCircle2, BadgeCheck, Calendar, ChevronRight, CreditCard, GraduationCap, ListChecks, MessageSquare, Zap } from "lucide-react"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { usePageTitle } from "@/components/page-title"
@@ -12,7 +12,7 @@ function StudentDashboard() {
   usePageTitle("Dashboard Murid")
   const navigate = useNavigate()
   const { data: user } = useQuery(getMeOptions())
-  const { data: classes = [], isLoading: programsLoading } = useQuery(getStudentClassesOptions())
+  const { data: classes = [], isLoading: programsLoading } = useQuery(getStudentClassEnrollmentsOptions())
   const today = format(new Date(), "yyyy-MM-dd")
 
   const stats = [

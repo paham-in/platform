@@ -863,7 +863,7 @@ func (s *Service) AssignTeacher(id, teacherID uint) (*AssignTeacherResponse, err
 func (s *Service) resolveStudentClassID(studentID uint) (*uint, error) {
 	today := time.Now().Format("2006-01-02")
 	var ids []uint
-	if err := s.repo.db.Model(&models.StudentClass{}).
+	if err := s.repo.db.Model(&models.StudentClassEnrollment{}).
 		Where("user_id = ? AND expiry >= ?", studentID, today).
 		Distinct("class_id").Order("class_id asc").Pluck("class_id", &ids).Error; err != nil {
 		return nil, err

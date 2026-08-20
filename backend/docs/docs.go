@@ -2153,7 +2153,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/student-classes": {
+        "/admin/student-class-enrollments": {
             "get": {
                 "security": [
                     {
@@ -2202,7 +2202,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/studentclass.StudentClassResponse"
+                                "$ref": "#/definitions/studentclass.StudentClassEnrollmentResponse"
                             }
                         }
                     }
@@ -2239,7 +2239,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/studentclass.StudentClassResponse"
+                            "$ref": "#/definitions/studentclass.StudentClassEnrollmentResponse"
                         }
                     },
                     "400": {
@@ -2251,7 +2251,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/student-classes/{id}": {
+        "/admin/student-class-enrollments/{id}": {
             "delete": {
                 "security": [
                     {
@@ -4635,7 +4635,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/student-classes": {
+        "/student-class-enrollments": {
             "get": {
                 "security": [
                     {
@@ -4658,7 +4658,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/studentclass.StudentClassResponse"
+                                "$ref": "#/definitions/studentclass.StudentClassEnrollmentResponse"
                             }
                         }
                     }
@@ -6465,7 +6465,7 @@ const docTemplate = `{
                 }
             }
         },
-        "studentclass.StudentClassResponse": {
+        "studentclass.StudentClassEnrollmentResponse": {
             "type": "object",
             "properties": {
                 "class": {

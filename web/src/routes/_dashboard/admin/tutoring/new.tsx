@@ -27,7 +27,7 @@ import {
   postAdminTutoringBookingsMutation,
   getAdminTutoringBookingsQueryKey,
   getAdminUsersQueryKey,
-  getAdminStudentClassesQueryKey,
+  getAdminStudentClassEnrollmentsQueryKey,
   getAdminStudentsOptions,
   getTutoringTeachersOptions,
   getAdminClassesOptions,
@@ -132,7 +132,7 @@ function AdminTutoringNew() {
       toast.success("Booking berhasil dibuat")
       qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() })
-      qc.invalidateQueries({ queryKey: getAdminStudentClassesQueryKey() })
+      qc.invalidateQueries({ queryKey: getAdminStudentClassEnrollmentsQueryKey() })
       navigate({ to: "/admin/tutoring" })
     } catch (err: any) {
       toast.error(err?.error || err?.message || "Gagal membuat booking")

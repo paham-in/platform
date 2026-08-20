@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { getMeOptions, getStudentClassesOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getMeOptions, getStudentClassEnrollmentsOptions } from "@/lib/api/@tanstack/react-query.gen"
 
 /**
  * Apakah user boleh membuat postingan di forum.
@@ -10,7 +10,7 @@ import { getMeOptions, getStudentClassesOptions } from "@/lib/api/@tanstack/reac
  */
 export function useCanPostForum(): boolean | undefined {
   const { data: me, isLoading: meLoading } = useQuery(getMeOptions())
-  const { data: myClasses = [], isLoading: classesLoading } = useQuery(getStudentClassesOptions())
+  const { data: myClasses = [], isLoading: classesLoading } = useQuery(getStudentClassEnrollmentsOptions())
 
   if (meLoading || classesLoading) return undefined
 

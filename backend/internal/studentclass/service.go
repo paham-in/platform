@@ -21,7 +21,7 @@ type ClassRef struct {
 	ProgramName string `json:"program_name"`
 }
 
-type StudentClassResponse struct {
+type StudentClassEnrollmentResponse struct {
 	ID        uint     `json:"id"`
 	UserID    uint     `json:"user_id"`
 	User      UserRef  `json:"user"`
@@ -52,19 +52,19 @@ type ListFilter struct {
 	Search    string `json:"search"`
 }
 
-func (s *Service) List(filter ListFilter) ([]StudentClassResponse, error) {
+func (s *Service) List(filter ListFilter) ([]StudentClassEnrollmentResponse, error) {
 	sp, err := s.repo.List(filter.UserID, filter.ClassID, filter.ProgramID, filter.Search)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]StudentClassResponse, len(sp))
+	result := make([]StudentClassEnrollmentResponse, len(sp))
 	for i, v := range sp {
 		result[i] = s.toResponse(v)
 	}
 	return result, nil
 }
 
-func (s *Service) Get(id uint) (*StudentClassResponse, error) {
+func (s *Service) Get(id uint) (*StudentClassEnrollmentResponse, error) {
 	sp, err := s.repo.Get(id)
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ type CreateInput struct {
 	Expiry  string `json:"expiry"` // "YYYY-MM-DD"
 }
 
-func (s *Service) Create(input CreateInput) (*StudentClassResponse, error) {
+func (s *Service) Create(input CreateInput) (*StudentClassEnrollmentResponse, error) {
 	if input.UserID == 0 {
 		return nil, errors.New("user_id wajib diisi")
 	}
@@ -89,7 +89,7 @@ func (s *Service) Create(input CreateInput) (*StudentClassResponse, error) {
 	if input.Expiry == "" {
 		return nil, errors.New("expiry wajib diisi")
 	}
-	sp := models.StudentClass{
+	sp := models.StudentClassEnrollment{
 		UserID:  input.UserID,
 		ClassID: input.ClassID,
 		Expiry:  input.Expiry,
@@ -108,7 +108,7 @@ func (s *Service) Create(input CreateInput) (*StudentClassResponse, error) {
 		s.db.First(&cls, input.ClassID)
 		title := "Akses kelas diberikan"
 		body := fmt.Sprintf("Kamu mendapatkan akses ke kelas %s hingga %s", cls.Name, input.Expiry)
-		s.notifSvc.Notify(input.UserID, title, body, "student_class", "/dashboard/my-classes")
+		s.notifSvc.Notify(input.UserID, title, body, "student_class_enrollment", "/dashboard/my-classes")
 	}
 
 	r := s.toResponse(*created)
@@ -119,7 +119,7 @@ func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-func (s *Service) toResponse(sp models.StudentClass) StudentClassResponse {
+func (s *Service) toResponse(sp models.StudentClassEnrollment) StudentClassEnrollmentResponse {
 	var u models.User
 	var cls models.Class
 	s.db.Model(&models.User{}).Where("id = ?", sp.UserID).First(&u)
@@ -130,7 +130,7 @@ func (s *Service) toResponse(sp models.StudentClass) StudentClassResponse {
 		s.db.Model(&models.Program{}).Where("id = ?", *cls.ProgramID).First(&prog)
 		programName = prog.Name
 	}
-	return StudentClassResponse{
+	return StudentClassEnrollmentResponse{
 		ID:      sp.ID,
 		UserID:  sp.UserID,
 		User:    UserRef{ID: u.ID, Name: u.Name},

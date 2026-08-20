@@ -764,7 +764,7 @@ definitions:
       message:
         type: string
     type: object
-  studentclass.StudentClassResponse:
+  studentclass.StudentClassEnrollmentResponse:
     properties:
       class:
         $ref: '#/definitions/studentclass.ClassRef'
@@ -3243,7 +3243,7 @@ paths:
       summary: Update app settings
       tags:
       - Admin
-  /admin/student-classes:
+  /admin/student-class-enrollments:
     get:
       consumes:
       - application/json
@@ -3271,7 +3271,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/studentclass.StudentClassResponse'
+              $ref: '#/definitions/studentclass.StudentClassEnrollmentResponse'
             type: array
       security:
       - BearerAuth: []
@@ -3294,7 +3294,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/studentclass.StudentClassResponse'
+            $ref: '#/definitions/studentclass.StudentClassEnrollmentResponse'
         "400":
           description: Bad Request
           schema:
@@ -3304,7 +3304,7 @@ paths:
       summary: Grant student class
       tags:
       - StudentClass
-  /admin/student-classes/{id}:
+  /admin/student-class-enrollments/{id}:
     delete:
       consumes:
       - application/json
@@ -4826,7 +4826,7 @@ paths:
       summary: Delete answer
       tags:
       - Forum
-  /student-classes:
+  /student-class-enrollments:
     get:
       consumes:
       - application/json
@@ -4837,7 +4837,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/studentclass.StudentClassResponse'
+              $ref: '#/definitions/studentclass.StudentClassEnrollmentResponse'
             type: array
       security:
       - BearerAuth: []

@@ -123,7 +123,7 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE quiz_packages ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'published'")
 	}
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.MaterialAsset{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionAsset{}, &models.ForumAnswerAsset{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizQuestionAsset{}, &models.QuizAnswerAsset{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClass{}, &models.Setting{}, &models.QuizStudentProgress{}, &models.Notification{})
+	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.MaterialAsset{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionAsset{}, &models.ForumAnswerAsset{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizQuestionAsset{}, &models.QuizAnswerAsset{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClassEnrollment{}, &models.Setting{}, &models.QuizStudentProgress{}, &models.Notification{})
 
 	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
 	for _, name := range []string{"student", "teacher", "admin"} {
@@ -250,13 +250,23 @@ func Migrate(db *gorm.DB) {
 		}
 	}
 
-	// migrasi: program + student_classes (buat eksplisit lewat Migrator
+	// migrasi: program + student_class_enrollments (buat eksplisit lewat Migrator
 	// agar tak bergantung AutoMigrate global yang bisa gagal di mid-cycle).
 	if !db.Migrator().HasTable(&models.Program{}) {
 		db.Migrator().CreateTable(&models.Program{})
 	}
-	if !db.Migrator().HasTable(&models.StudentClass{}) {
-		db.Migrator().CreateTable(&models.StudentClass{})
+	if !db.Migrator().HasTable(&models.StudentClassEnrollment{}) {
+		db.Migrator().CreateTable(&models.StudentClassEnrollment{})
+	}
+	// drop tabel lama student_classes (rename ke student_class_enrollments)
+	if db.Migrator().HasTable("student_classes") {
+		db.Migrator().DropTable("student_classes")
+		log.Println("Dropped old table student_classes (renamed to student_class_enrollments)")
+	}
+	// drop tabel lama question_banks (renamed ke quiz_questions + quiz_answers)
+	if db.Migrator().HasTable("question_banks") {
+		db.Migrator().DropTable("question_banks")
+		log.Println("Dropped old table question_banks")
 	}
 
 	// migrasi: classes tambah harga les privat per kelas
@@ -270,7 +280,7 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE classes ADD COLUMN content_price DECIMAL(12,2) NOT NULL DEFAULT 0")
 	}
 
-	// migrasi: users.class_id dihapus — akses kelas sepenuhnya lewat student_classes
+	// migrasi: users.class_id dihapus — akses kelas sepenuhnya lewat student_class_enrollments
 	if db.Migrator().HasColumn(&models.User{}, "class_id") {
 		db.Exec("ALTER TABLE users DROP COLUMN class_id")
 		log.Println("Dropped column users.class_id")
@@ -289,7 +299,7 @@ func Migrate(db *gorm.DB) {
 		db.Exec("CREATE INDEX idx_invoices_class_id ON invoices(class_id)")
 	}
 
-	// backfill: student_programs (per-program) → student_classes (per-kelas).
+	// backfill: student_programs (per-program) → student_class_enrollments (per-kelas).
 	// Akses program lama → grant ke semua kelas dalam program itu. Idempoten.
 	if db.Migrator().HasTable("student_programs") {
 		type oldSP struct {
@@ -303,15 +313,15 @@ func Migrate(db *gorm.DB) {
 			var classIDs []uint
 			db.Model(&models.Class{}).Where("program_id = ?", r.ProgramID).Pluck("id", &classIDs)
 			for _, cid := range classIDs {
-				var sc models.StudentClass
+				var sc models.StudentClassEnrollment
 				err := db.Where("user_id = ? AND class_id = ?", r.UserID, cid).First(&sc).Error
 				if errors.Is(err, gorm.ErrRecordNotFound) {
-					db.Create(&models.StudentClass{UserID: r.UserID, ClassID: cid, Expiry: r.Expiry})
+					db.Create(&models.StudentClassEnrollment{UserID: r.UserID, ClassID: cid, Expiry: r.Expiry})
 				}
 			}
 		}
 		db.Migrator().DropTable("student_programs")
-		log.Println("Migrated student_programs → student_classes")
+		log.Println("Migrated student_programs → student_class_enrollments")
 	}
 
 	// seed program default "Sekolah" bila belum ada

@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/combobox"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import {
-  postAdminStudentClassesMutation,
-  getAdminStudentClassesQueryKey,
+  postAdminStudentClassEnrollmentsMutation,
+  getAdminStudentClassEnrollmentsQueryKey,
   getAdminStudentsOptions,
   getAdminProgramsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
@@ -45,10 +45,10 @@ export function GrantClassDialog({ onClose }: GrantClassDialogProps) {
   )
 
   const { mutate: grant, isPending } = useMutation({
-    ...postAdminStudentClassesMutation(),
+    ...postAdminStudentClassEnrollmentsMutation(),
     onSuccess: () => {
       toast.success("Akses berhasil diberikan")
-      qc.invalidateQueries({ queryKey: getAdminStudentClassesQueryKey() })
+      qc.invalidateQueries({ queryKey: getAdminStudentClassEnrollmentsQueryKey() })
       onClose()
     },
     onError: (err: any) => toast.error(err.error || "Gagal memberikan akses"),

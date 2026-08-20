@@ -35,8 +35,8 @@ func NewHandler(svc *Service) *Handler {
 // @Param        class_id query int false "Filter by class ID"
 // @Param        program_id query int false "Filter by program ID"
 // @Param        search query string false "Filter by student name/email, class, or program"
-// @Success      200 {array} StudentClassResponse
-// @Router       /admin/student-classes [get]
+// @Success      200 {array} StudentClassEnrollmentResponse
+// @Router       /admin/student-class-enrollments [get]
 func (h *Handler) AdminListStudentClasses(c *fiber.Ctx) error {
 	filter := ListFilter{Search: c.Query("search", "")}
 	if uid := c.Query("user_id"); uid != "" {
@@ -68,9 +68,9 @@ func (h *Handler) AdminListStudentClasses(c *fiber.Ctx) error {
 // @Produce      json
 // @Security     BearerAuth
 // @Param        body body CreateInput true "Data"
-// @Success      201 {object} StudentClassResponse
+// @Success      201 {object} StudentClassEnrollmentResponse
 // @Failure      400 {object} ErrorResponse
-// @Router       /admin/student-classes [post]
+// @Router       /admin/student-class-enrollments [post]
 func (h *Handler) AdminGrantStudentClass(c *fiber.Ctx) error {
 	var input CreateInput
 	if err := c.BodyParser(&input); err != nil {
@@ -92,7 +92,7 @@ func (h *Handler) AdminGrantStudentClass(c *fiber.Ctx) error {
 // @Param        id path int true "StudentClass ID"
 // @Success      200 {object} MessageResponse
 // @Failure      400 {object} ErrorResponse
-// @Router       /admin/student-classes/{id} [delete]
+// @Router       /admin/student-class-enrollments/{id} [delete]
 func (h *Handler) AdminRevokeStudentClass(c *fiber.Ctx) error {
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
@@ -110,8 +110,8 @@ func (h *Handler) AdminRevokeStudentClass(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Success      200 {array} StudentClassResponse
-// @Router       /student-classes [get]
+// @Success      200 {array} StudentClassEnrollmentResponse
+// @Router       /student-class-enrollments [get]
 func (h *Handler) MyStudentClasses(c *fiber.Ctx) error {
 	userID, ok := c.Locals("user_id").(uint)
 	if !ok || userID == 0 {
@@ -130,7 +130,7 @@ func AuthRoutes(auth fiber.Router, db *gorm.DB, notifSvc *notification.Service) 
 	svc.SetNotificationService(notifSvc)
 	h := NewHandler(svc)
 
-	auth.Get("/student-classes", h.MyStudentClasses)
+	auth.Get("/student-class-enrollments", h.MyStudentClasses)
 }
 
 func AdminRoutes(admin fiber.Router, db *gorm.DB, notifSvc *notification.Service) {
@@ -139,7 +139,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, notifSvc *notification.Service
 	svc.SetNotificationService(notifSvc)
 	h := NewHandler(svc)
 
-	admin.Get("/student-classes", h.AdminListStudentClasses)
-	admin.Post("/student-classes", h.AdminGrantStudentClass)
-	admin.Delete("/student-classes/:id", h.AdminRevokeStudentClass)
+	admin.Get("/student-class-enrollments", h.AdminListStudentClasses)
+	admin.Post("/student-class-enrollments", h.AdminGrantStudentClass)
+	admin.Delete("/student-class-enrollments/:id", h.AdminRevokeStudentClass)
 }

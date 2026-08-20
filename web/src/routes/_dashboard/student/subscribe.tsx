@@ -25,7 +25,7 @@ import {
 import {
   getClassesOptions,
   getInvoicesQueryKey,
-  getStudentClassesOptions,
+  getStudentClassEnrollmentsOptions,
   postSubscribeMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 
@@ -43,7 +43,7 @@ function StudentSubscribe() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { data: classes = [], isLoading: classesLoading } = useQuery(getClassesOptions())
-  const { data: myClasses = [] } = useQuery(getStudentClassesOptions())
+  const { data: myClasses = [] } = useQuery(getStudentClassEnrollmentsOptions())
 
   const [classId, setClassId] = useState("")
   const [duration, setDuration] = useState("1")

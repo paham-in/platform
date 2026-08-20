@@ -2150,7 +2150,7 @@
                 }
             }
         },
-        "/admin/student-classes": {
+        "/admin/student-class-enrollments": {
             "get": {
                 "security": [
                     {
@@ -2199,7 +2199,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/studentclass.StudentClassResponse"
+                                "$ref": "#/definitions/studentclass.StudentClassEnrollmentResponse"
                             }
                         }
                     }
@@ -2236,7 +2236,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/studentclass.StudentClassResponse"
+                            "$ref": "#/definitions/studentclass.StudentClassEnrollmentResponse"
                         }
                     },
                     "400": {
@@ -2248,7 +2248,7 @@
                 }
             }
         },
-        "/admin/student-classes/{id}": {
+        "/admin/student-class-enrollments/{id}": {
             "delete": {
                 "security": [
                     {
@@ -4632,7 +4632,7 @@
                 }
             }
         },
-        "/student-classes": {
+        "/student-class-enrollments": {
             "get": {
                 "security": [
                     {
@@ -4655,7 +4655,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/studentclass.StudentClassResponse"
+                                "$ref": "#/definitions/studentclass.StudentClassEnrollmentResponse"
                             }
                         }
                     }
@@ -6462,7 +6462,7 @@
                 }
             }
         },
-        "studentclass.StudentClassResponse": {
+        "studentclass.StudentClassEnrollmentResponse": {
             "type": "object",
             "properties": {
                 "class": {

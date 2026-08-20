@@ -127,7 +127,7 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 		// Perpanjangan: kalau akses lama masih aktif saat invoice mulai
 		// (expiry >= start_date), expiry baru = expiry lama + durasi invoice.
 		// Kalau akses sudah habis, mulai dari end_date invoice seperti biasa.
-		var existing models.StudentClass
+		var existing models.StudentClassEnrollment
 		if err := tx.Where("user_id = ? AND class_id = ? AND expiry >= ?",
 			invoice.UserID, *invoice.ClassID, invoice.StartDate).
 			Order("expiry desc").First(&existing).Error; err != nil {
@@ -138,7 +138,7 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 
 		// hapus akses lama utk kombinasi (user, class), lalu buat ulang dgn expiry baru
 		if err := tx.Where("user_id = ? AND class_id = ?", invoice.UserID, *invoice.ClassID).
-			Delete(&models.StudentClass{}).Error; err != nil {
+			Delete(&models.StudentClassEnrollment{}).Error; err != nil {
 			return err
 		}
 		if newStatus == "paid" {
@@ -153,7 +153,7 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 					return err
 				}
 			}
-			return tx.Create(&models.StudentClass{
+			return tx.Create(&models.StudentClassEnrollment{
 				UserID:  invoice.UserID,
 				ClassID: *invoice.ClassID,
 				Expiry:  expiry,

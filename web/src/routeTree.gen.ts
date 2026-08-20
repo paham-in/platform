@@ -28,7 +28,7 @@ import { Route as DashboardAdminTutoringFeesRouteImport } from './routes/_dashbo
 import { Route as DashboardAdminTeacherSubjectsRouteImport } from './routes/_dashboard/admin/teacher-subjects'
 import { Route as DashboardAdminTeacherPermissionsRouteImport } from './routes/_dashboard/admin/teacher-permissions'
 import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard/admin/subjects'
-import { Route as DashboardAdminStudentClassesRouteImport } from './routes/_dashboard/admin/student-classes'
+import { Route as DashboardAdminStudentClassEnrollmentsRouteImport } from './routes/_dashboard/admin/student-class-enrollments'
 import { Route as DashboardAdminProgramsRouteImport } from './routes/_dashboard/admin/programs'
 import { Route as DashboardAdminDevResetRouteImport } from './routes/_dashboard/admin/dev-reset'
 import { Route as DashboardAdminDashboardRouteImport } from './routes/_dashboard/admin/dashboard'
@@ -175,10 +175,10 @@ const DashboardAdminSubjectsRoute = DashboardAdminSubjectsRouteImport.update({
   path: '/admin/subjects',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardAdminStudentClassesRoute =
-  DashboardAdminStudentClassesRouteImport.update({
-    id: '/admin/student-classes',
-    path: '/admin/student-classes',
+const DashboardAdminStudentClassEnrollmentsRoute =
+  DashboardAdminStudentClassEnrollmentsRouteImport.update({
+    id: '/admin/student-class-enrollments',
+    path: '/admin/student-class-enrollments',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardAdminProgramsRoute = DashboardAdminProgramsRouteImport.update({
@@ -438,7 +438,7 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/admin/dev-reset': typeof DashboardAdminDevResetRoute
   '/admin/programs': typeof DashboardAdminProgramsRoute
-  '/admin/student-classes': typeof DashboardAdminStudentClassesRoute
+  '/admin/student-class-enrollments': typeof DashboardAdminStudentClassEnrollmentsRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/teacher-permissions': typeof DashboardAdminTeacherPermissionsRoute
   '/admin/teacher-subjects': typeof DashboardAdminTeacherSubjectsRoute
@@ -501,7 +501,7 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/admin/dev-reset': typeof DashboardAdminDevResetRoute
   '/admin/programs': typeof DashboardAdminProgramsRoute
-  '/admin/student-classes': typeof DashboardAdminStudentClassesRoute
+  '/admin/student-class-enrollments': typeof DashboardAdminStudentClassEnrollmentsRoute
   '/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/admin/teacher-permissions': typeof DashboardAdminTeacherPermissionsRoute
   '/admin/teacher-subjects': typeof DashboardAdminTeacherSubjectsRoute
@@ -565,7 +565,7 @@ export interface FileRoutesById {
   '/_dashboard/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/_dashboard/admin/dev-reset': typeof DashboardAdminDevResetRoute
   '/_dashboard/admin/programs': typeof DashboardAdminProgramsRoute
-  '/_dashboard/admin/student-classes': typeof DashboardAdminStudentClassesRoute
+  '/_dashboard/admin/student-class-enrollments': typeof DashboardAdminStudentClassEnrollmentsRoute
   '/_dashboard/admin/subjects': typeof DashboardAdminSubjectsRoute
   '/_dashboard/admin/teacher-permissions': typeof DashboardAdminTeacherPermissionsRoute
   '/_dashboard/admin/teacher-subjects': typeof DashboardAdminTeacherSubjectsRoute
@@ -630,7 +630,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/dev-reset'
     | '/admin/programs'
-    | '/admin/student-classes'
+    | '/admin/student-class-enrollments'
     | '/admin/subjects'
     | '/admin/teacher-permissions'
     | '/admin/teacher-subjects'
@@ -693,7 +693,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/dev-reset'
     | '/admin/programs'
-    | '/admin/student-classes'
+    | '/admin/student-class-enrollments'
     | '/admin/subjects'
     | '/admin/teacher-permissions'
     | '/admin/teacher-subjects'
@@ -756,7 +756,7 @@ export interface FileRouteTypes {
     | '/_dashboard/admin/dashboard'
     | '/_dashboard/admin/dev-reset'
     | '/_dashboard/admin/programs'
-    | '/_dashboard/admin/student-classes'
+    | '/_dashboard/admin/student-class-enrollments'
     | '/_dashboard/admin/subjects'
     | '/_dashboard/admin/teacher-permissions'
     | '/_dashboard/admin/teacher-subjects'
@@ -954,11 +954,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminSubjectsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/admin/student-classes': {
-      id: '/_dashboard/admin/student-classes'
-      path: '/admin/student-classes'
-      fullPath: '/admin/student-classes'
-      preLoaderRoute: typeof DashboardAdminStudentClassesRouteImport
+    '/_dashboard/admin/student-class-enrollments': {
+      id: '/_dashboard/admin/student-class-enrollments'
+      path: '/admin/student-class-enrollments'
+      fullPath: '/admin/student-class-enrollments'
+      preLoaderRoute: typeof DashboardAdminStudentClassEnrollmentsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/admin/programs': {
@@ -1294,7 +1294,7 @@ interface DashboardRouteChildren {
   DashboardAdminDashboardRoute: typeof DashboardAdminDashboardRoute
   DashboardAdminDevResetRoute: typeof DashboardAdminDevResetRoute
   DashboardAdminProgramsRoute: typeof DashboardAdminProgramsRoute
-  DashboardAdminStudentClassesRoute: typeof DashboardAdminStudentClassesRoute
+  DashboardAdminStudentClassEnrollmentsRoute: typeof DashboardAdminStudentClassEnrollmentsRoute
   DashboardAdminSubjectsRoute: typeof DashboardAdminSubjectsRoute
   DashboardAdminTeacherPermissionsRoute: typeof DashboardAdminTeacherPermissionsRoute
   DashboardAdminTeacherSubjectsRoute: typeof DashboardAdminTeacherSubjectsRoute
@@ -1352,7 +1352,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminDashboardRoute: DashboardAdminDashboardRoute,
   DashboardAdminDevResetRoute: DashboardAdminDevResetRoute,
   DashboardAdminProgramsRoute: DashboardAdminProgramsRoute,
-  DashboardAdminStudentClassesRoute: DashboardAdminStudentClassesRoute,
+  DashboardAdminStudentClassEnrollmentsRoute:
+    DashboardAdminStudentClassEnrollmentsRoute,
   DashboardAdminSubjectsRoute: DashboardAdminSubjectsRoute,
   DashboardAdminTeacherPermissionsRoute: DashboardAdminTeacherPermissionsRoute,
   DashboardAdminTeacherSubjectsRoute: DashboardAdminTeacherSubjectsRoute,

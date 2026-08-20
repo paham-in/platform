@@ -250,7 +250,7 @@ func (r *UserRepository) Merge(dummyID, targetID uint) error {
 		}{
 			{&models.Booking{}, "student_id"},
 			{&models.Invoice{}, "user_id"},
-			{&models.StudentClass{}, "user_id"},
+			{&models.StudentClassEnrollment{}, "user_id"},
 			{&models.PushSubscription{}, "user_id"},
 			{&models.ForumQuestion{}, "user_id"},
 			{&models.ForumAnswer{}, "user_id"},
