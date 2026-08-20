@@ -51,15 +51,17 @@ jobs:
           digest="${{ steps.build.outputs.digest }}"
           touch "/tmp/digests/${digest#sha256:}"
 
+      - name: Prepare platform pair
+        id: platform
+        run: echo "PLATFORM_PAIR=$(echo ${{ matrix.platform }} | tr '/' '-')" >> "$GITHUB_OUTPUT"
+
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ env.PLATFORM_PAIR }}
+          name: digests-${{ steps.platform.outputs.PLATFORM_PAIR }}
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
-        env:
-          PLATFORM_PAIR: ${{ matrix.platform }}
 
   merge:
     runs-on: ubuntu-latest
