@@ -79,8 +79,9 @@ function NewBooking() {
   const [searchTerm, setSearchTerm] = useState("")
   const [friendPending, setFriendPending] = useState<UserAdminListUsersResponse[]>([])
 
-  const myClass = classes.find((c) => c.id === Number(classId))
-  const pricePerSession = mode === "group" ? (myClass?.group_price ?? 0) : (myClass?.price_per_session ?? 0)
+  const bookableClasses = classes.filter((c) => c.allow_tutoring !== false)
+  const selectedClass = bookableClasses.find((c) => c.id === Number(classId))
+  const pricePerSession = mode === "group" ? (selectedClass?.group_price ?? 0) : (selectedClass?.price_per_session ?? 0)
 
   // debounce pencarian teman
   useEffect(() => {
@@ -124,14 +125,14 @@ function NewBooking() {
     enabled: searchTerm.length > 0,
   })
 
-  // auto-pilih kelas: preferensi kelas yang sudah diakses, else kelas pertama
+  // auto-pilih kelas: preferensi kelas yang sudah diakses, else kelas pertama (hanya yang allow tutoring)
   useEffect(() => {
-    if (classId || classes.length === 0) return
+    if (classId || bookableClasses.length === 0) return
     const preferred = myClasses
       .map((c) => String(c.class_id))
-      .find((id) => classes.some((c) => String(c.id) === id))
-    setClassId(preferred ?? String(classes[0].id ?? ""))
-  }, [myClasses, classes, classId])
+      .find((id) => bookableClasses.some((c) => String(c.id) === id))
+    setClassId(preferred ?? String(bookableClasses[0].id ?? ""))
+  }, [myClasses, bookableClasses, classId])
 
   // daftar guru habis setelah guru dipilih (kuota/status berubah) → lepaskan pilihan
   useEffect(() => {
@@ -217,17 +218,17 @@ function NewBooking() {
 
           <div className="space-y-1.5">
             <Label htmlFor="new-class">Kelas</Label>
-            {classes.length === 0 ? (
+            {bookableClasses.length === 0 ? (
               <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
                 Belum ada kelas tersedia.
               </p>
             ) : (
-              <Select items={classes.map((c) => ({ label: c.name, value: String(c.id) }))} value={classId} onValueChange={(v) => setClassId(v ?? "")}>
+              <Select items={bookableClasses.map((c) => ({ label: c.name, value: String(c.id) }))} value={classId} onValueChange={(v) => setClassId(v ?? "")}>
                 <SelectTrigger id="new-class" className="w-full">
                   <SelectValue placeholder="Pilih kelas" />
                 </SelectTrigger>
                 <SelectContent>
-                  {classes.map((c) => (
+                  {bookableClasses.map((c) => (
                     <SelectItem key={c.id} value={String(c.id)}>
                       {c.name}
                     </SelectItem>
@@ -448,7 +449,6 @@ function NewBooking() {
               </p>
             )}
           </div>
-
           </div>
 
         <div className="space-y-4 border-t pt-6">
@@ -462,7 +462,7 @@ function NewBooking() {
               <p className="font-medium">Total ({sessionCount}× pertemuan{perWeek ? ` · ${totalSessions} sesi` : ""})</p>
               <p className="text-xs text-muted-foreground">
                 {fmtRp(pricePerSession)} / sesi ({SESSION_MINUTES} menit)
-                {myClass && (mode === "group" ? !myClass.group_price : !myClass.price_per_session) && (
+                {selectedClass && (mode === "group" ? !selectedClass.group_price : !selectedClass.price_per_session) && (
                   <span className="ml-1 text-amber-600">(kelas tanpa harga)</span>
                 )}
               </p>

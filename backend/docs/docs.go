@@ -5446,6 +5446,9 @@ const docTemplate = `{
         "class.ClassResponse": {
             "type": "object",
             "properties": {
+                "allow_tutoring": {
+                    "type": "boolean"
+                },
                 "content_price": {
                     "type": "number"
                 },

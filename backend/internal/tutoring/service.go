@@ -145,6 +145,15 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingRequest) (*
 		input.ClassID = classID
 	}
 
+	// cek apakah kelas mendukung les
+	var class models.Class
+	if err := s.db.First(&class, *input.ClassID).Error; err != nil {
+		return nil, errors.New("kelas tidak ditemukan")
+	}
+	if !class.AllowTutoring {
+		return nil, errors.New("kelas ini tidak menyediakan layanan les")
+	}
+
 	// mapel wajib + harus satu program dengan kelas murid
 	if input.SubjectID == 0 {
 		return nil, errors.New("pilih mata pelajaran dulu")
@@ -424,6 +433,15 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 			return nil, err
 		}
 		input.ClassID = classID
+	}
+
+	// cek apakah kelas mendukung les
+	var class models.Class
+	if err := s.db.First(&class, *input.ClassID).Error; err != nil {
+		return nil, errors.New("kelas tidak ditemukan")
+	}
+	if !class.AllowTutoring {
+		return nil, errors.New("kelas ini tidak menyediakan layanan les")
 	}
 
 	if input.SubjectID == 0 {

@@ -70,6 +70,7 @@ export type ChapterUpdateInput = {
 };
 
 export type ClassClassResponse = {
+    allow_tutoring?: boolean;
     content_price?: number;
     group_price?: number;
     id?: number;

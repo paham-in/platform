@@ -99,6 +99,7 @@ function AdminTutoringNew() {
   const totalSessions = perWeek ? sessionCount * perWeek : 0
   const canSubmit =
     !!student && classId && subjectId && teacher && timesValid && perWeek !== null && date && !submitting &&
+    myClass?.allow_tutoring !== false &&
     (mode === "private" || members.length > 0)
 
   const memberEmails = mode === "group"
@@ -215,6 +216,12 @@ function AdminTutoringNew() {
 
           <div className="space-y-2">
             <Label htmlFor="admin-booking-mode">Mode</Label>
+            {myClass && myClass.allow_tutoring === false ? (
+              <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+                Kelas ini tidak menyediakan layanan les.
+              </div>
+            ) : (
+            <>
             <Select
               items={modeOptions}
               value={mode}
@@ -235,6 +242,8 @@ function AdminTutoringNew() {
             <p className="text-xs text-muted-foreground">
               {mode === "group" ? "Maksimal 5 siswa termasuk murid utama." : "Les sendiri berdua dengan guru."}
             </p>
+            </>
+            )}
           </div>
 
           {mode === "group" && (

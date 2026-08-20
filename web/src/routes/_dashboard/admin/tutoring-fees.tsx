@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
+import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { usePageTitle } from "@/components/page-title"
 import {
@@ -48,6 +49,8 @@ function AdminSettings() {
   const [tutoringPrices, setTutoringPrices] = useState<TutoringPrices>({})
   // harga konten per kelas, keyed by class id
   const [contentPrices, setContentPrices] = useState<Record<number, string>>({})
+  // allow tutoring per kelas, keyed by class id
+  const [allowTutoring, setAllowTutoring] = useState<Record<number, boolean>>({})
 
   useEffect(() => {
     if (settings && !settingsInitialized) {
@@ -83,6 +86,15 @@ function AdminSettings() {
       }
       return next
     })
+    setAllowTutoring((prev) => {
+      const next = { ...prev }
+      for (const c of classes) {
+        if (c.id !== undefined && !(c.id in next)) {
+          next[c.id] = c.allow_tutoring !== false
+        }
+      }
+      return next
+    })
   }, [classes])
 
   const saveSettings = useMutation({
@@ -102,8 +114,9 @@ function AdminSettings() {
     ...patchAdminClassesByIdMutation(),
   })
 
-  // kelas yang harganya beda dari nilai server → yang perlu disimpan
+  // kelas yang harganya beda dari nilai server → yang perlu disimpan (hanya kelas yang allow tutoring)
   const dirtyTutoringClasses = classes.filter((c) => {
+    if (allowTutoring[c.id!] === false) return false
     const row = tutoringPrices[c.id!]
     if (!row) return false
     return priceNorm(row.private) !== priceStr(c.price_per_session) || priceNorm(row.group) !== priceStr(c.group_price)
@@ -120,31 +133,55 @@ function AdminSettings() {
     return priceNum(row?.private ?? "") === null || priceNum(row?.group ?? "") === null
   })
 
+  // kelas yang allow_tutoring-nya berubah dari nilai server
+  const dirtyAllowTutoringClasses = classes.filter((c) => {
+    const local = allowTutoring[c.id!]
+    if (local === undefined) return false
+    return local !== (c.allow_tutoring !== false)
+  })
+
   const hasInvalidContentPrice = dirtyContentClasses.some((c) => {
     const v = contentPrices[c.id!]
     return v !== undefined && priceNum(v) === null
   })
 
   const handleSaveTutoring = async () => {
-    if (dirtyTutoringClasses.length === 0) return
+    // kumpulkan semua kelas yang perlu di-update (harga ATAU allow_tutoring berubah)
+    const toUpdate = classes.filter((c) => {
+      const priceDirty = allowTutoring[c.id!] !== false && (() => {
+        const row = tutoringPrices[c.id!]
+        if (!row) return false
+        return priceNorm(row.private) !== priceStr(c.price_per_session) || priceNorm(row.group) !== priceStr(c.group_price)
+      })()
+      const allowDirty = allowTutoring[c.id!] !== undefined && allowTutoring[c.id!] !== (c.allow_tutoring !== false)
+      return priceDirty || allowDirty
+    })
+    if (toUpdate.length === 0) return
     try {
       await Promise.all(
-        dirtyTutoringClasses.map((cls) => {
-          const row = tutoringPrices[cls.id!]
-          return saveTutoring.mutateAsync({
-            path: { id: cls.id! },
-            body: {
-              name: cls.name,
-              price_per_session: priceNum(row.private)!,
-              group_price: priceNum(row.group)!,
-            },
-          })
+        toUpdate.map((cls) => {
+          const body: Record<string, unknown> = { name: cls.name }
+          // allow_tutoring berubah → sertakan
+          if (allowTutoring[cls.id!] !== undefined && allowTutoring[cls.id!] !== (cls.allow_tutoring !== false)) {
+            body.allow_tutoring = allowTutoring[cls.id!]
+          }
+          // harga berubah (hanya jika allow_tutoring masih true) → sertakan
+          if (allowTutoring[cls.id!] !== false) {
+            const row = tutoringPrices[cls.id!]
+            if (row) {
+              const pvDirty = priceNorm(row.private) !== priceStr(cls.price_per_session)
+              const gvDirty = priceNorm(row.group) !== priceStr(cls.group_price)
+              if (pvDirty) body.price_per_session = priceNum(row.private)!
+              if (gvDirty) body.group_price = priceNum(row.group)!
+            }
+          }
+          return saveTutoring.mutateAsync({ path: { id: cls.id! }, body })
         })
       )
-      toast.success("Harga les privat diperbarui")
+      toast.success("Pengaturan les diperbarui")
       qc.invalidateQueries({ queryKey: getAdminClassesQueryKey() })
     } catch (err: any) {
-      toast.error(err?.error || "Gagal mengubah harga les privat")
+      toast.error(err?.error || "Gagal mengubah pengaturan les")
     }
   }
 
@@ -254,6 +291,7 @@ function AdminSettings() {
               <TableHeader>
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-(--card-spacing)">Kelas</TableHead>
+                  <TableHead className="w-20">Les</TableHead>
                   <TableHead>Private (Rp)</TableHead>
                   <TableHead className="pr-(--card-spacing)">Kelompok (Rp)</TableHead>
                 </TableRow>
@@ -263,14 +301,16 @@ function AdminSettings() {
                   Array.from({ length: 3 }).map((_, i) => (
                     <TableRow key={`skeleton-${i}`}>
                       <TableCell className="pl-(--card-spacing)"><Skeleton className="h-4 w-28" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-10" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-28" /></TableCell>
                       <TableCell className="pr-(--card-spacing)"><Skeleton className="h-8 w-28" /></TableCell>
                     </TableRow>
                   ))
                 ) : classes.length === 0 ? (
-                  emptyState(3)
+                  emptyState(4)
                 ) : (
                   classes.map((cls) => {
+                    const allowed = allowTutoring[cls.id!] ?? (cls.allow_tutoring !== false)
                     const row = tutoringPrices[cls.id!]
                     const pv = row?.private ?? ""
                     const gv = row?.group ?? ""
@@ -280,51 +320,69 @@ function AdminSettings() {
                       <TableRow key={cls.id}>
                         <TableCell className="font-medium pl-(--card-spacing)">{cls.name}</TableCell>
                         <TableCell>
-                          <div className="space-y-1">
-                            <Input
-                              type="number"
-                              min="0"
-                              className="h-8 w-32"
-                              value={pv}
-                              aria-label={`Harga les privat ${cls.name}`}
-                              aria-invalid={!pvValid}
-                              onChange={(e) =>
-                                setTutoringPrices((prev) => ({
-                                  ...prev,
-                                  [cls.id!]: { private: e.target.value, group: prev[cls.id!]?.group ?? "" },
-                                }))
-                              }
-                            autoComplete="off"/>
-                            {pvValid && Number(pv) > 0 && (
-                              <p className="text-xs text-muted-foreground">
-                                Fee guru: {fmtRp(teacherFee(pv))}
-                              </p>
-                            )}
-                          </div>
+                          <Switch
+                            checked={allowTutoring[cls.id!] ?? allowed}
+                            onCheckedChange={(checked) =>
+                              setAllowTutoring((prev) => ({ ...prev, [cls.id!]: checked }))
+                            }
+                          />
                         </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <Input
-                              type="number"
-                              min="0"
-                              className="h-8 w-32"
-                              value={gv}
-                              aria-label={`Harga kelompok ${cls.name}`}
-                              aria-invalid={!gvValid}
-                              onChange={(e) =>
-                                setTutoringPrices((prev) => ({
-                                  ...prev,
-                                  [cls.id!]: { private: prev[cls.id!]?.private ?? "", group: e.target.value },
-                                }))
-                              }
-                            autoComplete="off"/>
-                            {gvValid && Number(gv) > 0 && (
-                              <p className="text-xs text-muted-foreground">
-                                Fee guru: {fmtRp(teacherFee(gv))}
-                              </p>
-                            )}
-                          </div>
-                        </TableCell>
+                        {allowed ? (
+                          <>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  className="h-8 w-32"
+                                  value={pv}
+                                  aria-label={`Harga les privat ${cls.name}`}
+                                  aria-invalid={!pvValid}
+                                  onChange={(e) =>
+                                    setTutoringPrices((prev) => ({
+                                      ...prev,
+                                      [cls.id!]: { private: e.target.value, group: prev[cls.id!]?.group ?? "" },
+                                    }))
+                                  }
+                                autoComplete="off"/>
+                                {pvValid && Number(pv) > 0 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Fee guru: {fmtRp(teacherFee(pv))}
+                                  </p>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  className="h-8 w-32"
+                                  value={gv}
+                                  aria-label={`Harga kelompok ${cls.name}`}
+                                  aria-invalid={!gvValid}
+                                  onChange={(e) =>
+                                    setTutoringPrices((prev) => ({
+                                      ...prev,
+                                      [cls.id!]: { private: prev[cls.id!]?.private ?? "", group: e.target.value },
+                                    }))
+                                  }
+                                autoComplete="off"/>
+                                {gvValid && Number(gv) > 0 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Fee guru: {fmtRp(teacherFee(gv))}
+                                  </p>
+                                )}
+                              </div>
+                            </TableCell>
+                          </>
+                        ) : (
+                          <>
+                            <TableCell colSpan={2} className="pr-(--card-spacing) text-sm text-muted-foreground">
+                              Tanpa les
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     )
                   })
@@ -339,10 +397,10 @@ function AdminSettings() {
               </p>
               <Button
                 onClick={handleSaveTutoring}
-                disabled={saveTutoring.isPending || dirtyTutoringClasses.length === 0 || hasInvalidTutoringPrice}
+                disabled={saveTutoring.isPending || (dirtyTutoringClasses.length === 0 && dirtyAllowTutoringClasses.length === 0) || hasInvalidTutoringPrice}
               >
                 {saveTutoring.isPending && <Spinner />}
-                Simpan{dirtyTutoringClasses.length > 0 ? ` (${dirtyTutoringClasses.length})` : ""}
+                Simpan{dirtyTutoringClasses.length + dirtyAllowTutoringClasses.length > 0 ? ` (${dirtyTutoringClasses.length + dirtyAllowTutoringClasses.length})` : ""}
               </Button>
             </div>
           </CardFooter>

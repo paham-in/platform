@@ -18,6 +18,7 @@ type ClassResponse struct {
 	ID              uint    `json:"id"`
 	Name            string  `json:"name"`
 	Slug            string  `json:"slug"`
+	AllowTutoring   bool    `json:"allow_tutoring"`
 	PricePerSession float64 `json:"price_per_session"`
 	GroupPrice      float64 `json:"group_price"`
 	ContentPrice    float64 `json:"content_price"`
@@ -44,11 +45,12 @@ func (s *Service) Get(id uint) (*ClassResponse, error) {
 	return &r, nil
 }
 
-func (s *Service) Create(name string, price, groupPrice, contentPrice float64) (*ClassResponse, error) {
+func (s *Service) Create(name string, allowTutoring bool, price, groupPrice, contentPrice float64) (*ClassResponse, error) {
 	slug := strings.ToLower(strings.ReplaceAll(name, " ", "-"))
 	class := models.Class{
 		Name:            name,
 		Slug:            slug,
+		AllowTutoring:   allowTutoring,
 		PricePerSession: price,
 		GroupPrice:      groupPrice,
 		ContentPrice:    contentPrice,
@@ -60,11 +62,14 @@ func (s *Service) Create(name string, price, groupPrice, contentPrice float64) (
 	return &r, nil
 }
 
-func (s *Service) Update(id uint, name string, price, groupPrice, contentPrice *float64) (*ClassResponse, error) {
+func (s *Service) Update(id uint, name string, allowTutoring *bool, price, groupPrice, contentPrice *float64) (*ClassResponse, error) {
 	updates := map[string]interface{}{}
 	if name != "" {
 		updates["name"] = name
 		updates["slug"] = strings.ToLower(strings.ReplaceAll(name, " ", "-"))
+	}
+	if allowTutoring != nil {
+		updates["allow_tutoring"] = *allowTutoring
 	}
 	if price != nil {
 		updates["price_per_session"] = *price
@@ -90,6 +95,7 @@ func toResponse(c models.Class) ClassResponse {
 		ID:              c.ID,
 		Name:            c.Name,
 		Slug:            c.Slug,
+		AllowTutoring:   c.AllowTutoring,
 		PricePerSession: c.PricePerSession,
 		GroupPrice:      c.GroupPrice,
 		ContentPrice:    c.ContentPrice,
