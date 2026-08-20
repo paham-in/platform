@@ -55,7 +55,7 @@ export function NotificationBell() {
 
   const handleClick = (id: number | undefined, url: string | undefined) => {
     if (!id) return;
-    markRead.mutate({ path: { id } });
+    markRead.mutate({ path: { id: String(id) } });
     if (url) {
       setOpen(false);
       navigate({ to: url as never });

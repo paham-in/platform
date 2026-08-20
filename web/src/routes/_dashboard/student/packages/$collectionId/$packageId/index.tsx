@@ -13,10 +13,10 @@ function PackageDetail() {
   const navigate = useNavigate()
   const { collectionId, packageId } = useParams({ from: "/_dashboard/student/packages/$collectionId/$packageId/" })
   const { data: pkg, isLoading, isError } = useQuery(
-    getQuestionPackagesByIdOptions({ path: { id: Number(packageId) } })
+    getQuestionPackagesByIdOptions({ path: { id: packageId } })
   )
   const { data: progress } = useQuery(
-    getQuestionPackagesByIdWorkProgressOptions({ path: { id: Number(packageId) } })
+    getQuestionPackagesByIdWorkProgressOptions({ path: { id: packageId } })
   )
 
   usePageTitle(pkg?.name ?? "Paket Soal")

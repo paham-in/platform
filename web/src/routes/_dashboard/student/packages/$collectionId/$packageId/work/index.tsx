@@ -23,8 +23,7 @@ function WorkPage() {
   const { packageId } = useParams({ from: "/_dashboard/student/packages/$collectionId/$packageId/work/" })
   const navigate = useNavigate({ from: Route.fullPath })
   const qc = useQueryClient()
-  const packageIdNum = Number(packageId)
-  const paramsOk = Number.isFinite(packageIdNum)
+  const paramsOk = !!packageId
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedAnswerId, setSelectedAnswerId] = useState<number | null>(null)
   const [revealed, setRevealed] = useState(false)
@@ -33,12 +32,12 @@ function WorkPage() {
   const [correctAnswerIds, setCorrectAnswerIds] = useState<Set<number>>(new Set())
 
   const { data: questions = [], isLoading: questionsLoading } = useQuery({
-    ...getQuestionPackagesByIdWorkQuestionsOptions({ path: { id: packageIdNum } }),
+    ...getQuestionPackagesByIdWorkQuestionsOptions({ path: { id: packageId } }),
     enabled: paramsOk,
   })
 
   const { data: progress } = useQuery({
-    ...getQuestionPackagesByIdWorkProgressOptions({ path: { id: packageIdNum } }),
+    ...getQuestionPackagesByIdWorkProgressOptions({ path: { id: packageId } }),
     enabled: paramsOk,
   })
 
@@ -49,7 +48,7 @@ function WorkPage() {
       setIsCorrect(data.is_correct ?? false)
       setExplanation(data.explanation ?? "")
       setCorrectAnswerIds(new Set(data.correct_answer_ids ?? []))
-      qc.invalidateQueries({ queryKey: getQuestionPackagesByIdWorkProgressQueryKey({ path: { id: packageIdNum } }) })
+      qc.invalidateQueries({ queryKey: getQuestionPackagesByIdWorkProgressQueryKey({ path: { id: packageId } }) })
       if (data.is_correct) {
         toast.success("Jawaban benar!")
       } else {
@@ -114,7 +113,7 @@ function WorkPage() {
   const handleSubmit = () => {
     if (selectedAnswerId === null || !currentQuestion) return
     submitMutation.mutate({
-      path: { id: packageIdNum },
+      path: { id: packageId },
       body: { question_id: currentQuestion.id, answer_id: selectedAnswerId },
     })
   }

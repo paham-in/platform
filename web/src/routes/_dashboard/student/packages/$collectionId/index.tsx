@@ -11,7 +11,7 @@ function CollectionDetail() {
   const navigate = useNavigate()
   const { collectionId } = useParams({ from: "/_dashboard/student/packages/$collectionId/" })
   const { data: collection, isLoading, isError } = useQuery(
-    getQuestionPackageCollectionsByIdOptions({ path: { id: Number(collectionId) } })
+    getQuestionPackageCollectionsByIdOptions({ path: { id: collectionId } })
   )
 
   usePageTitle(collection?.name ?? "Paket Soal")
