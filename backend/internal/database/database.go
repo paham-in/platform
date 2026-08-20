@@ -268,6 +268,11 @@ func Migrate(db *gorm.DB) {
 		db.Migrator().DropTable("question_banks")
 		log.Println("Dropped old table question_banks")
 	}
+	// drop tabel lama availabilities (fitur dihapus)
+	if db.Migrator().HasTable("availabilities") {
+		db.Migrator().DropTable("availabilities")
+		log.Println("Dropped old table availabilities")
+	}
 
 	// migrasi: classes tambah harga les privat per kelas
 	if !db.Migrator().HasColumn(&models.Class{}, "price_per_session") {
