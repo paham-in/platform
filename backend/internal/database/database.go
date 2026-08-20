@@ -329,21 +329,10 @@ func Migrate(db *gorm.DB) {
 		log.Println("Migrated student_programs → student_class_enrollments")
 	}
 
-	// seed program default "Sekolah" bila belum ada
-	var program models.Program
-	if err := db.Where("slug = ?", "sekolah").First(&program).Error; err != nil {
-		db.Create(&models.Program{Name: "Sekolah", Slug: "sekolah", Desc: "Program belajar sekolah"})
-	}
-
 	// migrasi: subjects tambah program_id (fitur subjek terikat program)
 	if !db.Migrator().HasColumn(&models.Subject{}, "program_id") {
 		db.Exec("ALTER TABLE subjects ADD COLUMN program_id BIGINT DEFAULT NULL")
 		db.Exec("CREATE INDEX idx_subjects_program_id ON subjects(program_id)")
-	}
-	// backfill: subjek lama tanpa program → program "Sekolah"
-	var sekolah models.Program
-	if err := db.Where("slug = ?", "sekolah").First(&sekolah).Error; err == nil {
-		db.Model(&models.Subject{}).Where("program_id IS NULL").Update("program_id", sekolah.ID)
 	}
 
 	// migrate public_id: tambah kolom UUID v4 untuk public-facing resources.
