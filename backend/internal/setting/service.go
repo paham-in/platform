@@ -26,17 +26,6 @@ func NewService(repo *Repository, envFeePercent float64) *Service {
 	return &Service{repo: repo, envFeePercent: envFeePercent}
 }
 
-// EnsureDefaults men-seed key default kalau belum ada di DB, dan menghapus
-// key yang sudah tidak dikenal (mis. default_*_price yang dihapus). Fee memakai
-// nilai env (TEACHER_FEE_PERCENT) sekali saja sebagai nilai awal; setelah itu
-// DB yang menang.
-func (s *Service) EnsureDefaults() {
-	if _, err := s.repo.Get(KeyTeacherFeePercent); err != nil {
-		s.repo.Set(KeyTeacherFeePercent, strconv.FormatFloat(s.feeFallback(), 'f', -1, 64))
-	}
-	s.repo.DeleteStale(AllowedKeys)
-}
-
 func (s *Service) feeFallback() float64 {
 	if s.envFeePercent != 0 {
 		return s.envFeePercent

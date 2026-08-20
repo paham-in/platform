@@ -56,8 +56,6 @@ func main() {
 	// konfigurasi bisnis (fee guru, harga default) tersimpan di DB, admin bisa
 	// ubah lewat UI. Env TEACHER_FEE_PERCENT cuma dipakai sekali saat seed.
 	settingSvc := setting.NewService(setting.NewRepository(db), cfg.TeacherFeePercent)
-	settingSvc.EnsureDefaults()
-
 	objectStorage, err := storage.NewObjectStorage(cfg)
 	if err != nil {
 		log.Printf("Warning: storage (rustfs) not available: %v", err)
