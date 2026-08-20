@@ -1,4 +1,4 @@
-package material
+﻿package material
 
 import (
 	"bimbel2/backend/internal/models"
@@ -150,7 +150,7 @@ func (r *Repository) CreateWithAssets(material *models.Material, assets []string
 
 // UpdateContentWithAssets memperbarui content materi + mengganti daftar aset
 // content (hapus semua, insert ulang) dalam satu transaksi. Aset dihapus secara
-// HARD (Unscoped) — row aset adalah data turunan, bukan data user yang butuh
+// HARD (Unscoped), row aset adalah data turunan, bukan data user yang butuh
 // audit, jadi tidak perlu soft delete.
 func (r *Repository) UpdateContentWithAssets(id uint, content string, assets []string) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {

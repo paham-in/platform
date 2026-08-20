@@ -1,4 +1,4 @@
-/// <reference lib="webworker" />
+﻿/// <reference lib="webworker" />
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from "workbox-precaching"
 import { NavigationRoute, registerRoute } from "workbox-routing"
 
@@ -17,7 +17,7 @@ cleanupOutdatedCaches()
 registerRoute(new NavigationRoute(createHandlerBoundToURL("index.html")))
 
 self.addEventListener("install", () => {
-  // Jangan tunggu tab lama ditutup — SW baru langsung aktif.
+  // Jangan tunggu tab lama ditutup, SW baru langsung aktif.
   self.skipWaiting()
 })
 

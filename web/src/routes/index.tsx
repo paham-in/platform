@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+﻿import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { buttonVariants } from "@/components/ui/button"
@@ -131,7 +131,7 @@ function Reveal({
 }
 
 // CountUp: angka statistik naik dari 0 ke nilai target saat masuk viewport.
-// Focal moment halaman — bukti "pertumbuhan" yang layak dapat perhatian.
+// Focal moment halaman, bukti "pertumbuhan" yang layak dapat perhatian.
 function CountUp({ value }: { value: string }) {
   const [display, setDisplay] = useState("0")
   const ref = useRef<HTMLDivElement>(null)

@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+﻿import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -125,7 +125,7 @@ export function BookingRequests() {
           </CardContent>
         </Card>
         {pendingGroups.length > 0 && (
-          <p className="mt-2 text-xs text-muted-foreground">Setujui sekali utk seluruh anggota grup — invoice dibuat otomatis utk tiap murid.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Setujui sekali utk seluruh anggota grup, invoice dibuat otomatis utk tiap murid.</p>
         )}
       </div>
 

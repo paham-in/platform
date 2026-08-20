@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+﻿import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import {
   AlertDialog,
@@ -29,7 +29,7 @@ export function ApproveEvidenceDialog({ session, onClose }: ApproveEvidenceDialo
   const { mutate: approve, isPending } = useMutation({
     ...patchAdminTutoringEvidenceByIdMutation(),
     onSuccess: () => {
-      toast.success("Bukti disetujui — sesi selesai")
+      toast.success("Bukti disetujui, sesi selesai")
       qc.invalidateQueries({ queryKey: getAdminTutoringEvidenceQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminTutoringReportQueryKey() })
       onClose()

@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -31,7 +31,7 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
   const [note, setNote] = useState("")
   const classOptions = programs.flatMap((p) =>
     (p.classes ?? []).map((c) => ({
-      label: `${p.name ?? ""} — ${c.name ?? ""}`,
+      label: `${p.name ?? ""}, ${c.name ?? ""}`,
       value: String(c.id),
     }))
   )
@@ -69,7 +69,7 @@ export function CreateInvoiceDialog({ user, onClose }: CreateInvoiceDialogProps)
         <div className="space-y-5">
           <div className="space-y-1.5">
             <Label>User</Label>
-            <p className="text-sm text-muted-foreground">{user.name} — {user.email}</p>
+            <p className="text-sm text-muted-foreground">{user.name}, {user.email}</p>
           </div>
           <div className="space-y-1.5">
             <Label>Jumlah (Rp)</Label>

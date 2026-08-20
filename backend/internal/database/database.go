@@ -1,4 +1,4 @@
-package database
+﻿package database
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ func Connect(cfg *config.Config) *gorm.DB {
 
 func Migrate(db *gorm.DB) {
 	// migrasi rename: question_package_groups → question_package_collections.
-	// Idempotent — lewati kalau tabel baru sudah ada (rename sekali saja, lalu
+	// Idempotent, lewati kalau tabel baru sudah ada (rename sekali saja, lalu
 	// AutoMigrate lanjut). Blok ini harus jalan sebelum rename ke quiz_collections
 	// supaya DB lama bisa ter-rename dua tahap dalam satu run.
 	if db.Migrator().HasTable("question_package_groups") && !db.Migrator().HasTable("question_package_collections") {
@@ -42,9 +42,9 @@ func Migrate(db *gorm.DB) {
 		log.Println("Renamed table question_package_groups → question_package_collections")
 	}
 
-	// migrasi rename: fitur quiz — tabel questionbank_questions/questionbank_answers/
+	// migrasi rename: fitur quiz, tabel questionbank_questions/questionbank_answers/
 	// question_packages/question_package_collections/student_question_progresses jadi
-	// ber-prefix quiz_*. Idempotent — lewati kalau tabel baru sudah ada (rename
+	// ber-prefix quiz_*. Idempotent, lewati kalau tabel baru sudah ada (rename
 	// sekali saja, lalu AutoMigrate lanjut). Postgres otomatis memperbarui FK
 	// constraint dan sequence; index di-rename manual biar konsisten.
 	if db.Migrator().HasTable("questionbank_questions") && !db.Migrator().HasTable("quiz_questions") {
@@ -92,8 +92,8 @@ func Migrate(db *gorm.DB) {
 	}
 	db.Exec("UPDATE bookings SET mode = 'group' WHERE mode = 'semi_private'")
 
-	// migrasi rename: fitur forum — tabel questions/answers/question_images
-	// jadi ber-prefix forum_*. Idempotent — lewati kalau tabel baru sudah ada
+	// migrasi rename: fitur forum, tabel questions/answers/question_images
+	// jadi ber-prefix forum_*. Idempotent, lewati kalau tabel baru sudah ada
 	// (rename sekali saja, lalu AutoMigrate lanjut). Postgres otomatis
 	// memperbarui FK constraint, index, dan sequence yang mereferensikan tabel.
 	if db.Migrator().HasTable("questions") && !db.Migrator().HasTable("forum_questions") {
@@ -125,7 +125,7 @@ func Migrate(db *gorm.DB) {
 
 	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.MaterialAsset{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionAsset{}, &models.ForumAnswerAsset{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizQuestionAsset{}, &models.QuizAnswerAsset{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClassEnrollment{}, &models.Setting{}, &models.QuizStudentProgress{}, &models.Notification{}, &models.TeacherPermission{})
 
-	// seed default roles (role "user" dihapus — semua pendaftar otomatis student)
+	// seed default roles (role "user" dihapus, semua pendaftar otomatis student)
 	for _, name := range []string{"student", "teacher", "admin"} {
 		var role models.Role
 		if err := db.Where("name = ?", name).First(&role).Error; err != nil {
@@ -236,13 +236,13 @@ func Migrate(db *gorm.DB) {
 		db.Migrator().DropTable("package_questions")
 	}
 
-	// fitur gallery dihapus — buang tabel subject_images (sisa dari DB lama).
+	// fitur gallery dihapus, buang tabel subject_images (sisa dari DB lama).
 	if db.Migrator().HasTable("subject_images") {
 		db.Migrator().DropTable("subject_images")
 		log.Println("Dropped table subject_images")
 	}
 
-	// fitur gambar pendukung forum dihapus — buang tabel sisa (nama lama & baru).
+	// fitur gambar pendukung forum dihapus, buang tabel sisa (nama lama & baru).
 	for _, t := range []string{"question_images", "forum_question_images", "answer_images", "forum_answer_images"} {
 		if db.Migrator().HasTable(t) {
 			db.Migrator().DropTable(t)
@@ -285,7 +285,7 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE classes ADD COLUMN content_price DECIMAL(12,2) NOT NULL DEFAULT 0")
 	}
 
-	// migrasi: users.class_id dihapus — akses kelas sepenuhnya lewat student_class_enrollments
+	// migrasi: users.class_id dihapus, akses kelas sepenuhnya lewat student_class_enrollments
 	if db.Migrator().HasColumn(&models.User{}, "class_id") {
 		db.Exec("ALTER TABLE users DROP COLUMN class_id")
 		log.Println("Dropped column users.class_id")

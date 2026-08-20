@@ -1,4 +1,4 @@
-package storage
+﻿package storage
 
 import (
 	"context"
@@ -31,10 +31,10 @@ const stripRustfsHeadersID = "stripRustfsHeaders"
 func stripRustfsHeaders() func(*middleware.Stack) error {
 	return func(stack *middleware.Stack) error {
 		// Middleware SDK yang menambahkan Accept-Encoding: identity. Header ini
-		// tidak dipakai rustfs — buang agar tidak masuk signed headers.
+		// tidak dipakai rustfs, buang agar tidak masuk signed headers.
 		stack.Finalize.Remove("DisableAcceptEncodingGzip")
 		// Path presign (PresignClient) membuang header tsb sendiri dan belum
-		// memiliki "Signing" — skip agar Insert tidak error.
+		// memiliki "Signing", skip agar Insert tidak error.
 		if _, ok := stack.Finalize.Get("Signing"); !ok {
 			return nil
 		}

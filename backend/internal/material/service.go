@@ -1,4 +1,4 @@
-package material
+﻿package material
 
 import (
 	"context"
@@ -37,7 +37,7 @@ var (
 )
 
 // canView: published boleh dilihat semua; draft hanya admin, penulisnya, atau
-// materi tanpa pemilik (author_id=0 — materi lama yang belum di-claim).
+// materi tanpa pemilik (author_id=0, materi lama yang belum di-claim).
 func (s *Service) canView(m *models.Material, a Access) bool {
 	if a.IsAdmin || m.Status == "published" {
 		return true
@@ -117,7 +117,7 @@ func (s *Service) ListFiltered(chapterID *uint, search, access, type_, status st
 	return s.toResponses(materials), nil
 }
 
-// ListPublished untuk akses murid/user — hanya materi published.
+// ListPublished untuk akses murid/user, hanya materi published.
 // includePremium=false membatasi ke materi free saja.
 // classIDs non-nil membatasi premium ke kelas tertentu; nil = semua kelas (staff).
 func (s *Service) ListPublished(includePremium bool, classIDs []uint) ([]MaterialResponse, error) {
@@ -301,7 +301,7 @@ func (s *Service) Delete(id uint, a Access) error {
 		return ErrNotOwner
 	}
 	// hapus materi + aset content dari DB, lalu bersihkan file gambar dari
-	// storage (best-effort setelah commit — file orphan lebih aman daripada
+	// storage (best-effort setelah commit, file orphan lebih aman daripada
 	// DB yang tidak konsisten).
 	assetNames, err := s.repo.DeleteWithAssets(id)
 	if err != nil {

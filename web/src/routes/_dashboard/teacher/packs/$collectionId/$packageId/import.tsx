@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+﻿import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -61,7 +61,7 @@ function ImportQuestions() {
         setParseError("Tidak ada soal yang terdeteksi. Pastikan format: nomor soal di paragraf sendiri, opsi A/B/C/D di baris terpisah.")
       } else {
         setQuestions(parsed)
-        // Auto-uncheck soal yang sudah ada (duplikat) — user bisa centang ulang manual
+        // Auto-uncheck soal yang sudah ada (duplikat), user bisa centang ulang manual
         const initial = new Set<number>()
         parsed.forEach((q, i) => {
           if (!existingSet.has(normalizeQuestion(q.question ?? ""))) initial.add(i)
@@ -196,7 +196,7 @@ function ImportQuestions() {
             )}
             {fileName && !parsing && (
               <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <FileText className="h-4 w-4" /> {fileName} — {questions.length} soal terdeteksi
+                <FileText className="h-4 w-4" /> {fileName}, {questions.length} soal terdeteksi
               </div>
             )}
             {parseError && (
@@ -259,7 +259,7 @@ function ImportQuestions() {
                           </div>
                         )}
                         {q.options.length === 0 && (
-                          <p className="text-xs text-amber-600">Soal tanpa opsi — periksa format sebelum import.</p>
+                          <p className="text-xs text-amber-600">Soal tanpa opsi, periksa format sebelum import.</p>
                         )}
                       </div>
                     </div>

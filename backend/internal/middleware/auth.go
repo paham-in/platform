@@ -1,4 +1,4 @@
-package middleware
+﻿package middleware
 
 import (
 	"strings"
@@ -99,7 +99,7 @@ func RoleAllowed(allowedRoles ...string) fiber.Handler {
 
 // ContentManager membatasi akses kelola konten (materi / paket soal) per-user.
 // Admin selalu bypass. Teacher butuh kolom izin yang sesuai utk operasi TULIS
-// (POST/PATCH/DELETE); operasi baca (GET/HEAD) selalu diizinkan — guru perlu
+// (POST/PATCH/DELETE); operasi baca (GET/HEAD) selalu diizinkan, guru perlu
 // membuka materi/paket soal saat mengajar walau tanpa izin kelola.
 func ContentManager(db *gorm.DB, resource string) fiber.Handler {
 	return func(c *fiber.Ctx) error {

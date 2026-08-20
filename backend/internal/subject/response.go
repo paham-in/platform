@@ -1,15 +1,15 @@
-package subject
+﻿package subject
 
 import "bimbel2/backend/internal/models"
 
-// ErrorResponse adalah envelope error generik yang dipakai semua handler —
+// ErrorResponse adalah envelope error generik yang dipakai semua handler
 // sengaja dibiarkan shared (isi selalu sama: pesan error), bukan response
 // khusus satu handler.
 type ErrorResponse struct {
 	Error string `json:"error" example:"error message"`
 }
 
-// — handler: ListSubjects (GET /subjects) —
+//, handler: ListSubjects (GET /subjects)
 
 type ListSubjectsResponse struct {
 	ID            uint   `json:"id"`
@@ -33,7 +33,7 @@ func (s *Service) newListSubjectsResponse(sub models.Subject) ListSubjectsRespon
 	}
 }
 
-// — handler: AdminCreateSubject (POST /admin/subjects) —
+//, handler: AdminCreateSubject (POST /admin/subjects)
 
 type AdminCreateSubjectResponse struct {
 	ID            uint   `json:"id"`
@@ -57,7 +57,7 @@ func (s *Service) newAdminCreateSubjectResponse(sub models.Subject) AdminCreateS
 	}
 }
 
-// — handler: AdminUpdateSubject (PATCH /admin/subjects/:id) —
+//, handler: AdminUpdateSubject (PATCH /admin/subjects/:id)
 
 type AdminUpdateSubjectResponse struct {
 	ID            uint   `json:"id"`
@@ -81,7 +81,7 @@ func (s *Service) newAdminUpdateSubjectResponse(sub models.Subject) AdminUpdateS
 	}
 }
 
-// — handler: AdminDeleteSubject (DELETE /admin/subjects/:id) —
+//, handler: AdminDeleteSubject (DELETE /admin/subjects/:id)
 
 type AdminDeleteSubjectResponse struct {
 	Message string `json:"message" example:"berhasil dihapus"`

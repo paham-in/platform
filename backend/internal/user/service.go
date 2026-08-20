@@ -1,4 +1,4 @@
-package user
+﻿package user
 
 import (
 	"crypto/rand"
@@ -54,7 +54,7 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 	}
 
 	// create new user + assign default role (student) + buat sesi login dalam
-	// satu transaksi — kalau satu langkah gagal, user tidak jadi tersimpan
+	// satu transaksi, kalau satu langkah gagal, user tidak jadi tersimpan
 	// setengah (user tanpa role atau tanpa sesi).
 	user = &models.User{
 		Name:      name,
@@ -85,7 +85,7 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 }
 
 // createSessionForLogin membuat sesi baru. Untuk user ber-role student,
-// semua sesi lama dihapus dulu (pembatasan satu perangkat — anti berbagi akun).
+// semua sesi lama dihapus dulu (pembatasan satu perangkat, anti berbagi akun).
 func (s *Service) createSessionForLogin(user *models.User) (string, error) {
 	if slices.Contains(roleNames(*user), "student") {
 		if err := s.sessionRepo.DeleteAllByUser(user.ID); err != nil {
@@ -105,7 +105,7 @@ func (s *Service) ValidateSession(token string) (*models.User, error) {
 		return nil, err
 	}
 	// sliding expiration: perpanjang masa sesi pada tiap pemakaian yang valid.
-	// non-fatal — kalau update gagal, sesi tetap valid untuk request ini.
+	// non-fatal, kalau update gagal, sesi tetap valid untuk request ini.
 	_ = s.sessionRepo.Touch(session.ID, time.Now().Add(sessionDuration).Unix())
 	return s.userRepo.Get(session.UserID)
 }
@@ -230,7 +230,7 @@ func (s *Service) MergeDummyUser(dummyID, targetID uint) (*AdminMergeUserRespons
 		return nil, errors.New("akun yang dipilih sudah punya google_id")
 	}
 	if dummy.Password != nil {
-		return nil, errors.New("akun yang dipilih sudah punya password — bukan akun dummy")
+		return nil, errors.New("akun yang dipilih sudah punya password, bukan akun dummy")
 	}
 	if target.GoogleID == "" {
 		return nil, errors.New("target harus akun yang sudah login Google")

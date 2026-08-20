@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Send } from "lucide-react"
@@ -43,7 +43,7 @@ export function AnswerForm({ questionId }: AnswerFormProps) {
     },
   })
 
-  // hanya guru yang boleh menjawab — admin/student read-only
+  // hanya guru yang boleh menjawab, admin/student read-only
   if (isLoading) return null
   if (!isTeacher) {
     return (

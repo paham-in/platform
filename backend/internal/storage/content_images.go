@@ -1,4 +1,4 @@
-package storage
+﻿package storage
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 // `forum/<uuid>.<ext>` (legacy). `public/questions/<uuid>.<ext>` juga masih
 // diterima sebagai legacy (gambar paket soal lama). Prefix `public/temp_<fitur>/`
 // (gambar temp editor) ikut diterima supaya bisa di-sanitize/di-extract. Bisa
-// juga berawalan URL (presigned lama / public base) — prefix URL ikut di-capture
+// juga berawalan URL (presigned lama / public base), prefix URL ikut di-capture
 // untuk dinormalisasi. Query string presigned (X-Amz-*) ikut dikonsumsi supaya
 // tidak tersisa saat strip.
 var ContentImageRe = regexp.MustCompile(`(?:https?://[^"'\s]+/)?((?:public/(?:materials|quiz_questions|quiz_answers|forum_questions|forum_answers|questions|temp_[a-z_]+)|forum)/[0-9a-fA-F-]+\.(?:jpg|jpeg|png|gif|webp))(?:\?[^"'\s]*)?`)
@@ -43,7 +43,7 @@ func ExtractContentImages(content string) []string {
 // Content di DB selalu objectName (lihat SanitizeContentImages). `public/`
 // → URL publik langsung; legacy `forum/` & `private/` → presigned URL.
 // Di-rewrite tiap serve biar stabil (presigned expire). Nil-receiver aman
-// (storage boleh nil saat storage mati) — content dikembalikan apa adanya.
+// (storage boleh nil saat storage mati), content dikembalikan apa adanya.
 func (s *ObjectStorage) RewriteContentImages(content string) string {
 	if s == nil {
 		return content

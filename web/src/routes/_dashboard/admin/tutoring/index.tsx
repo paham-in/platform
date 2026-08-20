@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+﻿import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -66,7 +66,7 @@ function AssignTeacherDialog({ booking, onClose }: { booking: TutoringListBookin
   const { mutate: assign, isPending } = useMutation({
     ...patchAdminTutoringBookingsByIdAssignMutation(),
     onSuccess: () => {
-      toast.success("Guru ditetapkan — booking otomatis disetujui")
+      toast.success("Guru ditetapkan, booking otomatis disetujui")
       qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
       onClose()
     },
@@ -79,7 +79,7 @@ function AssignTeacherDialog({ booking, onClose }: { booking: TutoringListBookin
         <DialogHeader><DialogTitle>Assign Guru</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div className="rounded-lg bg-muted/50 px-3 py-2 text-sm">
-            <p><span className="font-medium">{booking.student_name}</span> — {booking.subject_name || "Mapel?"} · {booking.date} {booking.start_time}–{booking.end_time}</p>
+            <p><span className="font-medium">{booking.student_name}</span>, {booking.subject_name || "Mapel?"} · {booking.date} {booking.start_time}–{booking.end_time}</p>
             <p className="text-xs text-muted-foreground">{booking.note || "-"}</p>
           </div>
           <div className="space-y-2">
@@ -87,7 +87,7 @@ function AssignTeacherDialog({ booking, onClose }: { booking: TutoringListBookin
             <p className="text-xs text-muted-foreground">
               Hanya guru yang free di {booking.date} {booking.start_time}–{booking.end_time} yang ditampilkan.
             </p>
-            <p className="text-xs text-muted-foreground">Guru yang dipilih otomatis disetujui — tanpa perlu approve lagi.</p>
+            <p className="text-xs text-muted-foreground">Guru yang dipilih otomatis disetujui, tanpa perlu approve lagi.</p>
             <Combobox
               autoHighlight
               items={teachers}

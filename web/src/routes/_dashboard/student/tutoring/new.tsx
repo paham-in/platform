@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+﻿import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -33,7 +33,7 @@ const SESSION_MINUTES = 90
 
 const fmtRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`
 
-// 07:00 s/d 20:30, tiap 30 menit — biar durasi 90 menit (1 sesi les) bisa dipilih.
+// 07:00 s/d 20:30, tiap 30 menit, biar durasi 90 menit (1 sesi les) bisa dipilih.
 const TIME_OPTIONS = Array.from({ length: 28 }, (_, i) => {
   const total = 7 * 60 + i * 30
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`
@@ -206,7 +206,7 @@ function NewBooking() {
     <main className="p-4 md:p-6">
       <div className="mb-6">
         <h1 className="hidden md:block text-2xl font-bold tracking-tight">Booking Baru</h1>
-        <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam dulu, lalu pilih guru — atau kirim tanpa guru.</p>
+        <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam dulu, lalu pilih guru, atau kirim tanpa guru.</p>
       </div>
       <div className="mx-auto max-w-2xl space-y-4 md:space-y-6">
 
@@ -235,7 +235,7 @@ function NewBooking() {
             )}
             {myClasses.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                Kamu belum punya akses kelas — akses diberikan otomatis setelah pembayaran booking diverifikasi admin.
+                Kamu belum punya akses kelas, akses diberikan otomatis setelah pembayaran booking diverifikasi admin.
               </p>
             )}
           </div>
@@ -349,7 +349,7 @@ function NewBooking() {
                 </EmptyHeader>
                 <EmptyContent className="gap-1">
                   <Button variant="outline" size="sm" onClick={() => { setStart(""); setEnd(""); setDate("") }}>Cari Jam Lain</Button>
-                  <p className="px-4 text-xs text-muted-foreground">Bisa langsung kirim tanpa guru — admin yang carikan guru buat kamu.</p>
+                  <p className="px-4 text-xs text-muted-foreground">Bisa langsung kirim tanpa guru, admin yang carikan guru buat kamu.</p>
                 </EmptyContent>
               </Empty>
             ) : (
@@ -421,7 +421,7 @@ function NewBooking() {
                 <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs tabular-nums">{members.length + 1}/5</span>
               </Button>
               <p className="text-xs text-muted-foreground">
-                Pilih teman yang sudah punya akun paham.in — maksimal 4 teman (total 5 siswa termasuk kamu).
+                Pilih teman yang sudah punya akun paham.in, maksimal 4 teman (total 5 siswa termasuk kamu).
               </p>
               {members.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 pt-1">
@@ -502,7 +502,7 @@ function NewBooking() {
             <DialogTitle>Tambah Teman</DialogTitle>
             <DialogDescription>
               {slotsLeft > 0
-                ? `Cari dan pilih maksimal ${slotsLeft} teman lagi — total 5 siswa termasuk kamu.`
+                ? `Cari dan pilih maksimal ${slotsLeft} teman lagi, total 5 siswa termasuk kamu.`
                 : "Kuota grup sudah penuh (5 siswa)."}
             </DialogDescription>
           </DialogHeader>

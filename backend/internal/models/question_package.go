@@ -1,4 +1,4 @@
-package models
+﻿package models
 
 import "gorm.io/gorm"
 
@@ -10,7 +10,7 @@ type QuizPackage struct {
 	Description  string         `gorm:"size:500" json:"description"`
 	SubjectID    uint           `gorm:"not null;default:0;index" json:"subject_id"`
 	IsFree       bool           `gorm:"default:true;not null" json:"is_free"`
-	// draft | published — paket baru dibuat draft dulu, baru dipublish saat siap.
+	// draft | published, paket baru dibuat draft dulu, baru dipublish saat siap.
 	Status       string         `gorm:"size:20;default:draft" json:"status"`
 	CollectionID *uint          `gorm:"index" json:"collection_id,omitempty"`
 	Questions    []QuizQuestion `gorm:"foreignKey:PackageID" json:"questions"`

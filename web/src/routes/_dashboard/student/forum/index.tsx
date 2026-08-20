@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+﻿import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -263,7 +263,7 @@ function ForumPage() {
                     </div>
                   </div>
 
-                  {/* Jawaban teratas — indent sejajar kolom konten pertanyaan */}
+                  {/* Jawaban teratas, indent sejajar kolom konten pertanyaan */}
                   {q.top_answer && (
                     <div className="mt-3 flex items-start gap-3 pl-12">
                       <Avatar url={q.top_answer.user_avatar} name={q.top_answer.user_name} size="sm" />

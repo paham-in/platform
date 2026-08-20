@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -653,7 +653,7 @@ function AdminChapters() {
         <Dialog open onOpenChange={(o) => !o && setCoverView(null)}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Sampul — {coverView.title}</DialogTitle>
+              <DialogTitle>Sampul, {coverView.title}</DialogTitle>
               <DialogDescription className="sr-only">
                 Pratinjau sampul bab {coverView.title}.
               </DialogDescription>

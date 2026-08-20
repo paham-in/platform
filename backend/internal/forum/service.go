@@ -1,4 +1,4 @@
-package forum
+﻿package forum
 
 import (
 	"context"
@@ -31,7 +31,7 @@ func NewService(repo *Repository) *Service {
 	return &Service{repo: repo}
 }
 
-// SetStorage menginjeksi object storage (opsional — dipakai untuk menghapus
+// SetStorage menginjeksi object storage (opsional, dipakai untuk menghapus
 // file gambar saat pertanyaan dihapus).
 func (s *Service) SetStorage(store *storage.ObjectStorage) {
 	s.storage = store

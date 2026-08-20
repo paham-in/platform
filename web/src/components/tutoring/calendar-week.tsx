@@ -1,4 +1,4 @@
-import { addDays, addWeeks, format, isSameDay, parseISO, startOfWeek } from "date-fns"
+﻿import { addDays, addWeeks, format, isSameDay, parseISO, startOfWeek } from "date-fns"
 import { id } from "date-fns/locale"
 import { useEffect, useRef, useState } from "react"
 import { Calendar as CalendarIcon, CalendarClock, ChevronLeft, ChevronRight, Clock, RotateCw, Upload, XCircle } from "lucide-react"
@@ -31,7 +31,7 @@ function toMinutes(t: string) {
   return h * 60 + m
 }
 
-// isTeacher dipakai utk label yang hanya relevan utk guru — mis. status "review"
+// isTeacher dipakai utk label yang hanya relevan utk guru, mis. status "review"
 // (Menunggu Validasi). Dari sisi murid, sesi yang buktinya sedang divalidasi
 // tetap tampil sebagai "Selesai".
 function statusMeta(status?: string, isTeacher = true) {

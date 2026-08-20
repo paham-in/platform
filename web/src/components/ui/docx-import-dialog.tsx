@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+﻿import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { RichContent } from "@/components/ui/rich-content"
@@ -15,12 +15,12 @@ import { toast } from "sonner"
 import { docxToHtml, type DocxImage } from "@/lib/docx-parser"
 import { postContentTempImages } from "@/lib/api/sdk.gen"
 
-// Content materi menyimpan objectName storage (`forum/<uuid>.jpg`) — bukan URL.
+// Content materi menyimpan objectName storage (`forum/<uuid>.jpg`), bukan URL.
 // Backend rewrite objectName → presigned URL saat serve, jadi tidak perlu
 // base URL publik di frontend.
 const ALLOWED_MIME = ["image/jpeg", "image/png", "image/gif", "image/webp"]
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024
-const SKIP_NOTE = "[Gambar dilewati — sisipkan manual]"
+const SKIP_NOTE = "[Gambar dilewati, sisipkan manual]"
 
 /** Gambar siap di-upload: blob sudah pasti ada (null disaring) + blobUrl untuk preview */
 type PendingImage = Omit<DocxImage, "blob"> & { blob: Blob; blobUrl: string }
@@ -99,7 +99,7 @@ export function DocxImportDialog({
 
   // Upload semua gambar ke storage temp (public/temp_materials/), rewrite src,
   // lalu onImport. Gambar dipindahkan ke lokasi permanen saat materi di-submit.
-  // Dipanggil pas "Gunakan Konten Ini" — kalau dibatalkan, tidak ada upload.
+  // Dipanggil pas "Gunakan Konten Ini", kalau dibatalkan, tidak ada upload.
   const commitImport = async () => {
     if (!baseHtml || uploading) return
     setUploading(true)

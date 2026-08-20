@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -50,7 +50,7 @@ export function TeacherSubjectsDialog({ user, onClose }: TeacherSubjectsDialogPr
         </DialogHeader>
         <div className="space-y-1">
           <p className="text-sm text-muted-foreground">
-            {user.name} — {user.email}
+            {user.name}, {user.email}
           </p>
         </div>
         <div className="max-h-[300px] space-y-1 overflow-y-auto rounded-md border p-3">

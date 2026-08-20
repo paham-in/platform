@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+﻿import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -232,7 +232,7 @@ function PaymentsDetail() {
                       <Checkbox checked={selectedIds.has(inv.id!)} onCheckedChange={() => toggleSelect(inv.id!)} />
                     </TableCell>
                     <TableCell className="pl-0 font-medium">
-                      {inv.start_date && inv.end_date ? `${format(parseISO(inv.start_date), "dd MMM yyyy", { locale: id })} — ${format(parseISO(inv.end_date), "dd MMM yyyy", { locale: id })}` : "—"}
+                      {inv.start_date && inv.end_date ? `${format(parseISO(inv.start_date), "dd MMM yyyy", { locale: id })}, ${format(parseISO(inv.end_date), "dd MMM yyyy", { locale: id })}` : "—"}
                     </TableCell>
                     <TableCell>Rp {inv.amount?.toLocaleString("id-ID")}</TableCell>
                     <TableCell>

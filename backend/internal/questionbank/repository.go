@@ -1,4 +1,4 @@
-package questionbank
+﻿package questionbank
 
 import (
 	"bimbel2/backend/internal/models"
@@ -73,7 +73,7 @@ func (r *Repository) CreateWithAssets(q *models.QuizQuestion, questionAssets []s
 }
 
 // UpdateWithAssets mengubah field soal + mengganti aset gambar & jawaban dalam
-// satu transaksi — kalau salah satu gagal, semua ikut batal. answers == nil
+// satu transaksi, kalau salah satu gagal, semua ikut batal. answers == nil
 // berarti jawaban tidak diubah (questionAssets boleh diganti sendiri);
 // questionAssets == nil berarti aset soal/pembahasan tidak diubah.
 func (r *Repository) UpdateWithAssets(questionID uint, updates map[string]any, answers []QuizAnswerInput, questionAssets []string, answerAssets [][]string) error {
@@ -131,7 +131,7 @@ func (r *Repository) replaceAnswersTx(db *gorm.DB, questionID uint, answers []Qu
 }
 
 // ListAssets mengembalikan object name gambar aset soal/pembahasan dan semua
-// jawaban milik soal — dipakai untuk diff saat edit.
+// jawaban milik soal, dipakai untuk diff saat edit.
 func (r *Repository) ListAssets(questionID uint) (questionAssets, answerAssets []string, err error) {
 	if err = r.db.Model(&models.QuizQuestionAsset{}).Where("question_id = ?", questionID).Pluck("object_name", &questionAssets).Error; err != nil {
 		return nil, nil, err

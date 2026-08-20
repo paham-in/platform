@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+﻿import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -47,7 +47,7 @@ function modeBadge(mode?: string) {
   return <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
 }
 
-// canCancel: booking masih bisa dibatalkan murid — pending (guru belum acc)
+// canCancel: booking masih bisa dibatalkan murid, pending (guru belum acc)
 // atau confirmed tapi invoice belum lunas (murid batal sebelum bayar).
 function canCancel(b: TutoringListBookingsResponse) {
   if (b.status === "pending") return true

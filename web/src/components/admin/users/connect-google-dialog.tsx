@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -74,7 +74,7 @@ export function ConnectGoogleDialog({ user, onClose }: ConnectGoogleDialogProps)
                 items={candidates}
                 value={target}
                 onValueChange={(v) => setTarget(v ?? undefined)}
-                itemToStringLabel={(t) => (t ? `${t.name} — ${t.email}` : "")}
+                itemToStringLabel={(t) => (t ? `${t.name}, ${t.email}` : "")}
               >
                 <ComboboxInput placeholder="Pilih akun Google..." />
                 <ComboboxContent>

@@ -1,4 +1,4 @@
-package chapter
+﻿package chapter
 
 import (
 	"bimbel2/backend/internal/models"
@@ -34,7 +34,7 @@ func (r *Repository) List() ([]models.Chapter, error) {
 }
 
 // ListScoped mengembalikan chapter. classIDs non-nil membatasi ke kelas
-// tertentu (hak akses student) — ditambah chapter yang punya materi free
+// tertentu (hak akses student), ditambah chapter yang punya materi free
 // published (selaras dengan filter materi: is_free selalu bisa diakses tanpa
 // langganan). classIDs kosong → hanya chapter bermateri free. nil = semua
 // kelas (staff).

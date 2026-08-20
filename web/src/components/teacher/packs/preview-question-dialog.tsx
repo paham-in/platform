@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+﻿import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { RichContent } from "@/components/ui/rich-content"
 import type { QuestionbankQuestionResponse } from "@/lib/api/types.gen"
@@ -41,7 +41,7 @@ export function PreviewQuestionDialog({ question, onClose }: PreviewQuestionDial
             )}
 
             {(question.answers ?? []).length === 0 && (
-              <p className="text-xs text-amber-600">Soal tanpa opsi — periksa format.</p>
+              <p className="text-xs text-amber-600">Soal tanpa opsi, periksa format.</p>
             )}
           </div>
 

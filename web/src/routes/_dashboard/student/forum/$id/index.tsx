@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+﻿import { Button } from "@/components/ui/button"
 import { RichContent } from "@/components/ui/rich-content"
 import { YoutubeEmbed } from "@/components/ui/youtube-embed"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -167,7 +167,7 @@ function ForumDetail() {
         ))}
       </section>
 
-      {/* Answer form — only teachers can answer (gated inside AnswerForm) */}
+      {/* Answer form, only teachers can answer (gated inside AnswerForm) */}
       {!isOwner && <AnswerForm questionId={questionId} />}
     </main>
   )

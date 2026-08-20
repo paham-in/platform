@@ -1,4 +1,4 @@
-package devreset
+﻿package devreset
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 )
 
 // Handler khusus utility development: hapus data per tabel untuk pengujian E2E.
-// Tidak ada repository/service — langsung akses *gorm.DB.
+// Tidak ada repository/service, langsung akses *gorm.DB.
 type Handler struct {
 	db   *gorm.DB
 	cfg  *config.Config
@@ -59,7 +59,7 @@ type tableDef struct {
 	protected bool
 }
 
-// whitelist tabel aplikasi. Urutan tidak penting — delete memakai
+// whitelist tabel aplikasi. Urutan tidak penting, delete memakai
 // DISABLE TRIGGER sehingga aman dari FK. "roles" & "user_roles" dilindungi
 // (seed role & relasi admin, kalau hilang admin kehilangan akses).
 var tables = []tableDef{
@@ -167,8 +167,8 @@ func (h *Handler) ResetTable(c *fiber.Ctx) error {
 }
 
 // withTriggersDisabled menonaktifkan trigger (termasuk cek FK) pada tabel,
-// menjalankan fn, lalu mengaktifkannya kembali. Tanpa superuser — cukup
-// pemilik tabel — jadi aman buat dev DB biasa.
+// menjalankan fn, lalu mengaktifkannya kembali. Tanpa superuser, cukup
+// pemilik tabel, jadi aman buat dev DB biasa.
 func (h *Handler) withTriggersDisabled(name string, fn func(db *gorm.DB) error) error {
 	if err := h.db.Exec(fmt.Sprintf(`ALTER TABLE "%s" DISABLE TRIGGER ALL`, name)).Error; err != nil {
 		return err
@@ -202,7 +202,7 @@ func (h *Handler) resetUsers(c *fiber.Ctx) error {
 	}
 	var deleted int64
 	err := h.withTriggersDisabled("users", func(db *gorm.DB) error {
-		// hapus user_roles + sessions + users dalam satu transaksi — kalau satu
+		// hapus user_roles + sessions + users dalam satu transaksi, kalau satu
 		// langkah gagal, semua batal (bukan user tersisa separuh).
 		return db.Transaction(func(tx *gorm.DB) error {
 			if err := tx.Exec(`DELETE FROM user_roles WHERE user_id != ?`, admin.ID).Error; err != nil {

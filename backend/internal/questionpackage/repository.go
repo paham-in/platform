@@ -1,4 +1,4 @@
-package questionpackage
+﻿package questionpackage
 
 import (
 	"errors"
@@ -77,7 +77,7 @@ func (r *Repository) Update(pkg *models.QuizPackage) error {
 
 func (r *Repository) Delete(id uint) error {
 	// Hapus jawaban semua soal dalam paket, lalu soal, lalu paket (hard delete)
-	// dalam satu transaksi — kalau satu langkah gagal, semua batal.
+	// dalam satu transaksi, kalau satu langkah gagal, semua batal.
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		var qids []uint
 		if err := tx.Model(&models.QuizQuestion{}).Where("package_id = ?", id).Pluck("id", &qids).Error; err != nil {
@@ -245,7 +245,7 @@ func (r *Repository) UpdateCollection(collection *models.QuizCollection) error {
 }
 
 // DeleteCollection menghapus koleksi (hard delete). Paket di dalamnya tidak ikut terhapus
-// — collection_id di-null-kan dulu supaya FK tidak melanggar.
+//, collection_id di-null-kan dulu supaya FK tidak melanggar.
 func (r *Repository) DeleteCollection(id uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&models.QuizPackage{}).Where("collection_id = ?", id).Update("collection_id", nil).Error; err != nil {

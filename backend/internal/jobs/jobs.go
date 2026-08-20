@@ -1,4 +1,4 @@
-package jobs
+﻿package jobs
 
 import (
 	"context"
@@ -44,12 +44,12 @@ func (r *Runner) SessionCleanup() (int64, error) {
 
 // EvidenceCleanup menghapus bukti kehadiran approved yang melewati masa simpan.
 // Urutan: kosongkan evidence_url di DB dulu, baru hapus file dari storage.
-// Kalau hapus file gagal, yang tersisa hanya file orphan — DB sudah tidak
+// Kalau hapus file gagal, yang tersisa hanya file orphan, DB sudah tidak
 // menunjuk ke file, jadi tidak ada broken link dan sesi tidak akan diproses
 // ulang (tidak stuck). Mengembalikan jumlah bukti yang berhasil dihapus.
 func (r *Runner) EvidenceCleanup() (int, error) {
 	if r.objectStorage == nil {
-		log.Println("[evidence-cleanup] storage tidak tersedia — cleanup dilewati")
+		log.Println("[evidence-cleanup] storage tidak tersedia, cleanup dilewati")
 		return 0, nil
 	}
 	cutoff := time.Now().AddDate(0, 0, -r.retentionDays)
@@ -63,7 +63,7 @@ func (r *Runner) EvidenceCleanup() (int, error) {
 		if s.EvidenceURL == "" {
 			continue
 		}
-		// DB dulu, file belakangan. (S3 DeleteObject idempotent — file yang sudah
+		// DB dulu, file belakangan. (S3 DeleteObject idempotent, file yang sudah
 		// hilang bukan error, jadi tidak ada kasus "stuck" karena file tidak ada.)
 		if err := r.tutoringRepo.ClearSessionEvidence(s.ID); err != nil {
 			log.Printf("[evidence-cleanup] gagal kosongkan evidence sesi %d: %v", s.ID, err)
@@ -80,7 +80,7 @@ func (r *Runner) EvidenceCleanup() (int, error) {
 }
 
 // StartSessionCleanup menjalankan cleanup sesi sekali saat boot, lalu tiap 1 jam.
-// Panic di dalam job di-recover otomatis oleh cron.Recover — satu job yang
+// Panic di dalam job di-recover otomatis oleh cron.Recover, satu job yang
 // panik tidak mematikan server, dan jadwal berikutnya tetap berjalan.
 func (r *Runner) StartSessionCleanup() {
 	r.runSessionCleanup() // sekali saat boot, lalu tiap jam
@@ -104,11 +104,11 @@ func (r *Runner) runSessionCleanup() {
 }
 
 // StartEvidenceCleanup menjalankan cleanup bukti tiap hari pukul 00:00.
-// Panic di dalam job di-recover otomatis oleh cron.Recover — satu job yang
+// Panic di dalam job di-recover otomatis oleh cron.Recover, satu job yang
 // panik tidak mematikan server, dan jadwal berikutnya tetap berjalan.
 func (r *Runner) StartEvidenceCleanup() {
 	if r.objectStorage == nil {
-		log.Println("[evidence-cleanup] storage tidak tersedia — cleanup dilewati")
+		log.Println("[evidence-cleanup] storage tidak tersedia, cleanup dilewati")
 		return
 	}
 	c := cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)))
@@ -122,11 +122,11 @@ func (r *Runner) StartEvidenceCleanup() {
 }
 
 // TempImageCleanup menghapus gambar temp (prefix public/temp_*) yang berumur
-// lebih dari 24 jam — upload yang ditinggalkan (form tidak pernah di-submit).
+// lebih dari 24 jam, upload yang ditinggalkan (form tidak pernah di-submit).
 // Mengembalikan jumlah object yang dihapus.
 func (r *Runner) TempImageCleanup() (int, error) {
 	if r.objectStorage == nil {
-		log.Println("[temp-image-cleanup] storage tidak tersedia — cleanup dilewati")
+		log.Println("[temp-image-cleanup] storage tidak tersedia, cleanup dilewati")
 		return 0, nil
 	}
 	temps, err := r.objectStorage.ListTempImages(context.Background())
@@ -153,11 +153,11 @@ func (r *Runner) TempImageCleanup() (int, error) {
 }
 
 // StartTempImageCleanup menjalankan cleanup gambar temp tiap hari pukul 00:00.
-// Panic di dalam job di-recover otomatis oleh cron.Recover — satu job yang
+// Panic di dalam job di-recover otomatis oleh cron.Recover, satu job yang
 // panik tidak mematikan server, dan jadwal berikutnya tetap berjalan.
 func (r *Runner) StartTempImageCleanup() {
 	if r.objectStorage == nil {
-		log.Println("[temp-image-cleanup] storage tidak tersedia — cleanup dilewati")
+		log.Println("[temp-image-cleanup] storage tidak tersedia, cleanup dilewati")
 		return
 	}
 	c := cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)))

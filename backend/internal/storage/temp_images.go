@@ -1,4 +1,4 @@
-package storage
+﻿package storage
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 
 // TempContentImageRe mencocokkan referensi gambar temp di HTML content.
 // Bentuk: `public/temp_<fitur>/<uuid>.<ext>`, bisa berawalan URL publik (hasil
-// upload langsung) — prefix URL ikut di-capture untuk dinormalisasi.
+// upload langsung), prefix URL ikut di-capture untuk dinormalisasi.
 var TempContentImageRe = regexp.MustCompile(`(?:https?://[^"'\s]+/)?(public/temp_[a-z_]+/[0-9a-fA-F-]+\.(?:jpg|jpeg|png|gif|webp))(?:\?[^"'\s]*)?`)
 
 // TempImage adalah object temp yang belum di-commit ke lokasi permanen.
@@ -25,7 +25,7 @@ type TempImage struct {
 // CommitTempImages memindahkan semua gambar temp yang direferensikan di content
 // ke lokasi permanen (`public/temp_<fitur>/...` → `public/<fitur>/...`) dan
 // mengganti referensinya di HTML dengan object name baru. Content di DB selalu
-// berbentuk object name. Nil-receiver aman — content dikembalikan apa adanya.
+// berbentuk object name. Nil-receiver aman, content dikembalikan apa adanya.
 func (s *ObjectStorage) CommitTempImages(ctx context.Context, content string) (string, error) {
 	if s == nil {
 		return content, nil

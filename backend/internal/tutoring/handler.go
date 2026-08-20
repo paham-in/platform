@@ -1,4 +1,4 @@
-package tutoring
+﻿package tutoring
 
 import (
 	"bytes"
@@ -44,8 +44,8 @@ func hasRole(c *fiber.Ctx, role string) bool {
 // @Security     BearerAuth
 // @Param        subject_id  query int    false "Filter guru yang mengajar mapel ini"
 // @Param        date        query string false "Filter guru free di tanggal ini (YYYY-MM-DD)"
-// @Param        start_time  query string false "Waktu mulai (HH:mm) — wajib bila date diisi"
-// @Param        end_time    query string false "Waktu selesai (HH:mm) — wajib bila date diisi"
+// @Param        start_time  query string false "Waktu mulai (HH:mm), wajib bila date diisi"
+// @Param        end_time    query string false "Waktu selesai (HH:mm), wajib bila date diisi"
 // @Success      200 {array} ListTeachersResponse
 // @Router       /tutoring/teachers [get]
 func (h *Handler) ListTeachers(c *fiber.Ctx) error {
@@ -353,7 +353,7 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 	}
 	userID := c.Locals("user_id").(uint)
 
-	// validasi ownership/status/jendela upload SEBELUM upload file ke storage —
+	// validasi ownership/status/jendela upload SEBELUM upload file ke storage
 	// hindari file orphan kalau sesi bukan milik guru / belum waktunya.
 	if err := h.svc.ValidateEvidenceUpload(uint(id), userID); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
@@ -400,11 +400,11 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 
 	session, oldObject, err := h.svc.UploadEvidence(uint(id), userID, objectName)
 	if err != nil {
-		// file sudah ter-upload tapi simpan DB gagal — hapus biar tidak orphan.
+		// file sudah ter-upload tapi simpan DB gagal, hapus biar tidak orphan.
 		_ = h.storage.Delete(c.Context(), objectName)
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
-	// ganti foto (retake): hapus file bukti lama dari storage — best-effort,
+	// ganti foto (retake): hapus file bukti lama dari storage, best-effort,
 	// karena DB sudah konsisten menunjuk file baru.
 	if oldObject != "" && h.storage != nil {
 		_ = h.storage.Delete(c.Context(), oldObject)
@@ -473,7 +473,7 @@ func (h *Handler) AdminReviewEvidence(c *fiber.Ctx) error {
 		}
 		return c.JSON(session)
 	case "reject":
-		// hapus file storage DULU — kalau gagal, DB tidak diubah (sesi tetap
+		// hapus file storage DULU, kalau gagal, DB tidak diubah (sesi tetap
 		// review, bukti masih ada) sehingga konsisten dan bisa di-retry.
 		oldObject, err := h.svc.ValidateEvidenceReject(uint(id))
 		if err != nil {

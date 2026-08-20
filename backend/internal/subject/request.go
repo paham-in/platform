@@ -1,6 +1,6 @@
-package subject
+﻿package subject
 
-// — handler: AdminCreateSubject (POST /admin/subjects) —
+//, handler: AdminCreateSubject (POST /admin/subjects)
 
 type AdminCreateSubjectRequest struct {
 	Name      string `json:"name"`
@@ -8,7 +8,7 @@ type AdminCreateSubjectRequest struct {
 	ClassIDs  []uint `json:"class_ids"`
 }
 
-// — handler: AdminUpdateSubject (PATCH /admin/subjects/:id) —
+//, handler: AdminUpdateSubject (PATCH /admin/subjects/:id)
 
 type AdminUpdateSubjectRequest struct {
 	Name      *string `json:"name"`

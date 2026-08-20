@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 	"errors"
@@ -27,7 +27,7 @@ func main() {
 	var u models.User
 	err := db.Preload("Roles").Where("email = ?", email).First(&u).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		fmt.Printf("User dengan email %q tidak ditemukan — tidak ada yang dihapus.\n", email)
+		fmt.Printf("User dengan email %q tidak ditemukan, tidak ada yang dihapus.\n", email)
 		return
 	}
 	if err != nil {
@@ -38,7 +38,7 @@ func main() {
 
 	cleanupUser(db, u.ID)
 
-	// hapus via repository — hard delete untuk non-teacher, soft delete untuk teacher.
+	// hapus via repository, hard delete untuk non-teacher, soft delete untuk teacher.
 	// Semua child sudah di-cleanup di atas, jadi hardDelete jalan bersih.
 	userRepo := user.NewUserRepository(db)
 	if err := userRepo.Delete(u.ID); err != nil {

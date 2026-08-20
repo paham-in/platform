@@ -1,15 +1,15 @@
-package tutoring
+﻿package tutoring
 
-// — handler: ListTeachers (GET /tutoring/teachers) — query filter, bukan body —
+//, handler: ListTeachers (GET /tutoring/teachers), query filter, bukan body
 
 type ListTeachersRequest struct {
 	SubjectID *uint
-	Date      string // "YYYY-MM-DD" — jika diisi, hanya guru yang bebas di tanggal ini
+	Date      string // "YYYY-MM-DD", jika diisi, hanya guru yang bebas di tanggal ini
 	StartTime string
 	EndTime   string
 }
 
-// — handler: CreateBooking (POST /tutoring/bookings) —
+//, handler: CreateBooking (POST /tutoring/bookings)
 
 type CreateBookingRequest struct {
 	TeacherID    *uint    `json:"teacher_id"` // nil = belum ada guru, ditangani admin
@@ -24,7 +24,7 @@ type CreateBookingRequest struct {
 	MemberEmails []string `json:"member_emails"` // group: email member (wajib ≥1)
 }
 
-// — handler: AdminCreateBooking (POST /admin/tutoring/bookings) —
+//, handler: AdminCreateBooking (POST /admin/tutoring/bookings)
 
 type AdminCreateBookingRequest struct {
 	StudentID    uint     `json:"student_id"`
@@ -40,19 +40,19 @@ type AdminCreateBookingRequest struct {
 	MemberEmails []string `json:"member_emails"` // group: email member (wajib ≥1)
 }
 
-// — handler: AssignTeacher (PATCH /admin/tutoring/bookings/:id/assign) —
+//, handler: AssignTeacher (PATCH /admin/tutoring/bookings/:id/assign)
 
 type AssignTeacherRequest struct {
 	TeacherID uint `json:"teacher_id"`
 }
 
-// — handler: UpdateBookingStatus (PATCH /tutoring/bookings/:id) —
+//, handler: UpdateBookingStatus (PATCH /tutoring/bookings/:id)
 
 type UpdateBookingStatusRequest struct {
 	Status string `json:"status"`
 }
 
-// — handler: UpdateSession (PATCH /tutoring/sessions/:id) —
+//, handler: UpdateSession (PATCH /tutoring/sessions/:id)
 
 type UpdateSessionRequest struct {
 	Date      string `json:"date"`
@@ -60,13 +60,13 @@ type UpdateSessionRequest struct {
 	EndTime   string `json:"end_time"`
 }
 
-// — handler: AdminReviewEvidence (PATCH /admin/tutoring/evidence/:id) —
+//, handler: AdminReviewEvidence (PATCH /admin/tutoring/evidence/:id)
 
 type AdminReviewEvidenceRequest struct {
 	Action string `json:"action"` // approve/reject
 }
 
-// — handler: MarkEarningsTaken (PATCH /tutoring/earnings/taken) —
+//, handler: MarkEarningsTaken (PATCH /tutoring/earnings/taken)
 
 type MarkEarningsTakenRequest struct {
 	SessionIDs []uint `json:"session_ids"` // sesi yang ditandai

@@ -1,4 +1,4 @@
-import { tanstackRouter } from "@tanstack/router-plugin/vite";
+﻿import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -19,13 +19,13 @@ export default defineConfig({
       filename: "sw.ts",
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2,woff,ttf}"],
-        // Bundle utama > 2 MiB (default limit Workbox) — naikkan supaya app shell ter-precache.
+        // Bundle utama > 2 MiB (default limit Workbox), naikkan supaya app shell ter-precache.
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
       manifest: {
         name: "paham.in",
         short_name: "paham.in",
-        description: "Platform bimbel online — materi terstruktur, forum tanya-jawab, dan les privat.",
+        description: "Platform bimbel online, materi terstruktur, forum tanya-jawab, dan les privat.",
         lang: "id",
         display: "standalone",
         orientation: "portrait",

@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -39,7 +39,7 @@ export function GrantClassDialog({ onClose }: GrantClassDialogProps) {
   const [expiry, setExpiry] = useState<Date>()
   const classOptions = programs.flatMap((p) =>
     (p.classes ?? []).map((c) => ({
-      label: `${p.name ?? ""} — ${c.name ?? ""}`,
+      label: `${p.name ?? ""}, ${c.name ?? ""}`,
       value: String(c.id),
     }))
   )
@@ -80,7 +80,7 @@ export function GrantClassDialog({ onClose }: GrantClassDialogProps) {
               items={users}
               value={user}
               onValueChange={(v) => setUser(v ?? undefined)}
-              itemToStringLabel={(u) => (u ? `${u.name} — ${u.email}` : "")}
+              itemToStringLabel={(u) => (u ? `${u.name}, ${u.email}` : "")}
             >
               <ComboboxInput placeholder={users.length ? "Pilih murid..." : "Tidak ada murid"} />
               <ComboboxContent>

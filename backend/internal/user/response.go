@@ -1,45 +1,45 @@
-package user
+﻿package user
 
 import "bimbel2/backend/internal/models"
 
-// ErrorResponse adalah envelope error generik yang dipakai semua handler —
+// ErrorResponse adalah envelope error generik yang dipakai semua handler
 // sengaja dibiarkan shared (isi selalu sama: pesan error), bukan response
 // khusus satu handler.
 type ErrorResponse struct {
 	Error string `json:"error" example:"error message"`
 }
 
-// — handler: Logout (POST /logout) —
+//, handler: Logout (POST /logout)
 
 type LogoutResponse struct {
 	Message string `json:"message" example:"berhasil logout"`
 }
 
-// — handler: AdminUpdateRole (PATCH /admin/users/:id/role) —
+//, handler: AdminUpdateRole (PATCH /admin/users/:id/role)
 
 type AdminUpdateRoleResponse struct {
 	Message string `json:"message" example:"role berhasil diubah"`
 }
 
-// — handler: AdminUpdateEmail (PATCH /admin/users/:id/email) —
+//, handler: AdminUpdateEmail (PATCH /admin/users/:id/email)
 
 type AdminUpdateEmailResponse struct {
 	Message string `json:"message" example:"email berhasil diubah"`
 }
 
-// — handler: AdminUpdateTeacherPermissions (PATCH /admin/users/:id/permissions) —
+//, handler: AdminUpdateTeacherPermissions (PATCH /admin/users/:id/permissions)
 
 type AdminUpdateTeacherPermissionsResponse struct {
 	Message string `json:"message" example:"izin berhasil diubah"`
 }
 
-// — handler: AdminDeleteUser (DELETE /admin/users/:id) —
+//, handler: AdminDeleteUser (DELETE /admin/users/:id)
 
 type AdminDeleteUserResponse struct {
 	Message string `json:"message" example:"user berhasil dihapus"`
 }
 
-// — handler: AdminTogglePayment (PATCH /admin/users/:id/payment) —
+//, handler: AdminTogglePayment (PATCH /admin/users/:id/payment)
 
 type AdminTogglePaymentResponse struct {
 	Message string `json:"message" example:"status berhasil diubah"`
@@ -72,14 +72,14 @@ func tpBool(u *models.TeacherPermission, field string) bool {
 	return false
 }
 
-// AuthResponse dipakai service OAuth (GoogleCallback redirect) — bukan response
+// AuthResponse dipakai service OAuth (GoogleCallback redirect), bukan response
 // JSON handler, jadi tetap shared sebagai DTO service.
 type AuthResponse struct {
 	Token string     `json:"token"`
 	User  MeResponse `json:"user"`
 }
 
-// — handler: Me (GET /me) —
+//, handler: Me (GET /me)
 
 type MeResponse struct {
 	ID                        uint          `json:"id"`
@@ -107,7 +107,7 @@ func newMeResponse(u models.User) MeResponse {
 	}
 }
 
-// — handler: UpdateProfile (PATCH /me) —
+//, handler: UpdateProfile (PATCH /me)
 
 type UpdateProfileResponse struct {
 	ID                        uint          `json:"id"`
@@ -135,7 +135,7 @@ func newUpdateProfileResponse(u models.User) UpdateProfileResponse {
 	}
 }
 
-// — handler: AdminListUsers (GET /admin/users) & AdminListStudents (GET /admin/students) —
+//, handler: AdminListUsers (GET /admin/users) & AdminListStudents (GET /admin/students)
 
 type AdminListUsersResponse struct {
 	ID                        uint          `json:"id"`
@@ -169,7 +169,7 @@ func newAdminListUsersResponse(u models.User) AdminListUsersResponse {
 	}
 }
 
-// — handler: AdminCreateUser (POST /admin/users) —
+//, handler: AdminCreateUser (POST /admin/users)
 
 type AdminCreateUserResponse struct {
 	ID                        uint          `json:"id"`
@@ -203,7 +203,7 @@ func newAdminCreateUserResponse(u models.User) AdminCreateUserResponse {
 	}
 }
 
-// — handler: AdminMergeUser (POST /admin/users/:id/merge) —
+//, handler: AdminMergeUser (POST /admin/users/:id/merge)
 
 type AdminMergeUserResponse struct {
 	ID                        uint          `json:"id"`
@@ -237,7 +237,7 @@ func newAdminMergeUserResponse(u models.User) AdminMergeUserResponse {
 	}
 }
 
-// — handler: AdminUpdateTeacherSubjects (PATCH /admin/users/:id/subjects) —
+//, handler: AdminUpdateTeacherSubjects (PATCH /admin/users/:id/subjects)
 
 type AdminUpdateTeacherSubjectsResponse struct {
 	ID                        uint          `json:"id"`

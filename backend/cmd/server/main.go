@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 	"log"
@@ -61,7 +61,7 @@ func main() {
 		log.Printf("Warning: storage (rustfs) not available: %v", err)
 	}
 
-	// runner untuk background job (cron) — bisa juga dipanggil manual lewat devreset.
+	// runner untuk background job (cron), bisa juga dipanggil manual lewat devreset.
 	jobRunner := jobs.New(db, objectStorage, cfg.EvidenceRetentionDays)
 
 	app := fiber.New(fiber.Config{
@@ -109,11 +109,11 @@ func main() {
 
 	// Teacher + admin shared resources (register first so teacher can pass)
 	staff := app.Group("/admin", middleware.SessionRequired(), middleware.SessionResolver(db), middleware.RoleAllowed("admin", "teacher"))
-	// Resource non-konten — tetap terbuka utk semua teacher.
+	// Resource non-konten, tetap terbuka utk semua teacher.
 	class.AdminRoutes(staff, db)
 	subject.AdminRoutes(staff, db)
 
-	// Kelola materi (materi + chapter + cover) — admin selalu, teacher butuh izin.
+	// Kelola materi (materi + chapter + cover), admin selalu, teacher butuh izin.
 	content := staff.Group("", middleware.ContentManager(db, "materials"))
 	material.AdminRoutes(content, db, objectStorage)
 	chapter.AdminRoutes(content, db, objectStorage)
@@ -121,7 +121,7 @@ func main() {
 		chapter.CoverRoutes(content, db, objectStorage)
 	}
 
-	// Kelola paket soal (paket + soal) — admin selalu, teacher butuh izin.
+	// Kelola paket soal (paket + soal), admin selalu, teacher butuh izin.
 	packs := staff.Group("", middleware.ContentManager(db, "question_packages"))
 	questionpackage.Routes(packs, db, objectStorage)
 	questionbank.Routes(packs, db, objectStorage)

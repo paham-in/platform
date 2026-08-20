@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+﻿import { useEffect, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
@@ -166,7 +166,7 @@ function AdminTutoringNew() {
                 // ganti murid utama → buang member yang sama (id/email) biar tidak dobel
                 if (v) setMembers((prev) => prev.filter((m) => m.id !== v.id && m.email !== v.email))
               }}
-              itemToStringLabel={(u) => (u ? `${u.name} — ${u.email}` : "")}
+              itemToStringLabel={(u) => (u ? `${u.name}, ${u.email}` : "")}
             >
               <ComboboxInput id="admin-booking-student" placeholder={students.length ? "Pilih murid..." : "Tidak ada murid"} />
               <ComboboxContent>
@@ -260,7 +260,7 @@ function AdminTutoringNew() {
                     setMemberPick(null)
                   }
                 }}
-                itemToStringLabel={(u) => (u ? `${u.name} — ${u.email}` : "")}
+                itemToStringLabel={(u) => (u ? `${u.name}, ${u.email}` : "")}
               >
                 <ComboboxInput id="admin-booking-member" placeholder="Pilih murid (max 4)..." />
                 <ComboboxContent>

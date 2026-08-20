@@ -1,4 +1,4 @@
-package questionbank
+﻿package questionbank
 
 import (
 	"errors"
@@ -94,7 +94,7 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
 
-	// Ambil user_id dari session (pembuat soal) — tidak bisa dipalsukan frontend.
+	// Ambil user_id dari session (pembuat soal), tidak bisa dipalsukan frontend.
 	if userID, ok := c.Locals("user_id").(uint); ok && userID > 0 {
 		input.UserID = userID
 	}

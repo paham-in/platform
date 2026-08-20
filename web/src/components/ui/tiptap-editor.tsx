@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+﻿import { useEffect, useRef, useState } from "react"
 import {
   BoldIcon,
   Heading1Icon,
@@ -128,7 +128,7 @@ export function TiptapEditor({
   }
 
   // insertPlaceholder menyisipkan node kotak dashed + spinner (feedback loading)
-  // lalu mengembalikan id-nya — dipakai untuk mengganti node saat upload selesai.
+  // lalu mengembalikan id-nya, dipakai untuk mengganti node saat upload selesai.
   const insertPlaceholder = (view: EditorView, pos?: number): string => {
     const id = crypto.randomUUID()
     const node = view.state.schema.nodes.uploadPlaceholder.create({ id })
@@ -170,7 +170,7 @@ export function TiptapEditor({
           if (url) replacePlaceholder(view, id, url)
           else removePlaceholder(view, id)
         } catch {
-          // editor sudah di-unmount — transaksi dibuang
+          // editor sudah di-unmount, transaksi dibuang
         }
         setPendingUploads((n) => n - 1)
       })

@@ -1,4 +1,4 @@
-import JSZip from "jszip"
+﻿import JSZip from "jszip"
 
 // ============================================================
 // Parser .docx → soal bank soal
@@ -83,7 +83,7 @@ function firstDescendant(el: Element, localName: string): Element | null {
 }
 
 /** Kumpulkan text dari semua <w:t> (Word text) di dalam elemen.
- *  Jangan ambil <m:t> (math text) — itu bagian dari rumus, bukan teks biasa.
+ *  Jangan ambil <m:t> (math text), itu bagian dari rumus, bukan teks biasa.
  */
 function collectText(el: Element): string {
   return descendants(el, "t")
@@ -104,7 +104,7 @@ function isMathElement(el: Element): boolean {
   return tag.startsWith("m:")
 }
 
-/** Kumpulkan text dari <m:t> (math text) — untuk konversi OMML→LaTeX */
+/** Kumpulkan text dari <m:t> (math text), untuk konversi OMML→LaTeX */
 function collectMathText(el: Element): string {
   return descendants(el, "t")
     .filter((t) => isMathElement(t))
@@ -334,7 +334,7 @@ function convertMathElement(el: Element): string {
       return childrenToLatex(el)
     case "t":
       return mapSymbols(escapeLatexText(el.textContent ?? ""))
-    // Prudential / metadata elements — skip
+    // Prudential / metadata elements, skip
     case "dPr":
     case "rPr":
     case "naryPr":
@@ -354,7 +354,7 @@ function convertMathElement(el: Element): string {
     case "supHide":
       return ""
     default: {
-      // Unknown element — fallback: extract any text so content is not lost
+      // Unknown element, fallback: extract any text so content is not lost
       const text = collectText(el)
       if (text) return mapSymbols(text)
       return childrenToLatex(el)
@@ -513,7 +513,7 @@ function extractImageHtml(el: Element, sink?: DocxImage[]): string {
   const blip = firstDescendant(el, "blip")
   let rId = blip ? embedRid(blip) : null
   if (!rId) {
-    // <w:pict><v:imagedata r:id="..."/> — format lama
+    // <w:pict><v:imagedata r:id="..."/>, format lama
     const imagedata = firstDescendant(el, "imagedata")
     rId = imagedata ? embedRid(imagedata) : null
   }
@@ -566,7 +566,7 @@ function parseParagraphElement(p: Element, numbering: Map<number, "ol" | "ul">, 
       listType = detectListType(child, numbering)
       blockTag = detectBlockTag(child)
     } else if (localName === "bookmarkStart" || localName === "bookmarkEnd") {
-      // structural — ignore
+      // structural, ignore
     } else if (localName === "drawing" || localName === "pict") {
       html += extractImageHtml(child, imageSink)
     } else {
@@ -618,7 +618,7 @@ function htmlHasMark(html: string): boolean {
 }
 
 /**
- * Hapus tag <mark> dari HTML — highlight hanya dipakai untuk deteksi
+ * Hapus tag <mark> dari HTML, highlight hanya dipakai untuk deteksi
  * jawaban benar, tidak ikut tersimpan ke konten tiptap.
  */
 function stripMark(html: string): string {
@@ -713,7 +713,7 @@ export function paragraphsToHtml(paras: ParsedParagraph[]): string {
 /**
  * Konversi satu file .docx → HTML siap masuk editor Tiptap + daftar gambar ter-ekstrak.
  * Heading Word (Heading1/2/3) jadi <h1>/<h2>/<h3>; rumus OMML jadi math LaTeX span.
- * Gambar (inline/standalone) jadi <img src="%%DOCX_IMG_n%%"> — blob di-resolve di sini,
+ * Gambar (inline/standalone) jadi <img src="%%DOCX_IMG_n%%">, blob di-resolve di sini,
  * upload ke storage dilakukan pemanggil (browser tidak bisa langsung baca isi zip).
  */
 export async function docxToHtml(file: File): Promise<DocxToHtmlResult> {
@@ -834,7 +834,7 @@ function buildQuestionsNatural(paras: ParsedParagraph[]): ImportQuestion[] {
       continue
     }
 
-    // Line continuation — append to current question (e.g. multi-line question)
+    // Line continuation, append to current question (e.g. multi-line question)
     if (current && text) {
       if (current.options.length === 0) {
         current.question += para.html || `<p>${text}</p>`
@@ -921,13 +921,13 @@ type StripKind = "question" | "option" | "explanation"
 
 /**
  * Buat HTML untuk body (tanpa prefix nomor/huruf seperti "1.", "A.", "Pembahasan:").
- * Memakai regex berbasis jenis elemen agar aman — tidak mengandalkan kesejajaran
+ * Memakai regex berbasis jenis elemen agar aman, tidak mengandalkan kesejajaran
  * index antara text polos dan HTML (yang bisa berbeda karena math span).
  */
 /**
  * Hapus prefix (nomor/huruf/pembahasan) dari awal konten <p> secara struktural.
  * Memakai DOMParser agar aman terhadap formatting yang membungkus prefix
- * (mis. <strong>1.</strong>) dan math span — tidak memotong tag HTML.
+ * (mis. <strong>1.</strong>) dan math span, tidak memotong tag HTML.
  */
 function stripPrefix(html: string, kind: StripKind): string {
   const prefixRe =

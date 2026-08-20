@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -27,7 +27,7 @@ export function EditPackageDialog({ pkg, onClose }: EditPackageDialogProps) {
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
   const collectionOptions = collections.map((g) => ({
-    label: `${g.name ?? ""} — ${g.class_name ?? "?"}`,
+    label: `${g.name ?? ""}, ${g.class_name ?? "?"}`,
     value: String(g.id),
   }))
 

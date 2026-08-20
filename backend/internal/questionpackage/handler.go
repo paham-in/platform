@@ -1,4 +1,4 @@
-package questionpackage
+﻿package questionpackage
 
 import (
 	"errors"
@@ -426,7 +426,7 @@ func (h *Handler) WorkQuestions(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
-// WorkQuestionResponse — soal untuk student (dengan opsi jawaban, tanpa kunci).
+// WorkQuestionResponse, soal untuk student (dengan opsi jawaban, tanpa kunci).
 type WorkQuestionResponse struct {
 	ID       uint                       `json:"id"`
 	Question string                     `json:"question"`

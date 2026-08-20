@@ -1,4 +1,4 @@
-package tutoring
+﻿package tutoring
 
 import (
 	"crypto/rand"
@@ -136,7 +136,7 @@ func (s *Service) CreateBooking(studentID uint, input CreateBookingRequest) (*Cr
 }
 
 func (s *Service) createOrganizer(studentID uint, input CreateBookingRequest) (*CreateBookingResponse, error) {
-	// kelas booking wajib diisi — ambil dari langganan aktif kalau tidak dikirim
+	// kelas booking wajib diisi, ambil dari langganan aktif kalau tidak dikirim
 	if input.ClassID == nil {
 		classID, err := s.resolveStudentClassID(studentID)
 		if err != nil {
@@ -298,7 +298,7 @@ func (s *Service) resolveGroupMembers(organizerID uint, emails []string) ([]uint
 		memberIDs = append(memberIDs, id)
 	}
 	if len(missing) > 0 {
-		return nil, fmt.Errorf("email belum terdaftar: %s — minta daftar dulu", strings.Join(missing, ", "))
+		return nil, fmt.Errorf("email belum terdaftar: %s, minta daftar dulu", strings.Join(missing, ", "))
 	}
 	if len(memberIDs) == 0 {
 		return nil, errors.New("daftarkan minimal 1 email teman")
@@ -402,7 +402,7 @@ func (s *Service) validateSubjectProgram(subjectID, classID uint) error {
 
 // AdminCreateBooking daftarkan les privat manual atas nama murid.
 // Langsung status confirmed + generate sesi & invoice (admin tinggal tandai lunas).
-// Semua write (booking + sesi + invoice) dalam satu transaksi — atomicity.
+// Semua write (booking + sesi + invoice) dalam satu transaksi, atomicity.
 func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCreateBookingResponse, error) {
 	if input.Mode == "" {
 		input.Mode = "private"
@@ -426,7 +426,7 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 		return nil, err
 	}
 
-	// kelas booking wajib diisi — ambil dari langganan aktif kalau tidak dikirim
+	// kelas booking wajib diisi, ambil dari langganan aktif kalau tidak dikirim
 	if input.ClassID == nil {
 		classID, err := s.resolveStudentClassID(input.StudentID)
 		if err != nil {
@@ -545,7 +545,7 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 			return err
 		}
 
-		// baca via tx — s.repo.GetBooking (s.db) tidak terlihat row yg belum commit
+		// baca via tx, s.repo.GetBooking (s.db) tidak terlihat row yg belum commit
 		created, err := s.repo.GetBookingWithDB(tx, booking.ID)
 		if err != nil {
 			return err
@@ -566,21 +566,21 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 
 // AdminDeleteBooking menghapus booking beserta sesi & invoice terkait (admin).
 // Dipakai utk koreksi booking manual yang salah input. Booking yang invoice-nya
-// sudah lunas ditolak — riwayat pembayaran tidak boleh hilang.
+// sudah lunas ditolak, riwayat pembayaran tidak boleh hilang.
 func (s *Service) AdminDeleteBooking(id uint) error {
 	if _, err := s.repo.GetBooking(id); err != nil {
 		return errors.New("booking tidak ditemukan")
 	}
 	var paid models.Invoice
 	if err := s.repo.db.Where("booking_id = ? AND status = ?", id, "paid").First(&paid).Error; err == nil {
-		return errors.New("booking sudah punya invoice lunas — tidak bisa dihapus")
+		return errors.New("booking sudah punya invoice lunas, tidak bisa dihapus")
 	}
 	return s.repo.DeleteBookingCascade(id)
 }
 
 // checkBookingConflict mengecek keseluruhan bentrokan jadwal guru: booking
 // existing pada date+time, dan sesi pertemuan yang sudah di-expand dari booking
-// berulang (multi-week). Dipanggil saat create/assign booking — termasuk path
+// berulang (multi-week). Dipanggil saat create/assign booking, termasuk path
 // admin yang langsung confirmed + generate sesi.
 func (s *Service) checkBookingConflict(teacherID uint, date, startTime, endTime string) error {
 	if err := s.checkTeacherConflict(teacherID, date, startTime, endTime, ""); err != nil {
@@ -639,7 +639,7 @@ func minutesToHHMM(min int) string {
 const sessionDurationMinutes = 90
 
 // sessionsPerWeekFor menghitung jumlah sesi 90-menit dalam satu blok (start..end).
-// Durasi harus kelipatan 90 — kalau tidak, tolak.
+// Durasi harus kelipatan 90, kalau tidak, tolak.
 func sessionsPerWeekFor(start, end string) (int, error) {
 	s, err := timeToMinutes(start)
 	if err != nil {
@@ -679,7 +679,7 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Updat
 		return nil, errors.New("booking tidak ditemukan")
 	}
 	if booking.TeacherID == nil {
-		return nil, errors.New("booking belum punya guru — ditangani admin")
+		return nil, errors.New("booking belum punya guru, ditangani admin")
 	}
 	if *booking.TeacherID != teacherID {
 		return nil, errors.New("hanya guru terkait yang bisa mengubah status")
@@ -699,7 +699,7 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Updat
 	}
 
 	if status == "rejected" {
-		// status semua anggota grup di-update dalam satu transaksi — kalau satu
+		// status semua anggota grup di-update dalam satu transaksi, kalau satu
 		// member gagal, tidak ada yang ke-commit separuh (sama seperti path confirmed).
 		err := s.db.Transaction(func(tx *gorm.DB) error {
 			for _, b := range targets {
@@ -716,7 +716,7 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Updat
 			return nil, err
 		}
 	} else {
-		// status booking + sesi + invoice dalam satu transaksi — kalau satu
+		// status booking + sesi + invoice dalam satu transaksi, kalau satu
 		// member grup gagal, tidak ada yang ke-commit separuh.
 		err := s.db.Transaction(func(tx *gorm.DB) error {
 			for _, b := range targets {
@@ -760,7 +760,7 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Updat
 // Bisa dilakukan saat status pending (guru belum acc) atau confirmed sebelum
 // invoice lunas. Sesi yang masih terjadwal ikut dibatalkan, invoice yang belum
 // lunas dihapus. Booking yang sudah lunas / punya pertemuan berjalan tidak bisa
-// dibatalkan sendiri — hubungi admin. Grup: hanya booking murid yang bersangkutan
+// dibatalkan sendiri, hubungi admin. Grup: hanya booking murid yang bersangkutan
 // yang dibatalkan, anggota lain tidak terpengaruh.
 func (s *Service) CancelBooking(id, studentID uint) (*CancelBookingResponse, error) {
 	booking, err := s.repo.GetBooking(id)
@@ -778,7 +778,7 @@ func (s *Service) CancelBooking(id, studentID uint) (*CancelBookingResponse, err
 	case "confirmed":
 		var paid models.Invoice
 		if err := s.repo.db.Where("booking_id = ? AND status = ?", id, "paid").First(&paid).Error; err == nil {
-			return nil, errors.New("booking sudah lunas — hubungi admin untuk pembatalan")
+			return nil, errors.New("booking sudah lunas, hubungi admin untuk pembatalan")
 		}
 		var started int64
 		if err := s.repo.db.Model(&models.TutoringSession{}).
@@ -787,7 +787,7 @@ func (s *Service) CancelBooking(id, studentID uint) (*CancelBookingResponse, err
 			return nil, err
 		}
 		if started > 0 {
-			return nil, errors.New("booking sudah ada pertemuan berjalan — hubungi admin")
+			return nil, errors.New("booking sudah ada pertemuan berjalan, hubungi admin")
 		}
 	}
 
@@ -888,7 +888,7 @@ func (s *Service) resolveStudentClassID(studentID uint) (*uint, error) {
 	}
 	switch len(ids) {
 	case 0:
-		return nil, errors.New("kamu belum punya akses kelas — hubungi admin")
+		return nil, errors.New("kamu belum punya akses kelas, hubungi admin")
 	case 1:
 		return &ids[0], nil
 	default:
@@ -975,7 +975,7 @@ func (s *Service) createSessionsAndInvoice(db *gorm.DB, booking models.Booking) 
 		StartDate: startDate.Format("2006-01-02"),
 		EndDate:   endDate.AddDate(0, 0, 7).Format("2006-01-02"), // sesi terakhir + 7 hari akses
 		Status:    "pending",
-		Note:      fmt.Sprintf("Les %s — %d sesi", modeLabel, booking.SessionCount),
+		Note:      fmt.Sprintf("Les %s, %d sesi", modeLabel, booking.SessionCount),
 		BookingID: &booking.ID,
 		ClassID:   booking.ClassID, // grant StudentClass saat invoice lunas
 	}
@@ -1125,7 +1125,7 @@ func (s *Service) checkEvidenceEligible(sessionID, teacherID uint) (*models.Tuto
 	}
 	now := time.Now()
 	if now.Before(start) {
-		return nil, errors.New("sesi belum dimulai — upload bukti setelah jam mulai")
+		return nil, errors.New("sesi belum dimulai, upload bukti setelah jam mulai")
 	}
 	deadline := end.Add(evidenceWindowDays * 24 * time.Hour)
 	if now.After(deadline) {
@@ -1134,7 +1134,7 @@ func (s *Service) checkEvidenceEligible(sessionID, teacherID uint) (*models.Tuto
 	return session, nil
 }
 
-// ValidateEvidenceUpload dipanggil handler SEBELUM upload file ke storage —
+// ValidateEvidenceUpload dipanggil handler SEBELUM upload file ke storage
 // supaya file tidak ter-upload percuma (lalu jadi orphan) kalau sesi bukan
 // milik guru / bukan scheduled / di luar jendela waktu.
 func (s *Service) ValidateEvidenceUpload(sessionID, teacherID uint) error {
@@ -1213,7 +1213,7 @@ func (s *Service) ApproveEvidence(sessionID uint) (*AdminReviewEvidenceResponse,
 
 // ValidateEvidenceReject memvalidasi sesi punya bukti yang menunggu validasi
 // dan mengembalikan objectName-nya. Dipanggil handler SEBELUM menghapus file
-// storage — kalau hapus file gagal, DB tidak diubah (tetap konsisten, bisa retry).
+// storage, kalau hapus file gagal, DB tidak diubah (tetap konsisten, bisa retry).
 func (s *Service) ValidateEvidenceReject(sessionID uint) (string, error) {
 	session, err := s.repo.GetSession(sessionID)
 	if err != nil {

@@ -1,4 +1,4 @@
-package chapter
+﻿package chapter
 
 import (
 	"strconv"
@@ -79,7 +79,7 @@ func (h *CoverHandler) UploadCover(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal menyimpan cover"})
 	}
 
-	// hapus cover lama — di sini DB sudah menunjuk file baru, jadi kalau
+	// hapus cover lama, di sini DB sudah menunjuk file baru, jadi kalau
 	// hapus file lama gagal, cover lama cuma jadi orphan (tidak merusak state).
 	// PREFIX: `covers/` (legacy) maupun `public/covers/` (baru).
 	if oldCoverURL != "" && (strings.HasPrefix(oldCoverURL, "covers/") || strings.HasPrefix(oldCoverURL, "public/covers/")) {

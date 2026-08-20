@@ -1,4 +1,4 @@
-package subject
+﻿package subject
 
 import (
 	"bimbel2/backend/internal/models"
@@ -61,7 +61,7 @@ func (r *Repository) HasClassOutsideProgram(programID uint, classIDs []uint) (bo
 }
 
 // CreateWithClasses membuat subject + relasi class_subjects dalam satu
-// transaksi — kalau SetClasses gagal, subject ikut batal (bukan subject yatim).
+// transaksi, kalau SetClasses gagal, subject ikut batal (bukan subject yatim).
 func (r *Repository) CreateWithClasses(subject *models.Subject, classIDs []uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(subject).Error; err != nil {

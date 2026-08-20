@@ -1,4 +1,4 @@
-package material
+﻿package material
 
 import (
 	"errors"
@@ -268,7 +268,7 @@ func (h *Handler) GetMaterial(c *fiber.Ctx) error {
 
 	// premium butuh akses kelas tempat materi ini berada
 	if !material.IsFree && !middleware.CanAccessClass(c, h.db, material.ClassID) {
-		return c.Status(403).JSON(ErrorResponse{Error: "materi ini berbayar — berlangganan dulu"})
+		return c.Status(403).JSON(ErrorResponse{Error: "materi ini berbayar, berlangganan dulu"})
 	}
 
 	return c.JSON(material)

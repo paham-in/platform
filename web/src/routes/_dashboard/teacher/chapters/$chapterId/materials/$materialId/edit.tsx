@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -67,7 +67,7 @@ function EditMaterial() {
   const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
   const [editorUploading, setEditorUploading] = useState(false);
 
-  // init from server data — only if no draft restore
+  // init from server data, only if no draft restore
   useEffect(() => {
     if (!material || initialLoad || restored) return;
     setTitle(material.title ?? "");

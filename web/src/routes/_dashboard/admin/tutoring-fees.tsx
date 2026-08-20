@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+﻿import { useEffect, useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -284,7 +284,7 @@ function AdminSettings() {
         <Card>
           <CardHeader>
             <CardTitle>Harga Les Privat</CardTitle>
-            <CardDescription>Biaya per pertemuan — dipakai saat murid booking les.</CardDescription>
+            <CardDescription>Biaya per pertemuan, dipakai saat murid booking les.</CardDescription>
           </CardHeader>
           <CardContent className="px-0">
             <Table>

@@ -1,4 +1,4 @@
-package user
+﻿package user
 
 import (
 	"bimbel2/backend/internal/models"
@@ -165,7 +165,7 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 	if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.Invoice{}).Error; err != nil {
 		return err
 	}
-	// booking les privat (sebagai teacher atau student) — hapus dulu sesi &
+	// booking les privat (sebagai teacher atau student), hapus dulu sesi &
 	// invoice yang merujuk booking-nya (FK constraint), lalu booking itu sendiri.
 	var bid []uint
 	if err := tx.Model(&models.Booking{}).Unscoped().
@@ -238,7 +238,7 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 
 // Merge memindahkan data milik akun dummy (booking, invoice, akses kelas,
 // langganan push, forum) ke akun target lalu menghapus akun dummy.
-// Satu transaksi — kalau satu langkah gagal, semua batal (atomic).
+// Satu transaksi, kalau satu langkah gagal, semua batal (atomic).
 func (r *UserRepository) Merge(dummyID, targetID uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		var dummy, target models.User

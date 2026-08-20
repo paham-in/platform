@@ -1,4 +1,4 @@
-import { useState } from "react"
+﻿import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -144,7 +144,7 @@ function SettingsPage() {
           const win = window.open(url, "_blank")
           if (win) return
         } catch {
-          // diblokir — fall through ke dialog
+          // diblokir, fall through ke dialog
         }
       }
     }

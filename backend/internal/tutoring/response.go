@@ -1,4 +1,4 @@
-package tutoring
+﻿package tutoring
 
 import "bimbel2/backend/internal/models"
 
@@ -138,7 +138,7 @@ func buildSessionItem(v models.TutoringSession) sessionItem {
 	}
 }
 
-// — handler: ListTeachers (GET /tutoring/teachers) —
+//, handler: ListTeachers (GET /tutoring/teachers)
 
 type ListTeachersResponse struct {
 	ID        uint          `json:"id"`
@@ -158,7 +158,7 @@ func newListTeachersResponse(u models.User) ListTeachersResponse {
 	}
 }
 
-// — handler: ListBookings (GET /tutoring/bookings) —
+//, handler: ListBookings (GET /tutoring/bookings)
 
 type ListBookingsResponse struct {
 	ID            uint   `json:"id"`
@@ -185,7 +185,7 @@ func newListBookingsResponse(b models.Booking) ListBookingsResponse {
 	return ListBookingsResponse(buildBookingItem(b))
 }
 
-// — handler: CreateBooking (POST /tutoring/bookings) —
+//, handler: CreateBooking (POST /tutoring/bookings)
 
 type CreateBookingResponse struct {
 	ID            uint   `json:"id"`
@@ -212,7 +212,7 @@ func newCreateBookingResponse(b models.Booking) CreateBookingResponse {
 	return CreateBookingResponse(buildBookingItem(b))
 }
 
-// — handler: AdminListBookings (GET /admin/tutoring/bookings) —
+//, handler: AdminListBookings (GET /admin/tutoring/bookings)
 
 type AdminListBookingsResponse struct {
 	ID            uint   `json:"id"`
@@ -239,7 +239,7 @@ func newAdminListBookingsResponse(b models.Booking) AdminListBookingsResponse {
 	return AdminListBookingsResponse(buildBookingItem(b))
 }
 
-// — handler: AdminCreateBooking (POST /admin/tutoring/bookings) —
+//, handler: AdminCreateBooking (POST /admin/tutoring/bookings)
 
 type AdminCreateBookingResponse struct {
 	ID            uint   `json:"id"`
@@ -266,7 +266,7 @@ func newAdminCreateBookingResponse(b models.Booking) AdminCreateBookingResponse 
 	return AdminCreateBookingResponse(buildBookingItem(b))
 }
 
-// — handler: AdminDeleteBooking (DELETE /admin/tutoring/bookings/:id) —
+//, handler: AdminDeleteBooking (DELETE /admin/tutoring/bookings/:id)
 
 type AdminDeleteBookingResponse struct {
 	Message string `json:"message"`
@@ -276,7 +276,7 @@ func newAdminDeleteBookingResponse() AdminDeleteBookingResponse {
 	return AdminDeleteBookingResponse{Message: "booking berhasil dihapus"}
 }
 
-// — handler: AssignTeacher (PATCH /admin/tutoring/bookings/:id/assign) —
+//, handler: AssignTeacher (PATCH /admin/tutoring/bookings/:id/assign)
 
 type AssignTeacherResponse struct {
 	ID            uint   `json:"id"`
@@ -303,7 +303,7 @@ func newAssignTeacherResponse(b models.Booking) AssignTeacherResponse {
 	return AssignTeacherResponse(buildBookingItem(b))
 }
 
-// — handler: ListSessions (GET /tutoring/sessions) —
+//, handler: ListSessions (GET /tutoring/sessions)
 
 type ListSessionsResponse struct {
 	ID          uint    `json:"id"`
@@ -328,7 +328,7 @@ func newListSessionsResponse(v models.TutoringSession) ListSessionsResponse {
 	return ListSessionsResponse(buildSessionItem(v))
 }
 
-// — handler: UpdateSession (PATCH /tutoring/sessions/:id) —
+//, handler: UpdateSession (PATCH /tutoring/sessions/:id)
 
 type UpdateSessionResponse struct {
 	ID          uint    `json:"id"`
@@ -353,7 +353,7 @@ func newUpdateSessionResponse(v models.TutoringSession) UpdateSessionResponse {
 	return UpdateSessionResponse(buildSessionItem(v))
 }
 
-// — handler: CancelSession (POST /tutoring/sessions/:id/cancel) —
+//, handler: CancelSession (POST /tutoring/sessions/:id/cancel)
 
 type CancelSessionResponse struct {
 	ID          uint    `json:"id"`
@@ -378,7 +378,7 @@ func newCancelSessionResponse(v models.TutoringSession) CancelSessionResponse {
 	return CancelSessionResponse(buildSessionItem(v))
 }
 
-// — handler: UploadSessionEvidence (POST /tutoring/sessions/:id/evidence) —
+//, handler: UploadSessionEvidence (POST /tutoring/sessions/:id/evidence)
 
 type UploadSessionEvidenceResponse struct {
 	ID          uint    `json:"id"`
@@ -403,7 +403,7 @@ func newUploadSessionEvidenceResponse(v models.TutoringSession) UploadSessionEvi
 	return UploadSessionEvidenceResponse(buildSessionItem(v))
 }
 
-// — handler: AdminListEvidence (GET /admin/tutoring/evidence) —
+//, handler: AdminListEvidence (GET /admin/tutoring/evidence)
 
 type AdminListEvidenceResponse struct {
 	ID          uint    `json:"id"`
@@ -428,7 +428,7 @@ func newAdminListEvidenceResponse(v models.TutoringSession) AdminListEvidenceRes
 	return AdminListEvidenceResponse(buildSessionItem(v))
 }
 
-// — handler: AdminReviewEvidence (PATCH /admin/tutoring/evidence/:id) —
+//, handler: AdminReviewEvidence (PATCH /admin/tutoring/evidence/:id)
 
 type AdminReviewEvidenceResponse struct {
 	ID          uint    `json:"id"`
@@ -453,7 +453,7 @@ func newAdminReviewEvidenceResponse(v models.TutoringSession) AdminReviewEvidenc
 	return AdminReviewEvidenceResponse(buildSessionItem(v))
 }
 
-// — handler: UpdateBookingStatus (PATCH /tutoring/bookings/:id) —
+//, handler: UpdateBookingStatus (PATCH /tutoring/bookings/:id)
 
 type UpdateBookingStatusResponse struct {
 	ID            uint   `json:"id"`
@@ -480,7 +480,7 @@ func newUpdateBookingStatusResponse(b models.Booking) UpdateBookingStatusRespons
 	return UpdateBookingStatusResponse(buildBookingItem(b))
 }
 
-// — handler: CancelBooking (POST /tutoring/bookings/:id/cancel) —
+//, handler: CancelBooking (POST /tutoring/bookings/:id/cancel)
 
 type CancelBookingResponse struct {
 	ID            uint   `json:"id"`
@@ -507,7 +507,7 @@ func newCancelBookingResponse(b models.Booking) CancelBookingResponse {
 	return CancelBookingResponse(buildBookingItem(b))
 }
 
-// — handler: MyEarnings (GET /tutoring/earnings) —
+//, handler: MyEarnings (GET /tutoring/earnings)
 // Sessions memakai bentuk ListSessionsResponse (item sesi di-reuse antar handler).
 
 type MyEarningsResponse struct {
@@ -547,7 +547,7 @@ func (s *Service) newMyEarningsResponse(sessions []models.TutoringSession) MyEar
 	return resp
 }
 
-// — handler: AdminListReport (GET /admin/tutoring/report) —
+//, handler: AdminListReport (GET /admin/tutoring/report)
 
 type AdminListReportResponse struct {
 	BookingID       uint    `json:"booking_id"`
@@ -603,7 +603,7 @@ func (s *Service) newAdminListReportResponse(b models.Booking) AdminListReportRe
 	return rep
 }
 
-// — handler: AdminListFees (GET /admin/tutoring/fees) —
+//, handler: AdminListFees (GET /admin/tutoring/fees)
 
 type AdminListFeesResponse struct {
 	ID          uint    `json:"id"`
@@ -628,7 +628,7 @@ func newAdminListFeesResponse(v models.TutoringSession) AdminListFeesResponse {
 	return AdminListFeesResponse(buildSessionItem(v))
 }
 
-// — handler: AdminToggleFeePaid (PATCH /admin/tutoring/fees/:id) —
+//, handler: AdminToggleFeePaid (PATCH /admin/tutoring/fees/:id)
 
 type AdminToggleFeePaidResponse struct {
 	ID          uint    `json:"id"`

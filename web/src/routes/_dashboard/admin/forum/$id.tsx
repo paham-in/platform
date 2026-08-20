@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+﻿import { Button } from "@/components/ui/button"
 import { RichContent } from "@/components/ui/rich-content"
 import { YoutubeEmbed } from "@/components/ui/youtube-embed"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -157,7 +157,7 @@ function ForumDetail() {
         ))}
       </section>
 
-      {/* Answer form — hide if owner */}
+      {/* Answer form, hide if owner */}
       {!isOwner && <AnswerForm questionId={questionId} />}
     </main>
   )

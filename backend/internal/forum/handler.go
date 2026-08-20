@@ -1,4 +1,4 @@
-package forum
+﻿package forum
 
 import (
 	"strconv"
@@ -184,7 +184,7 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 	if input.Content == "" {
 		return c.Status(400).JSON(ErrorResponse{Error: "content wajib diisi"})
 	}
-	// subjek wajib — tiap pertanyaan harus masuk ke mata pelajaran tertentu.
+	// subjek wajib, tiap pertanyaan harus masuk ke mata pelajaran tertentu.
 	if input.SubjectID == 0 {
 		return c.Status(400).JSON(ErrorResponse{Error: "subject_id wajib diisi"})
 	}
@@ -326,7 +326,7 @@ type AnswerPreview struct {
 
 type CreateQuestionInput struct {
 	Content   string `json:"content"`
-	SubjectID uint   `json:"subject_id"` // wajib — pertanyaan harus masuk ke mata pelajaran
+	SubjectID uint   `json:"subject_id"` // wajib, pertanyaan harus masuk ke mata pelajaran
 }
 
 // AdminDeleteQuestion menghapus pertanyaan (admin)

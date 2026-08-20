@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+﻿import { useEffect, useState } from "react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -97,7 +97,7 @@ function StudentSubscribe() {
         amount: contentPrice * months,
         start_date: todayStr,
         end_date: endStr,
-        note: `Langganan konten ${cls.name} — ${months} bulan`,
+        note: `Langganan konten ${cls.name}, ${months} bulan`,
         class_id: cls.id,
       },
     })
@@ -144,7 +144,7 @@ function StudentSubscribe() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><BookMarked className="h-5 w-5" /> Konten</CardTitle>
-                <CardDescription>Materi, paket soal & forum — tanpa les privat.</CardDescription>
+                <CardDescription>Materi, paket soal & forum, tanpa les privat.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {contentPrice > 0 ? (
@@ -205,7 +205,7 @@ function StudentSubscribe() {
                       <span className="font-medium">{groupPrice > 0 ? `${fmtRp(groupPrice)} / pertemuan` : "—"}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Invoice dibuat otomatis saat booking disetujui — lanjutkan lewat alur Les Privat.
+                      Invoice dibuat otomatis saat booking disetujui, lanjutkan lewat alur Les Privat.
                     </p>
                   </>
                 ) : (

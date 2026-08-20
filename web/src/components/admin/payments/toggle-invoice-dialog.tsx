@@ -1,4 +1,4 @@
-import {
+﻿import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -48,7 +48,7 @@ export function ToggleInvoiceDialog({ invoices, targetStatus, onClose }: ToggleI
 
   const formatPeriod = (inv: InvoiceInvoiceResponse) => {
     const f = (d?: string) => (d ? format(parseISO(d), "dd MMM yyyy", { locale: id }) : "—")
-    return `${f(inv.start_date)} — ${f(inv.end_date)}`
+    return `${f(inv.start_date)}, ${f(inv.end_date)}`
   }
 
   const description =

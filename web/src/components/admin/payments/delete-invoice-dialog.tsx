@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+﻿import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import {
   AlertDialog,
@@ -42,7 +42,7 @@ export function DeleteInvoiceDialog({ invoices, onClose }: DeleteInvoiceDialogPr
 
   const formatPeriod = (inv: InvoiceInvoiceResponse) => {
     const f = (d?: string) => (d ? format(parseISO(d), "dd MMM yyyy", { locale: id }) : "—")
-    return `${f(inv.start_date)} — ${f(inv.end_date)}`
+    return `${f(inv.start_date)}, ${f(inv.end_date)}`
   }
 
   const description =

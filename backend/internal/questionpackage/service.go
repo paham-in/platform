@@ -1,4 +1,4 @@
-package questionpackage
+﻿package questionpackage
 
 import (
 	"errors"
@@ -73,7 +73,7 @@ var (
 )
 
 // canViewPackage: published boleh dilihat semua; draft hanya admin, penulisnya,
-// atau paket tanpa pemilik (author_id=0 — data lama yang belum di-claim).
+// atau paket tanpa pemilik (author_id=0, data lama yang belum di-claim).
 func (s *Service) canViewPackage(p *models.QuizPackage, a Access) bool {
 	if a.IsAdmin || p.Status == "published" {
 		return true
@@ -557,7 +557,7 @@ func (s *Service) ListQuestionsForPackage(packageID uint) ([]models.QuizQuestion
 	if err != nil {
 		return nil, err
 	}
-	// Rewrite images di service, bukan handler — handler tidak punya storage.
+	// Rewrite images di service, bukan handler, handler tidak punya storage.
 	for i := range questions {
 		questions[i].Question = s.storage.RewriteContentImages(questions[i].Question)
 		for j := range questions[i].Answers {

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+﻿import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { startOfWeek, parseISO, isValid, format } from "date-fns"
 import { CalendarWeek } from "@/components/tutoring/calendar-week"
@@ -49,7 +49,7 @@ function TeacherCalendarPage() {
   const upload = useMutation({
     ...postTutoringSessionsByIdEvidenceMutation(),
     onSuccess: () => {
-      toast.success("Bukti terunggah — menunggu validasi admin")
+      toast.success("Bukti terunggah, menunggu validasi admin")
       invalidate()
     },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal upload bukti"),

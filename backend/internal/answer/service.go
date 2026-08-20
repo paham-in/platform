@@ -1,4 +1,4 @@
-package answer
+﻿package answer
 
 import (
 	"context"
@@ -90,7 +90,7 @@ func (s *Service) Delete(id, userID uint) error {
 		return err
 	}
 
-	// hapus file gambar dari storage (best-effort — jangan gagalkan hapus
+	// hapus file gambar dari storage (best-effort, jangan gagalkan hapus
 	// jawaban kalau storage bermasalah).
 	if s.store != nil {
 		for _, obj := range objectNames {
@@ -126,7 +126,7 @@ func (s *Service) Create(questionID, userID uint, content, videoURL string) (*mo
 	}
 
 	// Insert jawaban + aset content + update status pertanyaan dalam satu
-	// transaksi — kalau update status gagal, jawaban ikut batal (bukan jawaban
+	// transaksi, kalau update status gagal, jawaban ikut batal (bukan jawaban
 	// yatim + status "open").
 	if err := s.repo.db.Transaction(func(tx *gorm.DB) error {
 		if err := s.repo.CreateWithDB(tx, &answer); err != nil {

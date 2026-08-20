@@ -1,4 +1,4 @@
-package invoice
+﻿package invoice
 
 import (
 	"errors"
@@ -114,7 +114,7 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 		newStatus = "pending"
 	}
 
-	// Update status invoice + grant/revoke StudentClass dalam satu transaksi —
+	// Update status invoice + grant/revoke StudentClass dalam satu transaksi
 	// kalau salah satu gagal, semua batal (invoice & akses kelas tetap konsisten).
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&models.Invoice{}).Where("id = ?", id).Update("status", newStatus).Error; err != nil {
@@ -183,7 +183,7 @@ func (s *Service) Delete(id uint) error {
 }
 
 // daysBetween mengembalikan jumlah hari antara dua tanggal YYYY-MM-DD
-// (end - start) — dipakai utk menghitung durasi invoice saat perpanjangan.
+// (end - start), dipakai utk menghitung durasi invoice saat perpanjangan.
 func daysBetween(start, end string) (int, error) {
 	s, err := time.Parse("2006-01-02", start)
 	if err != nil {

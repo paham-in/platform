@@ -1,4 +1,4 @@
-package questionbank
+﻿package questionbank
 
 import (
 	"context"
@@ -50,7 +50,7 @@ var (
 )
 
 // canViewPackage: published boleh dilihat semua; draft hanya admin, penulisnya,
-// atau paket tanpa pemilik (author_id=0 — data lama yang belum di-claim).
+// atau paket tanpa pemilik (author_id=0, data lama yang belum di-claim).
 func (s *Service) canViewPackage(p *models.QuizPackage, a Access) bool {
 	if a.IsAdmin || p.Status == "published" {
 		return true
@@ -118,7 +118,7 @@ func (s *Service) commitContent(content string) (string, error) {
 	return storage.SanitizeContentImages(content), nil
 }
 
-// deleteFiles menghapus file gambar dari storage (best-effort — file orphan
+// deleteFiles menghapus file gambar dari storage (best-effort, file orphan
 // lebih aman daripada DB yang tidak konsisten).
 func (s *Service) deleteFiles(objects []string) {
 	if s.storage == nil {
@@ -165,7 +165,7 @@ func (s *Service) Create(packageID uint, input CreateInput, a Access) (*Question
 		Explanation: explanation,
 	}
 	// Build answers dengan sort_order sesuai urutan input + aset gambar
-	// per-jawaban (sejajar dengan q.Answers — jawaban kosong disaring).
+	// per-jawaban (sejajar dengan q.Answers, jawaban kosong disaring).
 	answerAssets := make([][]string, 0, len(input.Answers))
 	for i, a := range input.Answers {
 		if a.Content == "" {
