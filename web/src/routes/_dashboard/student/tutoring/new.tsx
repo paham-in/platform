@@ -60,7 +60,6 @@ function NewBooking() {
   usePageTitle("Booking Baru")
   const qc = useQueryClient()
   const navigate = useNavigate()
-  const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const { data: myClasses = [] } = useQuery(getStudentClassEnrollmentsOptions())
   const { data: classes = [] } = useQuery(getClassesOptions())
 
@@ -78,6 +77,11 @@ function NewBooking() {
   const [friendQuery, setFriendQuery] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [friendPending, setFriendPending] = useState<UserAdminListUsersResponse[]>([])
+
+  const { data: subjects = [] } = useQuery({
+    ...getSubjectsOptions({ query: classId ? { class_id: Number(classId) } : undefined }),
+    enabled: !!classId,
+  })
 
   const bookableClasses = classes.filter((c) => c.allow_tutoring !== false)
   const selectedClass = bookableClasses.find((c) => c.id === Number(classId))
@@ -141,6 +145,13 @@ function NewBooking() {
     }
   }, [teachers, teachersLoading, canSearch, teacher])
 
+  // kelas berubah → reset subject kalau sudah tidak ada di kelas baru
+  useEffect(() => {
+    if (subjectId && subjects.length > 0 && !subjects.some((s) => String(s.id) === subjectId)) {
+      setSubjectId("")
+    }
+  }, [subjects, subjectId])
+
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
   const changeSubject = (v: string | null) => { setSubjectId(v ?? ""); setTeacher(undefined); setDate("") }
@@ -203,20 +214,6 @@ function NewBooking() {
         <CardContent className="space-y-4 md:space-y-6">
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="new-subject">Mata Pelajaran</Label>
-            <Select items={subjectOptions} value={subjectId} onValueChange={changeSubject}>
-              <SelectTrigger id="new-subject" className="w-full">
-                <SelectValue placeholder="Pilih mapel" />
-              </SelectTrigger>
-              <SelectContent>
-                {subjectOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
             <Label htmlFor="new-class">Kelas</Label>
             {bookableClasses.length === 0 ? (
               <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
@@ -241,6 +238,20 @@ function NewBooking() {
                 Kamu belum punya akses kelas — akses diberikan otomatis setelah pembayaran booking diverifikasi admin.
               </p>
             )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="new-subject">Mata Pelajaran</Label>
+            <Select items={subjectOptions} value={subjectId} onValueChange={changeSubject}>
+              <SelectTrigger id="new-subject" className="w-full">
+                <SelectValue placeholder="Pilih mapel" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjectOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-1.5">
