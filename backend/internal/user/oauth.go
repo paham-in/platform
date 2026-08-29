@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"bimbel2/backend/internal/config"
 
@@ -57,6 +58,18 @@ func (h *Handler) GoogleLogin(c *fiber.Ctx) error {
 		MaxAge:   300, // 5 menit
 		HTTPOnly: true,
 	})
+
+	// simpan target redirect (skema pahamin:// utk aplikasi mobile) agar bisa
+	// dipakai ulang saat callback; hanya skema pahamin:// yang diterima.
+	if redirect := c.Query("redirect"); strings.HasPrefix(redirect, "pahamin://") {
+		c.Cookie(&fiber.Cookie{
+			Name:     "oauth_redirect",
+			Value:    redirect,
+			Path:     "/",
+			MaxAge:   300, // 5 menit
+			HTTPOnly: true,
+		})
+	}
 
 	authURL := fmt.Sprintf(
 		"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=email%%20profile&state=%s",
@@ -109,8 +122,13 @@ func (h *Handler) GoogleCallback(c *fiber.Ctx) error {
 		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
 	}
 
-	// redirect to frontend with token
-	return c.Redirect(h.oauthCfg.AppURL+"/auth/callback?token="+result.Token, fiber.StatusFound)
+	// redirect ke frontend (web) atau ke skema pahamin:// (mobile) dengan token
+	target := h.oauthCfg.AppURL
+	if redirect := c.Cookies("oauth_redirect"); redirect != "" {
+		target = redirect
+		c.ClearCookie("oauth_redirect")
+	}
+	return c.Redirect(target+"/auth/callback?token="+result.Token, fiber.StatusFound)
 }
 
 func (h *Handler) exchangeCode(code string) (string, error) {
