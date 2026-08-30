@@ -53,6 +53,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            VITE_API_URL=${{ secrets.WEB_API_URL }}
+            VITE_API_URL=${{ secrets.WEB_API_URL_STAGING }}
             VITE_BUILD_TIME=${{ steps.time.outputs.time }}
             VITE_COMMIT_SHA=${{ github.sha }}
