@@ -1,13 +1,13 @@
-name: Build and Push Backend Image (Dev)
+name: Build and Push Backend Image (Prod)
 
 on:
   push:
     branches:
-      - dev
+      - main
   workflow_dispatch:
 
 concurrency:
-  group: dev-backend
+  group: prod-backend
   cancel-in-progress: false
 
 jobs:
@@ -34,8 +34,8 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}
           tags: |
-            type=raw,value=dev
-            type=sha,prefix=dev-
+            type=raw,value=latest
+            type=sha
 
       - name: Build and push
         uses: docker/build-push-action@v6
