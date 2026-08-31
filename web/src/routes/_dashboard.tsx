@@ -15,7 +15,6 @@ import {
   LogOut,
   Menu,
   Search,
-  Settings,
   Shield,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -60,12 +59,6 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 function AccessDenied({ requiredRole, userRoles }: { requiredRole: string; userRoles: string[] }) {
   const navigate = useNavigate();
@@ -90,11 +83,15 @@ function AccessDenied({ requiredRole, userRoles }: { requiredRole: string; userR
 function AppSidebar({
   groups,
   userName,
+  avatarUrl,
+  userRole,
   logoutPending,
   onLogoutClick,
 }: {
   groups: SidebarGroupData[];
   userName?: string;
+  avatarUrl?: string;
+  userRole?: string;
   logoutPending: boolean;
   onLogoutClick: () => void;
 }) {
@@ -208,6 +205,21 @@ function AppSidebar({
 
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <div className="flex items-center gap-2 px-2 py-1.5">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="size-8 rounded-full shrink-0" />
+              ) : (
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                  {userName?.[0]}
+                </div>
+              )}
+              <div className="flex min-w-0 flex-1 flex-col leading-tight group-data-[collapsible=icon]:hidden">
+                <span className="truncate text-sm font-medium">{userName}</span>
+                {userRole ? <span className="truncate text-xs text-muted-foreground">{userRole}</span> : null}
+              </div>
+            </div>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Keluar" onClick={onLogoutClick}>
               {logoutPending ? <Spinner /> : <LogOut />}
@@ -363,6 +375,8 @@ function DashboardLayout() {
       <AppSidebar
         groups={filteredGroups}
         userName={user.name}
+        avatarUrl={user.avatar_url}
+        userRole={userRoles.map(roleLabel).join(", ")}
         logoutPending={logout.isPending}
         onLogoutClick={() => setLogoutConfirmOpen(true)}
       />
@@ -382,30 +396,6 @@ function DashboardLayout() {
             </Button>
             <NotificationBell />
             <ThemeToggle compact className="hidden md:inline-flex" />
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={<Button variant="ghost" className="h-8 w-8 rounded-full p-0" aria-label="Menu akun" />}
-                >
-                  {user?.avatar_url ? (
-                    <img src={user.avatar_url} alt="" className="h-7 w-7 rounded-full" />
-                  ) : (
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{user?.name?.[0]}</div>
-                  )}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
-                    <Settings />
-                    <span>Pengaturan</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem variant="destructive" onClick={() => setLogoutConfirmOpen(true)}>
-                    <LogOut />
-                    <span>Keluar</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <span className="hidden text-sm text-muted-foreground md:inline">{user?.name}</span>
-            </div>
           </header>
           <RouteTransition>
             {denied ? <AccessDenied requiredRole={requiredRole!} userRoles={userRoles} /> : <Outlet />}
