@@ -76,7 +76,7 @@ function AdminUsers() {
     <>
       <main className="p-4 md:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="hidden md:block text-2xl font-bold tracking-tight">Kelola User</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Kelola User</h1>
           <Button onClick={() => setCreateOpen(true)}>
             <Plus className="mr-1 h-4 w-4" /> Tambah User
           </Button>
@@ -127,7 +127,8 @@ function AdminUsers() {
           </DropdownMenu>
         </div>
 
-        <Card className="pt-0 gap-0 pb-0">
+        {/* Desktop table */}
+        <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -229,6 +230,102 @@ function AdminUsers() {
                 )}
               </TableBody>
             </Table>
+          </CardContent>
+          {totalPages > 1 && (
+            <CardFooter className="flex items-center justify-between border-t">
+              <p className="text-sm text-muted-foreground">Halaman {page} dari {totalPages}</p>
+              <div className="flex gap-1">
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}><ChevronLeft className="h-4 w-4" /></Button>
+                <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}><ChevronRight className="h-4 w-4" /></Button>
+              </div>
+            </CardFooter>
+          )}
+        </Card>
+
+        {/* Mobile card list */}
+        <Card className="gap-0 py-0 md:hidden">
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="divide-y">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={`skeleton-${i}`} className="flex items-start gap-3 p-4">
+                    <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-3 w-40" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : paged.length === 0 ? (
+              <Empty className="p-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <UserX />}</EmptyMedia>
+                  <EmptyTitle>
+                    {hasActiveFilter ? "Tidak ada user yang cocok dengan filter" : "Tidak ada user ditemukan"}
+                  </EmptyTitle>
+                </EmptyHeader>
+                {hasActiveFilter && (
+                  <EmptyContent>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setSearchInput("")
+                      navigate({ search: {}, replace: true })
+                      setPage(1)
+                    }}>
+                      <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                    </Button>
+                  </EmptyContent>
+                )}
+              </Empty>
+            ) : (
+              <div className="divide-y">
+                {paged.map((u) => (
+                  <div key={u.id} className="flex items-start gap-3 p-4">
+                    {u.avatar_url ? (
+                      <img src={u.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full" />
+                    ) : (
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="truncate font-medium">{u.name}</p>
+                        {u.has_google ? (
+                          <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">Google</span>
+                        ) : u.has_password ? (
+                          <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">Password</span>
+                        ) : (
+                          <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Dummy</span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 truncate text-sm text-muted-foreground">{u.email}</p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {(u.roles ?? []).map((r) => <RoleBadge key={r} role={r} />)}
+                        {(u.roles ?? []).length === 0 && <span className="text-xs text-muted-foreground">-</span>}
+                      </div>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="shrink-0" />}>
+                        <MoreVertical className="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => setEditing(u)}>
+                          <Shield className="h-4 w-4" /> Ganti Role
+                        </DropdownMenuItem>
+                        {!u.has_google && !u.has_password && (u.roles ?? []).includes("student") && (
+                          <DropdownMenuItem onClick={() => setConnectGoogle(u)}>
+                            <Link2 className="h-4 w-4" /> Hubungkan ke Akun Google
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={() => setDeleteConfirm(u)}>
+                          <Trash2 className="h-4 w-4" /> Hapus
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
           {totalPages > 1 && (
             <CardFooter className="flex items-center justify-between border-t">
