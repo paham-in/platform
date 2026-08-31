@@ -257,6 +257,16 @@
   }
 }
 
+@media (max-width: 767px) {
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @media (display-mode: standalone) {
   body {
     -webkit-user-select: none;
