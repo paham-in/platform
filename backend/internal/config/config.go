@@ -26,6 +26,7 @@ type Config struct {
 	VapidPrivateKey    string
 	VapidSubject       string
 	RustfsEndpoint     string
+	RustfsPublicEndpoint string
 	RustfsAccessKey    string
 	RustfsSecretKey    string
 	RustfsBucket       string
@@ -56,6 +57,7 @@ func Load() *Config {
 		VapidPrivateKey:    getEnv("VAPID_PRIVATE_KEY", ""),
 		VapidSubject:       getEnv("VAPID_SUBJECT", "mailto:admin@paham.in"),
 		RustfsEndpoint:     getEnv("RUSTFS_ENDPOINT", "stb:9000"),
+		RustfsPublicEndpoint: getEnv("RUSTFS_PUBLIC_ENDPOINT", ""),
 		RustfsAccessKey:    getEnv("RUSTFS_ACCESS_KEY", "rustfsadmin"),
 		RustfsSecretKey:    getEnv("RUSTFS_SECRET_KEY", "rustfsadmin"),
 		RustfsBucket:       getEnv("RUSTFS_BUCKET", "bimbel"),

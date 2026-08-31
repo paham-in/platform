@@ -62,14 +62,22 @@ type ObjectStorage struct {
 }
 
 func NewObjectStorage(cfg *config.Config) (*ObjectStorage, error) {
-	endpoint := cfg.RustfsEndpoint
-	if !strings.Contains(endpoint, "://") {
-		scheme := "http://"
-		if cfg.RustfsUseSSL {
-			scheme = "https://"
+	// resolveInternal mengubah host:port → scheme+host:port buat S3 client.
+	// scheme ikut RustfsUseSSL.
+	resolveInternal := func(hostport string) string {
+		if !strings.Contains(hostport, "://") {
+			scheme := "http://"
+			if cfg.RustfsUseSSL {
+				scheme = "https://"
+			}
+			return scheme + hostport
 		}
-		endpoint = scheme + endpoint
+		return hostport
 	}
+
+	// endpoint internal yang dipakai S3 client (antar-container docker
+	// network). Boleh HTTP, tidak terlihat browser.
+	endpoint := resolveInternal(cfg.RustfsEndpoint)
 
 	sdkCfg, err := awsconfig.LoadDefaultConfig(context.Background(),
 		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.RustfsAccessKey, cfg.RustfsSecretKey, "")),
@@ -99,9 +107,15 @@ func NewObjectStorage(cfg *config.Config) (*ObjectStorage, error) {
 		log.Printf("storage bucket '%s' created", bucket)
 	}
 
-	// URL publik konten: <endpoint>/<bucket>/<object>. Endpoint sudah
-	// ber-scheme dari resolve di atas.
-	publicBase := strings.TrimRight(endpoint, "/") + "/" + bucket
+	// URL publik konten: <publicEndpoint>/<bucket>/<object>. Ini yang dipakai
+	// browser untuk akses konten prefix `public/`. Wajib reachable dan HTTPS
+	// (mixed-content). Default fallback ke endpoint internal agar dev tanpa
+	// RUSTFS_PUBLIC_ENDPOINT tetap jalan.
+	publicBase := endpoint
+	if cfg.RustfsPublicEndpoint != "" {
+		publicBase = resolveInternal(cfg.RustfsPublicEndpoint)
+	}
+	publicBase = strings.TrimRight(publicBase, "/") + "/" + bucket
 
 	return &ObjectStorage{client: client, presign: s3.NewPresignClient(client), bucket: bucket, publicBase: publicBase}, nil
 }
