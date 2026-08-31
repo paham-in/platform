@@ -22,9 +22,9 @@ function AdminDashboard() {
   return (
     <main className="p-4 md:p-6">
       <div className="space-y-4 md:space-y-6">
-        <h2 className="hidden md:block text-2xl font-bold tracking-tight">Dashboard Admin</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Dashboard Admin</h2>
         <p className="text-muted-foreground">Kelola seluruh pengguna dan konten platform.</p>
-        <div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="hidden gap-4 md:gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((s) => (
             <Card key={s.label}><CardContent className="flex flex-col gap-3">
               <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></div>
@@ -32,6 +32,19 @@ function AdminDashboard() {
             </CardContent></Card>
           ))}
         </div>
+        <Card className="sm:hidden">
+          <CardContent className="divide-y">
+            {stats.map((s) => (
+              <div key={s.label} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.color}`}><s.icon className="h-5 w-5" /></div>
+                <div>
+                  <div className="text-xl font-bold">{s.value}</div>
+                  <div className="text-sm text-muted-foreground">{s.label}</div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
         <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
           <Card><CardHeader><CardTitle>Pengguna Terdaftar</CardTitle></CardHeader><CardContent>
             {allUsers.slice(0, 5).map((u) => (
