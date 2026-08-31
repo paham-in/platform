@@ -822,7 +822,7 @@ function AdminChapters() {
             className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
             aria-label="Tambah BAB"
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="size-6" />
           </Button>
         )}
       </main>
