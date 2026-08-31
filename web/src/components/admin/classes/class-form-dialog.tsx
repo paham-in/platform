@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
@@ -92,13 +92,13 @@ export function ClassFormDialog({ class: cls, programId, onClose }: ClassFormDia
               Harga kelas diatur di Pengaturan → Harga per Kelas.
             </p>
           </div>
-          <div className="flex justify-end gap-3 pt-2">
+          <DialogFooter>
             <Button variant="outline" onClick={onClose}>Batal</Button>
             <Button onClick={save} disabled={isPending || !name.trim()}>
               {isPending && <Spinner />}
               {isEditing ? "Simpan" : "Tambah"}
             </Button>
-          </div>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>

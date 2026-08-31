@@ -14,6 +14,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -485,7 +486,7 @@ function AdminChapters() {
                     onChange={(e) => setForm({ ...form, order: Number(e.target.value) })}
                   autoComplete="off"/>
                 </div>
-                <div className="flex justify-end gap-3 pt-2">
+                <DialogFooter>
                   <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
                     Batal
                   </Button>
@@ -501,7 +502,7 @@ function AdminChapters() {
                         ? "Simpan"
                         : "Tambah"}
                   </Button>
-                </div>
+                </DialogFooter>
               </div>
             </DialogContent>
             </Dialog>

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
@@ -49,7 +49,7 @@ export function AssignOrphanDialog({ classItem, programs, onClose }: AssignOrpha
               </SelectContent>
             </Select>
           </div>
-          <div className="flex justify-end gap-3 pt-2">
+          <DialogFooter>
             <Button variant="outline" onClick={onClose}>Batal</Button>
             <Button
               onClick={() => programId && assign({ path: { id: programId }, body: { class_id: classItem.id! } })}
@@ -58,7 +58,7 @@ export function AssignOrphanDialog({ classItem, programs, onClose }: AssignOrpha
               {isPending && <Spinner />}
               Masukkan
             </Button>
-          </div>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>

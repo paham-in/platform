@@ -2,7 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -137,13 +137,13 @@ export function GrantClassDialog({ onClose }: GrantClassDialogProps) {
               </PopoverContent>
             </Popover>
           </div>
-          <div className="flex justify-end gap-3 pt-2">
+          <DialogFooter>
             <Button variant="outline" onClick={onClose}>Batal</Button>
             <Button onClick={save} disabled={isPending || !canSave}>
               {isPending && <Spinner />}
               Berikan Akses
             </Button>
-          </div>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>
