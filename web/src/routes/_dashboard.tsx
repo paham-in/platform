@@ -18,7 +18,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { PageTitleProvider, usePageTitleValue } from "@/components/page-title";
+import { PageTitleProvider, usePageHeaderActionValue, usePageTitleValue } from "@/components/page-title";
 import { sidebarGroups, type SidebarGroup as SidebarGroupData } from "@/lib/sidebar";
 import { CommandMenu } from "@/components/command-menu";
 import { getNavStack, resetNavStack, RouteTransition, setResetInProgress } from "@/components/route-transition";
@@ -240,6 +240,12 @@ function MobilePageTitle() {
   return <span className="min-w-0 max-w-[45vw] truncate text-sm font-semibold md:hidden">{title}</span>;
 }
 
+function MobileHeaderAction() {
+  const action = usePageHeaderActionValue();
+  if (action === null) return null;
+  return <div className="md:hidden">{action}</div>;
+}
+
 const MAIN_PATHS = [
   ...sidebarGroups
     .flatMap((g) => g.items)
@@ -396,6 +402,7 @@ function DashboardLayout() {
             </Button>
             <NotificationBell />
             <ThemeToggle compact className="hidden md:inline-flex" />
+            <MobileHeaderAction />
           </header>
           <RouteTransition>
             {denied ? <AccessDenied requiredRole={requiredRole!} userRoles={userRoles} /> : <Outlet />}

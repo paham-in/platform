@@ -9,7 +9,7 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Search, SearchX, ChevronLeft, ChevronRight, Eye, Funnel, X, MessageSquare, MoreVertical } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
@@ -21,7 +21,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
-import { usePageTitle } from "@/components/page-title"
+import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
 
 const forumSearchSchema = z.object({
   search: z.string().optional(),
@@ -33,6 +33,56 @@ const statusOptions = [
   { label: "Belum Terjawab", value: "unanswered" },
 ]
 
+function StatusFilterMenu({
+  compact,
+  value,
+  onValueChange,
+  activeCount,
+}: {
+  compact?: boolean;
+  value: string;
+  onValueChange: (v: string) => void;
+  activeCount: number;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={compact ? <Button variant="outline" size="icon" className="relative" /> : <Button variant="outline" />}
+        aria-label="Filter status"
+      >
+        <Funnel className="h-4 w-4" />
+        {compact ? (
+          activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              {activeCount}
+            </span>
+          )
+        ) : (
+          <>
+            Filter
+            {activeCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            )}
+          </>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-52">
+        <DropdownMenuRadioGroup
+          value={value}
+          onValueChange={(v) => { if (v) onValueChange(v) }}
+        >
+          <DropdownMenuLabel>Status</DropdownMenuLabel>
+          {statusOptions.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 function TeacherForum() {
   usePageTitle("Forum")
   const navigate = useNavigate({ from: Route.fullPath })
@@ -43,6 +93,28 @@ function TeacherForum() {
   const hasActiveFilter = !!searchParam || unansweredOnly
   const [page, setPage] = useState(1)
   const perPage = 10
+
+  const setStatusFilter = (v: string) => {
+    navigate({
+      search: (prev) => ({ ...prev, unanswered: v === "all" ? undefined : "true" }),
+      replace: true,
+    })
+    setPage(1)
+  }
+
+  const statusFilterValue = unansweredOnly ? "unanswered" : "all"
+  const headerFilter = useMemo(
+    () => (
+      <StatusFilterMenu
+        compact
+        value={statusFilterValue}
+        onValueChange={setStatusFilter}
+        activeCount={activeFilterCount}
+      />
+    ),
+    [statusFilterValue, activeFilterCount]
+  )
+  usePageHeaderAction(headerFilter)
 
   const { data: questions = [], isLoading } = useQuery(
     getQuestionsOptions({
@@ -95,39 +167,13 @@ function TeacherForum() {
             </button>
           )}
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant="outline" />}
-            aria-label="Filter status"
-          >
-            <Funnel className="h-4 w-4" />
-            Filter
-            {activeFilterCount > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
-                {activeFilterCount}
-              </span>
-            )}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-52">
-            <DropdownMenuRadioGroup
-              value={unansweredOnly ? "unanswered" : "all"}
-              onValueChange={(v) => {
-                if (v) {
-                  navigate({
-                    search: (prev) => ({ ...prev, unanswered: v === "all" ? undefined : "true" }),
-                    replace: true,
-                  })
-                  setPage(1)
-                }
-              }}
-            >
-              <DropdownMenuLabel>Status</DropdownMenuLabel>
-              {statusOptions.map((opt) => (
-                <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="hidden md:inline-flex">
+          <StatusFilterMenu
+            value={unansweredOnly ? "unanswered" : "all"}
+            onValueChange={setStatusFilter}
+            activeCount={activeFilterCount}
+          />
+        </div>
       </div>
 
       <Card className="pt-0 gap-0 pb-0">

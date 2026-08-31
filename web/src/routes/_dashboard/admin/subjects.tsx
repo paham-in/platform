@@ -32,7 +32,7 @@ import {
   BookX,
 } from "lucide-react";
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
@@ -44,11 +44,60 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { SubjectFormDialog, DeleteSubjectDialog } from "@/components/admin/subjects";
-import { usePageTitle } from "@/components/page-title";
+import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
 const subjectsSearchSchema = z.object({
   search: z.string().optional(),
   class: z.coerce.number().optional(),
 });
+
+function ClassFilterMenu({
+  compact,
+  value,
+  onValueChange,
+  activeCount,
+  options,
+}: {
+  compact?: boolean;
+  value: string;
+  onValueChange: (v: string) => void;
+  activeCount: number;
+  options: { label: string; value: string }[];
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={compact ? <Button variant="outline" size="icon" className="relative" /> : <Button variant="outline" />}
+        aria-label="Filter kelas"
+      >
+        <Funnel className="h-4 w-4" />
+        {compact ? (
+          activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              {activeCount}
+            </span>
+          )
+        ) : (
+          <>
+            Filter
+            {activeCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            )}
+          </>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-52">
+        <DropdownMenuRadioGroup value={value} onValueChange={(v) => { if (v) onValueChange(v); }}>
+          <DropdownMenuLabel>Kelas</DropdownMenuLabel>
+          {options.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 function AdminSubjects() {
   usePageTitle("Mata Pelajaran");
@@ -73,10 +122,15 @@ function AdminSubjects() {
   const [deleteConfirm, setDeleteConfirm] = useState<SubjectListSubjectsResponse | null>(null);
   const perPage = 5;
 
-  const classOptions = [
-    { label: "Semua Kelas", value: "all" },
-    ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id) })),
-  ];
+  const classOptions = useMemo(
+    () => [
+      { label: "Semua Kelas", value: "all" },
+      ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id) })),
+    ],
+    [classes]
+  );
+
+  const classFilterValue = classFilter === undefined ? "all" : String(classFilter);
 
   const setClassFilter = (v: string) => {
     navigate({
@@ -85,6 +139,20 @@ function AdminSubjects() {
     });
     setPage(1);
   };
+
+  const headerFilter = useMemo(
+    () => (
+      <ClassFilterMenu
+        compact
+        value={classFilterValue}
+        onValueChange={setClassFilter}
+        activeCount={activeFilterCount}
+        options={classOptions}
+      />
+    ),
+    [classFilterValue, activeFilterCount, classOptions]
+  );
+  usePageHeaderAction(headerFilter);
 
   const totalPages = Math.ceil(subjects.length / perPage);
   const paged = subjects.slice((page - 1) * perPage, page * perPage);
@@ -144,28 +212,14 @@ function AdminSubjects() {
                 </button>
               )}
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={<Button variant="outline" />}
-                aria-label="Filter kelas"
-              >
-                <Funnel className="h-4 w-4" />
-                Filter
-                {activeFilterCount > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-52">
-                <DropdownMenuRadioGroup value={classFilter === undefined ? "all" : String(classFilter)} onValueChange={(v) => { if (v) setClassFilter(v); }}>
-                  <DropdownMenuLabel>Kelas</DropdownMenuLabel>
-                  {classOptions.map((opt) => (
-                    <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="hidden md:inline-flex">
+              <ClassFilterMenu
+                value={classFilterValue}
+                onValueChange={setClassFilter}
+                activeCount={activeFilterCount}
+                options={classOptions}
+              />
+            </div>
           </div>
           <Button onClick={openAdd}>
             <Plus className="mr-1 h-4 w-4" /> Tambah
