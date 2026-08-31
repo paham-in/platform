@@ -319,7 +319,7 @@ function AdminChapters() {
   return (
     <>
       <main className="p-4 md:p-6">
-        <h1 className="hidden md:block text-2xl font-bold tracking-tight">BAB</h1>
+        <h1 className="text-2xl font-bold tracking-tight">BAB</h1>
         <div className="mb-4 mt-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-1 flex-wrap items-center gap-4">
             <div className="relative max-w-sm flex-1">
@@ -507,7 +507,8 @@ function AdminChapters() {
             </Dialog>
           )}
         </div>
-        <Card className="pt-0 gap-0">
+        {/* Desktop table */}
+        <Card className="hidden gap-0 pt-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -616,6 +617,119 @@ function AdminChapters() {
                 )}
               </TableBody>
             </Table>
+          </CardContent>
+          <CardFooter className="flex items-center justify-between border-t">
+            <p className="text-sm text-muted-foreground">
+              {chapters.length === 0
+                ? "Belum ada data"
+                : `Menampilkan ${(page - 1) * perPage + 1}–${Math.min(page * perPage, chapters.length)} dari ${chapters.length} bab`}
+            </p>
+            {totalPages > 1 && (
+              <div className="flex gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label="Halaman sebelumnya"
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label="Halaman berikutnya"
+                  disabled={page === totalPages}
+                  onClick={() => setPage(page + 1)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </CardFooter>
+        </Card>
+
+        {/* Mobile card list */}
+        <Card className="gap-0 py-0 md:hidden">
+          <CardContent className="p-0">
+            {paged.length === 0 ? (
+              <Empty className="p-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <BookOpen />}</EmptyMedia>
+                  <EmptyTitle>
+                    {hasActiveFilter ? "Tidak ada bab yang cocok dengan filter" : "Belum ada bab"}
+                  </EmptyTitle>
+                </EmptyHeader>
+                {hasActiveFilter && (
+                  <EmptyContent>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setSearchInput("");
+                      navigate({ search: {}, replace: true });
+                      setPage(1);
+                    }}>
+                      <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                    </Button>
+                  </EmptyContent>
+                )}
+              </Empty>
+            ) : (
+              <div className="divide-y">
+                {paged.map((c) => (
+                  <div key={c.id} className="flex items-start gap-3 p-4">
+                    {c.cover_url ? (
+                      <button
+                        type="button"
+                        aria-label={`Lihat sampul ${c.title}`}
+                        onClick={() => setCoverView(c)}
+                        className="shrink-0 cursor-pointer"
+                      >
+                        <img
+                          src={c.cover_url}
+                          alt={`Sampul ${c.title}`}
+                          className="h-12 w-16 shrink-0 rounded-md border object-cover"
+                        />
+                      </button>
+                    ) : (
+                      <div className="flex h-12 w-16 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                        <BookOpen className="h-4 w-4" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <button
+                        type="button"
+                        onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId: String(c.id!) } })}
+                        className="truncate font-medium hover:underline"
+                      >
+                        {c.title}
+                      </button>
+                      <p className="mt-0.5 text-sm text-muted-foreground">{c.class_name} · {c.subject_name}</p>
+                      {c.description && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{c.description}</p>}
+                      <p className="mt-1 text-xs text-muted-foreground">Urutan {c.order} · {c.material_count} materi</p>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label={`Menu aksi untuk ${c.title}`} className="shrink-0" />}>
+                        <MoreVertical className="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId: String(c.id!) } })}>
+                          <BookOpen className="h-4 w-4" /> Materi
+                        </DropdownMenuItem>
+                        {canManage && (
+                          <>
+                            <DropdownMenuItem onClick={() => openEdit(c)}>
+                              <Pencil className="h-4 w-4" /> Ubah
+                            </DropdownMenuItem>
+                            <DropdownMenuItem variant="destructive" onClick={() => setDeleteConfirm(c)}>
+                              <Trash2 className="h-4 w-4" /> Hapus
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex items-center justify-between border-t">
             <p className="text-sm text-muted-foreground">
