@@ -62,15 +62,11 @@ type ObjectStorage struct {
 }
 
 func NewObjectStorage(cfg *config.Config) (*ObjectStorage, error) {
-	// resolveInternal mengubah host:port → scheme+host:port buat S3 client.
-	// scheme ikut RustfsUseSSL.
+	// resolveInternal mengubah host:port → http://host:port buat S3 client.
+	// Endpoint ditulis lengkap dengan skema; bare host:port dianggap http://.
 	resolveInternal := func(hostport string) string {
 		if !strings.Contains(hostport, "://") {
-			scheme := "http://"
-			if cfg.RustfsUseSSL {
-				scheme = "https://"
-			}
-			return scheme + hostport
+			return "http://" + hostport
 		}
 		return hostport
 	}

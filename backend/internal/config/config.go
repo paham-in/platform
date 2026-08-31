@@ -28,7 +28,6 @@ type Config struct {
 	RustfsAccessKey    string
 	RustfsSecretKey    string
 	RustfsBucket       string
-	RustfsUseSSL       bool
 	TeacherFeePercent  float64
 	EvidenceRetentionDays int
 	DevResetEnabled    bool
@@ -57,7 +56,6 @@ func Load() *Config {
 		RustfsAccessKey:    getEnv("RUSTFS_ACCESS_KEY", "rustfsadmin"),
 		RustfsSecretKey:    getEnv("RUSTFS_SECRET_KEY", "rustfsadmin"),
 		RustfsBucket:       getEnv("RUSTFS_BUCKET", "bimbel"),
-		RustfsUseSSL:       getEnvEnabled("RUSTFS_USE_SSL"),
 		TeacherFeePercent:  getEnvFloat("TEACHER_FEE_PERCENT", 70),
 		EvidenceRetentionDays: getEnvInt("EVIDENCE_RETENTION_DAYS", 7),
 		DevResetEnabled:    getEnvEnabled("DEV_RESET_ENABLED"),
