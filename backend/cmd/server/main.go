@@ -31,7 +31,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	fiberSwagger "github.com/swaggo/fiber-swagger"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
 	_ "bimbel2/backend/docs"
@@ -167,17 +166,7 @@ func seedAdmin(db *gorm.DB, cfg *config.Config) {
 		return
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(cfg.AdminPass), bcrypt.DefaultCost)
-	if err != nil {
-		log.Fatal("Failed to hash password:", err)
-	}
-
-	hashStr := string(hash)
-	admin := models.User{
-		Name:     cfg.AdminName,
-		Email:    cfg.AdminEmail,
-		Password: &hashStr,
-	}
+	admin := models.User{Email: cfg.AdminEmail}
 
 	if err := db.Create(&admin).Error; err != nil {
 		log.Fatal("Failed to seed admin:", err)
@@ -187,5 +176,5 @@ func seedAdmin(db *gorm.DB, cfg *config.Config) {
 	db.Where("name = ?", "admin").First(&adminRole)
 	db.Model(&admin).Association("Roles").Append(&adminRole)
 
-	log.Printf("Admin seeded: %s / %s\n", cfg.AdminEmail, cfg.AdminPass)
+	log.Printf("Admin seeded: %s (login via Google OAuth)\n", cfg.AdminEmail)
 }

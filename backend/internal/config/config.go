@@ -15,9 +15,7 @@ type Config struct {
 	DBUser             string
 	DBPass             string
 	DBName             string
-	AdminName          string
 	AdminEmail         string
-	AdminPass          string
 	GoogleClientID     string
 	GoogleClientSecret string
 	GoogleCallbackURL  string
@@ -46,9 +44,7 @@ func Load() *Config {
 		DBUser:             getEnv("DB_USER", "postgres"),
 		DBPass:             getEnv("DB_PASS", "postgres"),
 		DBName:             getEnv("DB_NAME", "bimbel"),
-		AdminName:          getEnv("ADMIN_NAME", "Admin paham.in"),
-		AdminEmail:         getEnv("ADMIN_EMAIL", "gnoogler4@gmail.com"),
-		AdminPass:          getEnv("ADMIN_PASS", "admin123"),
+		AdminEmail:         getEnv("ADMIN_EMAIL", ""),
 		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
 		GoogleCallbackURL:  getEnv("GOOGLE_CALLBACK_URL", "http://localhost:8080/auth/google/callback"),
