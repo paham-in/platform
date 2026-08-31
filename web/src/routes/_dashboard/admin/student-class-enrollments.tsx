@@ -116,7 +116,7 @@ function AdminStudentClasses() {
       <main className="p-4 md:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="hidden md:block text-2xl font-bold tracking-tight">Hak Akses Murid</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Hak Akses Murid</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Kelola kelas yang diakses setiap murid dan masa berlakunya.
             </p>
@@ -176,7 +176,7 @@ function AdminStudentClasses() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Card className="pt-0 gap-0 pb-0">
+        <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -248,6 +248,85 @@ function AdminStudentClasses() {
                 )}
               </TableBody>
             </Table>
+          </CardContent>
+          {totalPages > 1 && (
+            <CardFooter className="flex items-center justify-between border-t">
+              <p className="text-sm text-muted-foreground">
+                Halaman {page} dari {totalPages}
+              </p>
+              <div className="flex gap-1">
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardFooter>
+          )}
+        </Card>
+
+        {/* Mobile card list */}
+        <Card className="gap-0 py-0 md:hidden">
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="divide-y">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={`skeleton-${i}`} className="flex items-start gap-3 p-4">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : paged.length === 0 ? (
+              <Empty className="p-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <KeyRound />}</EmptyMedia>
+                  <EmptyTitle>{hasActiveFilter ? "Tidak ada murid yang cocok" : "Belum ada hak akses"}</EmptyTitle>
+                </EmptyHeader>
+                {hasActiveFilter && (
+                  <EmptyContent>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSearchInput("")
+                        navigate({ search: {}, replace: true })
+                        setPage(1)
+                      }}
+                    >
+                      <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                    </Button>
+                  </EmptyContent>
+                )}
+              </Empty>
+            ) : (
+              <div className="divide-y">
+                {paged.map((sp) => (
+                  <div key={sp.id} className="flex items-start justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{sp.user?.name ?? "—"}</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">{sp.class?.name ?? "—"}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{sp.class?.program_name ?? "—"}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Kadaluarsa: {sp.expiry}</p>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="shrink-0" />}>
+                        <MoreVertical className="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem className="text-destructive" onClick={() => setRevokeTarget(sp)}>
+                          <Trash2 className="h-4 w-4" /> Cabut Akses
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
           {totalPages > 1 && (
             <CardFooter className="flex items-center justify-between border-t">
