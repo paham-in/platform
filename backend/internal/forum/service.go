@@ -96,7 +96,6 @@ func (s *Service) Create(userID uint, content string, subjectID *uint) (*models.
 		UserID:       userID,
 		Content:      committed,
 		PlainContent: stripHTML(committed),
-		Status:       "open",
 		SubjectID:    subjectID,
 	}
 	if err := s.repo.CreateWithAssets(&question, storage.ExtractContentImages(committed)); err != nil {

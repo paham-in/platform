@@ -85,9 +85,8 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 			ID:           q.ID,
 			PublicID:     q.PublicID,
 			Content:      h.svc.RewriteContent(q.Content),
-			PlainContent: q.PlainContent,
-			Status:       q.Status,
-			UserName:     q.User.Name,
+		PlainContent: q.PlainContent,
+		UserName:     q.User.Name,
 			UserAvatar:   q.User.AvatarURL,
 			SubjectID:    q.SubjectID,
 			IsOwner:      q.UserID == currentUser,
@@ -136,7 +135,6 @@ func (h *Handler) GetQuestion(c *fiber.Ctx) error {
 		PublicID:     question.PublicID,
 		Content:      h.svc.RewriteContent(question.Content),
 		PlainContent: question.PlainContent,
-		Status:       question.Status,
 		UserName:     question.User.Name,
 		UserAvatar:   question.User.AvatarURL,
 		SubjectID:    question.SubjectID,
@@ -209,7 +207,6 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 		PublicID:     question.PublicID,
 		Content:      question.Content,
 		PlainContent: question.PlainContent,
-		Status:       question.Status,
 		UserName:     user.Name,
 		UserAvatar:   user.AvatarURL,
 		SubjectID:    question.SubjectID,
@@ -268,7 +265,6 @@ func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
 		PublicID:     question.PublicID,
 		Content:      h.svc.RewriteContent(question.Content),
 		PlainContent: question.PlainContent,
-		Status:       question.Status,
 		UserName:     user.Name,
 		UserAvatar:   user.AvatarURL,
 		SubjectID:    question.SubjectID,
@@ -306,7 +302,6 @@ type QuestionResponse struct {
 	PublicID     string        `json:"public_id"`
 	Content      string        `json:"content"`
 	PlainContent string        `json:"plain_content"`
-	Status       string        `json:"status"`
 	SubjectName  string        `json:"subject_name,omitempty"`
 	UserName     string        `json:"user_name"`
 	UserAvatar   string        `json:"user_avatar,omitempty"`

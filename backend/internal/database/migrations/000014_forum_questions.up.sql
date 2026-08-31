@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS forum_questions (
     subject_id    bigint,
     content       text NOT NULL,
     plain_content text NOT NULL,
-    status        varchar(20) DEFAULT 'open',
     CONSTRAINT fk_forum_questions_user FOREIGN KEY (user_id) REFERENCES users (id),
     CONSTRAINT fk_forum_questions_subject FOREIGN KEY (subject_id) REFERENCES subjects (id)
 );

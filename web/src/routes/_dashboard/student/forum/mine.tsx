@@ -43,15 +43,13 @@ function MyQuestions() {
     },
   })
 
-  const StatusBadge = ({ status }: { status: string }) => {
-    const styles: Record<string, string> = {
-      open: "bg-green-100 text-green-700",
-      answered: "bg-blue-100 text-blue-700",
-      closed: "bg-gray-100 text-gray-700",
-    }
+  const StatusBadge = ({ answerCount }: { answerCount?: number }) => {
+    const answered = (answerCount ?? 0) > 0
     return (
-      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status] || styles.open}`}>
-        {status === "open" ? "Terbuka" : status === "answered" ? "Terjawab" : "Tertutup"}
+      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+        answered ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+      }`}>
+        {answered ? "Terjawab" : "Terbuka"}
       </span>
     )
   }
@@ -91,7 +89,7 @@ function MyQuestions() {
             <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-wrap gap-1.5">
-                    <StatusBadge status={q.status ?? "open"} />
+                    <StatusBadge answerCount={q.answer_count} />
                     {q.subject_name && (
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                         {q.subject_name}

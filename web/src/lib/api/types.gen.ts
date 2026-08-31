@@ -147,7 +147,6 @@ export type ForumQuestionResponse = {
     is_owner?: boolean;
     plain_content?: string;
     public_id?: string;
-    status?: string;
     subject_id?: number;
     subject_name?: string;
     top_answer?: ForumAnswerPreview;

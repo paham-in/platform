@@ -125,9 +125,7 @@ func (s *Service) Create(questionID, userID uint, content, videoURL string) (*mo
 		VideoURL:     videoURL,
 	}
 
-	// Insert jawaban + aset content + update status pertanyaan dalam satu
-	// transaksi, kalau update status gagal, jawaban ikut batal (bukan jawaban
-	// yatim + status "open").
+	// Insert jawaban + aset content dalam satu transaksi.
 	if err := s.repo.db.Transaction(func(tx *gorm.DB) error {
 		if err := s.repo.CreateWithDB(tx, &answer); err != nil {
 			return err
@@ -135,7 +133,7 @@ func (s *Service) Create(questionID, userID uint, content, videoURL string) (*mo
 		if err := s.repo.CreateAssetsWithDB(tx, answer.ID, storage.ExtractContentImages(committed)); err != nil {
 			return err
 		}
-		return s.questionRepo.MarkAnsweredWithDB(tx, questionID)
+		return nil
 	}); err != nil {
 		return nil, err
 	}
@@ -188,17 +186,4 @@ func (r *QuestionRepository) GetByPublicID(publicID string) (*models.ForumQuesti
 		return nil, err
 	}
 	return &q, nil
-}
-
-// MarkAnswered mengubah status pertanyaan menjadi "answered" jika masih "open".
-func (r *QuestionRepository) MarkAnswered(id uint) error {
-	return r.MarkAnsweredWithDB(r.db, id)
-}
-
-// MarkAnsweredWithDB sama dengan MarkAnswered tapi memakai koneksi tertentu
-// (bisa tx).
-func (r *QuestionRepository) MarkAnsweredWithDB(db *gorm.DB, id uint) error {
-	return db.Model(&models.ForumQuestion{}).
-		Where("id = ? AND status = ?", id, "open").
-		Update("status", "answered").Error
 }

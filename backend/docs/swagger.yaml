@@ -220,8 +220,6 @@ definitions:
         type: string
       public_id:
         type: string
-      status:
-        type: string
       subject_id:
         type: integer
       subject_name:

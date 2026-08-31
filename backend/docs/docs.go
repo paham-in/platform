@@ -5578,9 +5578,6 @@ const docTemplate = `{
                 "public_id": {
                     "type": "string"
                 },
-                "status": {
-                    "type": "string"
-                },
                 "subject_id": {
                     "type": "integer"
                 },

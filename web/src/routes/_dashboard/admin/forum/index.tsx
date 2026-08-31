@@ -108,11 +108,9 @@ function AdminForum() {
                     <TableCell className="text-muted-foreground">{q.user_name}</TableCell>
                     <TableCell>
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        q.status === "open" ? "bg-green-100 text-green-700" :
-                        q.status === "answered" ? "bg-blue-100 text-blue-700" :
-                        "bg-gray-100 text-gray-700"
+                        (q.answer_count ?? 0) > 0 ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
                       }`}>
-                        {q.status === "open" ? "Terbuka" : q.status === "answered" ? "Terjawab" : "Tertutup"}
+                        {(q.answer_count ?? 0) > 0 ? "Terjawab" : "Terbuka"}
                       </span>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{q.created_at}</TableCell>
