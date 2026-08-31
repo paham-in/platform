@@ -153,7 +153,7 @@ function SettingsPage() {
 
   const notifHelpSteps = isStandalone
     ? [
-        "Tekan lama ikon paham.in di layar utama HP",
+        "Tekan lama ikon Pahamin di layar utama HP",
         "Pilih 'Site Settings' (Setelan Situs)",
         "Ketuk 'Notifications', lalu ubah menjadi 'Izinkan'",
         "Kembali ke aplikasi, lalu klik 'Aktifkan'",
@@ -260,7 +260,7 @@ function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Instal paham.in ke perangkatmu untuk membuka aplikasi lebih cepat, lengkap dengan ikon di layar utama.
+              Instal Pahamin ke perangkatmu untuk membuka aplikasi lebih cepat, lengkap dengan ikon di layar utama.
             </p>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <div className="flex items-center gap-3">

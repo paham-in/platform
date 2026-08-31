@@ -42,7 +42,7 @@ const steps = [
 const testimonials = [
   { quote: "Aku jadi paham Matematika berkat penjelasan guru-guru di sini. Forum tanya-jawabnya juga super helpful!", name: "Siti Aisyah", role: "Siswa SMA" },
   { quote: "Sebagai guru, platform ini memudahkan saya membagikan materi dan menjawab pertanyaan siswa secara terstruktur.", name: "Bambang Supriyadi", role: "Guru Matematika" },
-  { quote: "Anak saya semangat belajar sejak pakai paham.in. Nilainya naik drastis dalam 2 bulan!", name: "Rina Wijaya", role: "Orang Tua Siswa" },
+  { quote: "Anak saya semangat belajar sejak pakai Pahamin. Nilainya naik drastis dalam 2 bulan!", name: "Rina Wijaya", role: "Orang Tua Siswa" },
 ]
 
 const heroFeatures = [
@@ -194,7 +194,7 @@ function LandingPage() {
               <h1 className="animate-fade-up font-heading text-4xl font-bold tracking-tight text-balance sm:text-5xl md:text-6xl [animation-delay:0.08s]">
                 Belajar Lebih Pintar,
                 <br />
-                <span className="text-primary">Bersama paham.in</span>
+                <span className="text-primary">Bersama Pahamin</span>
               </h1>
               <p className="animate-fade-up mx-auto mt-6 max-w-2xl text-balance text-lg text-muted-foreground [animation-delay:0.16s] md:text-xl">
                 Platform belajar online dengan materi berkualitas, video interaktif, dan forum tanya-jawab bersama guru berpengalaman. Raih prestasi terbaikmu!

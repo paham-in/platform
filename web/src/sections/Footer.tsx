@@ -14,7 +14,7 @@ export default function Footer() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
               p
               </div>
-              <span className="text-lg font-bold">paham.in</span>
+              <span className="text-lg font-bold">Pahamin</span>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
               Platform bimbingan belajar online untuk membantu siswa meraih prestasi terbaik.
@@ -39,7 +39,7 @@ export default function Footer() {
           ))}
         </div>
         <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} paham.in. All rights reserved.
+          &copy; {new Date().getFullYear()} Pahamin. All rights reserved.
         </div>
       </div>
     </footer>

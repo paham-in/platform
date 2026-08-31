@@ -421,7 +421,7 @@ function NewBooking() {
                 <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs tabular-nums">{members.length + 1}/5</span>
               </Button>
               <p className="text-xs text-muted-foreground">
-                Pilih teman yang sudah punya akun paham.in, maksimal 4 teman (total 5 siswa termasuk kamu).
+                Pilih teman yang sudah punya akun Pahamin, maksimal 4 teman (total 5 siswa termasuk kamu).
               </p>
               {members.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 pt-1">

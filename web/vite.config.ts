@@ -23,8 +23,8 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
       manifest: {
-        name: "paham.in",
-        short_name: "paham.in",
+        name: "Pahamin",
+        short_name: "Pahamin",
         description: "Platform bimbel online, materi terstruktur, forum tanya-jawab, dan les privat.",
         lang: "id",
         display: "standalone",

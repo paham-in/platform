@@ -36,7 +36,7 @@ import (
 	_ "bimbel2/backend/docs"
 )
 
-// @title           paham.in API
+// @title           Pahamin API
 // @version         1.0
 // @description     Platform bimbingan belajar online
 // @host            localhost:8080

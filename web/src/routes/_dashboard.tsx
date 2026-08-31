@@ -145,7 +145,7 @@ function AppSidebar({
                 p
               </div>
               <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-semibold">paham.in</span>
+                <span className="font-semibold">Pahamin</span>
                 <span className="text-xs text-muted-foreground">{userName}</span>
               </div>
             </div>

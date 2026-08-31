@@ -1,10 +1,10 @@
-# paham.in
+# Pahamin
 
 Platform bimbingan belajar online dengan materi terstruktur, forum tanya-jawab, dan les privat. Dibangun untuk menghubungkan murid, guru, dan admin dalam satu ekosistem belajar.
 
 ## Tentang
 
-paham.in menyusun materi belajar secara hierarkis — **Kelas → Mata Pelajaran → Chapter → Materi** — sehingga murid bisa belajar sesuai alur yang terstruktur. Selain materi, platform ini menyediakan forum tanya-jawab ala Brainly dan layanan les privat online.
+Pahamin menyusun materi belajar secara hierarkis — **Kelas → Mata Pelajaran → Chapter → Materi** — sehingga murid bisa belajar sesuai alur yang terstruktur. Selain materi, platform ini menyediakan forum tanya-jawab ala Brainly dan layanan les privat online.
 
 ## Peran & Fitur
 

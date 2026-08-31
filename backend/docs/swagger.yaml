@@ -1885,7 +1885,7 @@ host: localhost:8080
 info:
   contact: {}
   description: Platform bimbingan belajar online
-  title: paham.in API
+  title: Pahamin API
   version: "1.0"
 paths:
   /admin/chapters:

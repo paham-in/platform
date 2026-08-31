@@ -25,7 +25,7 @@ function LoginPage() {
         <CardHeader className="text-center">
           <button type="button" onClick={() => navigate({ to: "/" })} className="mx-auto flex w-fit items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">p</div>
-            <span className="text-xl font-bold">paham.in</span>
+            <span className="text-xl font-bold">Pahamin</span>
           </button>
           <CardTitle className="mt-4">Masuk</CardTitle>
           <p className="text-sm text-muted-foreground">Gunakan akun Google untuk masuk</p>

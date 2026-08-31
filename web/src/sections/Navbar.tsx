@@ -29,7 +29,7 @@ export default function Navbar() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
             p
           </div>
-          <span className="text-xl font-bold">paham.in</span>
+          <span className="text-xl font-bold">Pahamin</span>
         </a>
 
         <nav className="hidden items-center gap-6 md:flex">

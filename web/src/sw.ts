@@ -28,7 +28,7 @@ self.addEventListener("activate", (event) => {
 // Push dari backend → tampilkan notifikasi.
 self.addEventListener("push", (event) => {
   let data: { title: string; body: string; url: string } = {
-    title: "paham.in",
+    title: "Pahamin",
     body: "Ada notifikasi baru",
     url: "/",
   }
