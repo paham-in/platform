@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { useTheme } from "@/components/theme-provider"
 import {
   getMeOptions,
   getMeQueryKey,
@@ -14,7 +16,7 @@ import { usePageTitle } from "@/components/page-title"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { getPushPublicKey, postPushSubscribe } from "@/lib/api/sdk.gen"
-import { Loader2, Save, Bell, BellOff, Download } from "lucide-react"
+import { Loader2, Save, Bell, BellOff, Download, Moon, Sun } from "lucide-react"
 import { toast } from "sonner"
 import { usePwaInstall } from "@/lib/hooks/use-pwa-install"
 import { format, parseISO } from "date-fns"
@@ -36,6 +38,7 @@ function SettingsPage() {
   const [notifSubscribing, setNotifSubscribing] = useState(false)
   const [showNotifHelp, setShowNotifHelp] = useState(false)
   const { canInstall, installed, install, iOS } = usePwaInstall()
+  const { theme, setTheme } = useTheme()
 
   if (user && !initialized) {
     setName(user.name ?? "")
@@ -190,6 +193,26 @@ function SettingsPage() {
       <h1 className="hidden md:block mb-6 text-2xl font-bold tracking-tight">Pengaturan</h1>
 
       <div className="flex max-w-lg flex-col gap-4">
+      <Card className="md:hidden">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Moon className="h-5 w-5" /> Tampilan
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="flex items-center gap-3">
+              <Sun className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Mode Gelap</p>
+                <p className="text-xs text-muted-foreground">Gunakan tema gelap pada perangkat ini.</p>
+              </div>
+            </div>
+            <Switch checked={theme === "dark"} onCheckedChange={(c) => setTheme(c ? "dark" : "light")} aria-label="Mode gelap" />
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Profil</CardTitle>

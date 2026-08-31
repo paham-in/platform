@@ -381,7 +381,7 @@ function DashboardLayout() {
               <Search />
             </Button>
             <NotificationBell />
-            <ThemeToggle compact />
+            <ThemeToggle compact className="hidden md:inline-flex" />
             <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger
