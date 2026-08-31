@@ -386,7 +386,7 @@ function DashboardLayout() {
         logoutPending={logout.isPending}
         onLogoutClick={() => setLogoutConfirmOpen(true)}
       />
-      <SidebarInset>
+      <SidebarInset className="overflow-x-hidden">
         <PageTitleProvider>
           <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4 md:gap-4">
             <HeaderNav />
