@@ -232,7 +232,7 @@ function AdminSettings() {
 
   return (
     <main className="p-4 md:p-6">
-      <h1 className="hidden md:block mb-1 text-2xl font-bold tracking-tight">Tarif Produk</h1>
+      <h1 className="mb-1 text-2xl font-bold tracking-tight">Tarif Produk</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Konfigurasi harga per kelas untuk les privat dan konten (materi + paket soal + forum).
       </p>
@@ -286,7 +286,7 @@ function AdminSettings() {
             <CardTitle>Harga Les Privat</CardTitle>
             <CardDescription>Biaya per pertemuan, dipakai saat murid booking les.</CardDescription>
           </CardHeader>
-          <CardContent className="px-0">
+          <CardContent className="hidden px-0 md:block">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
@@ -390,6 +390,99 @@ function AdminSettings() {
               </TableBody>
             </Table>
           </CardContent>
+          <CardContent className="p-4 md:hidden">
+            {classesLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-24 w-full" />
+                ))}
+              </div>
+            ) : classes.length === 0 ? (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon"><School /></EmptyMedia>
+                  <EmptyTitle>Belum ada kelas</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="space-y-3">
+                {classes.map((cls) => {
+                  const allowed = allowTutoring[cls.id!] ?? (cls.allow_tutoring !== false)
+                  const row = tutoringPrices[cls.id!]
+                  const pv = row?.private ?? ""
+                  const gv = row?.group ?? ""
+                  const pvValid = priceNum(pv) !== null
+                  const gvValid = priceNum(gv) !== null
+                  return (
+                    <div key={cls.id} className="rounded-lg border p-3">
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="font-medium">{cls.name}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">Les</span>
+                          <Switch
+                            checked={allowTutoring[cls.id!] ?? allowed}
+                            onCheckedChange={(checked) =>
+                              setAllowTutoring((prev) => ({ ...prev, [cls.id!]: checked }))
+                            }
+                          />
+                        </div>
+                      </div>
+                      {allowed ? (
+                        <div className="space-y-2">
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Private (Rp)</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              className="h-8"
+                              value={pv}
+                              aria-label={`Harga les privat ${cls.name}`}
+                              aria-invalid={!pvValid}
+                              onChange={(e) =>
+                                setTutoringPrices((prev) => ({
+                                  ...prev,
+                                  [cls.id!]: { private: e.target.value, group: prev[cls.id!]?.group ?? "" },
+                                }))
+                              }
+                            autoComplete="off"/>
+                            {pvValid && Number(pv) > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                Fee guru: {fmtRp(teacherFee(pv))}
+                              </p>
+                            )}
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Kelompok (Rp)</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              className="h-8"
+                              value={gv}
+                              aria-label={`Harga kelompok ${cls.name}`}
+                              aria-invalid={!gvValid}
+                              onChange={(e) =>
+                                setTutoringPrices((prev) => ({
+                                  ...prev,
+                                  [cls.id!]: { private: prev[cls.id!]?.private ?? "", group: e.target.value },
+                                }))
+                              }
+                            autoComplete="off"/>
+                            {gvValid && Number(gv) > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                Fee guru: {fmtRp(teacherFee(gv))}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Tanpa les</p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </CardContent>
           <CardFooter>
             <div className="flex w-full items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
@@ -414,7 +507,7 @@ function AdminSettings() {
               Langganan materi + paket soal + forum per kelas (tanpa les privat).
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-0">
+          <CardContent className="hidden px-0 md:block">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
@@ -458,6 +551,48 @@ function AdminSettings() {
                 )}
               </TableBody>
             </Table>
+          </CardContent>
+          <CardContent className="p-4 md:hidden">
+            {classesLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : classes.length === 0 ? (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon"><School /></EmptyMedia>
+                  <EmptyTitle>Belum ada kelas</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="space-y-3">
+                {classes.map((cls) => {
+                  const v = contentPrices[cls.id!] ?? ""
+                  const valid = priceNum(v) !== null
+                  return (
+                    <div key={cls.id} className="rounded-lg border p-3">
+                      <p className="mb-2 font-medium">{cls.name}</p>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Konten (Rp)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          className="h-8"
+                          value={v}
+                          aria-label={`Harga konten ${cls.name}`}
+                          aria-invalid={!valid}
+                          onChange={(e) =>
+                            setContentPrices((prev) => ({ ...prev, [cls.id!]: e.target.value }))
+                          }
+                        autoComplete="off"/>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </CardContent>
           <CardFooter>
             <div className="flex w-full items-center justify-between gap-3">
