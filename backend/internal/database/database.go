@@ -123,7 +123,46 @@ func Migrate(db *gorm.DB) {
 		db.Exec("ALTER TABLE quiz_packages ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'published'")
 	}
 
-	db.AutoMigrate(&models.User{}, &models.Session{}, &models.Class{}, &models.Subject{}, &models.ClassSubject{}, &models.Chapter{}, &models.Material{}, &models.MaterialAsset{}, &models.ForumQuestion{}, &models.ForumAnswer{}, &models.ForumQuestionAsset{}, &models.ForumAnswerAsset{}, &models.Invoice{}, &models.Booking{}, &models.TutoringSession{}, &models.Role{}, &models.QuizQuestion{}, &models.QuizAnswer{}, &models.QuizQuestionAsset{}, &models.QuizAnswerAsset{}, &models.QuizCollection{}, &models.QuizPackage{}, &models.TeacherSubject{}, &models.PushSubscription{}, &models.Program{}, &models.StudentClassEnrollment{}, &models.Setting{}, &models.QuizStudentProgress{}, &models.Notification{}, &models.TeacherPermission{})
+	// AutoMigrate. Urutan tabel penting: GORM men-generate FK constraint inline
+	// di CREATE TABLE, jadi model yang ber-FK ke tabel lain harus muncul SETELAH
+	// tabel yang direferensikan. Urutan di sini disusun mengikuti dependensi FK
+	// (dulu Invoice sebelum Booking → `fk_bookings_invoice` mereferensikan
+	// `bookings` yang belum dibuat → AutoMigrate gagal berhenti di tengah dan
+	// tabel sisanya tidak pernah dibuat).
+	if err := db.AutoMigrate(
+		&models.User{},
+		&models.Session{},
+		&models.Role{},
+		&models.Program{},
+		&models.Class{},
+		&models.Subject{},
+		&models.ClassSubject{},
+		&models.Chapter{},
+		&models.Material{},
+		&models.MaterialAsset{},
+		&models.ForumQuestion{},
+		&models.ForumAnswer{},
+		&models.ForumQuestionAsset{},
+		&models.ForumAnswerAsset{},
+		&models.Booking{},
+		&models.Invoice{},
+		&models.TutoringSession{},
+		&models.QuizCollection{},
+		&models.QuizPackage{},
+		&models.QuizQuestion{},
+		&models.QuizAnswer{},
+		&models.QuizQuestionAsset{},
+		&models.QuizAnswerAsset{},
+		&models.QuizStudentProgress{},
+		&models.TeacherSubject{},
+		&models.StudentClassEnrollment{},
+		&models.PushSubscription{},
+		&models.Notification{},
+		&models.TeacherPermission{},
+		&models.Setting{},
+	); err != nil {
+		log.Fatalf("AutoMigrate gagal, DB tidak dapat dipakai: %v", err)
+	}
 
 	// seed default roles (role "user" dihapus, semua pendaftar otomatis student)
 	for _, name := range []string{"student", "teacher", "admin"} {
