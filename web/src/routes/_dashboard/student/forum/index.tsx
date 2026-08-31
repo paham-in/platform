@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react"
+﻿import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -21,12 +21,61 @@ import { z } from "zod"
 import { Plus, Search, SearchX, Funnel, X, MessageSquare, Sparkles } from "lucide-react"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useCanPostForum } from "@/hooks/use-can-post-forum"
-import { usePageTitle } from "@/components/page-title"
+import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
 
 const forumSearchSchema = z.object({
   search: z.string().optional(),
   subject: z.string().optional(),
 })
+
+function SubjectFilterMenu({
+  compact,
+  value,
+  onValueChange,
+  activeCount,
+  options,
+}: {
+  compact?: boolean;
+  value: string;
+  onValueChange: (v: string) => void;
+  activeCount: number;
+  options: { label: string; value: string }[];
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={compact ? <Button variant="outline" size="icon" className="relative" /> : <Button variant="outline" />}
+        aria-label="Filter subjek"
+      >
+        <Funnel className="h-4 w-4" />
+        {compact ? (
+          activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              {activeCount}
+            </span>
+          )
+        ) : (
+          <>
+            Filter
+            {activeCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            )}
+          </>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-52">
+        <DropdownMenuRadioGroup aria-label="Subjek" value={value} onValueChange={(v) => { if (v) onValueChange(v) }}>
+          <DropdownMenuLabel>Subjek</DropdownMenuLabel>
+          {options.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 function Avatar({ url, name, size = "md" }: { url?: string; name?: string; size?: "sm" | "md" }) {
   const cls = size === "sm" ? "h-6 w-6 text-[10px]" : "h-9 w-9 text-xs"
@@ -79,10 +128,13 @@ function ForumPage() {
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const subjectFilter = subjectParam ?? "all"
 
-  const subjectOptions = [
-    { label: "Semua Subjek", value: "all" },
-    ...subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) })),
-  ]
+  const subjectOptions = useMemo(
+    () => [
+      { label: "Semua Subjek", value: "all" },
+      ...subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) })),
+    ],
+    [subjects]
+  )
   const activeFilterCount = subjectFilter !== "all" ? 1 : 0
   const hasActiveFilter = !!searchParam || subjectFilter !== "all"
 
@@ -105,6 +157,20 @@ function ForumPage() {
     setSearchInput("")
     navigate({ search: {}, replace: true })
   }
+
+  const headerFilter = useMemo(
+    () => (
+      <SubjectFilterMenu
+        compact
+        value={subjectFilter}
+        onValueChange={setSubjectFilter}
+        activeCount={activeFilterCount}
+        options={subjectOptions}
+      />
+    ),
+    [subjectFilter, activeFilterCount, subjectOptions]
+  )
+  usePageHeaderAction(headerFilter)
 
   if (isLoading) {
     return (
@@ -171,28 +237,14 @@ function ForumPage() {
             </button>
           )}
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant="outline" />}
-            aria-label="Filter subjek"
-          >
-            <Funnel className="h-4 w-4" />
-            Filter
-            {activeFilterCount > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
-                {activeFilterCount}
-              </span>
-            )}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-52">
-            <DropdownMenuRadioGroup aria-label="Subjek" value={subjectFilter} onValueChange={(v) => { if (v) setSubjectFilter(v) }}>
-              <DropdownMenuLabel>Subjek</DropdownMenuLabel>
-              {subjectOptions.map((opt) => (
-                <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="hidden md:inline-flex">
+          <SubjectFilterMenu
+            value={subjectFilter}
+            onValueChange={setSubjectFilter}
+            activeCount={activeFilterCount}
+            options={subjectOptions}
+          />
+        </div>
         <Button variant="outline" size="sm" onClick={() => navigate({ to: "/student/forum/mine" })}>Pertanyaan Saya</Button>
       </div>
 

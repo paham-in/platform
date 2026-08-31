@@ -72,7 +72,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -83,7 +83,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { usePageTitle } from "@/components/page-title";
+import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
 
 const COVER_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const COVER_MAX = 5 * 1024 * 1024;
@@ -93,6 +93,55 @@ const chaptersSearchSchema = z.object({
   search: z.string().optional(),
   classId: z.string().optional(),
 });
+
+function ClassFilterMenu({
+  compact,
+  value,
+  onValueChange,
+  activeCount,
+  options,
+}: {
+  compact?: boolean;
+  value: string;
+  onValueChange: (v: string) => void;
+  activeCount: number;
+  options: { label: string; value: string }[];
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={compact ? <Button variant="outline" size="icon" className="relative" /> : <Button variant="outline" />}
+        aria-label="Filter kelas"
+      >
+        <Funnel className="h-4 w-4" />
+        {compact ? (
+          activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              {activeCount}
+            </span>
+          )
+        ) : (
+          <>
+            Filter
+            {activeCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            )}
+          </>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-52">
+        <DropdownMenuRadioGroup value={value} onValueChange={(v) => { if (v) onValueChange(v); }}>
+          <DropdownMenuLabel>Kelas</DropdownMenuLabel>
+          {options.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 function AdminChapters() {
   usePageTitle("BAB");
@@ -132,10 +181,13 @@ function AdminChapters() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [coverView, setCoverView] = useState<ChapterChapterResponse | null>(null);
 
-  const classOptions = [
-    { label: "Semua Kelas", value: "all" },
-    ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id) })),
-  ];
+  const classOptions = useMemo(
+    () => [
+      { label: "Semua Kelas", value: "all" },
+      ...classes.map((c) => ({ label: c.name ?? "", value: String(c.id) })),
+    ],
+    [classes]
+  );
   const formClassOptions = classes.map((c) => ({ label: c.name ?? "", value: String(c.id) }));
 
   // sync URL → local search input
@@ -153,6 +205,20 @@ function AdminChapters() {
     navigate({ search: (prev) => ({ ...prev, classId: v === "all" ? undefined : v }), replace: true });
     setPage(1);
   };
+
+  const headerFilter = useMemo(
+    () => (
+      <ClassFilterMenu
+        compact
+        value={classId ?? "all"}
+        onValueChange={setClassFilter}
+        activeCount={activeFilterCount}
+        options={classOptions}
+      />
+    ),
+    [classId, activeFilterCount, classOptions]
+  );
+  usePageHeaderAction(headerFilter);
 
   const { mutateAsync: createChapter } = useMutation({
     ...postAdminChaptersMutation(),
@@ -349,28 +415,14 @@ function AdminChapters() {
                 </button>
               )}
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={<Button variant="outline" />}
-                aria-label="Filter kelas"
-              >
-                <Funnel className="h-4 w-4" />
-                Filter
-                {activeFilterCount > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-52">
-                <DropdownMenuRadioGroup value={classId ?? "all"} onValueChange={(v) => { if (v) setClassFilter(v); }}>
-                  <DropdownMenuLabel>Kelas</DropdownMenuLabel>
-                  {classOptions.map((opt) => (
-                    <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="hidden md:inline-flex">
+              <ClassFilterMenu
+                value={classId ?? "all"}
+                onValueChange={setClassFilter}
+                activeCount={activeFilterCount}
+                options={classOptions}
+              />
+            </div>
           </div>
           {canManage && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -48,7 +48,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -60,7 +60,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePageTitle } from "@/components/page-title";
+import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
 
 const perPage = 10;
 
@@ -108,6 +108,75 @@ const materialsSearchSchema = z.object({
   type: z.enum(["text", "video"]).optional(),
   status: z.enum(["published", "draft"]).optional(),
 });
+
+function MaterialsFilterMenu({
+  compact,
+  access,
+  type,
+  status,
+  onAccessChange,
+  onTypeChange,
+  onStatusChange,
+  activeCount,
+}: {
+  compact?: boolean;
+  access: string;
+  type: string;
+  status: string;
+  onAccessChange: (v: string) => void;
+  onTypeChange: (v: string) => void;
+  onStatusChange: (v: string) => void;
+  activeCount: number;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={compact ? <Button variant="outline" size="icon" className="relative" /> : <Button variant="outline" />}
+        aria-label="Filter materi"
+      >
+        <Funnel className="h-4 w-4" />
+        {compact ? (
+          activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              {activeCount}
+            </span>
+          )
+        ) : (
+          <>
+            Filter
+            {activeCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            )}
+          </>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-52">
+        <DropdownMenuRadioGroup value={access} onValueChange={(v) => { if (v) onAccessChange(v); }}>
+          <DropdownMenuLabel>Akses</DropdownMenuLabel>
+          {freeOptions.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuRadioGroup value={type} onValueChange={(v) => { if (v) onTypeChange(v); }}>
+          <DropdownMenuLabel>Tipe</DropdownMenuLabel>
+          {typeOptions.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuRadioGroup value={status} onValueChange={(v) => { if (v) onStatusChange(v); }}>
+          <DropdownMenuLabel>Status</DropdownMenuLabel>
+          {statusOptions.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 function ChapterMaterials() {
   usePageTitle("Materi");
@@ -160,6 +229,22 @@ function ChapterMaterials() {
     navigate({ search: (prev) => ({ ...prev, status: v === "all" ? undefined : (v as "published" | "draft") }), replace: true });
     setPage(1);
   };
+  const headerFilter = useMemo(
+    () => (
+      <MaterialsFilterMenu
+        compact
+        access={access ?? "all"}
+        type={type ?? "all"}
+        status={status ?? "all"}
+        onAccessChange={setAccess}
+        onTypeChange={setTypeFilter}
+        onStatusChange={setStatusFilter}
+        activeCount={activeFilterCount}
+      />
+    ),
+    [access, type, status, activeFilterCount]
+  );
+  usePageHeaderAction(headerFilter);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<{ id: number; status: string; name: string } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
@@ -291,42 +376,17 @@ function ChapterMaterials() {
                 </button>
               )}
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={<Button variant="outline" />}
-                aria-label="Filter materi"
-              >
-                <Funnel className="h-4 w-4" />
-                Filter
-                {activeFilterCount > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-52">
-                <DropdownMenuRadioGroup value={access ?? "all"} onValueChange={(v) => { if (v) setAccess(v); }}>
-                  <DropdownMenuLabel>Akses</DropdownMenuLabel>
-                  {freeOptions.map((opt) => (
-                    <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={type ?? "all"} onValueChange={(v) => { if (v) setTypeFilter(v); }}>
-                  <DropdownMenuLabel>Tipe</DropdownMenuLabel>
-                  {typeOptions.map((opt) => (
-                    <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={status ?? "all"} onValueChange={(v) => { if (v) setStatusFilter(v); }}>
-                  <DropdownMenuLabel>Status</DropdownMenuLabel>
-                  {statusOptions.map((opt) => (
-                    <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="hidden md:inline-flex">
+              <MaterialsFilterMenu
+                access={access ?? "all"}
+                type={type ?? "all"}
+                status={status ?? "all"}
+                onAccessChange={setAccess}
+                onTypeChange={setTypeFilter}
+                onStatusChange={setStatusFilter}
+                activeCount={activeFilterCount}
+              />
+            </div>
           </div>
           {canManage && (
             <Button onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/new", params: { chapterId } })}>

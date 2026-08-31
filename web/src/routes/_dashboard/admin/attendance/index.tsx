@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Loader2, Search, SearchX, X, ClipboardCheck, Funnel } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { getAdminTutoringEvidenceOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { usePageTitle } from "@/components/page-title"
+import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
 
 const attendanceIndexSearchSchema = z.object({
   status: z.enum(["review", "done"]).optional(),
@@ -31,6 +31,58 @@ const statusOptions = [
 ] as const
 
 const fmtRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`
+
+function StatusFilterMenu({
+  compact,
+  value,
+  onValueChange,
+  activeCount,
+}: {
+  compact?: boolean;
+  value: string;
+  onValueChange: (v: string) => void;
+  activeCount: number;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={compact ? <Button variant="outline" size="icon" className="relative" /> : <Button variant="outline" />}
+        aria-label="Filter status"
+      >
+        <Funnel className="h-4 w-4" />
+        {compact ? (
+          activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              {activeCount}
+            </span>
+          )
+        ) : (
+          <>
+            Filter
+            {activeCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            )}
+          </>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-52">
+        <DropdownMenuRadioGroup
+          value={value}
+          onValueChange={onValueChange}
+        >
+          <DropdownMenuLabel>Status</DropdownMenuLabel>
+          {statusOptions.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 function AttendanceIndex() {
   usePageTitle("Validasi & Fee Guru")
@@ -76,6 +128,21 @@ function AttendanceIndex() {
   const activeFilterCount = status ? 1 : 0
   const hasActiveFilter = !!searchParam || !!status
 
+  const statusFilterValue = status ?? "all"
+  const setStatusFilter = (v: string) => setFilter(v === "all" ? undefined : (v as "review" | "done"))
+  const headerFilter = useMemo(
+    () => (
+      <StatusFilterMenu
+        compact
+        value={statusFilterValue}
+        onValueChange={setStatusFilter}
+        activeCount={activeFilterCount}
+      />
+    ),
+    [statusFilterValue, activeFilterCount]
+  )
+  usePageHeaderAction(headerFilter)
+
   if (isLoading) {
     return (
       <main className="flex flex-1 items-center justify-center">
@@ -114,30 +181,13 @@ function AttendanceIndex() {
             </button>
           )}
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="outline" />} aria-label="Filter status">
-            <Funnel className="h-4 w-4" />
-            Filter
-            {activeFilterCount > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
-                {activeFilterCount}
-              </span>
-            )}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-52">
-            <DropdownMenuRadioGroup
-              value={status ?? "all"}
-              onValueChange={(v) => setFilter(v === "all" ? undefined : (v as "review" | "done"))}
-            >
-              <DropdownMenuLabel>Status</DropdownMenuLabel>
-              {statusOptions.map((opt) => (
-                <DropdownMenuRadioItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="hidden md:inline-flex">
+          <StatusFilterMenu
+            value={statusFilterValue}
+            onValueChange={setStatusFilter}
+            activeCount={activeFilterCount}
+          />
+        </div>
       </div>
 
       <Card className="pt-0 gap-0 pb-0">

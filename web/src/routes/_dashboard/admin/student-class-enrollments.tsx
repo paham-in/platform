@@ -24,10 +24,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { ChevronLeft, ChevronRight, Plus, Trash2, KeyRound, MoreVertical, Search, SearchX, X, Funnel } from "lucide-react";
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { GrantClassDialog } from "@/components/admin/student-class-enrollments";
-import { usePageTitle } from "@/components/page-title";
+import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +54,68 @@ const studentClassesSearchSchema = z.object({
   class: z.coerce.number().optional(),
   program: z.coerce.number().optional(),
 });
+
+function ClassProgramFilterMenu({
+  compact,
+  classValue,
+  onClassChange,
+  programValue,
+  onProgramChange,
+  activeCount,
+  classOptions,
+  programOptions,
+}: {
+  compact?: boolean;
+  classValue: string;
+  onClassChange: (v: string) => void;
+  programValue: string;
+  onProgramChange: (v: string) => void;
+  activeCount: number;
+  classOptions: { label: string; value: string }[];
+  programOptions: { label: string; value: string }[];
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={compact ? <Button variant="outline" size="icon" className="relative" /> : <Button variant="outline" />}
+        aria-label="Filter kelas dan program"
+      >
+        <Funnel className="h-4 w-4" />
+        {compact ? (
+          activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              {activeCount}
+            </span>
+          )
+        ) : (
+          <>
+            Filter
+            {activeCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            )}
+          </>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-52">
+        <DropdownMenuRadioGroup value={classValue} onValueChange={(v) => { if (v) onClassChange(v) }}>
+          <DropdownMenuLabel>Kelas</DropdownMenuLabel>
+          {classOptions.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuRadioGroup value={programValue} onValueChange={(v) => { if (v) onProgramChange(v) }}>
+          <DropdownMenuLabel>Program</DropdownMenuLabel>
+          {programOptions.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 function AdminStudentClasses() {
   usePageTitle("Hak Akses Murid");
@@ -87,14 +149,20 @@ function AdminStudentClasses() {
     return () => clearTimeout(timer)
   }, [searchInput, navigate])
 
-  const classOptions = [
-    { label: "Semua Kelas", value: "all" },
-    ...classes.map((c) => ({ label: c.name ?? "—", value: String(c.id) })),
-  ]
-  const programOptions = [
-    { label: "Semua Program", value: "all" },
-    ...programs.map((p) => ({ label: p.name ?? "—", value: String(p.id) })),
-  ]
+  const classOptions = useMemo(
+    () => [
+      { label: "Semua Kelas", value: "all" },
+      ...classes.map((c) => ({ label: c.name ?? "—", value: String(c.id) })),
+    ],
+    [classes]
+  )
+  const programOptions = useMemo(
+    () => [
+      { label: "Semua Program", value: "all" },
+      ...programs.map((p) => ({ label: p.name ?? "—", value: String(p.id) })),
+    ],
+    [programs]
+  )
 
   const setClassFilter = (v: string) => {
     navigate({ search: (prev) => ({ ...prev, class: v === "all" ? undefined : Number(v) }), replace: true })
@@ -107,6 +175,25 @@ function AdminStudentClasses() {
 
   const activeFilterCount = (classFilter ? 1 : 0) + (programFilter ? 1 : 0)
   const hasActiveFilter = !!searchParam || !!classFilter || !!programFilter
+
+  const classFilterValue = classFilter ? String(classFilter) : "all"
+  const programFilterValue = programFilter ? String(programFilter) : "all"
+  const headerFilter = useMemo(
+    () => (
+      <ClassProgramFilterMenu
+        compact
+        classValue={classFilterValue}
+        onClassChange={setClassFilter}
+        programValue={programFilterValue}
+        onProgramChange={setProgramFilter}
+        activeCount={activeFilterCount}
+        classOptions={classOptions}
+        programOptions={programOptions}
+      />
+    ),
+    [classFilterValue, programFilterValue, activeFilterCount, classOptions, programOptions]
+  )
+  usePageHeaderAction(headerFilter)
 
   const totalPages = Math.ceil(items.length / perPage);
   const paged = items.slice((page - 1) * perPage, page * perPage);
@@ -146,35 +233,17 @@ function AdminStudentClasses() {
               </button>
             )}
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<Button variant="outline" />}
-              aria-label="Filter kelas dan program"
-            >
-              <Funnel className="h-4 w-4" />
-              Filter
-              {activeFilterCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
-                  {activeFilterCount}
-                </span>
-              )}
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-52">
-              <DropdownMenuRadioGroup value={classFilter ? String(classFilter) : "all"} onValueChange={(v) => { if (v) setClassFilter(v) }}>
-                <DropdownMenuLabel>Kelas</DropdownMenuLabel>
-                {classOptions.map((opt) => (
-                  <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup value={programFilter ? String(programFilter) : "all"} onValueChange={(v) => { if (v) setProgramFilter(v) }}>
-                <DropdownMenuLabel>Program</DropdownMenuLabel>
-                {programOptions.map((opt) => (
-                  <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="hidden md:inline-flex">
+            <ClassProgramFilterMenu
+              classValue={classFilterValue}
+              onClassChange={setClassFilter}
+              programValue={programFilterValue}
+              onProgramChange={setProgramFilter}
+              activeCount={activeFilterCount}
+              classOptions={classOptions}
+              programOptions={programOptions}
+            />
+          </div>
         </div>
         <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">

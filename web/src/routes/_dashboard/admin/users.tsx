@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
@@ -21,12 +21,66 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RoleBadge, CreateUserDialog, EditRoleDialog, DeleteUserDialog, ConnectGoogleDialog } from "@/components/admin/users"
-import { usePageTitle } from "@/components/page-title"
+import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
 
 const usersSearchSchema = z.object({
   role: z.enum(["student", "teacher", "admin"]).optional(),
   search: z.string().optional(),
 })
+
+const roleOptions = [
+  { label: "Semua Role", value: "all" },
+  { label: "Murid", value: "student" },
+  { label: "Guru", value: "teacher" },
+  { label: "Admin", value: "admin" },
+]
+
+function RoleFilterMenu({
+  compact,
+  value,
+  onValueChange,
+  activeCount,
+}: {
+  compact?: boolean;
+  value: string;
+  onValueChange: (v: string) => void;
+  activeCount: number;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={compact ? <Button variant="outline" size="icon" className="relative" /> : <Button variant="outline" />}
+        aria-label="Filter role"
+      >
+        <Funnel className="h-4 w-4" />
+        {compact ? (
+          activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              {activeCount}
+            </span>
+          )
+        ) : (
+          <>
+            Filter
+            {activeCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            )}
+          </>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-52">
+        <DropdownMenuRadioGroup value={value} onValueChange={(v) => { if (v) onValueChange(v); }}>
+          <DropdownMenuLabel>Role</DropdownMenuLabel>
+          {roleOptions.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 function AdminUsers() {
   usePageTitle("Kelola User")
@@ -49,12 +103,6 @@ function AdminUsers() {
     query: { search, role: roleFilter },
   }))
 
-  const roleOptions = [
-    { label: "Semua Role", value: "all" },
-    { label: "Murid", value: "student" },
-    { label: "Guru", value: "teacher" },
-    { label: "Admin", value: "admin" },
-  ]
   const activeFilterCount = roleFilter ? 1 : 0
   const hasActiveFilter = !!search || !!roleFilter
   const [createOpen, setCreateOpen] = useState(false)
@@ -68,6 +116,20 @@ function AdminUsers() {
     navigate({ search: (prev) => ({ ...prev, role: v === "all" ? undefined : (v as "student" | "teacher" | "admin") }), replace: true })
     setPage(1)
   }
+
+  const roleFilterValue = roleFilter ?? "all"
+  const headerFilter = useMemo(
+    () => (
+      <RoleFilterMenu
+        compact
+        value={roleFilterValue}
+        onValueChange={setRole}
+        activeCount={activeFilterCount}
+      />
+    ),
+    [roleFilterValue, activeFilterCount]
+  )
+  usePageHeaderAction(headerFilter)
 
   const totalPages = Math.ceil(users.length / perPage)
   const paged = users.slice((page - 1) * perPage, page * perPage)
@@ -103,28 +165,13 @@ function AdminUsers() {
               </button>
             )}
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<Button variant="outline" />}
-              aria-label="Filter role"
-            >
-              <Funnel className="h-4 w-4" />
-              Filter
-              {activeFilterCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
-                  {activeFilterCount}
-                </span>
-              )}
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-52">
-              <DropdownMenuRadioGroup value={roleFilter ?? "all"} onValueChange={(v) => { if (v) setRole(v); }}>
-                <DropdownMenuLabel>Role</DropdownMenuLabel>
-                {roleOptions.map((opt) => (
-                  <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="hidden md:inline-flex">
+            <RoleFilterMenu
+              value={roleFilterValue}
+              onValueChange={setRole}
+              activeCount={activeFilterCount}
+            />
+          </div>
         </div>
 
         {/* Desktop table */}

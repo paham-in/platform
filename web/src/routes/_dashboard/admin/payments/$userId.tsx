@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
 import { useQuery } from "@tanstack/react-query"
@@ -26,13 +26,65 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CreateInvoiceDialog, DeleteInvoiceDialog, ToggleInvoiceDialog } from "@/components/admin/payments"
-import { usePageTitle } from "@/components/page-title"
+import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
 import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
 
 const paymentsDetailSearchSchema = z.object({
   search: z.string().optional(),
   status: z.enum(["all", "paid", "pending"]).optional(),
 })
+
+function PaymentsStatusFilterMenu({
+  compact,
+  value,
+  onValueChange,
+  activeCount,
+  options,
+}: {
+  compact?: boolean;
+  value: string;
+  onValueChange: (v: string) => void;
+  activeCount: number;
+  options: { label: string; value: string }[];
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={compact ? <Button variant="outline" size="icon" className="relative" /> : <Button variant="outline" />}
+        aria-label="Filter status"
+      >
+        <Funnel className="h-4 w-4" />
+        {compact ? (
+          activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              {activeCount}
+            </span>
+          )
+        ) : (
+          <>
+            Filter
+            {activeCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                {activeCount}
+              </span>
+            )}
+          </>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-52">
+        <DropdownMenuRadioGroup
+          value={value}
+          onValueChange={(v) => { if (v) onValueChange(v) }}
+        >
+          <DropdownMenuLabel>Status</DropdownMenuLabel>
+          {options.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 function PaymentsDetail() {
   const { userId } = Route.useParams()
@@ -67,11 +119,14 @@ function PaymentsDetail() {
   const [toggleTarget, setToggleTarget] = useState<{ invoices: InvoiceInvoiceResponse[]; status: "paid" | "pending" } | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 
-  const statusOptions = [
-    { label: "Semua", value: "all" },
-    { label: "Lunas", value: "paid" },
-    { label: "Pending", value: "pending" },
-  ]
+  const statusOptions = useMemo(
+    () => [
+      { label: "Semua", value: "all" },
+      { label: "Lunas", value: "paid" },
+      { label: "Pending", value: "pending" },
+    ],
+    []
+  )
 
   const user = users.find((u) => u.id === Number(userId))
   usePageTitle(user?.name ?? "Pengguna")
@@ -90,6 +145,25 @@ function PaymentsDetail() {
       return next
     })
   }
+
+  const activeFilterCount = statusFilter !== "all" ? 1 : 0
+  const setStatusFilter = (v: string) => {
+    navigate({ search: (prev) => ({ ...prev, status: v === "all" ? undefined : v as "paid" | "pending" }), replace: true })
+    setSelectedIds(new Set())
+  }
+  const headerFilter = useMemo(
+    () => (
+      <PaymentsStatusFilterMenu
+        compact
+        value={statusFilter}
+        onValueChange={setStatusFilter}
+        activeCount={activeFilterCount}
+        options={statusOptions}
+      />
+    ),
+    [statusFilter, activeFilterCount, statusOptions]
+  )
+  usePageHeaderAction(headerFilter)
 
   if (!isLoading && !user) {
     return (
@@ -124,33 +198,14 @@ function PaymentsDetail() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Cari periode atau catatan..." className="pl-9" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} autoComplete="off"/>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="outline" />} aria-label="Filter status">
-            <Funnel className="h-4 w-4" />
-            Filter
-            {statusFilter !== "all" && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
-                1
-              </span>
-            )}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-52">
-            <DropdownMenuRadioGroup
-              value={statusFilter}
-              onValueChange={(v) => {
-                if (v) {
-                  navigate({ search: (prev) => ({ ...prev, status: v === "all" ? undefined : v as "paid" | "pending" }), replace: true })
-                  setSelectedIds(new Set())
-                }
-              }}
-            >
-              <DropdownMenuLabel>Status</DropdownMenuLabel>
-              {statusOptions.map((opt) => (
-                <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="hidden md:inline-flex">
+          <PaymentsStatusFilterMenu
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+            activeCount={activeFilterCount}
+            options={statusOptions}
+          />
+        </div>
         {selectedIds.size > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="outline">Aksi</Button>} />
