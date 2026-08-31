@@ -110,10 +110,6 @@ func (r *UserRepository) GetByGoogleID(googleID string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) UpdatePaymentStatus(id uint, status string) error {
-	return r.db.Model(&models.User{}).Where("id = ?", id).Update("payment_status", status).Error
-}
-
 // Delete menghapus user. Role teacher di-soft delete dulu (kebijakan belum final);
 // role lain (user/student) di-hard delete beserta semua data yang merujuk padanya.
 func (r *UserRepository) Delete(id uint) error {

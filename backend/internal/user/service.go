@@ -316,14 +316,6 @@ func (s *Service) UpdateUserRole(id uint, roles []string) error {
 	return s.userRepo.UpdateRole(id, roles)
 }
 
-func (s *Service) UpdatePaymentStatus(id uint, status string) error {
-	valid := map[string]bool{"pending": true, "paid": true}
-	if !valid[status] {
-		return errors.New("status tidak valid")
-	}
-	return s.userRepo.UpdatePaymentStatus(id, status)
-}
-
 func (s *Service) UpdateProfile(id uint, input UpdateProfileRequest) (*UpdateProfileResponse, error) {
 	if input.Name != nil {
 		if err := s.userRepo.UpdateName(id, *input.Name); err != nil {

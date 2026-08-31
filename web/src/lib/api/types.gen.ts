@@ -126,7 +126,7 @@ export type ForumAnswerPreview = {
 export type ForumCreateQuestionInput = {
     content?: string;
     /**
-     * wajib — pertanyaan harus masuk ke mata pelajaran
+     * wajib, pertanyaan harus masuk ke mata pelajaran
      */
     subject_id?: number;
 };
@@ -1015,7 +1015,6 @@ export type UserAdminCreateUserResponse = {
     has_password?: boolean;
     id?: number;
     name?: string;
-    payment_status?: string;
     roles?: Array<string>;
     subjects?: Array<UserSubjectInfo>;
 };
@@ -1034,7 +1033,6 @@ export type UserAdminListUsersResponse = {
     has_password?: boolean;
     id?: number;
     name?: string;
-    payment_status?: string;
     roles?: Array<string>;
     subjects?: Array<UserSubjectInfo>;
 };
@@ -1049,7 +1047,6 @@ export type UserAdminMergeUserResponse = {
     has_password?: boolean;
     id?: number;
     name?: string;
-    payment_status?: string;
     roles?: Array<string>;
     subjects?: Array<UserSubjectInfo>;
 };
@@ -1089,7 +1086,6 @@ export type UserAdminUpdateTeacherSubjectsResponse = {
     has_password?: boolean;
     id?: number;
     name?: string;
-    payment_status?: string;
     roles?: Array<string>;
     subjects?: Array<UserSubjectInfo>;
 };
@@ -1109,7 +1105,6 @@ export type UserMeResponse = {
     email?: string;
     id?: number;
     name?: string;
-    payment_status?: string;
     roles?: Array<string>;
     subjects?: Array<UserSubjectInfo>;
 };
@@ -1130,7 +1125,6 @@ export type UserUpdateProfileResponse = {
     email?: string;
     id?: number;
     name?: string;
-    payment_status?: string;
     roles?: Array<string>;
     subjects?: Array<UserSubjectInfo>;
 };
@@ -3146,32 +3140,6 @@ export type PostAdminUsersByIdMergeResponses = {
 
 export type PostAdminUsersByIdMergeResponse = PostAdminUsersByIdMergeResponses[keyof PostAdminUsersByIdMergeResponses];
 
-export type PatchAdminUsersByIdPaymentData = {
-    /**
-     * Status
-     */
-    body: {
-        [key: string]: unknown;
-    };
-    path: {
-        /**
-         * User ID
-         */
-        id: number;
-    };
-    query?: never;
-    url: '/admin/users/{id}/payment';
-};
-
-export type PatchAdminUsersByIdPaymentErrors = {
-    /**
-     * Bad Request
-     */
-    400: UserErrorResponse;
-};
-
-export type PatchAdminUsersByIdPaymentError = PatchAdminUsersByIdPaymentErrors[keyof PatchAdminUsersByIdPaymentErrors];
-
 export type PatchAdminUsersByIdPermissionsData = {
     /**
      * Izin kelola konten
@@ -4483,11 +4451,11 @@ export type GetTutoringTeachersData = {
          */
         date?: string;
         /**
-         * Waktu mulai (HH:mm) — wajib bila date diisi
+         * Waktu mulai (HH:mm), wajib bila date diisi
          */
         start_time?: string;
         /**
-         * Waktu selesai (HH:mm) — wajib bila date diisi
+         * Waktu selesai (HH:mm), wajib bila date diisi
          */
         end_time?: string;
     };

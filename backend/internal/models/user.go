@@ -12,7 +12,6 @@ type User struct {
 	Password     *string   `gorm:"size:255" json:"-"`
 	Roles        []Role    `gorm:"many2many:user_roles;" json:"roles"`
 	Subjects     []Subject `gorm:"many2many:teacher_subjects;" json:"subjects"`
-	PaymentStatus     string             `gorm:"size:20;default:pending" json:"payment_status"`
 	TeacherPermission *TeacherPermission `gorm:"foreignKey:UserID" json:"-"`
 }
 

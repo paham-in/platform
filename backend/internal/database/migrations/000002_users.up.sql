@@ -8,8 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     email          varchar(100) NOT NULL,
     google_id      varchar(100),
     avatar_url     varchar(500),
-    password       varchar(255),
-    payment_status varchar(20) DEFAULT 'pending'
+    password       varchar(255)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_public_id ON users (public_id);

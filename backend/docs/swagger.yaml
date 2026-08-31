@@ -191,7 +191,7 @@ definitions:
       content:
         type: string
       subject_id:
-        description: wajib — pertanyaan harus masuk ke mata pelajaran
+        description: wajib, pertanyaan harus masuk ke mata pelajaran
         type: integer
     type: object
   forum.ErrorResponse:
@@ -1655,8 +1655,6 @@ definitions:
         type: integer
       name:
         type: string
-      payment_status:
-        type: string
       roles:
         items:
           type: string
@@ -1692,8 +1690,6 @@ definitions:
         type: integer
       name:
         type: string
-      payment_status:
-        type: string
       roles:
         items:
           type: string
@@ -1722,8 +1718,6 @@ definitions:
       id:
         type: integer
       name:
-        type: string
-      payment_status:
         type: string
       roles:
         items:
@@ -1796,8 +1790,6 @@ definitions:
         type: integer
       name:
         type: string
-      payment_status:
-        type: string
       roles:
         items:
           type: string
@@ -1833,8 +1825,6 @@ definitions:
         type: integer
       name:
         type: string
-      payment_status:
-        type: string
       roles:
         items:
           type: string
@@ -1869,8 +1859,6 @@ definitions:
       id:
         type: integer
       name:
-        type: string
-      payment_status:
         type: string
       roles:
         items:
@@ -3850,35 +3838,6 @@ paths:
       summary: Hubungkan akun dummy ke akun Google
       tags:
       - Admin
-  /admin/users/{id}/payment:
-    patch:
-      consumes:
-      - application/json
-      description: Mengubah status pembayaran user (pending/paid)
-      parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Status
-        in: body
-        name: body
-        required: true
-        schema:
-          type: object
-      produces:
-      - application/json
-      responses:
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/user.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Toggle payment status
-      tags:
-      - Admin
   /admin/users/{id}/permissions:
     patch:
       consumes:
@@ -5196,11 +5155,11 @@ paths:
         in: query
         name: date
         type: string
-      - description: Waktu mulai (HH:mm) — wajib bila date diisi
+      - description: Waktu mulai (HH:mm), wajib bila date diisi
         in: query
         name: start_time
         type: string
-      - description: Waktu selesai (HH:mm) — wajib bila date diisi
+      - description: Waktu selesai (HH:mm), wajib bila date diisi
         in: query
         name: end_time
         type: string

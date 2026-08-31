@@ -39,12 +39,6 @@ type AdminDeleteUserResponse struct {
 	Message string `json:"message" example:"user berhasil dihapus"`
 }
 
-//, handler: AdminTogglePayment (PATCH /admin/users/:id/payment)
-
-type AdminTogglePaymentResponse struct {
-	Message string `json:"message" example:"status berhasil diubah"`
-}
-
 // SubjectInfo adalah sub-object di dalam semua bentuk profil user.
 type SubjectInfo struct {
 	ID   uint   `json:"id"`
@@ -87,7 +81,6 @@ type MeResponse struct {
 	Email                     string        `json:"email"`
 	Roles                     []string      `json:"roles"`
 	AvatarURL                 string        `json:"avatar_url"`
-	PaymentStatus             string        `json:"payment_status"`
 	Subjects                  []SubjectInfo `json:"subjects"`
 	CanManageMaterials        bool          `json:"can_manage_materials"`
 	CanManageQuestionPackages bool          `json:"can_manage_question_packages"`
@@ -100,7 +93,6 @@ func newMeResponse(u models.User) MeResponse {
 		Email:                     u.Email,
 		Roles:                     roleNames(u),
 		AvatarURL:                 u.AvatarURL,
-		PaymentStatus:             u.PaymentStatus,
 		Subjects:                  subjectInfos(u.Subjects),
 		CanManageMaterials:        tpBool(u.TeacherPermission, "materials"),
 		CanManageQuestionPackages: tpBool(u.TeacherPermission, "packages"),
@@ -115,7 +107,6 @@ type UpdateProfileResponse struct {
 	Email                     string        `json:"email"`
 	Roles                     []string      `json:"roles"`
 	AvatarURL                 string        `json:"avatar_url"`
-	PaymentStatus             string        `json:"payment_status"`
 	Subjects                  []SubjectInfo `json:"subjects"`
 	CanManageMaterials        bool          `json:"can_manage_materials"`
 	CanManageQuestionPackages bool          `json:"can_manage_question_packages"`
@@ -128,7 +119,6 @@ func newUpdateProfileResponse(u models.User) UpdateProfileResponse {
 		Email:                     u.Email,
 		Roles:                     roleNames(u),
 		AvatarURL:                 u.AvatarURL,
-		PaymentStatus:             u.PaymentStatus,
 		Subjects:                  subjectInfos(u.Subjects),
 		CanManageMaterials:        tpBool(u.TeacherPermission, "materials"),
 		CanManageQuestionPackages: tpBool(u.TeacherPermission, "packages"),
@@ -143,7 +133,6 @@ type AdminListUsersResponse struct {
 	Email                     string        `json:"email"`
 	Roles                     []string      `json:"roles"`
 	AvatarURL                 string        `json:"avatar_url"`
-	PaymentStatus             string        `json:"payment_status"`
 	HasGoogle                 bool          `json:"has_google"`
 	HasPassword               bool          `json:"has_password"`
 	CreatedAt                 string        `json:"created_at"`
@@ -159,7 +148,6 @@ func newAdminListUsersResponse(u models.User) AdminListUsersResponse {
 		Email:                     u.Email,
 		Roles:                     roleNames(u),
 		AvatarURL:                 u.AvatarURL,
-		PaymentStatus:             u.PaymentStatus,
 		HasGoogle:                 u.GoogleID != "",
 		HasPassword:               u.Password != nil,
 		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
@@ -177,7 +165,6 @@ type AdminCreateUserResponse struct {
 	Email                     string        `json:"email"`
 	Roles                     []string      `json:"roles"`
 	AvatarURL                 string        `json:"avatar_url"`
-	PaymentStatus             string        `json:"payment_status"`
 	HasGoogle                 bool          `json:"has_google"`
 	HasPassword               bool          `json:"has_password"`
 	CreatedAt                 string        `json:"created_at"`
@@ -193,7 +180,6 @@ func newAdminCreateUserResponse(u models.User) AdminCreateUserResponse {
 		Email:                     u.Email,
 		Roles:                     roleNames(u),
 		AvatarURL:                 u.AvatarURL,
-		PaymentStatus:             u.PaymentStatus,
 		HasGoogle:                 u.GoogleID != "",
 		HasPassword:               u.Password != nil,
 		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
@@ -211,7 +197,6 @@ type AdminMergeUserResponse struct {
 	Email                     string        `json:"email"`
 	Roles                     []string      `json:"roles"`
 	AvatarURL                 string        `json:"avatar_url"`
-	PaymentStatus             string        `json:"payment_status"`
 	HasGoogle                 bool          `json:"has_google"`
 	HasPassword               bool          `json:"has_password"`
 	CreatedAt                 string        `json:"created_at"`
@@ -227,7 +212,6 @@ func newAdminMergeUserResponse(u models.User) AdminMergeUserResponse {
 		Email:                     u.Email,
 		Roles:                     roleNames(u),
 		AvatarURL:                 u.AvatarURL,
-		PaymentStatus:             u.PaymentStatus,
 		HasGoogle:                 u.GoogleID != "",
 		HasPassword:               u.Password != nil,
 		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),
@@ -245,7 +229,6 @@ type AdminUpdateTeacherSubjectsResponse struct {
 	Email                     string        `json:"email"`
 	Roles                     []string      `json:"roles"`
 	AvatarURL                 string        `json:"avatar_url"`
-	PaymentStatus             string        `json:"payment_status"`
 	HasGoogle                 bool          `json:"has_google"`
 	HasPassword               bool          `json:"has_password"`
 	CreatedAt                 string        `json:"created_at"`
@@ -261,7 +244,6 @@ func newAdminUpdateTeacherSubjectsResponse(u models.User) AdminUpdateTeacherSubj
 		Email:                     u.Email,
 		Roles:                     roleNames(u),
 		AvatarURL:                 u.AvatarURL,
-		PaymentStatus:             u.PaymentStatus,
 		HasGoogle:                 u.GoogleID != "",
 		HasPassword:               u.Password != nil,
 		CreatedAt:                 u.CreatedAt.Format("2006-01-02"),

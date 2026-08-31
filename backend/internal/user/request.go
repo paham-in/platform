@@ -34,11 +34,6 @@ type AdminUpdateTeacherPermissionsRequest struct {
 	CanManageQuestionPackages *bool `json:"can_manage_question_packages"`
 }
 
-//, handler: AdminTogglePayment (PATCH /admin/users/:id/payment)
-type AdminTogglePaymentRequest struct {
-	Status string `json:"status"`
-}
-
 //, handler: UpdateProfile (PATCH /me)
 type UpdateProfileRequest struct {
 	Name *string `json:"name"`

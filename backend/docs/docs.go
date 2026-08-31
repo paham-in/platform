@@ -3098,52 +3098,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/users/{id}/payment": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Mengubah status pembayaran user (pending/paid)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Admin"
-                ],
-                "summary": "Toggle payment status",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Status",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    }
-                ],
-                "responses": {
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/user.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/admin/users/{id}/permissions": {
             "patch": {
                 "security": [
@@ -5213,13 +5167,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Waktu mulai (HH:mm) — wajib bila date diisi",
+                        "description": "Waktu mulai (HH:mm), wajib bila date diisi",
                         "name": "start_time",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Waktu selesai (HH:mm) — wajib bila date diisi",
+                        "description": "Waktu selesai (HH:mm), wajib bila date diisi",
                         "name": "end_time",
                         "in": "query"
                     }
@@ -5579,7 +5533,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "subject_id": {
-                    "description": "wajib — pertanyaan harus masuk ke mata pelajaran",
+                    "description": "wajib, pertanyaan harus masuk ke mata pelajaran",
                     "type": "integer"
                 }
             }
@@ -7816,9 +7770,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "payment_status": {
-                    "type": "string"
-                },
                 "roles": {
                     "type": "array",
                     "items": {
@@ -7872,9 +7823,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "payment_status": {
-                    "type": "string"
-                },
                 "roles": {
                     "type": "array",
                     "items": {
@@ -7917,9 +7865,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "payment_status": {
                     "type": "string"
                 },
                 "roles": {
@@ -8030,9 +7975,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "payment_status": {
-                    "type": "string"
-                },
                 "roles": {
                     "type": "array",
                     "items": {
@@ -8084,9 +8026,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "payment_status": {
                     "type": "string"
                 },
                 "roles": {
@@ -8141,9 +8080,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "payment_status": {
                     "type": "string"
                 },
                 "roles": {
