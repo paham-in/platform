@@ -49,7 +49,7 @@ func main() {
 	cfg := config.Load()
 
 	db := database.Connect(cfg)
-	database.Migrate(db)
+	database.Migrate(cfg, db)
 	seedAdmin(db, cfg)
 
 	// konfigurasi bisnis (fee guru, harga default) tersimpan di DB, admin bisa

@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS quiz_answer_assets;

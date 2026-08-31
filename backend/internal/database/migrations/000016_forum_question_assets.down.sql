@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS forum_question_assets;

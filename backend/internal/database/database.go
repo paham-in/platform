@@ -29,46 +29,11 @@ func Connect(cfg *config.Config) *gorm.DB {
 	return db
 }
 
-func Migrate(db *gorm.DB) {
-	// AutoMigrate. Urutan tabel penting: GORM men-generate FK constraint inline
-	// di CREATE TABLE, jadi model yang ber-FK ke tabel lain harus muncul SETELAH
-	// tabel yang direferensikan. Urutan di sini disusun mengikuti dependensi FK
-	// (dulu Invoice sebelum Booking → `fk_bookings_invoice` mereferensikan
-	// `bookings` yang belum dibuat → AutoMigrate gagal berhenti di tengah dan
-	// tabel sisanya tidak pernah dibuat).
-	if err := db.AutoMigrate(
-		&models.User{},
-		&models.Session{},
-		&models.Role{},
-		&models.Program{},
-		&models.Class{},
-		&models.Subject{},
-		&models.ClassSubject{},
-		&models.Chapter{},
-		&models.Material{},
-		&models.MaterialAsset{},
-		&models.ForumQuestion{},
-		&models.ForumAnswer{},
-		&models.ForumQuestionAsset{},
-		&models.ForumAnswerAsset{},
-		&models.Booking{},
-		&models.Invoice{},
-		&models.TutoringSession{},
-		&models.QuizCollection{},
-		&models.QuizPackage{},
-		&models.QuizQuestion{},
-		&models.QuizAnswer{},
-		&models.QuizQuestionAsset{},
-		&models.QuizAnswerAsset{},
-		&models.QuizStudentProgress{},
-		&models.TeacherSubject{},
-		&models.StudentClassEnrollment{},
-		&models.PushSubscription{},
-		&models.Notification{},
-		&models.TeacherPermission{},
-		&models.Setting{},
-	); err != nil {
-		log.Fatalf("AutoMigrate gagal, DB tidak dapat dipakai: %v", err)
+func Migrate(cfg *config.Config, db *gorm.DB) {
+	// Skema dibuat oleh golang-migrate (migrations/*.sql), bukan AutoMigrate.
+	// GORM tetap dipakai untuk query, tapi tidak lagi mengelola struktur tabel.
+	if err := RunMigrations(cfg); err != nil {
+		log.Fatalf("Migrasi gagal, DB tidak dapat dipakai: %v", err)
 	}
 
 	// seed default roles
