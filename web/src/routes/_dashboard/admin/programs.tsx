@@ -104,7 +104,7 @@ function AdminPrograms() {
               Kelola program dan kelas di dalamnya.
             </p>
           </div>
-          <Button onClick={() => setFormTarget({ open: true, editing: null })}>
+          <Button className="hidden md:inline-flex" onClick={() => setFormTarget({ open: true, editing: null })}>
             <Plus className="mr-1 h-4 w-4" /> Tambah Program
           </Button>
         </div>
@@ -266,6 +266,15 @@ function AdminPrograms() {
           </Card>
         )}
       </main>
+
+      <Button
+        onClick={() => setFormTarget({ open: true, editing: null })}
+        size="icon"
+        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+        aria-label="Tambah Program"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
 
       {formTarget.open && (
         <ProgramFormDialog program={formTarget.editing ?? undefined} onClose={() => setFormTarget({ open: false, editing: null })} />

@@ -83,7 +83,7 @@ function PackageQuestions() {
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setEditTarget(pkg ?? null)}><Pencil className="mr-1 h-4 w-4" /> Edit Paket</Button>
               <Button variant="outline" onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId/import", params: { collectionId, packageId } })}><UploadCloud className="mr-1 h-4 w-4" /> Import dari Word</Button>
-              <Button onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId/questions/new", params: { collectionId, packageId } })}><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
+              <Button className="hidden md:inline-flex" onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId/questions/new", params: { collectionId, packageId } })}><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
             </div>
           )}
         </div>
@@ -201,6 +201,17 @@ function PackageQuestions() {
             </CardFooter>
           )}
         </Card>
+
+        {canManage && canEditPkg && (
+          <Button
+            onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId/questions/new", params: { collectionId, packageId } })}
+            size="icon"
+            className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+            aria-label="Tambah Soal"
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        )}
       </main>
 
       {previewTarget && (

@@ -426,7 +426,7 @@ function AdminChapters() {
           </div>
           {canManage && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <Button onClick={openAdd}>
+              <Button className="hidden md:inline-flex" onClick={openAdd}>
                 <Plus className="mr-1 h-4 w-4" /> Tambah
               </Button>
               <DialogContent className="sm:max-w-[500px]">
@@ -814,6 +814,17 @@ function AdminChapters() {
             )}
           </CardFooter>
         </Card>
+
+        {canManage && (
+          <Button
+            onClick={openAdd}
+            size="icon"
+            className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+            aria-label="Tambah BAB"
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        )}
       </main>
 
       {coverView && (

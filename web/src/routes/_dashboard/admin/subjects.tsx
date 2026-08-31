@@ -221,7 +221,7 @@ function AdminSubjects() {
               />
             </div>
           </div>
-          <Button onClick={openAdd}>
+          <Button className="hidden md:inline-flex" onClick={openAdd}>
             <Plus className="mr-1 h-4 w-4" /> Tambah
           </Button>
         </div>
@@ -407,6 +407,15 @@ function AdminSubjects() {
           )}
         </Card>
       </main>
+
+      <Button
+        onClick={openAdd}
+        size="icon"
+        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+        aria-label="Tambah mata pelajaran"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
 
       {formTarget.open && (
         <SubjectFormDialog

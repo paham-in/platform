@@ -389,7 +389,7 @@ function ChapterMaterials() {
             </div>
           </div>
           {canManage && (
-            <Button onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/new", params: { chapterId } })}>
+            <Button className="hidden md:inline-flex" onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/new", params: { chapterId } })}>
               <Plus className="mr-1 h-4 w-4" /> Tambah Materi
             </Button>
           )}
@@ -531,6 +531,17 @@ function ChapterMaterials() {
             </CardFooter>
           )}
         </Card>
+
+        {canManage && (
+          <Button
+            onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/new", params: { chapterId } })}
+            size="icon"
+            className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+            aria-label="Tambah Materi"
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        )}
       </main>
 
       {deleteConfirm && <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>

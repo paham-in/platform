@@ -177,7 +177,7 @@ function AdminTutoring() {
             Semua booking les privat dari seluruh murid dan guru.
           </p>
         </div>
-        <Button onClick={() => navigate({ to: "/admin/tutoring/new" })}>
+        <Button className="hidden md:inline-flex" onClick={() => navigate({ to: "/admin/tutoring/new" })}>
           <Plus className="mr-1 h-4 w-4" /> Tambah Booking Manual
         </Button>
       </div>
@@ -254,6 +254,15 @@ function AdminTutoring() {
 
       {assignBooking && <AssignTeacherDialog booking={assignBooking} onClose={() => setAssignBooking(null)} />}
       {deleteBooking && <DeleteBookingDialog booking={deleteBooking} onClose={() => setDeleteBooking(null)} />}
+
+      <Button
+        onClick={() => navigate({ to: "/admin/tutoring/new" })}
+        size="icon"
+        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+        aria-label="Tambah Booking Manual"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
     </main>
   )
 }

@@ -208,7 +208,7 @@ function AdminStudentClasses() {
               Kelola kelas yang diakses setiap murid dan masa berlakunya.
             </p>
           </div>
-          <Button onClick={() => setGrantOpen(true)}>
+          <Button className="hidden md:inline-flex" onClick={() => setGrantOpen(true)}>
             <Plus className="mr-1 h-4 w-4" /> Berikan Akses
           </Button>
         </div>
@@ -414,6 +414,15 @@ function AdminStudentClasses() {
           )}
         </Card>
       </main>
+
+      <Button
+        onClick={() => setGrantOpen(true)}
+        size="icon"
+        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+        aria-label="Berikan Akses"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
 
       {grantOpen && (
         <GrantClassDialog onClose={() => setGrantOpen(false)} />

@@ -222,7 +222,7 @@ function PaymentsDetail() {
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        <Button className="ml-auto" onClick={() => setCreateOpen(true)}>
+        <Button className="ml-auto hidden md:inline-flex" onClick={() => setCreateOpen(true)}>
           <Plus className="h-4 w-4" /> Buat Invoice
         </Button>
       </div>
@@ -356,6 +356,15 @@ function PaymentsDetail() {
           }}
         />
       )}
+
+      <Button
+        onClick={() => setCreateOpen(true)}
+        size="icon"
+        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+        aria-label="Buat Invoice"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
     </main>
   )
 }

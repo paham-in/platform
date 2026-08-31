@@ -139,7 +139,7 @@ function AdminUsers() {
       <main className="p-4 md:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl font-bold tracking-tight">Kelola User</h1>
-          <Button onClick={() => setCreateOpen(true)}>
+          <Button className="hidden md:inline-flex" onClick={() => setCreateOpen(true)}>
             <Plus className="mr-1 h-4 w-4" /> Tambah User
           </Button>
         </div>
@@ -385,6 +385,15 @@ function AdminUsers() {
           )}
         </Card>
       </main>
+
+      <Button
+        onClick={() => setCreateOpen(true)}
+        size="icon"
+        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+        aria-label="Tambah User"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
 
       {createOpen && <CreateUserDialog onClose={() => setCreateOpen(false)} />}
       {editing && <EditRoleDialog user={editing} onClose={() => setEditing(null)} />}
