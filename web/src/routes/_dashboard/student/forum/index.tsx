@@ -279,7 +279,7 @@ function ForumPage() {
             <Card key={q.id} className="mb-4 break-inside-avoid transition-colors hover:bg-muted/40">
               <button
                 type="button"
-                onClick={() => navigate({ to: "/student/forum/$id", params: { id: String(q.id!) } })}
+                onClick={() => navigate({ to: "/student/forum/$id", params: { id: String(q.public_id!) } })}
                 className="block w-full rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <CardContent>

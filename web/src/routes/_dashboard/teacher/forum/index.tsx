@@ -205,7 +205,7 @@ function TeacherForum() {
                 <TableRow
                   key={q.id}
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => navigate({ to: "/teacher/forum/$id", params: { id: String(q.id!) } })}
+onClick={() => navigate({ to: "/teacher/forum/$id", params: { id: String(q.public_id!) } })}
                 >
                   <TableCell className="pl-6 font-medium max-w-[300px] truncate">{q.plain_content}</TableCell>
                   <TableCell className="text-muted-foreground">{q.user_name}</TableCell>
@@ -227,7 +227,7 @@ function TeacherForum() {
                         <MoreVertical className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => navigate({ to: "/teacher/forum/$id", params: { id: String(q.id!) } })}>
+                        <DropdownMenuItem onClick={() => navigate({ to: "/teacher/forum/$id", params: { id: String(q.public_id!) } })}>
                           <Eye className="h-4 w-4" /> Lihat
                         </DropdownMenuItem>
                       </DropdownMenuContent>

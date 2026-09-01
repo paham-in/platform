@@ -4335,8 +4335,8 @@ const docTemplate = `{
                 "summary": "Get question",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4376,8 +4376,8 @@ const docTemplate = `{
                 "summary": "Update question",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4426,8 +4426,8 @@ const docTemplate = `{
                 "summary": "Delete question",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4463,8 +4463,8 @@ const docTemplate = `{
                 "summary": "List answers",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "question_id",
                         "in": "path",
                         "required": true
@@ -4501,8 +4501,8 @@ const docTemplate = `{
                 "summary": "Create answer",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "question_id",
                         "in": "path",
                         "required": true
@@ -4559,15 +4559,15 @@ const docTemplate = `{
                 "summary": "Delete answer",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "question_id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "Answer ID",
+                        "type": "string",
+                        "description": "Answer public ID",
                         "name": "id",
                         "in": "path",
                         "required": true

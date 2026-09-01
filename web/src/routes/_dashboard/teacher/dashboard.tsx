@@ -98,7 +98,7 @@ function TeacherDashboard() {
                   <div key={q.id} className="flex items-start gap-3 border-b py-3 last:border-0">
                     <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="flex-1"><p className="text-sm">{q.plain_content}</p><p className="text-xs text-muted-foreground">{q.user_name} · {q.subject_name ?? "-"}</p></div>
-                    <a href={`/teacher/forum/${q.id}`}>
+                    <a href={`/teacher/forum/${q.public_id}`}>
                       <Button variant="ghost" size="sm">Jawab</Button>
                     </a>
                   </div>

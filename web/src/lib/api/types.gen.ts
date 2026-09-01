@@ -3923,9 +3923,9 @@ export type DeleteQuestionsByIdData = {
     body?: never;
     path: {
         /**
-         * Question ID
+         * Question public ID
          */
-        id: number;
+        id: string;
     };
     query?: never;
     url: '/questions/{id}';
@@ -3944,9 +3944,9 @@ export type GetQuestionsByIdData = {
     body?: never;
     path: {
         /**
-         * Question ID
+         * Question public ID
          */
-        id: number;
+        id: string;
     };
     query?: never;
     url: '/questions/{id}';
@@ -3977,9 +3977,9 @@ export type PutQuestionsByIdData = {
     body: ForumCreateQuestionInput;
     path: {
         /**
-         * Question ID
+         * Question public ID
          */
-        id: number;
+        id: string;
     };
     query?: never;
     url: '/questions/{id}';
@@ -4007,9 +4007,9 @@ export type GetQuestionsByQuestionIdAnswersData = {
     body?: never;
     path: {
         /**
-         * Question ID
+         * Question public ID
          */
-        question_id: number;
+        question_id: string;
     };
     query?: never;
     url: '/questions/{question_id}/answers';
@@ -4031,9 +4031,9 @@ export type PostQuestionsByQuestionIdAnswersData = {
     body: AnswerCreateAnswerInput;
     path: {
         /**
-         * Question ID
+         * Question public ID
          */
-        question_id: number;
+        question_id: string;
     };
     query?: never;
     url: '/questions/{question_id}/answers';
@@ -4065,13 +4065,13 @@ export type DeleteQuestionsByQuestionIdAnswersByIdData = {
     body?: never;
     path: {
         /**
-         * Question ID
+         * Question public ID
          */
-        question_id: number;
+        question_id: string;
         /**
-         * Answer ID
+         * Answer public ID
          */
-        id: number;
+        id: string;
     };
     query?: never;
     url: '/questions/{question_id}/answers/{id}';

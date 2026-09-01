@@ -38,7 +38,7 @@ function ForumDetail() {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { id } = useParams({ from: "/_dashboard/student/forum/$id" })
-  const questionId = Number(id)
+  const questionId = id
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
   const [deleteTarget, setDeleteTarget] = useState<AnswerAnswerResponse | null>(null)
@@ -187,7 +187,7 @@ function ForumDetail() {
               <AlertDialogAction
                 variant="destructive"
                 onClick={() => {
-                  deleteAnswer({ path: { question_id: questionId, id: deleteTarget.id! } })
+                  deleteAnswer({ path: { question_id: questionId, id: deleteTarget.public_id! } })
                   closeModal()
                 }}
               >

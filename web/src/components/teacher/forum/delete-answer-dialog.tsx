@@ -19,7 +19,7 @@ import type { AnswerAnswerResponse } from "@/lib/api/types.gen"
 
 interface DeleteAnswerDialogProps {
   answer: AnswerAnswerResponse
-  questionId: number
+  questionId: string
   onClose: () => void
 }
 
@@ -54,7 +54,7 @@ export function DeleteAnswerDialog({ answer, questionId, onClose }: DeleteAnswer
           <AlertDialogAction
             variant="destructive"
             disabled={isPending}
-            onClick={() => deleteAnswer({ path: { question_id: questionId, id: answer.id! } })}
+            onClick={() => deleteAnswer({ path: { question_id: questionId, id: answer.public_id! } })}
           >
             {isPending && <Spinner />}
             Hapus

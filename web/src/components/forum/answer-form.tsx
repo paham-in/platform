@@ -15,7 +15,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 
 interface AnswerFormProps {
-  questionId: number
+  questionId: string
 }
 
 export function AnswerForm({ questionId }: AnswerFormProps) {

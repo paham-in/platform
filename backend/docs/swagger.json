@@ -4332,8 +4332,8 @@
                 "summary": "Get question",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4373,8 +4373,8 @@
                 "summary": "Update question",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4423,8 +4423,8 @@
                 "summary": "Delete question",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4460,8 +4460,8 @@
                 "summary": "List answers",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "question_id",
                         "in": "path",
                         "required": true
@@ -4498,8 +4498,8 @@
                 "summary": "Create answer",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "question_id",
                         "in": "path",
                         "required": true
@@ -4556,15 +4556,15 @@
                 "summary": "Delete answer",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Question ID",
+                        "type": "string",
+                        "description": "Question public ID",
                         "name": "question_id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "Answer ID",
+                        "type": "string",
+                        "description": "Answer public ID",
                         "name": "id",
                         "in": "path",
                         "required": true

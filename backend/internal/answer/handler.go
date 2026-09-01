@@ -78,7 +78,7 @@ func userIDFrom(c *fiber.Ctx) uint {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        question_id path int true "Question ID"
+// @Param        question_id path string true "Question public ID"
 // @Success      200 {array} AnswerResponse
 // @Router       /questions/{question_id}/answers [get]
 func (h *Handler) ListAnswers(c *fiber.Ctx) error {
@@ -118,7 +118,7 @@ func (h *Handler) ListAnswers(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        question_id path int true "Question ID"
+// @Param        question_id path string true "Question public ID"
 // @Param        body body CreateAnswerInput true "Data jawaban"
 // @Success      201 {object} AnswerResponse
 // @Failure      400 {object} ErrorResponse
@@ -175,8 +175,8 @@ func (h *Handler) CreateAnswer(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        question_id path int true "Question ID"
-// @Param        id path int true "Answer ID"
+// @Param        question_id path string true "Question public ID"
+// @Param        id path string true "Answer public ID"
 // @Success      200 {object} MessageResponse
 // @Failure      400 {object} ErrorResponse
 // @Router       /questions/{question_id}/answers/{id} [delete]

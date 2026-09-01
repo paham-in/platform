@@ -27,7 +27,7 @@ function EditQuestion() {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { id } = useParams({ from: "/_dashboard/student/forum/$id/edit" })
-  const questionId = Number(id)
+  const questionId = id
 
   const { data: question, isLoading } = useQuery(getQuestionsByIdOptions({ path: { id: questionId } }))
   const { data: subjects = [] } = useQuery(getSubjectsOptions())

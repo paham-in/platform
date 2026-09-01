@@ -117,7 +117,7 @@ func (h *Handler) ListQuestions(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "Question ID"
+// @Param        id path string true "Question public ID"
 // @Success      200 {object} QuestionResponse
 // @Failure      404 {object} ErrorResponse
 // @Router       /questions/{id} [get]
@@ -222,7 +222,7 @@ func (h *Handler) CreateQuestion(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "Question ID"
+// @Param        id path string true "Question public ID"
 // @Param        body body CreateQuestionInput true "Data pertanyaan"
 // @Success      200 {object} QuestionResponse
 // @Failure      400 {object} ErrorResponse
@@ -280,7 +280,7 @@ func (h *Handler) UpdateQuestion(c *fiber.Ctx) error {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id path int true "Question ID"
+// @Param        id path string true "Question public ID"
 // @Success      200 {object} MessageResponse
 // @Router       /questions/{id} [delete]
 func (h *Handler) DeleteQuestion(c *fiber.Ctx) error {

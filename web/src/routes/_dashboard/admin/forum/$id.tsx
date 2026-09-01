@@ -36,7 +36,7 @@ const forumDetailSearchSchema = z.object({
 function ForumDetail() {
   const qc = useQueryClient()
   const { id } = useParams({ from: "/_dashboard/admin/forum/$id" })
-  const questionId = Number(id)
+  const questionId = id
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
 
@@ -45,7 +45,7 @@ function ForumDetail() {
     getQuestionsByQuestionIdAnswersOptions({ path: { question_id: questionId } })
   )
 
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; user_name?: string } | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; user_name?: string } | null>(null)
 
   useEffect(() => {
     if (modal !== "delete") setDeleteTarget(null)
@@ -141,7 +141,7 @@ function ForumDetail() {
               {a.is_owner && (
                 <div className="ml-auto">
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={() => { setDeleteTarget({ id: a.id!, user_name: a.user_name }); openModal("delete") }}>
+                    onClick={() => { setDeleteTarget({ id: a.public_id!, user_name: a.user_name }); openModal("delete") }}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

@@ -27,7 +27,7 @@ const forumDetailSearchSchema = z.object({
 function ForumDetail() {
   usePageTitle("Detail Forum")
   const { id } = useParams({ from: "/_dashboard/teacher/forum/$id" })
-  const questionId = Number(id)
+  const questionId = id
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
 

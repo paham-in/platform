@@ -36,7 +36,7 @@ function MyQuestions() {
   const { data: questions = [], isLoading } = useQuery(
     getQuestionsOptions({ query: { mine: true } })
   )
-  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
 
@@ -95,7 +95,7 @@ function MyQuestions() {
         {questions.map((q) => (
           <Card
             key={q.id}
-            onClick={() => navigate({ to: "/student/forum/$id", params: { id: String(q.id!) } })}
+            onClick={() => navigate({ to: "/student/forum/$id", params: { id: String(q.public_id!) } })}
             className="cursor-pointer overflow-hidden transition-colors hover:bg-muted/50"
           >
             <CardContent className="p-5">
@@ -114,7 +114,7 @@ function MyQuestions() {
                     className="mt-0.5 h-6 w-6 shrink-0 text-destructive hover:text-destructive"
                     onClick={(e) => {
                       e.stopPropagation()
-                      setDeleteId(q.id!)
+                      setDeleteId(q.public_id!)
                       openModal("delete")
                     }}
                   >
