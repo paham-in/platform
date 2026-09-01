@@ -384,10 +384,10 @@ function DashboardLayout() {
       <SidebarInset className="overflow-x-clip">
         <PageTitleProvider>
           <header className="sticky top-2 z-10 flex items-center justify-between gap-3 px-4 pb-2 pt-2 md:hidden">
-            <div className="flex items-center rounded-full bg-background/70 p-1 shadow-sm ring-1 ring-foreground/5 backdrop-blur">
+            <div className="flex items-center rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5">
               <HeaderNav />
             </div>
-            <div className="flex items-center gap-0.5 rounded-full bg-background/70 p-1 shadow-sm ring-1 ring-foreground/5 backdrop-blur">
+            <div className="flex items-center gap-0.5 rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5">
               <Button
                 variant="ghost"
                 size="icon"
