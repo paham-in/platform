@@ -45,9 +45,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SubjectFormDialog, DeleteSubjectDialog } from "@/components/admin/subjects";
 import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
+import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 const subjectsSearchSchema = z.object({
   search: z.string().optional(),
   class: z.coerce.number().optional(),
+  modal: z.string().optional(),
 });
 
 function ClassFilterMenu({
@@ -102,7 +104,8 @@ function ClassFilterMenu({
 function AdminSubjects() {
   usePageTitle("Mata Pelajaran");
   const navigate = useNavigate({ from: Route.fullPath });
-  const { search: searchParam, class: classParam } = Route.useSearch();
+  const { search: searchParam, class: classParam, modal } = Route.useSearch();
+  const { openModal, closeModal } = useDialogBack();
   const { data: subjects = [], isLoading } = useQuery(
     getSubjectsOptions({
       query: {
@@ -118,8 +121,13 @@ function AdminSubjects() {
   const [page, setPage] = useState(1);
   const activeFilterCount = classFilter === undefined ? 0 : 1;
   const hasActiveFilter = !!searchParam || classFilter !== undefined;
-  const [formTarget, setFormTarget] = useState<{ open: boolean; editing: SubjectListSubjectsResponse | null }>({ open: false, editing: null });
+  const [formTarget, setFormTarget] = useState<{ editing: SubjectListSubjectsResponse | null }>({ editing: null });
   const [deleteConfirm, setDeleteConfirm] = useState<SubjectListSubjectsResponse | null>(null);
+
+  useEffect(() => {
+    if (modal !== "form") setFormTarget({ editing: null })
+    if (modal !== "delete") setDeleteConfirm(null)
+  }, [modal])
   const perPage = 5;
 
   const classOptions = useMemo(
@@ -157,8 +165,8 @@ function AdminSubjects() {
   const totalPages = Math.ceil(subjects.length / perPage);
   const paged = subjects.slice((page - 1) * perPage, page * perPage);
 
-  const openAdd = () => setFormTarget({ open: true, editing: null });
-  const openEdit = (s: SubjectListSubjectsResponse) => setFormTarget({ open: true, editing: s });
+  const openAdd = () => { setFormTarget({ editing: null }); openModal("form") };
+  const openEdit = (s: SubjectListSubjectsResponse) => { setFormTarget({ editing: s }); openModal("form") };
 
   const classNames = (classIds: number[] | undefined) =>
     classIds
@@ -273,7 +281,7 @@ function AdminSubjects() {
                           <DropdownMenuItem onClick={() => openEdit(s)}>
                             <Pencil className="h-4 w-4" /> Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDeleteConfirm(s)}>
+                          <DropdownMenuItem onClick={() => { setDeleteConfirm(s); openModal("delete") }}>
                             <Trash2 className="h-4 w-4" /> Hapus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -380,7 +388,7 @@ function AdminSubjects() {
                         <DropdownMenuItem onClick={() => openEdit(s)}>
                           <Pencil className="h-4 w-4" /> Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeleteConfirm(s)}>
+                        <DropdownMenuItem onClick={() => { setDeleteConfirm(s); openModal("delete") }}>
                           <Trash2 className="h-4 w-4" /> Hapus
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -417,15 +425,15 @@ function AdminSubjects() {
         <Plus className="size-6" />
       </Button>
 
-      {formTarget.open && (
+      {modal === "form" && (
         <SubjectFormDialog
           subject={formTarget.editing ?? undefined}
-          onClose={() => setFormTarget({ open: false, editing: null })}
+          onClose={closeModal}
         />
       )}
 
-      {deleteConfirm && (
-        <DeleteSubjectDialog subject={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+      {modal === "delete" && deleteConfirm && (
+        <DeleteSubjectDialog subject={deleteConfirm} onClose={closeModal} />
       )}
     </>
   );

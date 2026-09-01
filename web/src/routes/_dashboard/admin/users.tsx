@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -22,11 +22,12 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { RoleBadge, CreateUserDialog, EditRoleDialog, DeleteUserDialog, ConnectGoogleDialog } from "@/components/admin/users"
 import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 const usersSearchSchema = z.object({
   role: z.enum(["student", "teacher", "admin"]).optional(),
   search: z.string().optional(),
-  modal: z.enum(["create", "role", "delete", "connect"]).optional(),
+  modal: z.string().optional(),
 })
 
 const roleOptions = [
@@ -86,8 +87,8 @@ function RoleFilterMenu({
 function AdminUsers() {
   usePageTitle("Kelola User")
   const navigate = useNavigate({ from: Route.fullPath })
-  const router = useRouter()
   const { role: roleFilter, search, modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const [searchInput, setSearchInput] = useState(search ?? "")
 
   // Sync URL → local state when search changes externally
@@ -112,13 +113,6 @@ function AdminUsers() {
   const perPage = 5
   const [deleteConfirm, setDeleteConfirm] = useState<UserAdminListUsersResponse | null>(null)
   const [connectGoogle, setConnectGoogle] = useState<UserAdminListUsersResponse | null>(null)
-
-  const openModal = (name: NonNullable<typeof modal>) =>
-    navigate({ search: (prev) => ({ ...prev, modal: name }) })
-
-  // Tutup dialog = pop satu entry history (buka = push modal ke URL),
-  // jadi back berikutnya benar-benar keluar halaman, bukan kembali ke dialog.
-  const closeModal = () => router.history.back()
 
   // Kalau modal hilang (dari back / close), bersihkan payload user biar tidak nyangkut.
   useEffect(() => {

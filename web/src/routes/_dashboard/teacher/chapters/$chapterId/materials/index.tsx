@@ -61,6 +61,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
+import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 
 const perPage = 10;
 
@@ -107,6 +108,7 @@ const materialsSearchSchema = z.object({
   access: z.enum(["free", "paid"]).optional(),
   type: z.enum(["text", "video"]).optional(),
   status: z.enum(["published", "draft"]).optional(),
+  modal: z.string().optional(),
 });
 
 function MaterialsFilterMenu({
@@ -183,7 +185,8 @@ function ChapterMaterials() {
   const { chapterId } = useParams({ from: "/_dashboard/teacher/chapters/$chapterId/materials/" });
   const qc = useQueryClient();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { search, access, type, status } = Route.useSearch();
+  const { search, access, type, status, modal } = Route.useSearch();
+  const { openModal, closeModal } = useDialogBack();
   const [searchInput, setSearchInput] = useState(search ?? "");
   const { data: user } = useQuery(getMeOptions());
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_materials;
@@ -245,7 +248,6 @@ function ChapterMaterials() {
     [access, type, status, activeFilterCount]
   );
   usePageHeaderAction(headerFilter);
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<{ id: number; status: string; name: string } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
 
@@ -254,7 +256,7 @@ function ChapterMaterials() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
       toast.success("Materi berhasil dihapus");
-      setDeleteConfirm(null);
+      closeModal();
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal menghapus materi");
@@ -278,6 +280,11 @@ function ChapterMaterials() {
 
   const totalPages = Math.max(1, Math.ceil(materials.length / perPage));
   const paged = materials.slice((page - 1) * perPage, page * perPage);
+
+  useEffect(() => {
+    if (modal !== "delete") setDeleteConfirm(null);
+    if (modal !== "status") setPendingStatus(null);
+  }, [modal]);
 
   // clamp page kalau data mengecil (mis. setelah hapus item terakhir di halaman)
   useEffect(() => {
@@ -443,14 +450,14 @@ function ChapterMaterials() {
                             <>
                               <DropdownMenuItem onClick={() => {
                                 setPendingStatus({ id: m.id!, status: m.status === "published" ? "draft" : "published", name: m.title! });
-                                setConfirmOpen(true);
+                                openModal("status");
                               }}>
                                 {m.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {m.status === "published" ? "Jadikan Draft" : "Publikasikan"}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/$materialId/edit", params: { chapterId, materialId: String(m.id!) } })}>
                                 <Pencil className="h-4 w-4" /> Edit
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setDeleteConfirm({ id: m.id!, name: m.title! })}>
+                              <DropdownMenuItem onClick={() => { setDeleteConfirm({ id: m.id!, name: m.title! }); openModal("delete") }}>
                                 <Trash2 className="h-4 w-4" /> Hapus
                               </DropdownMenuItem>
                             </>
@@ -544,7 +551,7 @@ function ChapterMaterials() {
         )}
       </main>
 
-      {deleteConfirm && <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+      {modal === "delete" && deleteConfirm && <AlertDialog open onOpenChange={(open) => !open && closeModal()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Materi</AlertDialogTitle>
@@ -562,7 +569,7 @@ function ChapterMaterials() {
         </AlertDialogContent>
       </AlertDialog>}
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog open={modal === "status" && !!pendingStatus} onOpenChange={(o) => !o && closeModal()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Konfirmasi Status</AlertDialogTitle>
@@ -578,7 +585,7 @@ function ChapterMaterials() {
               if (pendingStatus) {
                 toggleStatus({ path: { id: pendingStatus.id }, body: { status: pendingStatus.status } });
               }
-              setConfirmOpen(false);
+              closeModal();
             }}>
               {pendingStatus?.status === "published" ? "Publikasikan" : "Jadikan Draft"}
             </AlertDialogAction>

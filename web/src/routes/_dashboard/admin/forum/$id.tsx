@@ -10,14 +10,16 @@ import {
   deleteQuestionsByQuestionIdAnswersByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useParams } from "@tanstack/react-router"
+import { z } from "zod"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { Loader2, Trash2, MessageCircle } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { AnswerForm } from "@/components/forum"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import {
   AlertDialog,
-  AlertDialogTrigger,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -27,15 +29,27 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 
+const forumDetailSearchSchema = z.object({
+  modal: z.string().optional(),
+})
+
 function ForumDetail() {
   const qc = useQueryClient()
   const { id } = useParams({ from: "/_dashboard/admin/forum/$id" })
   const questionId = Number(id)
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
 
   const { data: question, isLoading } = useQuery(getQuestionsByIdOptions({ path: { id: questionId } }))
   const { data: answers = [] } = useQuery(
     getQuestionsByQuestionIdAnswersOptions({ path: { question_id: questionId } })
   )
+
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; user_name?: string } | null>(null)
+
+  useEffect(() => {
+    if (modal !== "delete") setDeleteTarget(null)
+  }, [modal])
 
   usePageTitle(question?.plain_content ?? "Forum")
 
@@ -126,28 +140,10 @@ function ForumDetail() {
 
               {a.is_owner && (
                 <div className="ml-auto">
-                  <AlertDialog>
-                    <AlertDialogTrigger render={<Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" />}>
-                      <Trash2 className="h-4 w-4" />
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Hapus Jawaban</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Yakin ingin menghapus jawaban ini? Tindakan ini tidak bisa dibatalkan.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction
-                          variant="destructive"
-                          onClick={() => deleteAnswer({ path: { question_id: questionId, id: a.id! } })}
-                        >
-                          Hapus
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={() => { setDeleteTarget({ id: a.id!, user_name: a.user_name }); openModal("delete") }}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               )}
             </div>
@@ -159,10 +155,33 @@ function ForumDetail() {
 
       {/* Answer form, hide if owner */}
       {!isOwner && <AnswerForm questionId={questionId} />}
+
+      {modal === "delete" && deleteTarget && (
+        <AlertDialog open onOpenChange={(o) => !o && closeModal()}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus Jawaban</AlertDialogTitle>
+              <AlertDialogDescription>
+                Yakin ingin menghapus jawaban ini? Tindakan ini tidak bisa dibatalkan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                onClick={() => deleteAnswer({ path: { question_id: questionId, id: deleteTarget.id } })}
+              >
+                Hapus
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </main>
   )
 }
 
 export const Route = createFileRoute("/_dashboard/admin/forum/$id")({
+  validateSearch: forumDetailSearchSchema,
   component: ForumDetail,
 })

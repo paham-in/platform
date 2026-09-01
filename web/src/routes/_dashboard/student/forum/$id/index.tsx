@@ -2,6 +2,7 @@
 import { RichContent } from "@/components/ui/rich-content"
 import { YoutubeEmbed } from "@/components/ui/youtube-embed"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useState, useEffect } from "react"
 import "katex/dist/katex.min.css"
 import {
   getQuestionsByIdOptions,
@@ -16,7 +17,6 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import { AnswerForm } from "@/components/forum"
 import {
   AlertDialog,
-  AlertDialogTrigger,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -26,12 +26,22 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
+import type { AnswerAnswerResponse } from "@/lib/api/types.gen"
+import { z } from "zod"
+
+const forumDetailSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 function ForumDetail() {
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { id } = useParams({ from: "/_dashboard/student/forum/$id" })
   const questionId = Number(id)
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
+  const [deleteTarget, setDeleteTarget] = useState<AnswerAnswerResponse | null>(null)
 
   const { data: question, isLoading } = useQuery(getQuestionsByIdOptions({ path: { id: questionId } }))
   const { data: answers = [] } = useQuery(
@@ -50,6 +60,10 @@ function ForumDetail() {
       toast.error(err?.error || err?.message || "Gagal menghapus jawaban")
     },
   })
+
+  useEffect(() => {
+    if (modal !== "delete") setDeleteTarget(null)
+  }, [modal])
 
   if (isLoading) {
     return (
@@ -136,28 +150,17 @@ function ForumDetail() {
 
               {a.is_owner && (
                 <div className="ml-auto">
-                  <AlertDialog>
-                    <AlertDialogTrigger render={<Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" />}>
-                      <Trash2 className="h-4 w-4" />
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Hapus Jawaban</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Yakin ingin menghapus jawaban ini? Tindakan ini tidak bisa dibatalkan.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction
-                          variant="destructive"
-                          onClick={() => deleteAnswer({ path: { question_id: questionId, id: a.id! } })}
-                        >
-                          Hapus
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={() => {
+                      setDeleteTarget(a)
+                      openModal("delete")
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               )}
             </div>
@@ -169,10 +172,36 @@ function ForumDetail() {
 
       {/* Answer form, only teachers can answer (gated inside AnswerForm) */}
       {!isOwner && <AnswerForm questionId={questionId} />}
+
+      {modal === "delete" && deleteTarget && (
+        <AlertDialog open onOpenChange={(o) => !o && closeModal()}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus Jawaban</AlertDialogTitle>
+              <AlertDialogDescription>
+                Yakin ingin menghapus jawaban ini? Tindakan ini tidak bisa dibatalkan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                onClick={() => {
+                  deleteAnswer({ path: { question_id: questionId, id: deleteTarget.id! } })
+                  closeModal()
+                }}
+              >
+                Hapus
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </main>
   )
 }
 
 export const Route = createFileRoute("/_dashboard/student/forum/$id/")({
   component: ForumDetail,
+  validateSearch: forumDetailSearchSchema,
 })

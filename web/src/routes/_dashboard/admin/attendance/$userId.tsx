@@ -12,10 +12,12 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import { ApproveEvidenceDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import { usePageTitle } from "@/components/page-title"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 const attendanceDetailSearchSchema = z.object({
   status: z.enum(["review", "done"]).optional(),
+  modal: z.string().optional(),
 })
 
 const statusFilters = [
@@ -40,13 +42,20 @@ function feeBadge(paid?: boolean) {
 function AttendanceDetail() {
   const { userId } = Route.useParams()
   const navigate = useNavigate({ from: Route.fullPath })
-  const { status } = Route.useSearch()
+  const { status, modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const { data: sessions = [], isLoading } = useQuery(getAdminTutoringEvidenceOptions({ query: { status } }))
   const { data: users = [] } = useQuery(getAdminUsersOptions())
   const { data: reports = [] } = useQuery(getAdminTutoringReportOptions())
   const [approveTarget, setApproveTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [rejectTarget, setRejectTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [feeTarget, setFeeTarget] = useState<TutoringListSessionsResponse | null>(null)
+
+  useEffect(() => {
+    if (modal !== "approve") setApproveTarget(null)
+    if (modal !== "reject") setRejectTarget(null)
+    if (modal !== "fee") setFeeTarget(null)
+  }, [modal])
 
   const user = users.find((u) => u.id === Number(userId))
   usePageTitle(user?.name ?? "Validasi & Fee Guru")
@@ -192,15 +201,15 @@ function AttendanceDetail() {
                       <DropdownMenuContent align="end">
                         {s.status === "review" ? (
                           <>
-                            <DropdownMenuItem onClick={() => setApproveTarget(s)}>
+                            <DropdownMenuItem onClick={() => { setApproveTarget(s); openModal("approve") }}>
                               <Check className="h-4 w-4 text-green-600" /> Setujui
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setRejectTarget(s)}>
+                            <DropdownMenuItem onClick={() => { setRejectTarget(s); openModal("reject") }}>
                               <X className="h-4 w-4 text-destructive" /> Tolak
                             </DropdownMenuItem>
                           </>
                         ) : s.status === "done" && s.invoice_paid ? (
-                          <DropdownMenuItem onClick={() => setFeeTarget(s)}>
+                          <DropdownMenuItem onClick={() => { setFeeTarget(s); openModal("fee") }}>
                             {s.fee_paid ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                             {s.fee_paid ? "Tandai Belum" : "Tandai Sudah"}
                           </DropdownMenuItem>
@@ -215,9 +224,9 @@ function AttendanceDetail() {
         </CardContent>
       </Card>
 
-      {approveTarget && <ApproveEvidenceDialog session={approveTarget} onClose={() => setApproveTarget(null)} />}
-      {rejectTarget && <RejectEvidenceDialog session={rejectTarget} onClose={() => setRejectTarget(null)} />}
-      {feeTarget && <ToggleFeeDialog session={feeTarget} onClose={() => setFeeTarget(null)} />}
+      {modal === "approve" && approveTarget && <ApproveEvidenceDialog session={approveTarget} onClose={closeModal} />}
+      {modal === "reject" && rejectTarget && <RejectEvidenceDialog session={rejectTarget} onClose={closeModal} />}
+      {modal === "fee" && feeTarget && <ToggleFeeDialog session={feeTarget} onClose={closeModal} />}
     </main>
   )
 }

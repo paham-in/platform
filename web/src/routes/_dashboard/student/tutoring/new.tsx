@@ -28,6 +28,12 @@ import { id } from "date-fns/locale"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
+import { z } from "zod"
+
+const newBookingSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 const SESSION_MINUTES = 90
 
@@ -73,7 +79,8 @@ function NewBooking() {
   const [date, setDate] = useState("")
   const [note, setNote] = useState("")
   const [members, setMembers] = useState<UserAdminListUsersResponse[]>([])
-  const [friendOpen, setFriendOpen] = useState(false)
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const [friendQuery, setFriendQuery] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [friendPending, setFriendPending] = useState<UserAdminListUsersResponse[]>([])
@@ -195,12 +202,13 @@ function NewBooking() {
   const friendFull = members.length + friendPending.length >= 4
   const friendIds = new Set(friendPending.map((m) => m.id))
 
-  const closeFriendDialog = () => {
-    setFriendOpen(false)
-    setFriendQuery("")
-    setSearchTerm("")
-    setFriendPending([])
-  }
+  useEffect(() => {
+    if (modal !== "friend") {
+      setFriendQuery("")
+      setSearchTerm("")
+      setFriendPending([])
+    }
+  }, [modal])
 
   return (
     <main className="p-4 md:p-6">
@@ -415,7 +423,7 @@ function NewBooking() {
           {mode === "group" && (
             <div className="space-y-1.5">
               <Label>Teman Sekelompok</Label>
-              <Button type="button" variant="outline" className="w-full justify-start gap-2" onClick={() => setFriendOpen(true)}>
+              <Button type="button" variant="outline" className="w-full justify-start gap-2" onClick={() => openModal("friend")}>
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <span>{members.length === 0 ? "Tambah Teman" : "Kelola Teman"}</span>
                 <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs tabular-nums">{members.length + 1}/5</span>
@@ -493,10 +501,8 @@ function NewBooking() {
       </Card>
       </div>
 
-      <Dialog
-        open={friendOpen}
-        onOpenChange={(open) => { if (!open) closeFriendDialog() }}
-      >
+      {modal === "friend" && (
+        <Dialog open onOpenChange={(o) => !o && closeModal()}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Tambah Teman</DialogTitle>
@@ -585,7 +591,7 @@ function NewBooking() {
                 disabled={friendPending.length === 0}
                 onClick={() => {
                   setMembers((prev) => [...prev, ...friendPending].slice(0, 4))
-                  closeFriendDialog()
+                  closeModal()
                 }}
               >
                 Tambah {friendPending.length > 0 ? `${friendPending.length} Teman` : "Teman"}
@@ -593,11 +599,13 @@ function NewBooking() {
             </div>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+        </Dialog>
+      )}
     </main>
   )
 }
 
 export const Route = createFileRoute("/_dashboard/student/tutoring/new")({
   component: NewBooking,
+  validateSearch: newBookingSearchSchema,
 })

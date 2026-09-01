@@ -11,6 +11,7 @@ import {
 import type { ProgramProgramResponse, ClassClassResponse } from "@/lib/api/types.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import {
   ChevronDown,
   ChevronRight,
@@ -23,7 +24,7 @@ import {
   Unplug,
 } from "lucide-react";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -49,19 +50,36 @@ import {
 } from "@/components/admin/programs";
 import { ClassFormDialog, DeleteClassDialog } from "@/components/admin/classes";
 import { usePageTitle } from "@/components/page-title";
+import { useDialogBack } from "@/lib/hooks/use-dialog-back";
+
+const programsSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 function AdminPrograms() {
   usePageTitle("Program");
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const { data: programs = [], isLoading } = useQuery(getAdminProgramsOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
-  const [formTarget, setFormTarget] = useState<{ open: boolean; editing: ProgramProgramResponse | null }>({ open: false, editing: null });
+  const [formTarget, setFormTarget] = useState<{ editing: ProgramProgramResponse | null }>({ editing: null });
   const [deleteConfirm, setDeleteConfirm] = useState<ProgramProgramResponse | null>(null);
   const [orphanTarget, setOrphanTarget] = useState<ClassClassResponse | null>(null);
   const [createClassTarget, setCreateClassTarget] = useState<ProgramProgramResponse | null>(null);
   const [unassignTarget, setUnassignTarget] = useState<ClassClassResponse | null>(null);
   const [editClassTarget, setEditClassTarget] = useState<ClassClassResponse | null>(null);
   const [deleteClassTarget, setDeleteClassTarget] = useState<ClassClassResponse | null>(null);
+
+  useEffect(() => {
+    if (modal !== "form") setFormTarget({ editing: null })
+    if (modal !== "delete") setDeleteConfirm(null)
+    if (modal !== "orphan") setOrphanTarget(null)
+    if (modal !== "create-class") setCreateClassTarget(null)
+    if (modal !== "edit-class") setEditClassTarget(null)
+    if (modal !== "delete-class") setDeleteClassTarget(null)
+    if (modal !== "unassign") setUnassignTarget(null)
+  }, [modal])
 
   const qc = useQueryClient()
   const unassignMut = useMutation({
@@ -104,7 +122,7 @@ function AdminPrograms() {
               Kelola program dan kelas di dalamnya.
             </p>
           </div>
-          <Button className="hidden md:inline-flex" onClick={() => setFormTarget({ open: true, editing: null })}>
+          <Button className="hidden md:inline-flex" onClick={() => { setFormTarget({ editing: null }); openModal("form") }}>
             <Plus className="mr-1 h-4 w-4" /> Tambah Program
           </Button>
         </div>
@@ -167,10 +185,10 @@ function AdminPrograms() {
                             <MoreVertical className="h-4 w-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => setFormTarget({ open: true, editing: p })}>
+                            <DropdownMenuItem onClick={() => { setFormTarget({ editing: p }); openModal("form") }}>
                               <Pencil className="h-4 w-4" /> Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setDeleteConfirm(p)}>
+                            <DropdownMenuItem onClick={() => { setDeleteConfirm(p); openModal("delete") }}>
                               <Trash2 className="h-4 w-4" /> Hapus
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -210,13 +228,13 @@ function AdminPrograms() {
                                     <MoreVertical className="h-4 w-4" />
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => c.id && setEditClassTarget(c)}>
+                                    <DropdownMenuItem onClick={() => c.id && (setEditClassTarget(c), openModal("edit-class"))}>
                                       <Pencil className="h-4 w-4" /> Edit
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => c.id && setUnassignTarget(c)}>
+                                    <DropdownMenuItem onClick={() => c.id && (setUnassignTarget(c), openModal("unassign"))}>
                                       <Unplug className="h-4 w-4" /> Lepas
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem variant="destructive" onClick={() => c.id && setDeleteClassTarget(c)}>
+                                    <DropdownMenuItem variant="destructive" onClick={() => c.id && (setDeleteClassTarget(c), openModal("delete-class"))}>
                                       <Trash2 className="h-4 w-4" /> Hapus
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
@@ -226,7 +244,7 @@ function AdminPrograms() {
                           </ul>
                         )}
                         <div className="pt-2">
-                          <Button size="sm" variant="outline" onClick={() => setCreateClassTarget(p)}>
+                          <Button size="sm" variant="outline" onClick={() => { setCreateClassTarget(p); openModal("create-class") }}>
                             <Plus className="mr-1 h-3.5 w-3.5" /> Buat Kelas
                           </Button>
                         </div>
@@ -256,7 +274,7 @@ function AdminPrograms() {
                         <p className="truncate text-xs text-muted-foreground">{priceLabel(c)}</p>
                       )}
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => setOrphanTarget(c)}>
+                    <Button size="sm" variant="outline" onClick={() => { setOrphanTarget(c); openModal("orphan") }}>
                       <Layers className="mr-1 h-3.5 w-3.5" /> Masukkan ke Program
                     </Button>
                   </li>
@@ -268,7 +286,7 @@ function AdminPrograms() {
       </main>
 
       <Button
-        onClick={() => setFormTarget({ open: true, editing: null })}
+        onClick={() => { setFormTarget({ editing: null }); openModal("form") }}
         size="icon"
         className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
         aria-label="Tambah Program"
@@ -276,45 +294,45 @@ function AdminPrograms() {
         <Plus className="size-6" />
       </Button>
 
-      {formTarget.open && (
-        <ProgramFormDialog program={formTarget.editing ?? undefined} onClose={() => setFormTarget({ open: false, editing: null })} />
+      {modal === "form" && (
+        <ProgramFormDialog program={formTarget.editing ?? undefined} onClose={closeModal} />
       )}
 
-      {deleteConfirm && (
-        <DeleteProgramDialog program={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+      {modal === "delete" && deleteConfirm && (
+        <DeleteProgramDialog program={deleteConfirm} onClose={closeModal} />
       )}
 
-      {orphanTarget && (
+      {modal === "orphan" && orphanTarget && (
         <AssignOrphanDialog
           classItem={orphanTarget}
           programs={programs}
-          onClose={() => setOrphanTarget(null)}
+          onClose={closeModal}
         />
       )}
 
-      {createClassTarget && (
+      {modal === "create-class" && createClassTarget && (
         <ClassFormDialog
           programId={createClassTarget.id}
-          onClose={() => setCreateClassTarget(null)}
+          onClose={closeModal}
         />
       )}
 
-      {editClassTarget && (
+      {modal === "edit-class" && editClassTarget && (
         <ClassFormDialog
           class={editClassTarget}
-          onClose={() => setEditClassTarget(null)}
+          onClose={closeModal}
         />
       )}
 
-      {deleteClassTarget && (
+      {modal === "delete-class" && deleteClassTarget && (
         <DeleteClassDialog
           class={deleteClassTarget}
-          onClose={() => setDeleteClassTarget(null)}
+          onClose={closeModal}
         />
       )}
 
-      {unassignTarget && (
-        <AlertDialog open onOpenChange={(open) => !open && setUnassignTarget(null)}>
+      {modal === "unassign" && unassignTarget && (
+        <AlertDialog open onOpenChange={(open) => !open && closeModal()}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Lepas Kelas dari Program</AlertDialogTitle>
@@ -330,7 +348,7 @@ function AdminPrograms() {
                 disabled={unassignMut.isPending}
                 onClick={() => {
                   unassignMut.mutate({ path: { class_id: unassignTarget.id! } })
-                  setUnassignTarget(null)
+                  closeModal()
                 }}
               >
                 {unassignMut.isPending && <Spinner />}
@@ -346,4 +364,5 @@ function AdminPrograms() {
 
 export const Route = createFileRoute("/_dashboard/admin/programs")({
   component: AdminPrograms,
+  validateSearch: programsSearchSchema,
 });

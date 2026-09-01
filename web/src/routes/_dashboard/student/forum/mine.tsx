@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -22,6 +22,12 @@ import { toast } from "sonner"
 import { Loader2, Plus, Trash2, MessageSquare } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
+import { z } from "zod"
+
+const mineSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 function MyQuestions() {
   usePageTitle("Pertanyaan Saya")
@@ -31,6 +37,12 @@ function MyQuestions() {
     getQuestionsOptions({ query: { mine: true } })
   )
   const [deleteId, setDeleteId] = useState<number | null>(null)
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
+
+  useEffect(() => {
+    if (modal !== "delete") setDeleteId(null)
+  }, [modal])
 
   const { mutate: deleteQuestion } = useMutation({
     ...deleteQuestionsByIdMutation(),
@@ -103,6 +115,7 @@ function MyQuestions() {
                     onClick={(e) => {
                       e.stopPropagation()
                       setDeleteId(q.id!)
+                      openModal("delete")
                     }}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -126,8 +139,8 @@ function MyQuestions() {
         ))}
       </div>
 
-      {deleteId !== null && (
-        <AlertDialog open onOpenChange={(o) => !o && setDeleteId(null)}>
+      {modal === "delete" && deleteId !== null && (
+        <AlertDialog open onOpenChange={(o) => !o && closeModal()}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Hapus Pertanyaan</AlertDialogTitle>
@@ -139,7 +152,7 @@ function MyQuestions() {
               <AlertDialogCancel>Batal</AlertDialogCancel>
               <AlertDialogAction variant="destructive" onClick={() => {
                 deleteQuestion({ path: { id: deleteId } })
-                setDeleteId(null)
+                closeModal()
               }}>Hapus</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -151,4 +164,5 @@ function MyQuestions() {
 
 export const Route = createFileRoute("/_dashboard/student/forum/mine")({
   component: MyQuestions,
+  validateSearch: mineSearchSchema,
 })

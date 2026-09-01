@@ -28,6 +28,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { GrantClassDialog } from "@/components/admin/student-class-enrollments";
 import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
+import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +54,7 @@ const studentClassesSearchSchema = z.object({
   search: z.string().optional(),
   class: z.coerce.number().optional(),
   program: z.coerce.number().optional(),
+  modal: z.string().optional(),
 });
 
 function ClassProgramFilterMenu({
@@ -120,7 +122,8 @@ function ClassProgramFilterMenu({
 function AdminStudentClasses() {
   usePageTitle("Hak Akses Murid");
   const navigate = useNavigate({ from: Route.fullPath })
-  const { search: searchParam, class: classFilter, program: programFilter } = Route.useSearch()
+  const { search: searchParam, class: classFilter, program: programFilter, modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const { data: classes = [] } = useQuery(getClassesOptions())
   const { data: programs = [] } = useQuery(getAdminProgramsOptions())
@@ -134,9 +137,12 @@ function AdminStudentClasses() {
     })
   );
   const [page, setPage] = useState(1);
-  const [grantOpen, setGrantOpen] = useState(false);
   const [revokeTarget, setRevokeTarget] = useState<StudentclassStudentClassEnrollmentResponse | null>(null);
   const perPage = 8;
+
+  useEffect(() => {
+    if (modal !== "revoke") setRevokeTarget(null)
+  }, [modal])
 
   // sync URL → local search input (e.g. back/forward, manual URL edit)
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
@@ -208,7 +214,7 @@ function AdminStudentClasses() {
               Kelola kelas yang diakses setiap murid dan masa berlakunya.
             </p>
           </div>
-          <Button className="hidden md:inline-flex" onClick={() => setGrantOpen(true)}>
+          <Button className="hidden md:inline-flex" onClick={() => openModal("grant")}>
             <Plus className="mr-1 h-4 w-4" /> Berikan Akses
           </Button>
         </div>
@@ -280,7 +286,7 @@ function AdminStudentClasses() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem className="text-destructive" onClick={() => setRevokeTarget(sp)}>
+                          <DropdownMenuItem className="text-destructive" onClick={() => { setRevokeTarget(sp); openModal("revoke") }}>
                             <Trash2 className="h-4 w-4" /> Cabut Akses
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -387,7 +393,7 @@ function AdminStudentClasses() {
                         <MoreVertical className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem className="text-destructive" onClick={() => setRevokeTarget(sp)}>
+                        <DropdownMenuItem className="text-destructive" onClick={() => { setRevokeTarget(sp); openModal("revoke") }}>
                           <Trash2 className="h-4 w-4" /> Cabut Akses
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -416,7 +422,7 @@ function AdminStudentClasses() {
       </main>
 
       <Button
-        onClick={() => setGrantOpen(true)}
+        onClick={() => openModal("grant")}
         size="icon"
         className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
         aria-label="Berikan Akses"
@@ -424,12 +430,12 @@ function AdminStudentClasses() {
         <Plus className="size-6" />
       </Button>
 
-      {grantOpen && (
-        <GrantClassDialog onClose={() => setGrantOpen(false)} />
+      {modal === "grant" && (
+        <GrantClassDialog onClose={closeModal} />
       )}
 
-      {revokeTarget && (
-        <RevokeDialog access={revokeTarget} onClose={() => setRevokeTarget(null)} />
+      {modal === "revoke" && revokeTarget && (
+        <RevokeDialog access={revokeTarget} onClose={closeModal} />
       )}
     </>
   );

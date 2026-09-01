@@ -9,6 +9,7 @@ import {
   useRouter,
   useRouterState,
 } from "@tanstack/react-router";
+import { z } from "zod";
 import {
   ArrowLeft,
   ChevronRight,
@@ -24,6 +25,7 @@ import { CommandMenu } from "@/components/command-menu";
 import { getNavStack, resetNavStack, RouteTransition, setResetInProgress } from "@/components/route-transition";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notification-bell";
+import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 import { homeForRoles, requiredRoleForPath, roleLabel } from "@/lib/role";
 import {
   Collapsible,
@@ -302,7 +304,8 @@ function DashboardLayout() {
   const qc = useQueryClient();
   const { data: user, isLoading } = useQuery(getMeOptions());
   const routerState = useRouterState();
-  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const { modal } = Route.useSearch();
+  const { openModal, closeModal } = useDialogBack();
   const [commandOpen, setCommandOpen] = useState(false);
 
   const logout = useMutation({
@@ -315,7 +318,6 @@ function DashboardLayout() {
     },
   });
   const confirmLogout = () => {
-    setLogoutConfirmOpen(false);
     logout.mutate({});
   };
 
@@ -378,7 +380,7 @@ function DashboardLayout() {
         avatarUrl={user.avatar_url}
         userRole={userRoles.map(roleLabel).join(", ")}
         logoutPending={logout.isPending}
-        onLogoutClick={() => setLogoutConfirmOpen(true)}
+        onLogoutClick={() => openModal("logout")}
       />
       <SidebarInset className="overflow-x-clip">
         <PageTitleProvider>
@@ -420,7 +422,8 @@ function DashboardLayout() {
         </PageTitleProvider>
       </SidebarInset>
 
-      <AlertDialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
+      {modal === "logout" && (
+      <AlertDialog open onOpenChange={(o) => !o && closeModal()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Yakin mau logout?</AlertDialogTitle>
@@ -434,6 +437,7 @@ function DashboardLayout() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      )}
 
       <CommandMenu
         groups={filteredGroups}
@@ -446,4 +450,5 @@ function DashboardLayout() {
 
 export const Route = createFileRoute("/_dashboard")({
   component: DashboardLayout,
+  validateSearch: z.object({ modal: z.string().optional() }),
 });

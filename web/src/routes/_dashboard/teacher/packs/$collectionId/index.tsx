@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
-import { useState } from "react";
+import { z } from "zod";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,8 +15,13 @@ import { usePageTitle } from "@/components/page-title";
 import { Eye, EyeOff, ListChecks, MoreVertical, Pencil, Plus, Trash2, FolderOpen } from "lucide-react";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { toast } from "sonner";
+import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 
 const PACKS_PER_PAGE = 20;
+
+const collectionPackagesSearchSchema = z.object({
+  modal: z.string().optional(),
+});
 
 const statusStyles: Record<string, string> = {
   published: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
@@ -31,17 +37,23 @@ function CollectionPackages() {
   const { collectionId } = useParams({ from: "/_dashboard/teacher/packs/$collectionId/" });
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { modal } = Route.useSearch();
+  const { openModal, closeModal } = useDialogBack();
   const { data: user } = useQuery(getMeOptions());
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_question_packages;
   // paket bisa dikelola kalau punya izin DAN (admin, paket sendiri, atau paket tanpa pemilik)
   const canEdit = (p: { author_id?: number }) => user?.roles?.includes("admin") || p.author_id === user?.id || !p.author_id;
   const { data: collections = [] } = useQuery(getAdminQuestionPackageCollectionsOptions());
   const { data: allPackages = [], isLoading } = useQuery(getAdminQuestionPackagesOptions());
-  const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<QuestionpackagePackageResponse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<{ id: number; status: string; name: string } | null>(null);
+
+  useEffect(() => {
+    if (modal !== "edit") setEditTarget(null);
+    if (modal !== "delete") setDeleteConfirm(null);
+    if (modal !== "status") setPendingStatus(null);
+  }, [modal]);
 
   const { mutate: toggleStatus } = useMutation({
     ...patchAdminQuestionPackagesByIdMutation(),
@@ -74,7 +86,7 @@ function CollectionPackages() {
             )}
           </div>
           {canManage && (
-            <Button className="hidden md:inline-flex" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" /> Tambah Paket</Button>
+            <Button className="hidden md:inline-flex" onClick={() => openModal("create")}><Plus className="mr-1 h-4 w-4" /> Tambah Paket</Button>
           )}
         </div>
 
@@ -145,16 +157,16 @@ function CollectionPackages() {
                             <>
                               <DropdownMenuItem onClick={() => {
                                 setPendingStatus({ id: pkg.id!, status: pkg.status === "published" ? "draft" : "published", name: pkg.name ?? "" });
-                                setConfirmOpen(true);
+                                openModal("status");
                               }}>
                                 {pkg.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {pkg.status === "published" ? "Jadikan Draft" : "Publikasikan"}
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setEditTarget(pkg)}>
+                              <DropdownMenuItem onClick={() => { setEditTarget(pkg); openModal("edit") }}>
                                 <Pencil className="h-4 w-4" /> Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-destructive"
-                                onClick={() => setDeleteConfirm({ id: pkg.id!, name: pkg.name ?? "" })}
+                                onClick={() => { setDeleteConfirm({ id: pkg.id!, name: pkg.name ?? "" }); openModal("delete") }}
                               >
                                 <Trash2 className="h-4 w-4" /> Hapus
                               </DropdownMenuItem>
@@ -172,7 +184,7 @@ function CollectionPackages() {
 
         {canManage && (
           <Button
-            onClick={() => setCreateOpen(true)}
+            onClick={() => openModal("create")}
             size="icon"
             className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
             aria-label="Tambah Paket"
@@ -182,19 +194,19 @@ function CollectionPackages() {
         )}
       </main>
 
-      {createOpen && (
-        <CreatePackageDialog collectionId={cid} collectionName={collection?.name ?? ""} onClose={() => setCreateOpen(false)} />
+      {modal === "create" && (
+        <CreatePackageDialog collectionId={cid} collectionName={collection?.name ?? ""} onClose={closeModal} />
       )}
 
-      {editTarget && (
-        <EditPackageDialog pkg={editTarget} onClose={() => setEditTarget(null)} />
+      {modal === "edit" && editTarget && (
+        <EditPackageDialog pkg={editTarget} onClose={closeModal} />
       )}
 
-      {deleteConfirm && (
-        <DeletePackageDialog pkg={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+      {modal === "delete" && deleteConfirm && (
+        <DeletePackageDialog pkg={deleteConfirm} onClose={closeModal} />
       )}
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog open={modal === "status" && !!pendingStatus} onOpenChange={(o) => !o && closeModal()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Konfirmasi Status</AlertDialogTitle>
@@ -210,7 +222,7 @@ function CollectionPackages() {
               if (pendingStatus) {
                 toggleStatus({ path: { id: pendingStatus.id }, body: { status: pendingStatus.status } });
               }
-              setConfirmOpen(false);
+              closeModal();
             }}>
               {pendingStatus?.status === "published" ? "Publikasikan" : "Jadikan Draft"}
             </AlertDialogAction>
@@ -223,4 +235,5 @@ function CollectionPackages() {
 
 export const Route = createFileRoute("/_dashboard/teacher/packs/$collectionId/")({
   component: CollectionPackages,
+  validateSearch: collectionPackagesSearchSchema,
 });

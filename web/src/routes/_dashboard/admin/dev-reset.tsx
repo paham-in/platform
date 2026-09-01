@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createFileRoute } from "@tanstack/react-router"
+import { z } from "zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -8,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   AlertDialog,
@@ -30,11 +32,22 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { DevresetTableInfo } from "@/lib/api/types.gen"
 
+const devResetSearchSchema = z.object({
+  modal: z.string().optional(),
+})
+
 function DevReset() {
   usePageTitle("Dev Tools")
   const qc = useQueryClient()
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const { data, isLoading } = useQuery(getAdminDevTablesOptions())
   const [confirmTable, setConfirmTable] = useState<DevresetTableInfo | null>(null)
+
+  useEffect(() => {
+    if (modal !== "reset") setConfirmTable(null)
+  }, [modal])
+
   const enabled = data?.enabled ?? false
   const tables = data?.tables ?? []
 
@@ -229,7 +242,7 @@ function DevReset() {
                         variant="destructive"
                         size="sm"
                         disabled={t.protected || reset.isPending}
-                        onClick={() => setConfirmTable(t)}
+                        onClick={() => { setConfirmTable(t); openModal("reset") }}
                       >
                         Hapus
                       </Button>
@@ -243,13 +256,14 @@ function DevReset() {
       </Card>
       )}
 
-      <AlertDialog open={!!confirmTable} onOpenChange={(open) => !open && setConfirmTable(null)}>
+      {modal === "reset" && confirmTable && (
+      <AlertDialog open onOpenChange={(o) => !o && closeModal()}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus data tabel ini?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hapus semua row di tabel <strong>{confirmTable?.name}</strong> (
-              {confirmTable?.rows ?? 0} row)? Tindakan ini tidak bisa dibatalkan.
+              Hapus semua row di tabel <strong>{confirmTable.name}</strong> (
+              {confirmTable.rows ?? 0} row)? Tindakan ini tidak bisa dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -261,10 +275,12 @@ function DevReset() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      )}
     </main>
   )
 }
 
 export const Route = createFileRoute("/_dashboard/admin/dev-reset")({
   component: DevReset,
+  validateSearch: devResetSearchSchema,
 })

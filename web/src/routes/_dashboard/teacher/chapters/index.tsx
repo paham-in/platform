@@ -84,6 +84,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
+import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 
 const COVER_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const COVER_MAX = 5 * 1024 * 1024;
@@ -92,6 +93,7 @@ const perPage = 10;
 const chaptersSearchSchema = z.object({
   search: z.string().optional(),
   classId: z.string().optional(),
+  modal: z.string().optional(),
 });
 
 function ClassFilterMenu({
@@ -147,7 +149,8 @@ function AdminChapters() {
   usePageTitle("BAB");
   const qc = useQueryClient();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { search, classId } = Route.useSearch();
+  const { search, classId, modal } = Route.useSearch();
+  const { openModal, closeModal } = useDialogBack();
   const { data: user } = useQuery(getMeOptions());
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_materials;
   const { data: chapters = [], isLoading, isError } = useQuery(
@@ -164,7 +167,6 @@ function AdminChapters() {
   const [page, setPage] = useState(1);
   const activeFilterCount = classId ? 1 : 0;
   const hasActiveFilter = !!search || !!classId;
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<ChapterChapterResponse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<ChapterChapterResponse | null>(null);
   const [saving, setSaving] = useState(false);
@@ -245,6 +247,12 @@ function AdminChapters() {
     : [];
   const subjectOptions = availableSubjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }));
 
+  useEffect(() => {
+    if (modal !== "form") setEditing(null);
+    if (modal !== "cover") setCoverView(null);
+    if (modal !== "delete") setDeleteConfirm(null);
+  }, [modal]);
+
   const totalPages = Math.max(1, Math.ceil(chapters.length / perPage));
   const paged = chapters.slice((page - 1) * perPage, page * perPage);
 
@@ -259,7 +267,7 @@ function AdminChapters() {
     setCoverFile(null);
     setCoverPreview("");
     setCoverError("");
-    setDialogOpen(true);
+    openModal("form");
   };
   const openEdit = (c: ChapterChapterResponse) => {
     setEditing(c);
@@ -273,7 +281,7 @@ function AdminChapters() {
     setCoverFile(null);
     setCoverPreview("");
     setCoverError("");
-    setDialogOpen(true);
+    openModal("form");
   };
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -325,7 +333,7 @@ function AdminChapters() {
         });
         if (coverFile && !(await uploadCover(editing.id!))) {
           toast.error("BAB tersimpan, tapi sampul gagal diunggah.");
-          setDialogOpen(false);
+          closeModal();
           return;
         }
         toast.success("BAB berhasil diperbarui.");
@@ -341,7 +349,7 @@ function AdminChapters() {
         });
         if (coverFile && data?.id && !(await uploadCover(data.id))) {
           toast.error("BAB ditambahkan, tapi sampul gagal diunggah.");
-          setDialogOpen(false);
+          closeModal();
           return;
         }
         toast.success("BAB berhasil ditambahkan.");
@@ -349,7 +357,7 @@ function AdminChapters() {
         navigate({ search: {}, replace: true });
         setPage(1);
       }
-      setDialogOpen(false);
+      closeModal();
     } catch {
       toast.error("Gagal menyimpan bab. Coba lagi.");
     } finally {
@@ -424,8 +432,8 @@ function AdminChapters() {
               />
             </div>
           </div>
-          {canManage && (
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          {canManage && modal === "form" && (
+            <Dialog open onOpenChange={(o) => !o && closeModal()}>
               <Button className="hidden md:inline-flex" onClick={openAdd}>
                 <Plus className="mr-1 h-4 w-4" /> Tambah
               </Button>
@@ -539,7 +547,7 @@ function AdminChapters() {
                   autoComplete="off"/>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
+                  <Button variant="outline" onClick={closeModal} disabled={saving}>
                     Batal
                   </Button>
                   <Button
@@ -584,7 +592,7 @@ function AdminChapters() {
                         <button
                           type="button"
                           aria-label={`Lihat sampul ${c.title}`}
-                          onClick={() => setCoverView(c)}
+                          onClick={() => { setCoverView(c); openModal("cover") }}
                           className="block cursor-pointer"
                         >
                           <img
@@ -632,7 +640,7 @@ function AdminChapters() {
                                 <DropdownMenuItem onClick={() => openEdit(c)}>
                                   <Pencil className="h-4 w-4" /> Ubah
                                 </DropdownMenuItem>
-                                <DropdownMenuItem variant="destructive" onClick={() => setDeleteConfirm(c)}>
+                                <DropdownMenuItem variant="destructive" onClick={() => { setDeleteConfirm(c); openModal("delete") }}>
                                   <Trash2 className="h-4 w-4" /> Hapus
                                 </DropdownMenuItem>
                               </>
@@ -733,7 +741,7 @@ function AdminChapters() {
                       <button
                         type="button"
                         aria-label={`Lihat sampul ${c.title}`}
-                        onClick={() => setCoverView(c)}
+                        onClick={() => { setCoverView(c); openModal("cover") }}
                         className="shrink-0 cursor-pointer"
                       >
                         <img
@@ -772,7 +780,7 @@ function AdminChapters() {
                             <DropdownMenuItem onClick={() => openEdit(c)}>
                               <Pencil className="h-4 w-4" /> Ubah
                             </DropdownMenuItem>
-                            <DropdownMenuItem variant="destructive" onClick={() => setDeleteConfirm(c)}>
+                            <DropdownMenuItem variant="destructive" onClick={() => { setDeleteConfirm(c); openModal("delete") }}>
                               <Trash2 className="h-4 w-4" /> Hapus
                             </DropdownMenuItem>
                           </>
@@ -827,8 +835,8 @@ function AdminChapters() {
         )}
       </main>
 
-      {coverView && (
-        <Dialog open onOpenChange={(o) => !o && setCoverView(null)}>
+      {modal === "cover" && coverView && (
+        <Dialog open onOpenChange={(o) => !o && closeModal()}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Sampul, {coverView.title}</DialogTitle>
@@ -843,8 +851,8 @@ function AdminChapters() {
         </Dialog>
       )}
 
-      {deleteConfirm && (
-        <AlertDialog open onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+      {modal === "delete" && deleteConfirm && (
+        <AlertDialog open onOpenChange={(open) => !open && closeModal()}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Hapus BAB</AlertDialogTitle>
@@ -859,7 +867,7 @@ function AdminChapters() {
                 variant="destructive"
                 onClick={() => {
                   deleteChapter({ path: { id: deleteConfirm.id! } });
-                  setDeleteConfirm(null);
+                  closeModal();
                 }}
               >
                 Hapus

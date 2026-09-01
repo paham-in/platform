@@ -27,11 +27,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { CreateInvoiceDialog, DeleteInvoiceDialog, ToggleInvoiceDialog } from "@/components/admin/payments"
 import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
 
 const paymentsDetailSearchSchema = z.object({
   search: z.string().optional(),
   status: z.enum(["all", "paid", "pending"]).optional(),
+  modal: z.string().optional(),
 })
 
 function PaymentsStatusFilterMenu({
@@ -89,7 +91,8 @@ function PaymentsStatusFilterMenu({
 function PaymentsDetail() {
   const { userId } = Route.useParams()
   const navigate = useNavigate({ from: Route.fullPath })
-  const { search: searchParam, status: statusParam } = Route.useSearch()
+  const { search: searchParam, status: statusParam, modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
 
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
@@ -114,10 +117,15 @@ function PaymentsDetail() {
       search: searchParam || undefined,
     },
   }))
-  const [createOpen, setCreateOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<InvoiceInvoiceResponse[] | null>(null)
   const [toggleTarget, setToggleTarget] = useState<{ invoices: InvoiceInvoiceResponse[]; status: "paid" | "pending" } | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+
+  useEffect(() => {
+    if (modal !== "delete") setDeleteTarget(null)
+    if (modal !== "toggle") setToggleTarget(null)
+    if (modal !== "delete" && modal !== "toggle") setSelectedIds(new Set())
+  }, [modal])
 
   const statusOptions = useMemo(
     () => [
@@ -210,19 +218,19 @@ function PaymentsDetail() {
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="outline">Aksi</Button>} />
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setToggleTarget({ invoices: invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "pending"), status: "paid" })}>
+              <DropdownMenuItem onClick={() => { setToggleTarget({ invoices: invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "pending"), status: "paid" }); openModal("toggle") }}>
                 <CheckCircle2 className="h-4 w-4" /> Lunas
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setToggleTarget({ invoices: invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "paid"), status: "pending" })}>
+              <DropdownMenuItem onClick={() => { setToggleTarget({ invoices: invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "paid"), status: "pending" }); openModal("toggle") }}>
                 <XCircle className="h-4 w-4" /> Pending
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setDeleteTarget(invoices.filter((i) => selectedIds.has(i.id!)))}>
+              <DropdownMenuItem onClick={() => { setDeleteTarget(invoices.filter((i) => selectedIds.has(i.id!))); openModal("delete") }}>
                 <Trash2 className="h-4 w-4 text-destructive" /> Hapus
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        <Button className="ml-auto hidden md:inline-flex" onClick={() => setCreateOpen(true)}>
+        <Button className="ml-auto hidden md:inline-flex" onClick={() => openModal("create")}>
           <Plus className="h-4 w-4" /> Buat Invoice
         </Button>
       </div>
@@ -311,11 +319,11 @@ function PaymentsDetail() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => setToggleTarget({ invoices: [inv], status: inv.status === "paid" ? "pending" : "paid" })}>
+                          <DropdownMenuItem onClick={() => { setToggleTarget({ invoices: [inv], status: inv.status === "paid" ? "pending" : "paid" }); openModal("toggle") }}>
                             {inv.status === "paid" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                             {inv.status === "paid" ? "Pending" : "Lunas"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDeleteTarget([inv])}>
+                          <DropdownMenuItem onClick={() => { setDeleteTarget([inv]); openModal("delete") }}>
                             <Trash2 className="h-4 w-4 text-destructive" /> Hapus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -338,27 +346,24 @@ function PaymentsDetail() {
         </CardContent>
       </Card>
 
-      {user && createOpen && (
-        <CreateInvoiceDialog user={user} onClose={() => setCreateOpen(false)} />
+      {modal === "create" && user && (
+        <CreateInvoiceDialog user={user} onClose={closeModal} />
       )}
 
-      {deleteTarget && (
-        <DeleteInvoiceDialog invoices={deleteTarget} onClose={() => { setDeleteTarget(null); setSelectedIds(new Set()) }} />
+      {modal === "delete" && deleteTarget && (
+        <DeleteInvoiceDialog invoices={deleteTarget} onClose={() => { closeModal(); setSelectedIds(new Set()) }} />
       )}
 
-      {toggleTarget && (
+      {modal === "toggle" && toggleTarget && (
         <ToggleInvoiceDialog
           invoices={toggleTarget.invoices}
           targetStatus={toggleTarget.status}
-          onClose={() => {
-            setSelectedIds(new Set())
-            setToggleTarget(null)
-          }}
+          onClose={() => { closeModal(); setSelectedIds(new Set()) }}
         />
       )}
 
       <Button
-        onClick={() => setCreateOpen(true)}
+        onClick={() => openModal("create")}
         size="icon"
         className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
         aria-label="Buat Invoice"

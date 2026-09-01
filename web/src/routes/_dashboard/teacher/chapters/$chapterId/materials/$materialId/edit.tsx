@@ -26,11 +26,17 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { z } from "zod";
 import { FileText, Type, Video } from "lucide-react";
 import { toast } from "sonner";
 import { useDraft } from "@/lib/use-draft";
 import { extractYoutubeId, isValidYoutubeUrl } from "@/lib/youtube";
 import { cn } from "@/lib/utils";
+import { useDialogBack } from "@/lib/hooks/use-dialog-back";
+
+const editMaterialSearchSchema = z.object({
+  modal: z.string().optional(),
+});
 
 const typeOptions = [
   {
@@ -51,6 +57,8 @@ function EditMaterial() {
   const { chapterId, materialId } = useParams({ from: "/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit" });
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { modal } = Route.useSearch();
+  const { openModal, closeModal } = useDialogBack();
   const { data: material, isLoading, isError } = useQuery(getAdminMaterialsByIdOptions({ path: { id: Number(materialId) } }))
   usePageTitle(material?.title ?? "Edit Materi");
 
@@ -61,11 +69,15 @@ function EditMaterial() {
   const [content, setContent] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [isFree, setIsFree] = useState(true);
-  const [importOpen, setImportOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [initialLoad, setInitialLoad] = useState(false);
-  const [showDraftDialog, setShowDraftDialog] = useState(hasDraft && !restored);
   const [editorUploading, setEditorUploading] = useState(false);
+
+  // auto-buka dialog draft kalau ada draft tersimpan
+  useEffect(() => {
+    if (hasDraft && !restored && modal !== "draft") openModal("draft");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasDraft, restored]);
 
   // init from server data, only if no draft restore
   useEffect(() => {
@@ -134,7 +146,7 @@ function EditMaterial() {
       setIsFree(draft.isFree ?? true);
       setLoaded(true);
     }
-    setShowDraftDialog(false);
+    closeModal();
   };
 
   if (isLoading && !loaded) {
@@ -228,7 +240,7 @@ function EditMaterial() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label>Konten</Label>
-                    <Button variant="outline" size="sm" type="button" onClick={() => setImportOpen(true)}>
+                    <Button variant="outline" size="sm" type="button" onClick={() => openModal("import")}>
                       <FileText className="mr-1 h-4 w-4" /> Import dari Word
                     </Button>
                   </div>
@@ -286,30 +298,33 @@ function EditMaterial() {
 
       {/* import docx dialog */}
       <DocxImportDialog
-        open={importOpen}
-        onOpenChange={setImportOpen}
+        open={modal === "import"}
+        onOpenChange={(o) => !o && closeModal()}
         onImport={(html) => setContent(html)}
       />
 
       {/* draft dialog */}
-      <AlertDialog open={showDraftDialog && !restored} onOpenChange={(o) => { if (!o) { discard(); setShowDraftDialog(false) } }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Draft ditemukan</AlertDialogTitle>
-            <AlertDialogDescription>
-              Ada draft perubahan yang belum disimpan. Lanjutkan atau mulai dari data terakhir tersimpan?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Mulai dari Server</AlertDialogCancel>
-            <AlertDialogAction onClick={restoreDraft}>Lanjutkan Draft</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {modal === "draft" && (
+        <AlertDialog open onOpenChange={(o) => { if (!o) { discard(); closeModal() } }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Draft ditemukan</AlertDialogTitle>
+              <AlertDialogDescription>
+                Ada draft perubahan yang belum disimpan. Lanjutkan atau mulai dari data terakhir tersimpan?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Mulai dari Server</AlertDialogCancel>
+              <AlertDialogAction onClick={restoreDraft}>Lanjutkan Draft</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 }
 
 export const Route = createFileRoute("/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit")({
   component: EditMaterial,
+  validateSearch: editMaterialSearchSchema,
 });

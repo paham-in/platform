@@ -22,11 +22,14 @@ import { getAdminTutoringBookingsOptions, getAdminTutoringBookingsQueryKey, patc
 import type { TutoringListBookingsResponse, TutoringListTeachersResponse } from "@/lib/api/types.gen"
 import { Plus, Trash2, UserRound, Users, CalendarX2 } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
-const adminTutoringSearchSchema = z.object({})
+const adminTutoringSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 function statusBadge(s: string) {
   const styles: Record<string, string> = {
@@ -164,9 +167,16 @@ function DeleteBookingDialog({ booking, onClose }: { booking: TutoringListBookin
 function AdminTutoring() {
   usePageTitle("Les Privat")
   const navigate = useNavigate({ from: Route.fullPath })
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const { data: bookings = [], isLoading } = useQuery(getAdminTutoringBookingsOptions())
   const [assignBooking, setAssignBooking] = useState<TutoringListBookingsResponse | null>(null)
   const [deleteBooking, setDeleteBooking] = useState<TutoringListBookingsResponse | null>(null)
+
+  useEffect(() => {
+    if (modal !== "assign") setAssignBooking(null)
+    if (modal !== "delete") setDeleteBooking(null)
+  }, [modal])
 
   return (
     <main className="p-4 md:p-6">
@@ -236,10 +246,10 @@ function AdminTutoring() {
                   <TableCell className="pr-6">
                     <div className="flex items-center justify-end gap-2">
                       {b.status === "pending" && !b.teacher_id ? (
-                        <Button size="sm" onClick={() => setAssignBooking(b)}>Assign Guru</Button>
+                        <Button size="sm" onClick={() => { setAssignBooking(b); openModal("assign") }}>Assign Guru</Button>
                       ) : null}
                       {b.invoice_status !== "paid" && (
-                        <Button size="sm" variant="outline" onClick={() => setDeleteBooking(b)}>
+                        <Button size="sm" variant="outline" onClick={() => { setDeleteBooking(b); openModal("delete") }}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
@@ -252,8 +262,8 @@ function AdminTutoring() {
         </CardContent>
       </Card>
 
-      {assignBooking && <AssignTeacherDialog booking={assignBooking} onClose={() => setAssignBooking(null)} />}
-      {deleteBooking && <DeleteBookingDialog booking={deleteBooking} onClose={() => setDeleteBooking(null)} />}
+      {modal === "assign" && assignBooking && <AssignTeacherDialog booking={assignBooking} onClose={closeModal} />}
+      {modal === "delete" && deleteBooking && <DeleteBookingDialog booking={deleteBooking} onClose={closeModal} />}
 
       <Button
         onClick={() => navigate({ to: "/admin/tutoring/new" })}

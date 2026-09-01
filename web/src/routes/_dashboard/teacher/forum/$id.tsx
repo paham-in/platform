@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+﻿import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { RichContent } from "@/components/ui/rich-content"
@@ -11,17 +11,25 @@ import {
   getQuestionsByQuestionIdAnswersOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useParams } from "@tanstack/react-router"
+import { z } from "zod"
 import { Trash2, MessageCircle } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import type { AnswerAnswerResponse } from "@/lib/api/types.gen"
 import { DeleteAnswerDialog } from "@/components/teacher/forum"
 import { AnswerForm } from "@/components/forum"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
+
+const forumDetailSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 function ForumDetail() {
   usePageTitle("Detail Forum")
   const { id } = useParams({ from: "/_dashboard/teacher/forum/$id" })
   const questionId = Number(id)
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
 
   const { data: question, isLoading } = useQuery(getQuestionsByIdOptions({ path: { id: questionId } }))
   const { data: answers = [] } = useQuery(
@@ -29,6 +37,10 @@ function ForumDetail() {
   )
 
   const [deleting, setDeleting] = useState<AnswerAnswerResponse | null>(null)
+
+  useEffect(() => {
+    if (modal !== "delete") setDeleting(null)
+  }, [modal])
 
   if (isLoading) {
     return (
@@ -122,7 +134,7 @@ function ForumDetail() {
                   variant="ghost"
                   size="icon"
                   className="text-muted-foreground hover:text-destructive"
-                  onClick={() => setDeleting(a)}
+                  onClick={() => { setDeleting(a); openModal("delete") }}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -136,11 +148,11 @@ function ForumDetail() {
         ))}
       </section>
 
-      {deleting && (
+      {modal === "delete" && deleting && (
         <DeleteAnswerDialog
           answer={deleting}
           questionId={questionId}
-          onClose={() => setDeleting(null)}
+          onClose={closeModal}
         />
       )}
 
@@ -152,4 +164,5 @@ function ForumDetail() {
 
 export const Route = createFileRoute("/_dashboard/teacher/forum/$id")({
   component: ForumDetail,
+  validateSearch: forumDetailSearchSchema,
 })

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { z } from "zod"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -18,6 +19,11 @@ import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { TeacherPermissionsDialog } from "@/components/admin/users"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
+
+const teacherPermissionsSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 // Badge izin: pill hijau kalau diizinkan; outline muted kalau tidak.
 function PermBadge({ granted, label }: { granted: boolean; label: string }) {
@@ -27,12 +33,18 @@ function PermBadge({ granted, label }: { granted: boolean; label: string }) {
 
 function AdminTeacherPermissions() {
   usePageTitle("Hak Akses Guru")
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const { data: teachers = [], isLoading } = useQuery(
     getAdminUsersOptions({ query: { role: "teacher" } })
   )
   const [editing, setEditing] = useState<UserAdminListUsersResponse | null>(null)
   const [page, setPage] = useState(1)
   const perPage = 5
+
+  useEffect(() => {
+    if (modal !== "permissions") setEditing(null)
+  }, [modal])
 
   const totalPages = Math.ceil(teachers.length / perPage)
   const paged = teachers.slice((page - 1) * perPage, page * perPage)
@@ -96,7 +108,7 @@ function AdminTeacherPermissions() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => setEditing(u)}>
+                          <DropdownMenuItem onClick={() => { setEditing(u); openModal("permissions") }}>
                             <ShieldCheck className="h-4 w-4" /> Atur Hak Akses
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -183,7 +195,7 @@ function AdminTeacherPermissions() {
                         <MoreVertical className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => setEditing(u)}>
+                        <DropdownMenuItem onClick={() => { setEditing(u); openModal("permissions") }}>
                           <ShieldCheck className="h-4 w-4" /> Atur Hak Akses
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -211,11 +223,12 @@ function AdminTeacherPermissions() {
         </Card>
       </main>
 
-      {editing && <TeacherPermissionsDialog user={editing} onClose={() => setEditing(null)} />}
+      {modal === "permissions" && editing && <TeacherPermissionsDialog user={editing} onClose={closeModal} />}
     </>
   )
 }
 
 export const Route = createFileRoute("/_dashboard/admin/teacher-permissions")({
+  validateSearch: teacherPermissionsSearchSchema,
   component: AdminTeacherPermissions,
 })

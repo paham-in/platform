@@ -28,6 +28,12 @@ import {
   getStudentClassEnrollmentsOptions,
   postSubscribeMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
+import { z } from "zod"
+
+const subscribeSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 const DURATIONS = [
   { label: "1 bulan", value: "1" },
@@ -47,7 +53,8 @@ function StudentSubscribe() {
 
   const [classId, setClassId] = useState("")
   const [duration, setDuration] = useState("1")
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
 
   // default kelas: yang sudah diakses student (kalau ada), else kelas pertama
   useEffect(() => {
@@ -181,7 +188,7 @@ function StudentSubscribe() {
                   <p className="text-xs text-muted-foreground">Total</p>
                   <p className="text-lg font-bold">{contentPrice > 0 ? fmtRp(contentPrice * months) : "—"}</p>
                 </div>
-                <Button onClick={() => setConfirmOpen(true)} disabled={contentPrice <= 0 || subscribe.isPending}>
+                <Button onClick={() => openModal("confirm")} disabled={contentPrice <= 0 || subscribe.isPending}>
                   {subscribe.isPending ? <Spinner /> : "Langganan"}
                 </Button>
               </CardFooter>
@@ -220,8 +227,8 @@ function StudentSubscribe() {
         </div>
       )}
 
-      {confirmOpen && contentPrice > 0 && (
-        <AlertDialog open onOpenChange={(o) => !o && setConfirmOpen(false)}>
+      {modal === "confirm" && contentPrice > 0 && (
+        <AlertDialog open onOpenChange={(o) => !o && closeModal()}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Konfirmasi Langganan</AlertDialogTitle>
@@ -247,4 +254,5 @@ function StudentSubscribe() {
 
 export const Route = createFileRoute("/_dashboard/student/subscribe")({
   component: StudentSubscribe,
+  validateSearch: subscribeSearchSchema,
 })

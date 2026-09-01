@@ -14,6 +14,7 @@ import { getAdminQuestionPackagesByIdOptions, getAdminQuestionPackagesByIdQuesti
 import type { QuestionbankQuestionResponse, QuestionpackagePackageResponse } from "@/lib/api/types.gen"
 import { ChevronLeft, ChevronRight, Eye, MoreVertical, Pencil, Plus, Search, SearchX, Trash2, UploadCloud, X, FileQuestion } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 function stripHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html")
@@ -22,12 +23,14 @@ function stripHtml(html: string): string {
 
 const packageQuestionsSearchSchema = z.object({
   search: z.string().optional(),
+  modal: z.string().optional(),
 })
 
 function PackageQuestions() {
   const { collectionId, packageId } = useParams({ from: "/_dashboard/teacher/packs/$collectionId/$packageId/" })
   const navigate = useNavigate({ from: Route.fullPath })
-  const { search } = Route.useSearch()
+  const { search, modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const { data: user } = useQuery(getMeOptions())
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_question_packages
   const { data: pkg } = useQuery(getAdminQuestionPackagesByIdOptions({ path: { id: Number(packageId) } }))
@@ -55,6 +58,12 @@ function PackageQuestions() {
     return () => clearTimeout(timer)
   }, [searchInput, navigate])
 
+  useEffect(() => {
+    if (modal !== "preview") setPreviewTarget(null);
+    if (modal !== "delete") setDeleteConfirm(null);
+    if (modal !== "edit") setEditTarget(null);
+  }, [modal])
+
   const totalPages = Math.ceil(questions.length / perPage)
   const paged = questions.slice((page - 1) * perPage, page * perPage)
 
@@ -81,7 +90,7 @@ function PackageQuestions() {
           </div>
           {canManage && canEditPkg && (
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setEditTarget(pkg ?? null)}><Pencil className="mr-1 h-4 w-4" /> Edit Paket</Button>
+              <Button variant="outline" onClick={() => { setEditTarget(pkg ?? null); openModal("edit") }}><Pencil className="mr-1 h-4 w-4" /> Edit Paket</Button>
               <Button variant="outline" onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId/import", params: { collectionId, packageId } })}><UploadCloud className="mr-1 h-4 w-4" /> Import dari Word</Button>
               <Button className="hidden md:inline-flex" onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId/questions/new", params: { collectionId, packageId } })}><Plus className="mr-1 h-4 w-4" /> Tambah Soal</Button>
             </div>
@@ -166,7 +175,7 @@ function PackageQuestions() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => setPreviewTarget(q)}>
+                          <DropdownMenuItem onClick={() => { setPreviewTarget(q); openModal("preview") }}>
                             <Eye className="h-4 w-4" /> Preview
                           </DropdownMenuItem>
                           {canManage && canEditPkg && (
@@ -174,7 +183,7 @@ function PackageQuestions() {
                               <DropdownMenuItem onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId/questions/$questionId/edit", params: { collectionId, packageId, questionId: String(q.id!) } })}>
                                 <Pencil className="h-4 w-4" /> Edit
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setDeleteConfirm(q)}>
+                              <DropdownMenuItem onClick={() => { setDeleteConfirm(q); openModal("delete") }}>
                                 <Trash2 className="h-4 w-4" /> Hapus
                               </DropdownMenuItem>
                             </>
@@ -214,16 +223,16 @@ function PackageQuestions() {
         )}
       </main>
 
-      {previewTarget && (
-        <PreviewQuestionDialog question={previewTarget} onClose={() => setPreviewTarget(null)} />
+      {modal === "preview" && previewTarget && (
+        <PreviewQuestionDialog question={previewTarget} onClose={closeModal} />
       )}
 
-      {deleteConfirm && (
-        <DeleteQuestionDialog question={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+      {modal === "delete" && deleteConfirm && (
+        <DeleteQuestionDialog question={deleteConfirm} onClose={closeModal} />
       )}
 
-      {editTarget && (
-        <EditPackageDialog pkg={editTarget} onClose={() => setEditTarget(null)} />
+      {modal === "edit" && editTarget && (
+        <EditPackageDialog pkg={editTarget} onClose={closeModal} />
       )}
     </>
   )

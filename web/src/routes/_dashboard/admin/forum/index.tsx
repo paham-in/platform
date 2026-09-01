@@ -20,15 +20,18 @@ import { Search, SearchX, MoreVertical, Trash2, ChevronLeft, ChevronRight, Eye, 
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { DeleteQuestionDialog } from "@/components/admin/forum"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 const adminForumSearchSchema = z.object({
   search: z.string().optional(),
+  modal: z.string().optional(),
 })
 
 function AdminForum() {
   usePageTitle("Forum")
   const navigate = useNavigate({ from: Route.fullPath })
-  const { search: searchParam } = Route.useSearch()
+  const { search: searchParam, modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const { data: questions = [], isLoading } = useQuery(
     getAdminQuestionsOptions({ query: { search: searchParam || undefined } })
   )
@@ -36,6 +39,10 @@ function AdminForum() {
   const [page, setPage] = useState(1)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; content: string } | null>(null)
   const perPage = 10
+
+  useEffect(() => {
+    if (modal !== "delete") setDeleteConfirm(null)
+  }, [modal])
 
   // sync URL → local search input
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
@@ -123,7 +130,7 @@ function AdminForum() {
                           <DropdownMenuItem onClick={() => window.open(`/admin/forum/${q.id}`, "_blank")}>
                             <Eye className="h-4 w-4" /> Lihat
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDeleteConfirm({ id: q.id!, content: q.plain_content! })}>
+                          <DropdownMenuItem onClick={() => { setDeleteConfirm({ id: q.id!, content: q.plain_content! }); openModal("delete") }}>
                             <Trash2 className="h-4 w-4" /> Hapus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -171,8 +178,8 @@ function AdminForum() {
         </Card>
       </main>
 
-      {deleteConfirm && (
-        <DeleteQuestionDialog question={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+      {modal === "delete" && deleteConfirm && (
+        <DeleteQuestionDialog question={deleteConfirm} onClose={closeModal} />
       )}
     </>
   )

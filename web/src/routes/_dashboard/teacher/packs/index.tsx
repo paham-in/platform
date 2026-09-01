@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from "react";
+import { z } from "zod";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,23 +13,34 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import { CreateCollectionDialog, DeleteCollectionDialog, EditCollectionDialog } from "@/components/teacher/pack-collections";
 import { usePageTitle } from "@/components/page-title";
 import type { QuestionpackageCollectionResponse } from "@/lib/api/types.gen";
+import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 
 const TIER_LABEL = {
   free: "Gratis",
   premium: "Premium",
 } as const;
 
+const collectionsSearchSchema = z.object({
+  modal: z.string().optional(),
+});
+
 function CollectionsPage() {
   usePageTitle("Koleksi Paket Soal");
   const navigate = useNavigate();
+  const { modal } = Route.useSearch();
+  const { openModal, closeModal } = useDialogBack();
   const { data: user } = useQuery(getMeOptions());
   const canManage = user?.roles?.includes("admin") || !!user?.can_manage_question_packages;
   // koleksi bisa dikelola kalau punya izin DAN (admin, koleksi sendiri, atau koleksi tanpa pemilik)
   const canEdit = (c: { author_id?: number }) => user?.roles?.includes("admin") || c.author_id === user?.id || !c.author_id;
   const { data: collections = [], isLoading } = useQuery(getAdminQuestionPackageCollectionsOptions());
-  const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<QuestionpackageCollectionResponse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
+
+  useEffect(() => {
+    if (modal !== "edit") setEditTarget(null);
+    if (modal !== "delete") setDeleteConfirm(null);
+  }, [modal]);
 
   return (
     <>
@@ -36,7 +48,7 @@ function CollectionsPage() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="hidden md:block text-2xl font-bold tracking-tight">Koleksi Paket Soal</h1>
           {canManage && (
-            <Button className="hidden md:inline-flex" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" /> Tambah Koleksi</Button>
+            <Button className="hidden md:inline-flex" onClick={() => openModal("create")}><Plus className="mr-1 h-4 w-4" /> Tambah Koleksi</Button>
           )}
         </div>
 
@@ -99,12 +111,12 @@ function CollectionsPage() {
                             <MoreVertical className="h-4 w-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => setEditTarget(collection)}>
+                            <DropdownMenuItem onClick={() => { setEditTarget(collection); openModal("edit") }}>
                               <Pencil className="h-4 w-4" /> Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
-                              onClick={() => setDeleteConfirm({ id: collection.id!, name: collection.name ?? "" })}
+                              onClick={() => { setDeleteConfirm({ id: collection.id!, name: collection.name ?? "" }); openModal("delete") }}
                             >
                               <Trash2 className="h-4 w-4" /> Hapus
                             </DropdownMenuItem>
@@ -121,7 +133,7 @@ function CollectionsPage() {
 
         {canManage && (
           <Button
-            onClick={() => setCreateOpen(true)}
+            onClick={() => openModal("create")}
             size="icon"
             className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
             aria-label="Tambah Koleksi"
@@ -131,16 +143,16 @@ function CollectionsPage() {
         )}
       </main>
 
-      {createOpen && (
-        <CreateCollectionDialog onClose={() => setCreateOpen(false)} />
+      {modal === "create" && (
+        <CreateCollectionDialog onClose={closeModal} />
       )}
 
-      {editTarget && (
-        <EditCollectionDialog collection={editTarget} onClose={() => setEditTarget(null)} />
+      {modal === "edit" && editTarget && (
+        <EditCollectionDialog collection={editTarget} onClose={closeModal} />
       )}
 
-      {deleteConfirm && (
-        <DeleteCollectionDialog collection={deleteConfirm} onClose={() => setDeleteConfirm(null)} />
+      {modal === "delete" && deleteConfirm && (
+        <DeleteCollectionDialog collection={deleteConfirm} onClose={closeModal} />
       )}
     </>
   );
@@ -148,4 +160,5 @@ function CollectionsPage() {
 
 export const Route = createFileRoute("/_dashboard/teacher/packs/")({
   component: CollectionsPage,
+  validateSearch: collectionsSearchSchema,
 });

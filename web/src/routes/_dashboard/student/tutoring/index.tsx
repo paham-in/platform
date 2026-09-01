@@ -25,9 +25,15 @@ import {
 import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { CalendarX2, Plus, UserRound, Users, CalendarDays } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
+import { z } from "zod"
+
+const tutoringSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 function statusBadge(s: string) {
   const styles: Record<string, string> = {
@@ -96,6 +102,12 @@ function StudentTutoringIndex() {
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getTutoringBookingsOptions())
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getTutoringSessionsOptions())
   const [cancelTarget, setCancelTarget] = useState<TutoringListBookingsResponse | null>(null)
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
+
+  useEffect(() => {
+    if (modal !== "cancel") setCancelTarget(null)
+  }, [modal])
 
   const upcomingSessions = sessions.filter((s) => s.status !== "cancelled")
 
@@ -157,7 +169,7 @@ function StudentTutoringIndex() {
                     <TableCell>{statusBadge(b.status!)}</TableCell>
                     <TableCell className="pr-6">
                       {canCancel(b) && (
-                        <Button variant="outline" size="sm" onClick={() => setCancelTarget(b)}>Batalkan</Button>
+                        <Button variant="outline" size="sm" onClick={() => { setCancelTarget(b); openModal("cancel") }}>Batalkan</Button>
                       )}
                     </TableCell>
                   </TableRow>
@@ -195,7 +207,7 @@ function StudentTutoringIndex() {
                       <div className="flex shrink-0 flex-col items-end gap-2">
                         {statusBadge(b.status!)}
                         {canCancel(b) && (
-                          <Button variant="outline" size="sm" onClick={() => setCancelTarget(b)}>Batalkan</Button>
+                          <Button variant="outline" size="sm" onClick={() => { setCancelTarget(b); openModal("cancel") }}>Batalkan</Button>
                         )}
                       </div>
                     </div>
@@ -291,7 +303,7 @@ function StudentTutoringIndex() {
         </Card>
       </div>
 
-      {cancelTarget && <CancelBookingDialog booking={cancelTarget} onClose={() => setCancelTarget(null)} />}
+      {modal === "cancel" && cancelTarget && <CancelBookingDialog booking={cancelTarget} onClose={closeModal} />}
       </div>
     </main>
   )
@@ -299,4 +311,5 @@ function StudentTutoringIndex() {
 
 export const Route = createFileRoute("/_dashboard/student/tutoring/")({
   component: StudentTutoringIndex,
+  validateSearch: tutoringSearchSchema,
 })

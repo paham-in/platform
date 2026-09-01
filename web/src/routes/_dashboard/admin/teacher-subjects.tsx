@@ -19,15 +19,18 @@ import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { TeacherSubjectsDialog } from "@/components/admin/users"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 const teacherSubjectsSearchSchema = z.object({
   search: z.string().optional(),
+  modal: z.string().optional(),
 })
 
 function AdminTeacherSubjects() {
   usePageTitle("Mata Pelajaran Guru")
   const navigate = useNavigate({ from: Route.fullPath })
-  const { search: searchParam } = Route.useSearch()
+  const { search: searchParam, modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const { data: teachers = [], isLoading } = useQuery(
     getAdminUsersOptions({ query: { role: "teacher", search: searchParam || undefined } })
@@ -35,6 +38,10 @@ function AdminTeacherSubjects() {
   const [editing, setEditing] = useState<UserAdminListUsersResponse | null>(null)
   const [page, setPage] = useState(1)
   const perPage = 5
+
+  useEffect(() => {
+    if (modal !== "subjects") setEditing(null)
+  }, [modal])
 
   // sync URL → local search input (e.g. back/forward, manual URL edit)
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
@@ -133,7 +140,7 @@ function AdminTeacherSubjects() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => setEditing(u)}>
+                          <DropdownMenuItem onClick={() => { setEditing(u); openModal("subjects") }}>
                             <GraduationCap className="h-4 w-4" /> Atur Mata Pelajaran
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -252,7 +259,7 @@ function AdminTeacherSubjects() {
                         <MoreVertical className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => setEditing(u)}>
+                        <DropdownMenuItem onClick={() => { setEditing(u); openModal("subjects") }}>
                           <GraduationCap className="h-4 w-4" /> Atur Mata Pelajaran
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -280,7 +287,7 @@ function AdminTeacherSubjects() {
         </Card>
       </main>
 
-      {editing && <TeacherSubjectsDialog user={editing} onClose={() => setEditing(null)} />}
+      {modal === "subjects" && editing && <TeacherSubjectsDialog user={editing} onClose={closeModal} />}
     </>
   )
 }

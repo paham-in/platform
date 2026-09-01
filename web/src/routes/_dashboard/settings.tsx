@@ -19,13 +19,21 @@ import { getPushPublicKey, postPushSubscribe } from "@/lib/api/sdk.gen"
 import { Loader2, Save, Bell, BellOff, Download, Moon, Sun } from "lucide-react"
 import { toast } from "sonner"
 import { usePwaInstall } from "@/lib/hooks/use-pwa-install"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
+import { z } from "zod"
+
+const settingsSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 function SettingsPage() {
   usePageTitle("Pengaturan")
   const qc = useQueryClient()
   const { data: user, isLoading: userLoading } = useQuery(getMeOptions())
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
 
   const buildTime = import.meta.env.VITE_BUILD_TIME as string | undefined
   const commitSha = import.meta.env.VITE_COMMIT_SHA as string | undefined
@@ -36,7 +44,6 @@ function SettingsPage() {
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
   )
   const [notifSubscribing, setNotifSubscribing] = useState(false)
-  const [showNotifHelp, setShowNotifHelp] = useState(false)
   const { canInstall, installed, install, iOS } = usePwaInstall()
   const { theme, setTheme } = useTheme()
 
@@ -151,7 +158,7 @@ function SettingsPage() {
         }
       }
     }
-    setShowNotifHelp(true)
+    openModal("notif-help")
   }
 
   const notifHelpSteps = isStandalone
@@ -316,24 +323,26 @@ function SettingsPage() {
         {commitSha && `Commit: ${commitSha.slice(0, 7)}`}
       </p>
 
-      <Dialog open={showNotifHelp} onOpenChange={setShowNotifHelp}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Mengaktifkan Notifikasi ({browserName})</DialogTitle>
-            <DialogDescription>
-              Izin notifikasi diblokir di browser. Ikuti langkah berikut untuk mengizinkan:
-            </DialogDescription>
-          </DialogHeader>
-          <ol className="list-decimal space-y-2 pl-5 text-sm">
-            {notifHelpSteps.map((step, i) => (
-              <li key={i}>{step}</li>
-            ))}
-          </ol>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNotifHelp(false)}>Tutup</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {modal === "notif-help" && (
+        <Dialog open onOpenChange={(o) => !o && closeModal()}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Mengaktifkan Notifikasi ({browserName})</DialogTitle>
+              <DialogDescription>
+                Izin notifikasi diblokir di browser. Ikuti langkah berikut untuk mengizinkan:
+              </DialogDescription>
+            </DialogHeader>
+            <ol className="list-decimal space-y-2 pl-5 text-sm">
+              {notifHelpSteps.map((step, i) => (
+                <li key={i}>{step}</li>
+              ))}
+            </ol>
+            <DialogFooter>
+              <Button variant="outline" onClick={closeModal}>Tutup</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </main>
   )
 }
@@ -352,4 +361,5 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 export const Route = createFileRoute("/_dashboard/settings")({
   component: SettingsPage,
+  validateSearch: settingsSearchSchema,
 })
