@@ -31,8 +31,8 @@ export default defineConfig({
         orientation: "portrait",
         start_url: "/login",
         scope: "/",
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
+        theme_color: "#0a0a0a",
+        background_color: "#0a0a0a",
         icons: [
           {
             src: "/favicon.ico",
