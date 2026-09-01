@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -86,6 +86,7 @@ function RoleFilterMenu({
 function AdminUsers() {
   usePageTitle("Kelola User")
   const navigate = useNavigate({ from: Route.fullPath })
+  const router = useRouter()
   const { role: roleFilter, search, modal } = Route.useSearch()
   const [searchInput, setSearchInput] = useState(search ?? "")
 
@@ -117,7 +118,7 @@ function AdminUsers() {
 
   // Tutup dialog = pop satu entry history (buka = push modal ke URL),
   // jadi back berikutnya benar-benar keluar halaman, bukan kembali ke dialog.
-  const closeModal = () => window.history.back()
+  const closeModal = () => router.history.back()
 
   // Kalau modal hilang (dari back / close), bersihkan payload user biar tidak nyangkut.
   useEffect(() => {
