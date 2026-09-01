@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { Search, SearchX, X, UserX, MoreVertical, Eye } from "lucide-react"
+import { Search, SearchX, X, UserX, MoreVertical, Eye, ChevronRight } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   DropdownMenu,
@@ -76,7 +76,8 @@ function PaymentsIndex() {
         </div>
       </div>
 
-      <Card className="pt-0 gap-0 pb-0">
+{/* Desktop table */}
+      <Card className="hidden gap-0 pt-0 pb-0 md:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -89,49 +90,49 @@ function PaymentsIndex() {
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-<TableRow key={`skeleton-${i}`}>
-                  <TableCell className="pl-6"><div className="flex items-center gap-3">
-                    <Skeleton className="h-8 w-8 rounded-full" />
-                    <Skeleton className="h-4 w-24" />
-                  </div></TableCell>
-                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                  <TableCell className="pr-6"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
+                  <TableRow key={`skeleton-${i}`}>
+                    <TableCell className="pl-6"><div className="flex items-center gap-3">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <Skeleton className="h-4 w-24" />
+                    </div></TableCell>
+                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                    <TableCell className="pr-6"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
+                  </TableRow>
+                ))
+              ) : students.map((u) => (
+                <TableRow
+                  key={u.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => navigate({ to: "/admin/payments/$userId", params: { userId: String(u.id!) } })}
+                >
+                  <TableCell className="pl-6">
+                    <div className="flex items-center gap-3">
+                      {u.avatar_url ? (
+                        <img src={u.avatar_url} alt="" className="h-8 w-8 rounded-full" />
+                      ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
+                      )}
+                      <span className="font-medium">{u.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                  <TableCell className="pr-6 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={<Button variant="outline" size="icon" />}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => navigate({ to: "/admin/payments/$userId", params: { userId: String(u.id!) } })}>
+                          <Eye className="h-4 w-4" /> Lihat Invoice
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
-              ))
-            ) : students.map((u) => (
-              <TableRow
-                key={u.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => navigate({ to: "/admin/payments/$userId", params: { userId: String(u.id!) } })}
-              >
-                <TableCell className="pl-6">
-                  <div className="flex items-center gap-3">
-                    {u.avatar_url ? (
-                      <img src={u.avatar_url} alt="" className="h-8 w-8 rounded-full" />
-                    ) : (
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
-                    )}
-                    <span className="font-medium">{u.name}</span>
-                  </div>
-                </TableCell>
-<TableCell className="text-muted-foreground">{u.email}</TableCell>
-<TableCell className="pr-6 text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={<Button variant="outline" size="icon" />}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => navigate({ to: "/admin/payments/$userId", params: { userId: String(u.id!) } })}>
-                        <Eye className="h-4 w-4" /> Lihat Invoice
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+              ))}
               {!isLoading && students.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={3}>
@@ -155,6 +156,62 @@ function PaymentsIndex() {
               )}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      {/* Mobile card list */}
+      <Card className="gap-0 py-0 md:hidden">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="divide-y">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={`skeleton-${i}`} className="flex items-start gap-3 p-4">
+                  <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-3 w-40" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : students.length === 0 ? (
+            <Empty className="p-8">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">{searchParam ? <SearchX /> : <UserX />}</EmptyMedia>
+                <EmptyTitle>
+                  {searchParam ? "Tidak ada murid yang cocok" : "Tidak ada murid ditemukan"}
+                </EmptyTitle>
+              </EmptyHeader>
+              {searchParam && (
+                <EmptyContent>
+                  <Button variant="outline" size="sm" onClick={() => setSearchInput("")}>
+                    <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                  </Button>
+                </EmptyContent>
+              )}
+            </Empty>
+          ) : (
+            <div className="divide-y">
+              {students.map((u) => (
+                <div
+                  key={u.id}
+                  className="flex cursor-pointer items-center gap-3 p-4 transition-colors active:bg-muted/50"
+                  onClick={() => navigate({ to: "/admin/payments/$userId", params: { userId: String(u.id!) } })}
+                >
+                  {u.avatar_url ? (
+                    <img src={u.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full" />
+                  ) : (
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{u.name}</p>
+                    <p className="mt-0.5 truncate text-sm text-muted-foreground">{u.email}</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </main>

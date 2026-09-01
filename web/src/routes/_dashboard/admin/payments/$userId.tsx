@@ -235,7 +235,8 @@ function PaymentsDetail() {
         </Button>
       </div>
 
-      <Card className="pt-0 gap-0 pb-0">
+      {/* Desktop table */}
+      <Card className="hidden gap-0 pt-0 pb-0 md:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -343,6 +344,93 @@ function PaymentsDetail() {
               </TableFooter>
             )}
           </Table>
+        </CardContent>
+      </Card>
+
+      {/* Mobile card list */}
+      <Card className="gap-0 py-0 md:hidden">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="divide-y">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={`skeleton-${i}`} className="flex items-start gap-3 p-4">
+                  <Skeleton className="mt-1 h-4 w-4 shrink-0" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-40" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : invoices.length === 0 ? (
+            <Empty className="p-8">
+              <EmptyHeader>
+                <EmptyMedia variant="icon"><Receipt /></EmptyMedia>
+                <EmptyTitle>Belum ada invoice</EmptyTitle>
+              </EmptyHeader>
+              {(searchParam || statusFilter !== "all") && (
+                <EmptyContent>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigate({ search: (prev) => ({ ...prev, search: undefined, status: undefined }), replace: true })
+                      setSearchInput("")
+                    }}
+                  >
+                    <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                  </Button>
+                </EmptyContent>
+              )}
+            </Empty>
+          ) : (
+            <div className="divide-y">
+              {invoices.map((inv) => (
+                <div key={inv.id} className="flex items-start gap-3 p-4">
+                  <Checkbox
+                    checked={selectedIds.has(inv.id!)}
+                    onCheckedChange={() => toggleSelect(inv.id!)}
+                    className="mt-0.5 shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="min-w-0 truncate font-medium">
+                        {inv.start_date && inv.end_date ? `${format(parseISO(inv.start_date), "dd MMM yyyy", { locale: id })}, ${format(parseISO(inv.end_date), "dd MMM yyyy", { locale: id })}` : "—"}
+                      </p>
+                      {inv.status === "paid" ? (
+                        <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Lunas</span>
+                      ) : (
+                        <span className="shrink-0 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">Pending</span>
+                      )}
+                    </div>
+                    <p className="mt-1 font-semibold">Rp {inv.amount?.toLocaleString("id-ID")}</p>
+                    <p className="mt-1 truncate text-sm text-muted-foreground">{inv.note || "—"}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{inv.created_at}</p>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="shrink-0" />}>
+                      <MoreVertical className="h-4 w-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => { setToggleTarget({ invoices: [inv], status: inv.status === "paid" ? "pending" : "paid" }); openModal("toggle") }}>
+                        {inv.status === "paid" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                        {inv.status === "paid" ? "Pending" : "Lunas"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setDeleteTarget([inv]); openModal("delete") }}>
+                        <Trash2 className="h-4 w-4 text-destructive" /> Hapus
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              ))}
+            </div>
+          )}
+          {selectedIds.size > 0 && (
+            <div className="border-t px-4 py-3 text-sm text-muted-foreground">
+              {selectedIds.size} dipilih
+            </div>
+          )}
         </CardContent>
       </Card>
 
