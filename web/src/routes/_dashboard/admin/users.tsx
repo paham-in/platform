@@ -26,6 +26,7 @@ import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
 const usersSearchSchema = z.object({
   role: z.enum(["student", "teacher", "admin"]).optional(),
   search: z.string().optional(),
+  modal: z.enum(["create", "role", "delete", "connect"]).optional(),
 })
 
 const roleOptions = [
@@ -85,7 +86,7 @@ function RoleFilterMenu({
 function AdminUsers() {
   usePageTitle("Kelola User")
   const navigate = useNavigate({ from: Route.fullPath })
-  const { role: roleFilter, search } = Route.useSearch()
+  const { role: roleFilter, search, modal } = Route.useSearch()
   const [searchInput, setSearchInput] = useState(search ?? "")
 
   // Sync URL → local state when search changes externally
@@ -105,12 +106,25 @@ function AdminUsers() {
 
   const activeFilterCount = roleFilter ? 1 : 0
   const hasActiveFilter = !!search || !!roleFilter
-  const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState<UserAdminListUsersResponse | null>(null)
   const [page, setPage] = useState(1)
   const perPage = 5
   const [deleteConfirm, setDeleteConfirm] = useState<UserAdminListUsersResponse | null>(null)
   const [connectGoogle, setConnectGoogle] = useState<UserAdminListUsersResponse | null>(null)
+
+  const openModal = (name: NonNullable<typeof modal>) =>
+    navigate({ search: (prev) => ({ ...prev, modal: name }) })
+
+  // Tutup dialog = pop satu entry history (buka = push modal ke URL),
+  // jadi back berikutnya benar-benar keluar halaman, bukan kembali ke dialog.
+  const closeModal = () => window.history.back()
+
+  // Kalau modal hilang (dari back / close), bersihkan payload user biar tidak nyangkut.
+  useEffect(() => {
+    if (modal !== "role") setEditing(null)
+    if (modal !== "delete") setDeleteConfirm(null)
+    if (modal !== "connect") setConnectGoogle(null)
+  }, [modal])
 
   const setRole = (v: string) => {
     navigate({ search: (prev) => ({ ...prev, role: v === "all" ? undefined : (v as "student" | "teacher" | "admin") }), replace: true })
@@ -139,7 +153,7 @@ function AdminUsers() {
       <main className="p-4 md:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-2xl font-bold tracking-tight">Kelola User</h1>
-          <Button className="hidden md:inline-flex" onClick={() => setCreateOpen(true)}>
+          <Button className="hidden md:inline-flex" onClick={() => openModal("create")}>
             <Plus className="mr-1 h-4 w-4" /> Tambah User
           </Button>
         </div>
@@ -234,15 +248,15 @@ function AdminUsers() {
                             <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => setEditing(u)}>
+                          <DropdownMenuItem onClick={() => { setEditing(u); openModal("role") }}>
                             <Shield className="h-4 w-4" /> Ganti Role
                           </DropdownMenuItem>
                           {!u.has_google && !u.has_password && (u.roles ?? []).includes("student") && (
-                            <DropdownMenuItem onClick={() => setConnectGoogle(u)}>
+                            <DropdownMenuItem onClick={() => { setConnectGoogle(u); openModal("connect") }}>
                               <Link2 className="h-4 w-4" /> Hubungkan ke Akun Google
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem onClick={() => setDeleteConfirm(u)}>
+                          <DropdownMenuItem onClick={() => { setDeleteConfirm(u); openModal("delete") }}>
                             <Trash2 className="h-4 w-4" /> Hapus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -356,15 +370,15 @@ function AdminUsers() {
                         <MoreVertical className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => setEditing(u)}>
+                        <DropdownMenuItem onClick={() => { setEditing(u); openModal("role") }}>
                           <Shield className="h-4 w-4" /> Ganti Role
                         </DropdownMenuItem>
                         {!u.has_google && !u.has_password && (u.roles ?? []).includes("student") && (
-                          <DropdownMenuItem onClick={() => setConnectGoogle(u)}>
+                          <DropdownMenuItem onClick={() => { setConnectGoogle(u); openModal("connect") }}>
                             <Link2 className="h-4 w-4" /> Hubungkan ke Akun Google
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem onClick={() => setDeleteConfirm(u)}>
+                        <DropdownMenuItem onClick={() => { setDeleteConfirm(u); openModal("delete") }}>
                           <Trash2 className="h-4 w-4" /> Hapus
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -387,7 +401,7 @@ function AdminUsers() {
       </main>
 
       <Button
-        onClick={() => setCreateOpen(true)}
+        onClick={() => openModal("create")}
         size="icon"
         className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
         aria-label="Tambah User"
@@ -395,10 +409,10 @@ function AdminUsers() {
         <Plus className="size-6" />
       </Button>
 
-      {createOpen && <CreateUserDialog onClose={() => setCreateOpen(false)} />}
-      {editing && <EditRoleDialog user={editing} onClose={() => setEditing(null)} />}
-      {deleteConfirm && <DeleteUserDialog user={deleteConfirm} onClose={() => setDeleteConfirm(null)} />}
-      {connectGoogle && <ConnectGoogleDialog user={connectGoogle} onClose={() => setConnectGoogle(null)} />}
+      {modal === "create" && <CreateUserDialog onClose={closeModal} />}
+      {modal === "role" && editing && <EditRoleDialog user={editing} onClose={closeModal} />}
+      {modal === "delete" && deleteConfirm && <DeleteUserDialog user={deleteConfirm} onClose={closeModal} />}
+      {modal === "connect" && connectGoogle && <ConnectGoogleDialog user={connectGoogle} onClose={closeModal} />}
     </>
   )
 }
