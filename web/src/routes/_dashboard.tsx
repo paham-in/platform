@@ -21,6 +21,7 @@ import {
 import { useEffect, useState } from "react";
 import { PageTitleProvider, usePageHeaderActionValue } from "@/components/page-title";
 import { sidebarGroups, type SidebarGroup as SidebarGroupData } from "@/lib/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CommandMenu } from "@/components/command-menu";
 import { getNavStack, resetNavStack, RouteTransition, setResetInProgress } from "@/components/route-transition";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -153,7 +154,14 @@ function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent>
-        {groups.map((group) => (
+        {groups.length === 0 ? (
+          <div className="space-y-2 px-3 py-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-8 w-full rounded-md" />
+            ))}
+          </div>
+        ) : (
+          groups.map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
             <SidebarMenu>
@@ -202,7 +210,8 @@ function AppSidebar({
               )}
             </SidebarMenu>
           </SidebarGroup>
-        ))}
+          ))
+        )}
       </SidebarContent>
 
       <SidebarFooter>
@@ -329,7 +338,7 @@ function DashboardLayout() {
   // oleh role yang berhak. Role mismatch → tampil halaman "Akses Ditolak".
   const pathname = routerState.location.pathname;
   const requiredRole = requiredRoleForPath(pathname);
-  const denied = !!requiredRole && !userRoles.includes(requiredRole);
+  const denied = !!user && !!requiredRole && !userRoles.includes(requiredRole);
   // cek flag fitur reset dari backend; hanya dipanggil kalau admin,
   // dipakai buat nyembunyiin menu "Reset Data" kalau fitur mati.
   const { data: devReset } = useQuery({
@@ -353,16 +362,6 @@ function DashboardLayout() {
     navigate({ to: "/login" });
   }, [isLoading, hasAccessRole, user, routerState.location.pathname, navigate]);
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/20">
-        <div className="text-sm text-muted-foreground">Memuat...</div>
-      </div>
-    );
-  }
-
-  if (!user) return null;
-
   const filteredGroups = sidebarGroups
     .map((g) => ({
       ...g,
@@ -376,9 +375,9 @@ function DashboardLayout() {
     <SidebarProvider>
       <AppSidebar
         groups={filteredGroups}
-        userName={user.name}
-        avatarUrl={user.avatar_url}
-        userRole={userRoles.map(roleLabel).join(", ")}
+        userName={user?.name}
+        avatarUrl={user?.avatar_url}
+        userRole={user ? userRoles.map(roleLabel).join(", ") : undefined}
         logoutPending={logout.isPending}
         onLogoutClick={() => openModal("logout")}
       />
@@ -417,7 +416,13 @@ function DashboardLayout() {
             <MobileHeaderAction />
           </header>
           <RouteTransition>
-            {denied ? <AccessDenied requiredRole={requiredRole!} userRoles={userRoles} /> : <Outlet />}
+            {!user ? (
+              <div className="flex flex-1 flex-col gap-4 p-6">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-full max-w-md" />
+                <Skeleton className="h-64 w-full rounded-xl" />
+              </div>
+            ) : denied ? <AccessDenied requiredRole={requiredRole!} userRoles={userRoles} /> : <Outlet />}
           </RouteTransition>
         </PageTitleProvider>
       </SidebarInset>
