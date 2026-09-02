@@ -176,9 +176,10 @@ function TeacherForum() {
         </div>
       </div>
 
-      <Card className="pt-0 gap-0 pb-0">
+      <Card className="gap-0 pb-0 pt-0">
         <CardContent className="p-0">
-          <Table>
+          {/* Desktop table */}
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow className="bg-muted/30">
                 <TableHead className="pl-6">Pertanyaan</TableHead>
@@ -205,7 +206,7 @@ function TeacherForum() {
                 <TableRow
                   key={q.id}
                   className="cursor-pointer hover:bg-muted/50"
-onClick={() => navigate({ to: "/teacher/forum/$id", params: { id: String(q.public_id!) } })}
+                  onClick={() => navigate({ to: "/teacher/forum/$id", params: { id: String(q.public_id!) } })}
                 >
                   <TableCell className="pl-6 font-medium max-w-[300px] truncate">{q.plain_content}</TableCell>
                   <TableCell className="text-muted-foreground">{q.user_name}</TableCell>
@@ -262,6 +263,59 @@ onClick={() => navigate({ to: "/teacher/forum/$id", params: { id: String(q.publi
               )}
             </TableBody>
           </Table>
+
+          {/* Mobile cards */}
+          <div className="md:hidden">
+            {isLoading ? (
+              <div className="space-y-3 p-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={`m-skeleton-${i}`} className="h-20 w-full" />
+                ))}
+              </div>
+            ) : paged.length === 0 ? (
+              <Empty className="p-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <MessageSquare />}</EmptyMedia>
+                  <EmptyTitle>
+                    {hasActiveFilter ? "Tidak ada pertanyaan yang cocok" : "Tidak ada pertanyaan"}
+                  </EmptyTitle>
+                </EmptyHeader>
+                {hasActiveFilter && (
+                  <EmptyContent>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setSearchInput("")
+                      navigate({ search: {}, replace: true })
+                      setPage(1)
+                    }}>
+                      <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                    </Button>
+                  </EmptyContent>
+                )}
+              </Empty>
+            ) : (
+              <div className="divide-y">
+                {paged.map((q) => (
+                  <button
+                    key={q.id}
+                    type="button"
+                    onClick={() => navigate({ to: "/teacher/forum/$id", params: { id: String(q.public_id!) } })}
+                    className="flex w-full items-start justify-between gap-3 p-4 text-left"
+                  >
+                    <div className="min-w-0">
+                      <p className="line-clamp-2 text-sm font-medium">{q.plain_content}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{q.user_name}{q.subject_name ? ` · ${q.subject_name}` : ""}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{q.created_at}</p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      (q.answer_count ?? 0) > 0 ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+                    }`}>
+                      {(q.answer_count ?? 0) > 0 ? "Terjawab" : "Terbuka"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
         {totalPages > 1 && (
           <CardFooter className="flex items-center justify-between border-t">
