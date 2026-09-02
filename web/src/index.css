@@ -268,9 +268,13 @@
 }
 
 @media (display-mode: standalone) {
+  html {
+    overscroll-behavior: none;
+  }
   body {
     -webkit-user-select: none;
     user-select: none;
+    overscroll-behavior: none;
   }
   input,
   textarea,
