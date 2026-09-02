@@ -323,7 +323,7 @@ function DashboardLayout() {
       localStorage.removeItem("token");
       qc.setQueryData(getMeQueryKey(), null);
       qc.removeQueries({ queryKey: getMeQueryKey() });
-      navigate({ to: "/login" });
+      navigate({ to: "/login", replace: true });
     },
   });
   const confirmLogout = () => {
@@ -354,12 +354,12 @@ function DashboardLayout() {
   useEffect(() => {
     if (isLoading) return;
     if (!user) {
-      navigate({ to: "/login" });
+      navigate({ to: "/login", replace: true });
       return;
     }
     if (hasAccessRole) return;
     // user tidak punya role akses → tendang ke login
-    navigate({ to: "/login" });
+    navigate({ to: "/login", replace: true });
   }, [isLoading, hasAccessRole, user, routerState.location.pathname, navigate]);
 
   const filteredGroups = sidebarGroups
