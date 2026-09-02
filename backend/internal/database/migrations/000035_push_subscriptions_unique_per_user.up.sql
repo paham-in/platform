@@ -3,7 +3,9 @@
 -- Unique global pada `endpoint` membuat reassign ownership gagal dengan
 -- duplicate key. Ganti jadi unique komposit (user_id, endpoint).
 
-DROP INDEX IF EXISTS uni_push_subscriptions_endpoint;
+-- Index lama bisa wujud sebagai index standalone ATAU constraint (dari label
+-- unique pada model). CASCADE menjatuhkan keduanya beserta dependensinya.
+DROP INDEX IF EXISTS uni_push_subscriptions_endpoint CASCADE;
 
 CREATE UNIQUE INDEX IF NOT EXISTS uni_push_subscriptions_user_endpoint
     ON push_subscriptions (user_id, endpoint);
