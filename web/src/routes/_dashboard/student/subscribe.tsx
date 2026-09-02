@@ -128,7 +128,7 @@ function StudentSubscribe() {
         </Empty>
       ) : (
         <div className="flex max-w-3xl flex-col gap-4 md:gap-6">
-          <div className="max-w-xs space-y-1.5">
+          <div className="space-y-1.5">
             <Label htmlFor="subscribe-class">Kelas</Label>
             <Select
               items={classes.map((c) => ({ label: c.name, value: String(c.id) }))}
