@@ -6,8 +6,10 @@ import { useState, useEffect } from "react"
 import "katex/dist/katex.min.css"
 import {
   getQuestionsByIdOptions,
+  getQuestionsQueryKey,
   getQuestionsByQuestionIdAnswersOptions,
   getQuestionsByQuestionIdAnswersQueryKey,
+  deleteQuestionsByIdMutation,
   deleteQuestionsByQuestionIdAnswersByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
@@ -61,6 +63,18 @@ function ForumDetail() {
     },
   })
 
+  const { mutate: deleteQuestion } = useMutation({
+    ...deleteQuestionsByIdMutation(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: getQuestionsQueryKey() })
+      toast.success("Pertanyaan berhasil dihapus")
+      navigate({ to: "/student/forum" })
+    },
+    onError: (err: any) => {
+      toast.error(err?.error || err?.message || "Gagal menghapus pertanyaan")
+    },
+  })
+
   useEffect(() => {
     if (modal !== "delete") setDeleteTarget(null)
   }, [modal])
@@ -92,13 +106,22 @@ function ForumDetail() {
           </span>
         )}
         {isOwner && (
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/student/forum/$id/edit", params: { id } })}
-            className="ml-auto inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-          >
-            <Pencil className="h-3.5 w-3.5" /> Edit
-          </button>
+          <div className="ml-auto flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/student/forum/$id/edit", params: { id } })}
+              className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            >
+              <Pencil className="h-3.5 w-3.5" /> Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => openModal("delete-question")}
+              className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Hapus
+            </button>
+          </div>
         )}
       </div>
 
@@ -172,6 +195,31 @@ function ForumDetail() {
 
       {/* Answer form, only teachers can answer (gated inside AnswerForm) */}
       {!isOwner && <AnswerForm questionId={questionId} />}
+
+      {modal === "delete-question" && isOwner && (
+        <AlertDialog open onOpenChange={(o) => !o && closeModal()}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus Pertanyaan</AlertDialogTitle>
+              <AlertDialogDescription>
+                Yakin ingin menghapus pertanyaan ini? Semua jawaban di dalamnya ikut terhapus dan tindakan ini tidak bisa dibatalkan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                onClick={() => {
+                  deleteQuestion({ path: { id: questionId } })
+                  closeModal()
+                }}
+              >
+                Hapus
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
       {modal === "delete" && deleteTarget && (
         <AlertDialog open onOpenChange={(o) => !o && closeModal()}>

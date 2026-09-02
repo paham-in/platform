@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
@@ -26,18 +27,23 @@ import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
 const forumSearchSchema = z.object({
   search: z.string().optional(),
   subject: z.string().optional(),
+  mine: z.string().optional(),
 })
 
 function SubjectFilterMenu({
   compact,
   value,
   onValueChange,
+  mineValue,
+  onMineChange,
   activeCount,
   options,
 }: {
   compact?: boolean;
   value: string;
   onValueChange: (v: string) => void;
+  mineValue: string;
+  onMineChange: (v: string) => void;
   activeCount: number;
   options: { label: string; value: string }[];
 }) {
@@ -71,6 +77,16 @@ function SubjectFilterMenu({
           {options.map((opt) => (
             <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
           ))}
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuRadioGroup
+          aria-label="Kepemilikan"
+          value={mineValue}
+          onValueChange={(v) => { if (v) onMineChange(v) }}
+        >
+          <DropdownMenuLabel>Kepemilikan</DropdownMenuLabel>
+          <DropdownMenuRadioItem value="all">Semua Pertanyaan</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="mine">Pertanyaan Saya</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -113,13 +129,14 @@ function NewQuestionAction({ locked, size }: { locked: boolean; size?: "default"
 function ForumPage() {
   usePageTitle("Forum")
   const navigate = useNavigate({ from: Route.fullPath })
-  const { search: searchParam, subject: subjectParam } = Route.useSearch()
+  const { search: searchParam, subject: subjectParam, mine: mineParam } = Route.useSearch()
   const canPost = useCanPostForum()
   const locked = canPost === false
   const { data: questions = [], isLoading } = useQuery(
     getQuestionsOptions({
       query: {
         subject_id: subjectParam && subjectParam !== "all" ? Number(subjectParam) : undefined,
+        mine: mineParam === "true" ? true : undefined,
         search: searchParam || undefined,
       },
     })
@@ -127,6 +144,7 @@ function ForumPage() {
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
   const subjectFilter = subjectParam ?? "all"
+  const mineFilter = mineParam === "true" ? "mine" : "all"
 
   const subjectOptions = useMemo(
     () => [
@@ -135,8 +153,8 @@ function ForumPage() {
     ],
     [subjects]
   )
-  const activeFilterCount = subjectFilter !== "all" ? 1 : 0
-  const hasActiveFilter = !!searchParam || subjectFilter !== "all"
+  const activeFilterCount = (subjectFilter !== "all" ? 1 : 0) + (mineFilter === "mine" ? 1 : 0)
+  const hasActiveFilter = !!searchParam || subjectFilter !== "all" || mineFilter === "mine"
 
   // sync URL → local search input
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
@@ -153,6 +171,10 @@ function ForumPage() {
     navigate({ search: (prev) => ({ ...prev, subject: v === "all" ? undefined : v }), replace: true })
   }
 
+  const setMineFilter = (v: string) => {
+    navigate({ search: (prev) => ({ ...prev, mine: v === "mine" ? "true" : undefined }), replace: true })
+  }
+
   const resetFilters = () => {
     setSearchInput("")
     navigate({ search: {}, replace: true })
@@ -164,11 +186,13 @@ function ForumPage() {
         compact
         value={subjectFilter}
         onValueChange={setSubjectFilter}
+        mineValue={mineFilter}
+        onMineChange={setMineFilter}
         activeCount={activeFilterCount}
         options={subjectOptions}
       />
     ),
-    [subjectFilter, activeFilterCount, subjectOptions]
+    [subjectFilter, mineFilter, activeFilterCount, subjectOptions]
   )
   usePageHeaderAction(headerFilter)
 
@@ -244,11 +268,12 @@ function ForumPage() {
           <SubjectFilterMenu
             value={subjectFilter}
             onValueChange={setSubjectFilter}
+            mineValue={mineFilter}
+            onMineChange={setMineFilter}
             activeCount={activeFilterCount}
             options={subjectOptions}
           />
         </div>
-        <Button variant="outline" size="sm" onClick={() => navigate({ to: "/student/forum/mine" })}>Pertanyaan Saya</Button>
       </div>
 
       {questions.length === 0 ? (
