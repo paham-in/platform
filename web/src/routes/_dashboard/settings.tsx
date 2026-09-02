@@ -48,6 +48,13 @@ function SettingsPage() {
   const { canInstall, installed, install, iOS } = usePwaInstall()
   const { theme, setTheme } = useTheme()
 
+  const [pwaDebug, setPwaDebug] = useState(() => getPwaDebugInfo())
+
+  useEffect(() => {
+    const interval = setInterval(() => setPwaDebug(getPwaDebugInfo()), 2000)
+    return () => clearInterval(interval)
+  }, [])
+
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
       setPushStatus("unsupported")
@@ -293,6 +300,17 @@ function SettingsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-base">PWA Debug</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-muted p-3 text-xs font-mono">
+            {JSON.stringify(pwaDebug, null, 2)}
+          </pre>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Profil</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -486,6 +504,30 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
 }
 
 // Tampilkan endpoint subscription secara ringkas (host + ekor pendek) tanpa bocorin token perangkat.
+function getPwaDebugInfo() {
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]')?.getAttribute("content") ?? null
+  const displayMode = window.matchMedia("(display-mode: standalone)").matches
+    ? "standalone"
+    : window.matchMedia("(display-mode: minimal-ui)").matches
+      ? "minimal-ui"
+      : window.matchMedia("(display-mode: fullscreen)").matches
+        ? "fullscreen"
+        : "browser"
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+  const swController = navigator.serviceWorker?.controller
+  return {
+    displayMode,
+    prefersColorScheme: prefersDark ? "dark" : "light",
+    themeColor: metaThemeColor,
+    serviceWorker: swController ? { scriptURL: swController.scriptURL } : null,
+    standalone: window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true,
+    displayModeMediaQuery: {
+      standalone: window.matchMedia("(display-mode: standalone)").matches,
+      browser: window.matchMedia("(display-mode: browser)").matches,
+    },
+  }
+}
+
 function shortSubscriptionLabel(endpoint: string): string {
   try {
     const url = new URL(endpoint)
