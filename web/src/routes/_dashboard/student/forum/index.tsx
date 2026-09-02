@@ -210,10 +210,13 @@ function ForumPage() {
   }
 
   return (
+    <>
     <main className="p-4 md:p-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="hidden md:block text-2xl font-bold tracking-tight">Forum</h1>
-        <NewQuestionAction locked={locked} />
+        <div className="hidden md:block">
+          <NewQuestionAction locked={locked} />
+        </div>
       </div>
 
       <div className="mb-6 flex flex-wrap items-center gap-2">
@@ -337,6 +340,16 @@ function ForumPage() {
         </div>
       )}
     </main>
+
+      <Button
+        onClick={() => navigate({ to: locked ? "/student/subscribe" : "/student/forum/new" })}
+        size="icon"
+        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+        aria-label={locked ? "Berlangganan untuk Bertanya" : "Tambah Pertanyaan Baru"}
+      >
+        {locked ? <Sparkles className="size-6" /> : <Plus className="size-6" />}
+      </Button>
+    </>
   )
 }
 
