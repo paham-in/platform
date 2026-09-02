@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+﻿import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -37,15 +37,73 @@ function SettingsPage() {
 
   const buildTime = import.meta.env.VITE_BUILD_TIME as string | undefined
   const commitSha = import.meta.env.VITE_COMMIT_SHA as string | undefined
-
   const [name, setName] = useState("")
   const [initialized, setInitialized] = useState(false)
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">(
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
   )
   const [notifSubscribing, setNotifSubscribing] = useState(false)
+  const [pushStatus, setPushStatus] = useState<"checking" | "subscribed" | "not-subscribed" | "unsupported">("checking")
+  const [subLabel, setSubLabel] = useState("")
   const { canInstall, installed, install, iOS } = usePwaInstall()
   const { theme, setTheme } = useTheme()
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setPushStatus("unsupported")
+      return
+    }
+    const perm = Notification.permission
+    setNotifPermission(perm)
+    if (perm !== "granted") {
+      setPushStatus("not-subscribed")
+      return
+    }
+    let cancelled = false
+    let settled = false
+    const settle = (status: "not-subscribed" | "subscribed" | "unsupported") => {
+      if (settled || cancelled) return
+      settled = true
+      clearTimeout(timeout)
+      setPushStatus(status)
+    }
+    const timeout = setTimeout(() => {
+      if (!settled && !cancelled) settle("not-subscribed")
+    }, 6000)
+    ;(async () => {
+      try {
+        let reg = await navigator.serviceWorker.getRegistration()
+        if (!reg) {
+          await navigator.serviceWorker.register("/sw.js", { scope: "/" })
+          reg = await navigator.serviceWorker.getRegistration()
+        }
+        if (!reg) {
+          settle("not-subscribed")
+          return
+        }
+        const sub = await reg.pushManager.getSubscription()
+        if (!sub) {
+          settle("not-subscribed")
+          return
+        }
+        const subJson = sub.toJSON()
+        await postPushSubscribe({
+          body: {
+            endpoint: subJson.endpoint ?? "",
+            keys: { p256dh: subJson.keys?.p256dh ?? "", auth: subJson.keys?.auth ?? "" },
+          },
+        })
+        setSubLabel(shortSubscriptionLabel(subJson.endpoint ?? ""))
+        settle("subscribed")
+      } catch {
+        settle("not-subscribed")
+      }
+    })()
+    return () => {
+      cancelled = true
+      clearTimeout(timeout)
+    }
+  }, [])
 
   if (user && !initialized) {
     setName(user.name ?? "")
@@ -86,14 +144,18 @@ function SettingsPage() {
     }
     setNotifSubscribing(true)
     try {
-      const perm = await Notification.requestPermission()
+      const perm = await withTimeout(Notification.requestPermission(), 8000, "Izin notifikasi tidak kunjung muncul. Coba via pengaturan browser.")
       setNotifPermission(perm)
       if (perm !== "granted") {
         toast.error("Izin notifikasi ditolak")
+        setPushStatus("not-subscribed")
         return
       }
 
-      const reg = await navigator.serviceWorker.ready
+      let reg = await withTimeout(navigator.serviceWorker.getRegistration(), 8000, "Service worker tidak merespons. Muat ulang lalu coba lagi.")
+      if (!reg) {
+        reg = await withTimeout(navigator.serviceWorker.register("/sw.js", { scope: "/" }), 8000, "Service worker belum terpasang. Muat ulang lalu coba lagi.")
+      }
       const pub = await getPushPublicKey()
       const pubKey = pub?.data?.public_key
       if (!pubKey) {
@@ -102,10 +164,17 @@ function SettingsPage() {
       }
       const applicationServerKey = urlBase64ToUint8Array(pubKey)
 
-      const subscription = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: applicationServerKey as unknown as BufferSource,
-      })
+      let subscription = await reg.pushManager.getSubscription()
+      if (!subscription) {
+        subscription = await withTimeout(
+          reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: applicationServerKey as unknown as BufferSource,
+          }),
+          8000,
+          "Gagal membuat langganan push. Muat ulang lalu coba lagi."
+        )
+      }
 
       const subJson = subscription.toJSON()
       await postPushSubscribe({
@@ -114,6 +183,8 @@ function SettingsPage() {
           keys: { p256dh: subJson.keys?.p256dh ?? "", auth: subJson.keys?.auth ?? "" },
         },
       })
+      setSubLabel(shortSubscriptionLabel(subJson.endpoint ?? ""))
+      setPushStatus("subscribed")
 
       toast.success("Notifikasi diaktifkan. Kamu akan mendapat pemberitahuan saat ada jawaban baru.")
     } catch (err: any) {
@@ -245,7 +316,6 @@ function SettingsPage() {
         </CardFooter>
       </Card>
 
-      {notifPermission !== "granted" && (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -258,28 +328,79 @@ function SettingsPage() {
           </p>
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div className="flex items-center gap-3">
-              <BellOff className="h-5 w-5 text-muted-foreground" />
+              {notifSubscribing || pushStatus === "checking" ? (
+                <Spinner />
+              ) : notifPermission === "granted" && pushStatus === "subscribed" ? (
+                <Bell className="h-5 w-5 text-green-600" />
+              ) : (
+                <BellOff className="h-5 w-5 text-muted-foreground" />
+              )}
               <div>
-                <p className="text-sm font-medium">Notifikasi nonaktif</p>
-                <p className="text-xs text-muted-foreground">
-                  {notifPermission === "denied"
-                    ? "Izin ditolak. Ubah di pengaturan browser untuk mengaktifkan."
-                    : "Belum diaktifkan."}
-                </p>
+                {(() => {
+                  if (notifPermission === "unsupported" || pushStatus === "unsupported") {
+                    return <p className="text-sm font-medium">Browser tidak mendukung notifikasi push</p>
+                  }
+                  if (notifPermission === "denied") {
+                    return (
+                      <>
+                        <p className="text-sm font-medium">Izin ditolak</p>
+                        <p className="text-xs text-muted-foreground">Ubah di pengaturan browser untuk mengaktifkan.</p>
+                      </>
+                    )
+                  }
+                  if (notifPermission !== "granted") {
+                    return (
+                      <>
+                        <p className="text-sm font-medium">Notifikasi nonaktif</p>
+                        <p className="text-xs text-muted-foreground">Belum diaktifkan.</p>
+                      </>
+                    )
+                  }
+                  if (pushStatus === "checking") {
+                    return (
+                      <>
+                        <p className="text-sm font-medium">Memeriksa status…</p>
+                      </>
+                    )
+                  }
+                  if (pushStatus === "subscribed") {
+                    return (
+                      <>
+                        <p className="text-sm font-medium text-green-600">Terhubung</p>
+                        {subLabel && <p className="text-xs text-muted-foreground">Subscribe: {subLabel}</p>}
+                      </>
+                    )
+                  }
+                  return (
+                    <>
+                      <p className="text-sm font-medium text-amber-600">Belum terdaftar di server push</p>
+                      <p className="text-xs text-muted-foreground">Klik Aktifkan untuk mendaftarkan perangkat ini.</p>
+                    </>
+                  )
+                })()}
               </div>
             </div>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={notifPermission === "denied" ? openBrowserSettings : enableNotifications}
-              disabled={notifSubscribing}
-            >
-              {notifSubscribing ? <Spinner /> : notifPermission === "denied" ? "Buka Pengaturan" : "Aktifkan"}
-            </Button>
+            {notifPermission !== "unsupported" && pushStatus !== "unsupported" && (
+              <Button
+                variant={notifPermission === "granted" && pushStatus === "subscribed" ? "outline" : "default"}
+                size="sm"
+                onClick={notifPermission === "denied" ? openBrowserSettings : enableNotifications}
+                disabled={notifSubscribing || pushStatus === "checking"}
+              >
+                {notifSubscribing ? (
+                  <Spinner />
+                ) : notifPermission === "denied" ? (
+                  "Buka Pengaturan"
+                ) : notifPermission === "granted" && pushStatus === "subscribed" ? (
+                  "Perbarui"
+                ) : (
+                  "Aktifkan"
+                )}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
-      )}
 
       {!installed && (
         <Card>
@@ -345,6 +466,34 @@ function SettingsPage() {
       )}
     </main>
   )
+}
+
+// Bungkus promise yang bisa nggantung (requestPermission/ready/subscribe) dengan batas waktu.
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(message)), ms)
+    promise.then(
+      (v) => {
+        clearTimeout(t)
+        resolve(v)
+      },
+      (e) => {
+        clearTimeout(t)
+        reject(e)
+      }
+    )
+  })
+}
+
+// Tampilkan endpoint subscription secara ringkas (host + ekor pendek) tanpa bocorin token perangkat.
+function shortSubscriptionLabel(endpoint: string): string {
+  try {
+    const url = new URL(endpoint)
+    const last = url.pathname.split("/").filter(Boolean).pop() ?? ""
+    return `${url.hostname}/${last.length > 7 ? `…${last.slice(-7)}` : last}`
+  } catch {
+    return endpoint
+  }
 }
 
 // helper: konversi base64url VAPID key ke Uint8Array (dibutuhkan pushManager.subscribe)
