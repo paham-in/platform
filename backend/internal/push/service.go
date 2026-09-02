@@ -27,13 +27,15 @@ func NewService(db *gorm.DB, vapidPublicKey, vapidPrivateKey, vapidSubject strin
 }
 
 // Subscribe menyimpan subscription push milik user.
-// Jika endpoint sama sudah ada, update keys-nya (upsert).
+// Satu endpoint (perangkat/browser) bisa berpindah antar akun: jika endpoint
+// sudah terdaftar (oleh user ini atau user lain), reassign ownership ke user
+// yang login saat ini + perbarui keys. Jika benar-benar baru, buat row.
 func (s *Service) Subscribe(userID uint, endpoint, keysP256, keysAuth string) error {
 	var existing models.PushSubscription
-	err := s.db.Where("user_id = ? AND endpoint = ?", userID, endpoint).First(&existing).Error
+	err := s.db.Where("endpoint = ?", endpoint).First(&existing).Error
 	if err == nil {
-		// update keys kalau berubah
 		return s.db.Model(&existing).Updates(map[string]any{
+			"user_id":   userID,
 			"keys_p256": keysP256,
 			"keys_auth": keysAuth,
 		}).Error
