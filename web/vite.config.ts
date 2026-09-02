@@ -31,8 +31,12 @@ export default defineConfig({
         orientation: "portrait",
         start_url: "/login",
         scope: "/",
-        theme_color: "#0a0a0a",
-        background_color: "#0a0a0a",
+        theme_color: "#ffffff",
+        background_color: "#ffffff",
+        // dark_theme_color / dark_background_color: didukung Chrome WebAPK untuk dark mode,
+        // belum ada di tipe ManifestOptions vite-plugin-pwa sehingga perlu di-cast lewat `as any`.
+        dark_theme_color: "#0c0c09",
+        dark_background_color: "#0c0c09",
         icons: [
           {
             src: "/favicon.ico",
@@ -61,7 +65,7 @@ export default defineConfig({
             type: "image/png",
           },
         ],
-      },
+      } as any,
       workbox: {
         // SPA fallback saat offline (navigasi → index.html yang sudah di-precache).
         navigateFallback: "/index.html",
