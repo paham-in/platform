@@ -31,6 +31,22 @@ func RunMigrations(cfg *config.Config) error {
 	defer m.Close()
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		if version, dirty, verr := m.Version(); verr == nil && dirty {
+			// Reset dirty version otomatis: mundur ke versi sebelumnya supaya
+			// migrasi yang gagal dicoba ulang di start berikutnya. Hanya menulis
+			// bookkeeping di schema_migrations, bukan mengubah skema.
+			prev := int(version)
+			if prev > 0 {
+				prev--
+			}
+			if ferr := m.Force(prev); ferr != nil {
+				return fmt.Errorf("reset dirty version: %w", ferr)
+			}
+			if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+				return fmt.Errorf("run migrate after reset: %w", err)
+			}
+			return nil
+		}
 		return fmt.Errorf("run migrate: %w", err)
 	}
 	return nil
