@@ -3,8 +3,12 @@
 -- Unique global pada `endpoint` membuat reassign ownership gagal dengan
 -- duplicate key. Ganti jadi unique komposit (user_id, endpoint).
 
--- Index lama bisa wujud sebagai index standalone ATAU constraint (dari label
--- unique pada model). CASCADE menjatuhkan keduanya beserta dependensinya.
+-- Index lama dibuat sebagai CONSTRAINT (dari label unique pada model gorm).
+-- Constraint ini harus di-drop via ALTER TABLE ... DROP CONSTRAINT, bukan
+-- DROP INDEX (Postgres menolak DROP INDEX untuk constraint).
+ALTER TABLE IF EXISTS push_subscriptions DROP CONSTRAINT IF EXISTS uni_push_subscriptions_endpoint;
+
+-- Jaga-jaga kalau ternyata wujudnya index standalone (bukan constraint).
 DROP INDEX IF EXISTS uni_push_subscriptions_endpoint CASCADE;
 
 CREATE UNIQUE INDEX IF NOT EXISTS uni_push_subscriptions_user_endpoint
