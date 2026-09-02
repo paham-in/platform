@@ -194,7 +194,7 @@ function PaymentsDetail() {
             </>
           ) : (
             <>
-              <h1 className="hidden md:block text-2xl font-bold tracking-tight">{user.name}</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{user.name}</h1>
               <p className="text-sm text-muted-foreground">{user.email}</p>
             </>
           )}

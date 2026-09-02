@@ -73,7 +73,7 @@ function PackageQuestions() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="hidden md:block text-2xl font-bold tracking-tight">{pkg?.name ?? "Paket Soal"}</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{pkg?.name ?? "Paket Soal"}</h1>
               {pkg && (
                 <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                   pkg.status === "published"

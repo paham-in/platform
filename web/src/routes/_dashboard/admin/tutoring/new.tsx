@@ -147,7 +147,7 @@ function AdminTutoringNew() {
   return (
     <main className="p-4 md:p-6">
       <div className="mb-6">
-          <h1 className="hidden md:block text-2xl font-bold tracking-tight">Tambah Booking Manual</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Tambah Booking Manual</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Daftarkan les privat untuk murid secara manual. Langsung disetujui + buat sesi & invoice.
           </p>

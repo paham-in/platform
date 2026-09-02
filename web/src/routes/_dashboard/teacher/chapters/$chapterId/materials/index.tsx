@@ -355,7 +355,7 @@ function ChapterMaterials() {
         {chapter && (
           <p className="mb-1 text-sm text-muted-foreground">{chapter.title}</p>
         )}
-        <h1 className="hidden md:block mb-1 text-2xl font-bold tracking-tight">Materi</h1>
+        <h1 className="mb-1 text-2xl font-bold tracking-tight">Materi</h1>
         {chapter && (
           <p className="mb-5 text-sm text-muted-foreground">
             {chapter.class_name} • {chapter.subject_name}

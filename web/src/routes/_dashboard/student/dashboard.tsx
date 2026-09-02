@@ -25,7 +25,7 @@ function StudentDashboard() {
   return (
     <main className="p-4 md:p-6">
       <div className="space-y-4 md:space-y-6">
-        <h2 className="hidden md:block text-2xl font-bold tracking-tight">Dashboard Murid</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Dashboard Murid</h2>
         <p className="text-muted-foreground">Selamat datang kembali, {user?.name}! Lanjutkan belajarmu.</p>
         <div className="hidden gap-4 md:gap-6 sm:grid sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((s) => (

@@ -213,7 +213,7 @@ function NewBooking() {
   return (
     <main className="p-4 md:p-6">
       <div className="mb-6">
-        <h1 className="hidden md:block text-2xl font-bold tracking-tight">Booking Baru</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Booking Baru</h1>
         <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam dulu, lalu pilih guru, atau kirim tanpa guru.</p>
       </div>
       <div className="mx-auto max-w-2xl space-y-4 md:space-y-6">

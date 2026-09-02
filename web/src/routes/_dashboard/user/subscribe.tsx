@@ -43,7 +43,7 @@ function UserSubscribe() {
 
   return (
     <main className="mx-auto w-full max-w-2xl p-4 md:p-6">
-      <h1 className="hidden md:block text-2xl font-bold tracking-tight">Berlangganan</h1>
+      <h1 className="text-2xl font-bold tracking-tight">Berlangganan</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Pilih paket untuk membuka semua materi & paket soal premium.
       </p>
