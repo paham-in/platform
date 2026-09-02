@@ -121,7 +121,7 @@ function StudentTutoringIndex() {
       <div>
         <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-semibold">Booking Saya</h2>
-          <Button onClick={() => navigate({ to: "/student/tutoring/new" })}><Plus className="mr-1 h-4 w-4" /> Tambah Booking</Button>
+          <Button className="hidden md:inline-flex" onClick={() => navigate({ to: "/student/tutoring/new" })}><Plus className="mr-1 h-4 w-4" /> Tambah Booking</Button>
         </div>
         <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
@@ -305,6 +305,15 @@ function StudentTutoringIndex() {
 
       {modal === "cancel" && cancelTarget && <CancelBookingDialog booking={cancelTarget} onClose={closeModal} />}
       </div>
+
+      <Button
+        onClick={() => navigate({ to: "/student/tutoring/new" })}
+        size="icon"
+        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+        aria-label="Tambah Booking"
+      >
+        <Plus className="size-6" />
+      </Button>
     </main>
   )
 }
