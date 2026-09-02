@@ -42,7 +42,7 @@ function EditQuestion() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getAdminQuestionPackagesQueryKey() })
       toast.success("Soal berhasil diubah")
-      navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId } })
+navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId }, replace: true })
     },
     onError: (err: any) => toast.error(err?.error || "Gagal mengubah soal"),
   })
@@ -156,7 +156,7 @@ function EditQuestion() {
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button variant="outline" onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId } })}>Batal</Button>
+          <Button variant="outline" onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId }, replace: true })}>Batal</Button>
           <Button
             onClick={save}
             disabled={!questionText || validCount < 2 || isPending || uploadingEditors > 0}

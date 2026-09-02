@@ -68,7 +68,7 @@ function ForumDetail() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getQuestionsQueryKey() })
       toast.success("Pertanyaan berhasil dihapus")
-      navigate({ to: "/student/forum" })
+      navigate({ to: "/student/forum", replace: true })
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal menghapus pertanyaan")

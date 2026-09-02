@@ -48,7 +48,7 @@ function EditQuestion() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getQuestionsByIdQueryKey({ path: { id: questionId } }) })
       toast.success("Pertanyaan berhasil diperbarui")
-      navigate({ to: "/student/forum/$id", params: { id } })
+navigate({ to: "/student/forum/$id", params: { id }, replace: true })
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal memperbarui pertanyaan")
@@ -110,7 +110,7 @@ function EditQuestion() {
         </div>
 
         <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={() => navigate({ to: "/student/forum/$id", params: { id } })}>Batal</Button>
+          <Button variant="outline" onClick={() => navigate({ to: "/student/forum/$id", params: { id }, replace: true })}>Batal</Button>
           <Button onClick={submit} disabled={!content || !subjectId || isPending || editorUploading}>
             {isPending && <Spinner />}
             {editorUploading ? "Mengupload gambar..." : "Simpan Perubahan"}

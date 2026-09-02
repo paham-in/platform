@@ -171,7 +171,7 @@ function NewBooking() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getTutoringBookingsQueryKey() })
       toast.success(teacher ? "Booking berhasil dikirim, tunggu konfirmasi guru" : "Permintaan dikirim, admin akan carikan guru")
-      navigate({ to: "/student/tutoring" })
+navigate({ to: "/student/tutoring", replace: true })
     },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal booking"),
   })
@@ -490,7 +490,7 @@ function NewBooking() {
           </div>
 
           <div className="flex flex-wrap justify-end gap-2">
-            <Button variant="outline" onClick={() => navigate({ to: "/student/tutoring" })}>Batal</Button>
+            <Button variant="outline" onClick={() => navigate({ to: "/student/tutoring", replace: true })}>Batal</Button>
             <Button onClick={handleBook} disabled={!canSubmit}>
               {isPending && <Spinner />}
               Kirim Booking

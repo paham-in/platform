@@ -41,7 +41,7 @@ function NewQuestion() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getQuestionsQueryKey() })
       toast.success("Pertanyaan berhasil dibuat")
-      navigate({ to: "/student/forum" })
+navigate({ to: "/student/forum", replace: true })
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal membuat pertanyaan")
@@ -113,7 +113,7 @@ function NewQuestion() {
         </div>
 
         <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={() => navigate({ to: "/student/forum" })}>Batal</Button>
+          <Button variant="outline" onClick={() => navigate({ to: "/student/forum", replace: true })}>Batal</Button>
           <Button onClick={submit} disabled={!content || !subjectId || isPending || editorUploading}>
             {(isPending || editorUploading) && <Spinner />}
             {editorUploading ? "Mengupload gambar..." : "Kirim"}

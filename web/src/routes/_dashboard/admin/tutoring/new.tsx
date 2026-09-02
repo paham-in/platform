@@ -134,7 +134,7 @@ function AdminTutoringNew() {
       qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminStudentClassEnrollmentsQueryKey() })
-      navigate({ to: "/admin/tutoring" })
+navigate({ to: "/admin/tutoring", replace: true })
     } catch (err: any) {
       toast.error(err?.error || err?.message || "Gagal membuat booking")
     } finally {
@@ -460,7 +460,7 @@ function AdminTutoringNew() {
           )}
 
           <div className="flex justify-end gap-3 border-t pt-4">
-            <Button variant="outline" onClick={() => navigate({ to: "/admin/tutoring" })}>Batal</Button>
+            <Button variant="outline" onClick={() => navigate({ to: "/admin/tutoring", replace: true })}>Batal</Button>
             <Button onClick={save} disabled={!canSubmit}>
               {submitting && <Spinner />}
               Buat Booking

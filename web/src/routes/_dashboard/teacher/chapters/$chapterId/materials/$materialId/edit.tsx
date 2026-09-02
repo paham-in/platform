@@ -114,7 +114,7 @@ function EditMaterial() {
       clear();
       qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
       toast.success("Materi berhasil disimpan");
-      navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId } });
+      navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId }, replace: true });
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal menyimpan materi");
@@ -286,7 +286,7 @@ function EditMaterial() {
               </label>
             </CardContent>
             <CardFooter className="justify-end gap-3 border-t">
-              <Button variant="outline" type="button" onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId } })}>Batal</Button>
+              <Button variant="outline" type="button" onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId }, replace: true })}>Batal</Button>
               <Button onClick={save} disabled={!title || isPending || editorUploading || (type === "video" && !videoUrl)}>
                 {isPending && <Spinner />}
                 {editorUploading ? "Mengupload gambar..." : "Simpan"}

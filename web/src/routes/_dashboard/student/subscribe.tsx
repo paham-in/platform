@@ -92,7 +92,7 @@ function StudentSubscribe() {
     onSuccess: () => {
       toast.success("Permintaan langganan konten terkirim. Menunggu verifikasi admin.")
       qc.invalidateQueries({ queryKey: getInvoicesQueryKey() })
-      navigate({ to: "/student/payments" })
+      navigate({ to: "/student/payments", replace: true })
     },
     onError: (err: any) => toast.error(err?.error || "Gagal mengirim permintaan langganan"),
   })
