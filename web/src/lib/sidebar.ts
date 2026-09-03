@@ -68,8 +68,8 @@ export const sidebarGroups: SidebarGroup[] = [
         label: "Les Privat",
         icon: Calendar,
         items: [
-          { label: "Permintaan Booking", to: "/teacher/tutoring/requests" },
-          { label: "Pendapatan Les", to: "/teacher/tutoring/earnings" },
+          { label: "Booking Les", to: "/teacher/bookings" },
+          { label: "Pendapatan Les", to: "/teacher/earnings" },
         ],
       },
     ],
