@@ -84,7 +84,8 @@ export function Earnings() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      {/* Desktop summary */}
+      <div className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {summary.map((s) => (
           <Card key={s.label}>
             <CardContent className="flex flex-col gap-1">
@@ -94,6 +95,18 @@ export function Earnings() {
           </Card>
         ))}
       </div>
+
+      {/* Mobile summary (gabung jadi 1 kartu) */}
+      <Card className="sm:hidden">
+        <CardContent className="divide-y">
+          {summary.map((s) => (
+            <div key={s.label} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+              <span className="text-sm text-muted-foreground">{s.label}</span>
+              <span className={`text-base font-semibold ${s.className}`}>{s.value}</span>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
       <Card className="pt-0 gap-0 pb-0">
         <div className="flex flex-wrap items-center gap-2 border-b px-6 py-3">
@@ -117,7 +130,9 @@ export function Earnings() {
             </DropdownMenu>
           )}
         </div>
-        <CardContent className="p-0">
+
+        {/* Desktop table */}
+        <CardContent className="hidden p-0 md:block">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
@@ -183,6 +198,54 @@ export function Earnings() {
               ))}
             </TableBody>
           </Table>
+        </CardContent>
+
+        {/* Mobile card list */}
+        <CardContent className="p-0 md:hidden">
+          {isLoading ? (
+            <div className="space-y-3 p-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
+            </div>
+          ) : sessions.length === 0 ? (
+            <Empty className="p-8">
+              <EmptyHeader>
+                <EmptyMedia variant="icon"><Clock3 /></EmptyMedia>
+                <EmptyTitle>Belum ada sesi yang selesai</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            <div className="divide-y">
+              {sessions.map((s) => (
+                <div key={s.id} className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{s.student_name ?? "—"}</p>
+                      <div className="mt-1">{modeBadge(s.mode)}</div>
+                      <p className="mt-2 text-sm text-muted-foreground">{s.date} · {s.start_time} – {s.end_time}</p>
+                      <p className="mt-0.5 tabular-nums text-sm font-medium">{fmtRp(s.fee_amount)}</p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      {s.fee_paid ? (
+                        <Checkbox
+                          checked={selected.has(s.id!)}
+                          onCheckedChange={() => toggleOne(s.id!)}
+                          disabled={isPending}
+                          aria-label={`Pilih sesi ${s.student_name ?? s.id}`}
+                        />
+                      ) : (
+                        feeBadge(s.fee_paid)
+                      )}
+                    </div>
+                  </div>
+                  {s.fee_paid && (
+                    <div className="mt-2">{takenBadge(s.fee_taken)}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
