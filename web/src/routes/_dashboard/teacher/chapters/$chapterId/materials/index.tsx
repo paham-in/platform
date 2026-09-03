@@ -301,7 +301,7 @@ function ChapterMaterials() {
           <Skeleton className="h-9 w-full max-w-sm" />
           <Skeleton className="h-9 w-32" />
         </div>
-        <Card className="pt-0 gap-0 pb-0">
+        <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -325,6 +325,25 @@ function ChapterMaterials() {
                 ))}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+        <Card className="gap-0 py-0 md:hidden">
+          <CardContent className="p-0">
+            <div className="divide-y">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={`skeleton-mobile-${i}`} className="flex items-start gap-3 p-4">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <div className="flex gap-1">
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                      <Skeleton className="h-5 w-20 rounded-full" />
+                      <Skeleton className="h-5 w-14 rounded-full" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-8 w-8 shrink-0 rounded" />
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </main>
@@ -401,7 +420,7 @@ function ChapterMaterials() {
             </Button>
           )}
         </div>
-        <Card className="pt-0 gap-0 pb-0">
+        <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -507,6 +526,125 @@ function ChapterMaterials() {
                 )}
               </TableBody>
             </Table>
+          </CardContent>
+          {materials.length > 0 && (
+            <CardFooter className="flex flex-wrap items-center justify-between gap-2 border-t">
+              <p className="text-sm text-muted-foreground">
+                Menampilkan {(page - 1) * perPage + 1}-{Math.min(page * perPage, materials.length)} dari {materials.length} materi
+              </p>
+              {totalPages > 1 && (
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label="Halaman sebelumnya"
+                    disabled={page === 1}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label="Halaman berikutnya"
+                    disabled={page === totalPages}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </CardFooter>
+          )}
+        </Card>
+
+        {/* Mobile card list */}
+        <Card className="gap-0 py-0 md:hidden">
+          <CardContent className="p-0">
+            {paged.length === 0 ? (
+              <Empty className="px-6 py-14">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <BookOpen />}</EmptyMedia>
+                  <EmptyTitle>
+                    {hasActiveFilter ? "Tidak ada hasil" : "Belum ada materi"}
+                  </EmptyTitle>
+                  {hasActiveFilter ? (
+                    <EmptyDescription>
+                      Tidak ada materi yang cocok dengan pencarian atau filter saat ini.
+                    </EmptyDescription>
+                  ) : canManage ? (
+                    <EmptyDescription>
+                      Buat materi pertama untuk bab ini agar murid bisa mulai belajar.
+                    </EmptyDescription>
+                  ) : null}
+                </EmptyHeader>
+                <EmptyContent>
+                  {hasActiveFilter ? (
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setSearchInput("");
+                      navigate({ search: {}, replace: true });
+                      setPage(1);
+                    }}>
+                      <X className="mr-1 h-4 w-4" /> Bersihkan filter
+                    </Button>
+                  ) : canManage ? (
+                    <Button size="sm" onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/new", params: { chapterId } })}>
+                      <Plus className="mr-1 h-4 w-4" /> Tambah materi pertama
+                    </Button>
+                  ) : null}
+                </EmptyContent>
+              </Empty>
+            ) : (
+              <div className="divide-y">
+                {paged.map((m) => (
+                  <div key={m.id} className="flex items-start justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium" title={m.title}>{m.title}</p>
+                      <div className="mt-1 flex flex-wrap items-center gap-1">
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${typeStyles[m.type ?? "text"]}`}>
+                          {m.type === "video" ? "Video" : "Teks"}
+                        </span>
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${accessStyles[m.is_free ? "free" : "paid"]}`}>
+                          {m.is_free ? <Gift className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                          {m.is_free ? "Gratis" : "Berbayar"}
+                        </span>
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[m.status === "published" ? "published" : "draft"]}`}>
+                          {statusLabels[m.status === "published" ? "published" : "draft"]}
+                        </span>
+                      </div>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={<Button variant="outline" size="icon" className="shrink-0" aria-label={`Menu aksi untuk ${m.title}`} />}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => navigate({ to: "/user/materials/$materialId", params: { materialId: String(m.id!) } })}>
+                          <Eye className="h-4 w-4" /> Lihat
+                        </DropdownMenuItem>
+                        {canManage && canEdit(m) && (
+                          <>
+                            <DropdownMenuItem onClick={() => {
+                              setPendingStatus({ id: m.id!, status: m.status === "published" ? "draft" : "published", name: m.title! });
+                              openModal("status");
+                            }}>
+                              {m.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {m.status === "published" ? "Jadikan Draft" : "Publikasikan"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/$materialId/edit", params: { chapterId, materialId: String(m.id!) } })}>
+                              <Pencil className="h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setDeleteConfirm({ id: m.id!, name: m.title! }); openModal("delete") }}>
+                              <Trash2 className="h-4 w-4" /> Hapus
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
           {materials.length > 0 && (
             <CardFooter className="flex flex-wrap items-center justify-between gap-2 border-t">
