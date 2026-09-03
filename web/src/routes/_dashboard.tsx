@@ -294,14 +294,14 @@ function HeaderNav() {
 
   if (isMobile && !isMainPath(pathname)) {
     return (
-      <Button variant="ghost" size="icon" aria-label="Kembali" onClick={goBack}>
+      <Button variant="ghost" size="icon-lg" aria-label="Kembali" onClick={goBack}>
         <ArrowLeft className="h-5 w-5" />
       </Button>
     );
   }
   if (isMobile) {
     return (
-      <Button variant="ghost" size="icon" aria-label="Buka menu" onClick={toggleSidebar}>
+      <Button variant="ghost" size="icon-lg" aria-label="Buka menu" onClick={toggleSidebar}>
         <Menu className="h-5 w-5" />
       </Button>
     );
@@ -393,13 +393,13 @@ function DashboardLayout() {
             <div className="flex items-center gap-0.5 rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5">
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon-lg"
                 onClick={() => setCommandOpen(true)}
                 aria-label="Cari menu atau halaman"
               >
                 <Search />
               </Button>
-              <NotificationBell />
+              <NotificationBell size="icon-lg" />
               <MobileHeaderAction />
             </div>
           </header>

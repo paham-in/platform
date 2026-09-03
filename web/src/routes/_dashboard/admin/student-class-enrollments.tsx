@@ -79,7 +79,7 @@ function ClassProgramFilterMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={compact ? <Button variant="outline" size="icon" className="relative" /> : <Button variant="outline" />}
+        render={compact ? <Button variant="outline" size="icon-lg" className="relative" /> : <Button variant="outline" />}
         aria-label="Filter kelas dan program"
       >
         <Funnel className="h-4 w-4" />

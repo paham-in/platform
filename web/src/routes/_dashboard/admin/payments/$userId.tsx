@@ -52,7 +52,7 @@ function PaymentsStatusFilterMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={compact ? <Button variant="outline" size="icon" className="relative" /> : <Button variant="outline" />}
+        render={compact ? <Button variant="outline" size="icon-lg" className="relative" /> : <Button variant="outline" />}
         aria-label="Filter status"
       >
         <Funnel className="h-4 w-4" />

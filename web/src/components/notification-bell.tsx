@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
-export function NotificationBell() {
+export function NotificationBell({ size = "icon" }: { size?: "icon" | "icon-lg" }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -66,7 +66,7 @@ export function NotificationBell() {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="icon" aria-label="Notifikasi" />
+          <Button variant="ghost" size={size} aria-label="Notifikasi" />
         }
       >
         <div className="relative">
