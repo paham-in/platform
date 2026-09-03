@@ -453,33 +453,6 @@ func newAdminReviewEvidenceResponse(v models.TutoringSession) AdminReviewEvidenc
 	return AdminReviewEvidenceResponse(buildSessionItem(v))
 }
 
-//, handler: UpdateBookingStatus (PATCH /tutoring/bookings/:id)
-
-type UpdateBookingStatusResponse struct {
-	ID            uint   `json:"id"`
-	TeacherID     *uint  `json:"teacher_id,omitempty"`
-	Teacher       string `json:"teacher_name"`
-	StudentID     uint   `json:"student_id"`
-	Student       string `json:"student_name"`
-	SubjectID     uint   `json:"subject_id"`
-	Subject       string `json:"subject_name"`
-	Date          string `json:"date"`
-	StartTime     string `json:"start_time"`
-	EndTime       string `json:"end_time"`
-	Status        string `json:"status"`
-	Mode          string `json:"mode"`
-	SessionCount  int    `json:"session_count"`
-	GroupToken    string `json:"group_token"`
-	Note          string `json:"note"`
-	ClassID       *uint  `json:"class_id,omitempty"`
-	CreatedAt     string `json:"created_at"`
-	InvoiceStatus string `json:"invoice_status,omitempty"`
-}
-
-func newUpdateBookingStatusResponse(b models.Booking) UpdateBookingStatusResponse {
-	return UpdateBookingStatusResponse(buildBookingItem(b))
-}
-
 //, handler: CancelBooking (POST /tutoring/bookings/:id/cancel)
 
 type CancelBookingResponse struct {

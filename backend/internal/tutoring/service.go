@@ -701,94 +701,6 @@ func (s *Service) GetBookingByPublicID(publicID string) (*models.Booking, error)
 	return s.repo.GetBookingByPublicID(publicID)
 }
 
-func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*UpdateBookingStatusResponse, error) {
-	valid := map[string]bool{"confirmed": true, "rejected": true}
-	if !valid[status] {
-		return nil, errors.New("status harus confirmed atau rejected")
-	}
-
-	booking, err := s.repo.GetBooking(id)
-	if err != nil {
-		return nil, errors.New("booking tidak ditemukan")
-	}
-	if booking.TeacherID == nil {
-		return nil, errors.New("booking belum punya guru, ditangani admin")
-	}
-	if *booking.TeacherID != teacherID {
-		return nil, errors.New("hanya guru terkait yang bisa mengubah status")
-	}
-	if booking.Status != "pending" {
-		return nil, errors.New("booking sudah diproses sebelumnya")
-	}
-
-	// kalau booking grup, status berlaku utk semua anggota ber-token sama
-	targets := []models.Booking{*booking}
-	if booking.GroupToken != "" {
-		group, err := s.repo.ListBookingsByGroupToken(booking.GroupToken)
-		if err != nil {
-			return nil, err
-		}
-		targets = group
-	}
-
-	if status == "rejected" {
-		// status semua anggota grup di-update dalam satu transaksi, kalau satu
-		// member gagal, tidak ada yang ke-commit separuh (sama seperti path confirmed).
-		err := s.db.Transaction(func(tx *gorm.DB) error {
-			for _, b := range targets {
-				if b.Status != "pending" {
-					continue
-				}
-				if err := tx.Model(&models.Booking{}).Where("id = ?", b.ID).Update("status", "rejected").Error; err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// status booking + sesi + invoice dalam satu transaksi, kalau satu
-		// member grup gagal, tidak ada yang ke-commit separuh.
-		err := s.db.Transaction(func(tx *gorm.DB) error {
-			for _, b := range targets {
-				if b.Status != "pending" {
-					continue
-				}
-				if err := tx.Model(&models.Booking{}).Where("id = ?", b.ID).Update("status", "confirmed").Error; err != nil {
-					return err
-				}
-				if err := s.createSessionsAndInvoice(tx, b); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	updated, err := s.repo.GetBooking(id)
-	if err != nil {
-		return nil, err
-	}
-	r := newUpdateBookingStatusResponse(*updated)
-
-	if s.notifSvc != nil {
-		title := "Booking les dikonfirmasi"
-		if status == "rejected" {
-			title = "Booking les ditolak"
-		}
-		for _, b := range targets {
-			s.notifSvc.Notify(b.StudentID, title, fmt.Sprintf("Booking les %s %s oleh guru %s", booking.Mode, booking.Date, title), "tutoring", "/dashboard/tutoring")
-		}
-	}
-
-	return &r, nil
-}
-
 // CancelBooking membatalkan booking oleh murid pemiliknya.
 // Hanya bisa saat status pending (guru belum di-assign admin). Setelah guru
 // di-assign & booking confirmed, murid tidak bisa batal sendiri, hubungi admin.
@@ -838,9 +750,10 @@ func (s *Service) CancelBooking(id, studentID uint) (*CancelBookingResponse, err
 	return &r, nil
 }
 
-// AssignTeacher menetapkan guru ke booking tanpa guru (admin). Status tetap pending,
-// guru yang dipilih lalu approve sendiri. Validasi konflik jadwal. Kalau booking
-// bagian grup, guru diterapkan ke seluruh anggota ber-token sama.
+// AssignTeacher menetapkan guru ke booking tanpa guru (admin). Status langsung
+// confirmed + generate sesi & invoice. Validasi konflik jadwal. Kalau booking
+// bagian grup, guru diterapkan ke seluruh anggota ber-token sama. (Approve guru
+// dihapus; admin assign = langsung disetujui.)
 func (s *Service) AssignTeacher(id, teacherID uint) (*AssignTeacherResponse, error) {
 	booking, err := s.repo.GetBooking(id)
 	if err != nil {

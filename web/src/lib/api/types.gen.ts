@@ -913,31 +913,6 @@ export type TutoringSubjectInfo = {
     name?: string;
 };
 
-export type TutoringUpdateBookingStatusRequest = {
-    status?: string;
-};
-
-export type TutoringUpdateBookingStatusResponse = {
-    class_id?: number;
-    created_at?: string;
-    date?: string;
-    end_time?: string;
-    group_token?: string;
-    id?: number;
-    invoice_status?: string;
-    mode?: string;
-    note?: string;
-    session_count?: number;
-    start_time?: string;
-    status?: string;
-    student_id?: number;
-    student_name?: string;
-    subject_id?: number;
-    subject_name?: string;
-    teacher_id?: number;
-    teacher_name?: string;
-};
-
 export type TutoringUpdateSessionRequest = {
     date?: string;
     end_time?: string;
@@ -4211,39 +4186,6 @@ export type PostTutoringBookingsResponses = {
 };
 
 export type PostTutoringBookingsResponse = PostTutoringBookingsResponses[keyof PostTutoringBookingsResponses];
-
-export type PatchTutoringBookingsByIdData = {
-    /**
-     * Status baru
-     */
-    body: TutoringUpdateBookingStatusRequest;
-    path: {
-        /**
-         * Booking ID
-         */
-        id: number;
-    };
-    query?: never;
-    url: '/tutoring/bookings/{id}';
-};
-
-export type PatchTutoringBookingsByIdErrors = {
-    /**
-     * Bad Request
-     */
-    400: TutoringErrorResponse;
-};
-
-export type PatchTutoringBookingsByIdError = PatchTutoringBookingsByIdErrors[keyof PatchTutoringBookingsByIdErrors];
-
-export type PatchTutoringBookingsByIdResponses = {
-    /**
-     * OK
-     */
-    200: TutoringUpdateBookingStatusResponse;
-};
-
-export type PatchTutoringBookingsByIdResponse = PatchTutoringBookingsByIdResponses[keyof PatchTutoringBookingsByIdResponses];
 
 export type PostTutoringBookingsByIdCancelData = {
     body?: never;

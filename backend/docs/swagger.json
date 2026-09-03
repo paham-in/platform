@@ -4781,58 +4781,6 @@
                 }
             }
         },
-        "/tutoring/bookings/{id}": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Guru menyetujui atau menolak booking",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tutoring"
-                ],
-                "summary": "Update booking status",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Booking ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Status baru",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.UpdateBookingStatusRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.UpdateBookingStatusResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/tutoring/bookings/{id}/cancel": {
             "post": {
                 "security": [
@@ -7497,73 +7445,6 @@
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "tutoring.UpdateBookingStatusRequest": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "tutoring.UpdateBookingStatusResponse": {
-            "type": "object",
-            "properties": {
-                "class_id": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "date": {
-                    "type": "string"
-                },
-                "end_time": {
-                    "type": "string"
-                },
-                "group_token": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "invoice_status": {
-                    "type": "string"
-                },
-                "mode": {
-                    "type": "string"
-                },
-                "note": {
-                    "type": "string"
-                },
-                "session_count": {
-                    "type": "integer"
-                },
-                "start_time": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "student_id": {
-                    "type": "integer"
-                },
-                "student_name": {
-                    "type": "string"
-                },
-                "subject_id": {
-                    "type": "integer"
-                },
-                "subject_name": {
-                    "type": "string"
-                },
-                "teacher_id": {
-                    "type": "integer"
-                },
-                "teacher_name": {
                     "type": "string"
                 }
             }

@@ -494,40 +494,6 @@ func (h *Handler) AdminReviewEvidence(c *fiber.Ctx) error {
 	}
 }
 
-// UpdateBookingStatus confirms or rejects a booking (teacher only)
-// @Summary      Update booking status
-// @Description  Guru menyetujui atau menolak booking
-// @Tags         Tutoring
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id path int true "Booking ID"
-// @Param        body body UpdateBookingStatusRequest true "Status baru"
-// @Success      200 {object} UpdateBookingStatusResponse
-// @Failure      400 {object} ErrorResponse
-// @Router       /tutoring/bookings/{id} [patch]
-func (h *Handler) UpdateBookingStatus(c *fiber.Ctx) error {
-	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
-		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
-	}
-
-	publicID := c.Params("id")
-	existing, err := h.svc.GetBookingByPublicID(publicID)
-	if err != nil {
-		return c.Status(404).JSON(ErrorResponse{Error: "booking tidak ditemukan"})
-	}
-	var input UpdateBookingStatusRequest
-	if err := c.BodyParser(&input); err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
-	}
-	userID := c.Locals("user_id").(uint)
-	booking, err := h.svc.UpdateBookingStatus(existing.ID, userID, input.Status)
-	if err != nil {
-		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
-	}
-	return c.JSON(booking)
-}
-
 // CancelBooking membatalkan booking oleh murid pemiliknya
 // @Summary      Cancel booking
 // @Description  Murid membatalkan booking les privat miliknya sendiri. Bisa saat status pending (guru belum menyetujui) atau setelah disetujui selama invoice belum lunas.
@@ -696,7 +662,6 @@ func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settin
 	auth.Get("/tutoring/teachers", h.ListTeachers)
 	auth.Get("/tutoring/bookings", h.ListBookings)
 	auth.Post("/tutoring/bookings", h.CreateBooking)
-	auth.Patch("/tutoring/bookings/:id", h.UpdateBookingStatus)
 	auth.Post("/tutoring/bookings/:id/cancel", h.CancelBooking)
 	auth.Get("/tutoring/sessions", h.ListSessions)
 	auth.Get("/tutoring/earnings", h.MyEarnings)

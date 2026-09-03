@@ -199,10 +199,6 @@ func (r *Repository) ListBookingsByTeacherAndDate(teacherID uint, date string, s
 	return bookings, nil
 }
 
-func (r *Repository) UpdateBookingStatus(id uint, status string) error {
-	return r.db.Model(&models.Booking{}).Where("id = ?", id).Update("status", status).Error
-}
-
 // DeleteBookingCascade menghapus booking + sesi + invoice terkait dalam satu transaksi.
 func (r *Repository) DeleteBookingCascade(id uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {

@@ -46,12 +46,6 @@ type AssignTeacherRequest struct {
 	TeacherID uint `json:"teacher_id"`
 }
 
-//, handler: UpdateBookingStatus (PATCH /tutoring/bookings/:id)
-
-type UpdateBookingStatusRequest struct {
-	Status string `json:"status"`
-}
-
 //, handler: UpdateSession (PATCH /tutoring/sessions/:id)
 
 type UpdateSessionRequest struct {
