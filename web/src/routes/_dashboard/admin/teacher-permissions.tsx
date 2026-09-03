@@ -184,10 +184,15 @@ function AdminTeacherPermissions() {
                       <p className="truncate font-medium">{u.name}</p>
                       <p className="mt-0.5 truncate text-sm text-muted-foreground">{u.email}</p>
                       <div className="mt-1.5 flex flex-wrap gap-1">
-                        <span className="text-xs text-muted-foreground">Materi:</span>
-                        <PermBadge granted={!!u.can_manage_materials} label="Boleh kelola" />
-                        <span className="text-xs text-muted-foreground ml-2">Paket Soal:</span>
-                        <PermBadge granted={!!u.can_manage_question_packages} label="Boleh kelola" />
+                        {!!u.can_manage_materials && (
+                          <Badge variant="outline" className="border-transparent bg-green-100 text-green-700">Materi</Badge>
+                        )}
+                        {!!u.can_manage_question_packages && (
+                          <Badge variant="outline" className="border-transparent bg-green-100 text-green-700">Paket Soal</Badge>
+                        )}
+                        {!u.can_manage_materials && !u.can_manage_question_packages && (
+                          <span className="text-xs text-muted-foreground">Tidak ada izin</span>
+                        )}
                       </div>
                     </div>
                     <DropdownMenu>
