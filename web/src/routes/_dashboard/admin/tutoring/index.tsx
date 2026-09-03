@@ -192,7 +192,8 @@ function AdminTutoring() {
         </Button>
       </div>
 
-      <Card className="pt-0 gap-0 pb-0">
+      {/* Desktop table */}
+      <Card className="hidden gap-0 pt-0 pb-0 md:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -259,6 +260,60 @@ function AdminTutoring() {
               ))}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      {/* Mobile card list */}
+      <Card className="gap-0 py-0 md:hidden">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="divide-y">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={`skeleton-${i}`} className="flex items-start gap-3 p-4">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : bookings.length === 0 ? (
+            <Empty className="p-8">
+              <EmptyHeader>
+                <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
+                <EmptyTitle>Belum ada booking les privat</EmptyTitle>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            <div className="divide-y">
+              {bookings.map((b) => (
+                <div key={b.id} className="flex items-start justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{b.student_name ?? "—"}</p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">{b.subject_name ?? "—"}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      {modeBadge(b.mode)}
+                      {statusBadge(b.status!)}
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {b.teacher_name ?? "—"} · {b.date} {b.start_time}–{b.end_time} · {b.session_count ?? 1}×
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {b.status === "pending" && !b.teacher_id ? (
+                      <Button size="sm" onClick={() => { setAssignBooking(b); openModal("assign") }}>Assign</Button>
+                    ) : null}
+                    {b.invoice_status !== "paid" && (
+                      <Button size="sm" variant="outline" onClick={() => { setDeleteBooking(b); openModal("delete") }}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
