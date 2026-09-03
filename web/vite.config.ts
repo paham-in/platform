@@ -31,19 +31,20 @@ export default defineConfig({
         orientation: "portrait",
         start_url: "/login",
         scope: "/",
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
+        // theme_color = bg shadcn dark; background_color = primary shadcn (light/dark).
+        theme_color: "#0c0c09",
+        background_color: "#1d1d16",
         // W3C spec (appmanifest): color_scheme_dark di level root manifest.
         color_scheme_dark: {
           theme_color: "#0c0c09",
-          background_color: "#0c0c09",
+          background_color: "#e8e8e3",
         },
         // Chrome WebAPK: dark color dibungkus di user_preferences.
         // Keduanya di-cast lewat `as any` karena belum ada di tipe ManifestOptions vite-plugin-pwa.
         user_preferences: {
           color_scheme_dark: {
             theme_color: "#0c0c09",
-            background_color: "#0c0c09",
+            background_color: "#e8e8e3",
           },
         },
         icons: [
