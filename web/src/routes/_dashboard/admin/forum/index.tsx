@@ -86,7 +86,8 @@ function AdminForum() {
           </div>
         </div>
 
-        <Card className="pt-0 gap-0 pb-0">
+        {/* Desktop table */}
+        <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -161,6 +162,83 @@ function AdminForum() {
                 )}
               </TableBody>
             </Table>
+          </CardContent>
+          {totalPages > 1 && (
+            <CardFooter className="flex items-center justify-between border-t">
+              <p className="text-sm text-muted-foreground">Halaman {page} dari {totalPages}</p>
+              <div className="flex gap-1">
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardFooter>
+          )}
+        </Card>
+
+        {/* Mobile card list */}
+        <Card className="gap-0 py-0 md:hidden">
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="divide-y">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={`skeleton-${i}`} className="flex items-start gap-3 p-4">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : paged.map((q) => (
+              <div key={q.id} className="flex items-start justify-between gap-3 p-4">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{q.plain_content?.slice(0, 80)}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{q.user_name}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      (q.answer_count ?? 0) > 0 ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+                    }`}>
+                      {(q.answer_count ?? 0) > 0 ? "Terjawab" : "Terbuka"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{q.created_at}</span>
+                  </div>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="shrink-0" />}>
+                    <MoreVertical className="h-4 w-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => window.open(`/admin/forum/${q.public_id}`, "_blank")}>
+                      <Eye className="h-4 w-4" /> Lihat
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setDeleteConfirm({ id: q.id!, content: q.plain_content! }); openModal("delete") }}>
+                      <Trash2 className="h-4 w-4" /> Hapus
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ))}
+            {!isLoading && paged.length === 0 && (
+              <Empty className="p-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">{searchParam ? <SearchX /> : <MessageSquare />}</EmptyMedia>
+                  <EmptyTitle>
+                    {searchParam ? "Tidak ada pertanyaan yang cocok" : "Tidak ada pertanyaan"}
+                  </EmptyTitle>
+                </EmptyHeader>
+                {searchParam && (
+                  <EmptyContent>
+                    <Button variant="outline" size="sm" onClick={() => { setSearchInput(""); setPage(1) }}>
+                      <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                    </Button>
+                  </EmptyContent>
+                )}
+              </Empty>
+            )}
           </CardContent>
           {totalPages > 1 && (
             <CardFooter className="flex items-center justify-between border-t">
