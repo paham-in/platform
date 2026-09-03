@@ -21,7 +21,6 @@ import { BubbleMenu } from "@tiptap/react/menus"
 import type { EditorView } from "@tiptap/pm/view"
 import { NodeSelection } from "@tiptap/pm/state"
 import StarterKit from "@tiptap/starter-kit"
-import Underline from "@tiptap/extension-underline"
 import TextAlign from "@tiptap/extension-text-align"
 import ImageExt from "@tiptap/extension-image"
 import { Mathematics } from "@tiptap/extension-mathematics"
@@ -181,8 +180,8 @@ export function TiptapEditor({
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
+        underline: true,
       }),
-      Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Mathematics,
       ImageExt,
