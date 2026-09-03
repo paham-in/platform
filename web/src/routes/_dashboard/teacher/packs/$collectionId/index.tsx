@@ -90,7 +90,7 @@ function CollectionPackages() {
           )}
         </div>
 
-        <Card className="pt-0 gap-0 pb-0">
+        <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -179,6 +179,86 @@ function CollectionPackages() {
                 ))}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+
+        {/* Mobile card list */}
+        <Card className="gap-0 py-0 md:hidden">
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="divide-y">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={`skeleton-mobile-${i}`} className="flex items-start justify-between gap-3 p-4">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-40" />
+                    </div>
+                    <Skeleton className="h-8 w-8 shrink-0 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : packages.length === 0 ? (
+              <Empty className="p-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon"><FolderOpen /></EmptyMedia>
+                  <EmptyTitle>Belum ada paket soal di koleksi ini</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="divide-y">
+                {packages.map((pkg) => (
+                  <div
+                    key={pkg.id}
+                    onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId: String(pkg.id!) } })}
+                    className="flex cursor-pointer items-start justify-between gap-3 p-4 transition-colors active:bg-muted"
+                  >
+                    <div className="min-w-0">
+                      <p className="max-w-full truncate font-medium">{pkg.name}</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">{pkg.subject_name || "-"}</p>
+                      {pkg.description && <p className="mt-0.5 truncate text-sm text-muted-foreground">{pkg.description}</p>}
+                      <div className="mt-1 flex flex-wrap items-center gap-1">
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[pkg.status === "published" ? "published" : "draft"]}`}>
+                          {statusLabels[pkg.status === "published" ? "published" : "draft"]}
+                        </span>
+                        <span className="text-sm text-muted-foreground">{pkg.questions?.length ?? 0} soal</span>
+                      </div>
+                      {pkg.created_at && <p className="mt-0.5 text-xs text-muted-foreground">{pkg.created_at}</p>}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={<Button variant="outline" size="icon" className="shrink-0" onClick={(e) => e.stopPropagation()} />}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId: String(pkg.id!) } })}>
+                          <ListChecks className="h-4 w-4" /> Soal
+                        </DropdownMenuItem>
+                        {canManage && canEdit(pkg) && (
+                          <>
+                            <DropdownMenuItem onClick={() => {
+                              setPendingStatus({ id: pkg.id!, status: pkg.status === "published" ? "draft" : "published", name: pkg.name ?? "" });
+                              openModal("status");
+                            }}>
+                              {pkg.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {pkg.status === "published" ? "Jadikan Draft" : "Publikasikan"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setEditTarget(pkg); openModal("edit") }}>
+                              <Pencil className="h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => { setDeleteConfirm({ id: pkg.id!, name: pkg.name ?? "" }); openModal("delete") }}
+                            >
+                              <Trash2 className="h-4 w-4" /> Hapus
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
