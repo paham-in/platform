@@ -156,24 +156,31 @@ function CollectionsPage() {
             ) : (
               <div className="divide-y">
                 {collections.map((collection) => (
-                  <div key={collection.id} className="flex items-start justify-between gap-3 p-4">
+                  <div
+                    key={collection.id}
+                    onClick={() => navigate({ to: "/teacher/packs/$collectionId", params: { collectionId: String(collection.id!) } })}
+                    className="flex cursor-pointer items-start justify-between gap-3 p-4 transition-colors active:bg-muted"
+                  >
                     <div className="min-w-0">
-                      <button type="button" onClick={() => navigate({ to: "/teacher/packs/$collectionId", params: { collectionId: String(collection.id!) } })} className="block max-w-full truncate text-left font-medium hover:underline">
+                      <p className="max-w-full truncate font-medium">
                         {collection.name}
-                      </button>
-                      <p className="mt-1 flex flex-wrap items-center gap-1">
-                        <span className="text-sm text-muted-foreground">{collection.class_name || "-"}</span>
+                      </p>
+                      <div className="mt-1 space-y-1">
                         <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                           collection.is_free ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
                         }`}>
                           {collection.is_free ? TIER_LABEL.free : TIER_LABEL.premium}
                         </span>
-                        <span className="text-sm text-muted-foreground">{collection.package_count ?? 0} paket</span>
-                      </p>
+                        <p className="text-sm text-muted-foreground">
+                          {collection.class_name || "-"} <span className="mx-1">•</span> {collection.package_count ?? 0} paket
+                        </p>
+                      </div>
                     </div>
                     {canManage && canEdit(collection) && (
                       <DropdownMenu>
-                        <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="shrink-0" />}>
+                        <DropdownMenuTrigger
+                          render={<Button variant="outline" size="icon" className="shrink-0" onClick={(e) => e.stopPropagation()} />}
+                        >
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
