@@ -1,3 +1,5 @@
+import { Badge } from "@/components/ui/badge"
+
 export const ROLE_LABELS: Record<string, string> = { student: "Murid", teacher: "Guru", admin: "Admin" }
 export const ROLE_STYLES: Record<string, string> = {
   student: "bg-green-100 text-green-700",
@@ -7,8 +9,8 @@ export const ROLE_STYLES: Record<string, string> = {
 
 export function RoleBadge({ role }: { role: string }) {
   return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${ROLE_STYLES[role] || ""}`}>
+    <Badge variant="secondary" className={ROLE_STYLES[role] || ""}>
       {ROLE_LABELS[role] || role}
-    </span>
+    </Badge>
   )
 }

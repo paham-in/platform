@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -218,20 +219,18 @@ function AdminUsers() {
                       ) : (
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
                       )}
-                      <span className="flex items-center gap-1.5">
-                        <span className="font-medium">{u.name}</span>
-                        {u.has_google ? (
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">Google</span>
-                        ) : u.has_password ? (
-                          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">Password</span>
-                        ) : (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Dummy</span>
-                        )}
-                      </span>
+                      <span className="font-medium">{u.name}</span>
                     </div></TableCell>
                     <TableCell className="text-muted-foreground">{u.email}</TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap items-center gap-1">
+                        {u.has_google ? (
+                          <Badge variant="secondary" className="bg-slate-100 text-slate-600">Google</Badge>
+                        ) : u.has_password ? (
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">Password</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-700">Dummy</Badge>
+                        )}
                         {(u.roles ?? []).length === 0 && <span className="text-muted-foreground">-</span>}
                         {(u.roles ?? []).map((r) => <RoleBadge key={r} role={r} />)}
                       </div>
@@ -344,18 +343,16 @@ function AdminUsers() {
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="truncate font-medium">{u.name}</p>
-                        {u.has_google ? (
-                          <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">Google</span>
-                        ) : u.has_password ? (
-                          <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">Password</span>
-                        ) : (
-                          <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Dummy</span>
-                        )}
-                      </div>
+                      <p className="truncate font-medium">{u.name}</p>
                       <p className="mt-0.5 truncate text-sm text-muted-foreground">{u.email}</p>
-                      <div className="mt-1 flex flex-wrap gap-1">
+                      <div className="mt-1 flex flex-wrap items-center gap-1">
+                        {u.has_google ? (
+                          <Badge variant="secondary" className="bg-slate-100 text-slate-600">Google</Badge>
+                        ) : u.has_password ? (
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">Password</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-700">Dummy</Badge>
+                        )}
                         {(u.roles ?? []).map((r) => <RoleBadge key={r} role={r} />)}
                         {(u.roles ?? []).length === 0 && <span className="text-xs text-muted-foreground">-</span>}
                       </div>
