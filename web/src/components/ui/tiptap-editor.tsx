@@ -27,6 +27,7 @@ import { Mathematics } from "@tiptap/extension-mathematics"
 import "katex/dist/katex.min.css"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { MathInputDialog } from "./math-input-dialog"
 import { Spinner } from "@/components/ui/spinner"
 import { postContentTempImages, deleteContentTempImages } from "@/lib/api/sdk.gen"
@@ -40,19 +41,18 @@ const ToolbarButton = ({
   onClick: () => void;
   children: React.ReactNode;
 }) => (
-  <button
+  <Button
     type="button"
+    variant="ghost"
+    size="default"
     onMouseDown={(e) => {
       e.preventDefault();
       onClick();
     }}
-    className={cn(
-      "flex h-8 w-8 items-center justify-center rounded text-sm transition-colors hover:bg-muted",
-      active && "bg-muted text-foreground",
-    )}
+    className={cn(active && "bg-muted text-foreground")}
   >
     {children}
-  </button>
+  </Button>
 );
 
 // UploadPlaceholder: node sementara untuk gambar yang sedang diunggah. Tampil
@@ -321,25 +321,29 @@ export function TiptapEditor({
         className="flex items-center gap-0.5 rounded-xl border bg-background p-1 shadow-lg"
       >
         {[25, 50, 75, 100].map((pct) => (
-          <button
+          <Button
             key={pct}
             type="button"
+            variant="ghost"
+            size="default"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => handleResize(pct)}
-            className="flex h-7 min-w-10 items-center justify-center rounded-lg px-2 text-xs font-medium transition-colors hover:bg-muted"
+            className="min-w-10 px-2 text-xs font-medium"
           >
             {pct}%
-          </button>
+          </Button>
         ))}
         <div className="mx-1 h-4 w-px bg-border" />
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="default"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => void handleDeleteImage()}
-          className="flex h-7 w-7 items-center justify-center rounded-lg text-destructive transition-colors hover:bg-destructive/10"
+          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
           <Trash2Icon className="h-4 w-4" />
-        </button>
+        </Button>
       </BubbleMenu>
     </div>
   );
