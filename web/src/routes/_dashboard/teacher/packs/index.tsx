@@ -52,7 +52,7 @@ function CollectionsPage() {
           )}
         </div>
 
-        <Card className="pt-0 gap-0 pb-0">
+        <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -128,6 +128,71 @@ function CollectionsPage() {
                 ))}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+
+        {/* Mobile card list */}
+        <Card className="gap-0 py-0 md:hidden">
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="divide-y">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={`skeleton-mobile-${i}`} className="flex items-start justify-between gap-3 p-4">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                    <Skeleton className="h-8 w-8 shrink-0 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : collections.length === 0 ? (
+              <Empty className="p-8">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon"><FolderOpen /></EmptyMedia>
+                  <EmptyTitle>Belum ada koleksi paket soal</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="divide-y">
+                {collections.map((collection) => (
+                  <div key={collection.id} className="flex items-start justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <button type="button" onClick={() => navigate({ to: "/teacher/packs/$collectionId", params: { collectionId: String(collection.id!) } })} className="block max-w-full truncate text-left font-medium hover:underline">
+                        {collection.name}
+                      </button>
+                      <p className="mt-1 flex flex-wrap items-center gap-1">
+                        <span className="text-sm text-muted-foreground">{collection.class_name || "-"}</span>
+                        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                          collection.is_free ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                        }`}>
+                          {collection.is_free ? TIER_LABEL.free : TIER_LABEL.premium}
+                        </span>
+                        <span className="text-sm text-muted-foreground">{collection.package_count ?? 0} paket</span>
+                      </p>
+                    </div>
+                    {canManage && canEdit(collection) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="shrink-0" />}>
+                          <MoreVertical className="h-4 w-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => { setEditTarget(collection); openModal("edit") }}>
+                            <Pencil className="h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => { setDeleteConfirm({ id: collection.id!, name: collection.name ?? "" }); openModal("delete") }}
+                          >
+                            <Trash2 className="h-4 w-4" /> Hapus
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
