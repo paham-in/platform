@@ -27,6 +27,7 @@ import { getNavStack, resetNavStack, RouteTransition, setResetInProgress } from 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notification-bell";
 import { useDialogBack } from "@/lib/hooks/use-dialog-back";
+import { useAutoSubscribeNotifications } from "@/lib/hooks/use-auto-subscribe";
 import { homeForRoles, requiredRoleForPath, roleLabel } from "@/lib/role";
 import {
   Collapsible,
@@ -316,6 +317,8 @@ function DashboardLayout() {
   const { modal } = Route.useSearch();
   const { openModal, closeModal } = useDialogBack();
   const [commandOpen, setCommandOpen] = useState(false);
+
+  useAutoSubscribeNotifications(user?.id as number | undefined);
 
   const logout = useMutation({
     ...postLogoutMutation(),

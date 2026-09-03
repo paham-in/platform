@@ -15,7 +15,8 @@ import { Spinner } from "@/components/ui/spinner"
 import { usePageTitle } from "@/components/page-title"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { getPushPublicKey, postPushSubscribe } from "@/lib/api/sdk.gen"
+import { postPushSubscribe } from "@/lib/api/sdk.gen"
+import { isPushSupported, subscribeNotifications } from "@/lib/subscribe-notification"
 import { Loader2, Save, Bell, BellOff, Download, Moon, Sun } from "lucide-react"
 import { toast } from "sonner"
 import { usePwaInstall } from "@/lib/hooks/use-pwa-install"
@@ -47,13 +48,6 @@ function SettingsPage() {
   const [subLabel, setSubLabel] = useState("")
   const { canInstall, installed, install, iOS } = usePwaInstall()
   const { theme, setTheme } = useTheme()
-
-  const [pwaDebug, setPwaDebug] = useState(() => getPwaDebugInfo())
-
-  useEffect(() => {
-    const interval = setInterval(() => setPwaDebug(getPwaDebugInfo()), 2000)
-    return () => clearInterval(interval)
-  }, [])
 
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -144,55 +138,24 @@ function SettingsPage() {
   }
 
   const enableNotifications = async () => {
-    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+    if (!isPushSupported()) {
       toast.error("Browser tidak mendukung notifikasi push")
       setNotifPermission("unsupported")
+      setPushStatus("unsupported")
       return
     }
     setNotifSubscribing(true)
     try {
-      const perm = await withTimeout(Notification.requestPermission(), 8000, "Izin notifikasi tidak kunjung muncul. Coba via pengaturan browser.")
-      setNotifPermission(perm)
-      if (perm !== "granted") {
-        toast.error("Izin notifikasi ditolak")
+      const result = await subscribeNotifications()
+      if (!result.success) {
+        setNotifPermission(Notification.permission)
         setPushStatus("not-subscribed")
+        toast.error("Gagal mengaktifkan notifikasi")
         return
       }
-
-      let reg = await withTimeout(navigator.serviceWorker.getRegistration(), 8000, "Service worker tidak merespons. Muat ulang lalu coba lagi.")
-      if (!reg) {
-        reg = await withTimeout(navigator.serviceWorker.register("/sw.js", { scope: "/" }), 8000, "Service worker belum terpasang. Muat ulang lalu coba lagi.")
-      }
-      const pub = await getPushPublicKey()
-      const pubKey = pub?.data?.public_key
-      if (!pubKey) {
-        toast.error("Konfigurasi push belum siap")
-        return
-      }
-      const applicationServerKey = urlBase64ToUint8Array(pubKey)
-
-      let subscription = await reg.pushManager.getSubscription()
-      if (!subscription) {
-        subscription = await withTimeout(
-          reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: applicationServerKey as unknown as BufferSource,
-          }),
-          8000,
-          "Gagal membuat langganan push. Muat ulang lalu coba lagi."
-        )
-      }
-
-      const subJson = subscription.toJSON()
-      await postPushSubscribe({
-        body: {
-          endpoint: subJson.endpoint ?? "",
-          keys: { p256dh: subJson.keys?.p256dh ?? "", auth: subJson.keys?.auth ?? "" },
-        },
-      })
-      setSubLabel(shortSubscriptionLabel(subJson.endpoint ?? ""))
+      setNotifPermission("granted")
+      setSubLabel(result.endpoint ? shortSubscriptionLabel(result.endpoint) : "")
       setPushStatus("subscribed")
-
       toast.success("Notifikasi diaktifkan. Kamu akan mendapat pemberitahuan saat ada jawaban baru.")
     } catch (err: any) {
       toast.error(err?.message || "Gagal mengaktifkan notifikasi")
@@ -295,17 +258,6 @@ function SettingsPage() {
             </div>
             <Switch checked={theme === "dark"} onCheckedChange={(c) => setTheme(c ? "dark" : "light")} aria-label="Mode gelap" />
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">PWA Debug</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-lg bg-muted p-3 text-xs font-mono">
-            {JSON.stringify(pwaDebug, null, 2)}
-          </pre>
         </CardContent>
       </Card>
 
@@ -486,48 +438,7 @@ function SettingsPage() {
   )
 }
 
-// Bungkus promise yang bisa nggantung (requestPermission/ready/subscribe) dengan batas waktu.
-function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error(message)), ms)
-    promise.then(
-      (v) => {
-        clearTimeout(t)
-        resolve(v)
-      },
-      (e) => {
-        clearTimeout(t)
-        reject(e)
-      }
-    )
-  })
-}
-
 // Tampilkan endpoint subscription secara ringkas (host + ekor pendek) tanpa bocorin token perangkat.
-function getPwaDebugInfo() {
-  const metaThemeColor = document.querySelector('meta[name="theme-color"]')?.getAttribute("content") ?? null
-  const displayMode = window.matchMedia("(display-mode: standalone)").matches
-    ? "standalone"
-    : window.matchMedia("(display-mode: minimal-ui)").matches
-      ? "minimal-ui"
-      : window.matchMedia("(display-mode: fullscreen)").matches
-        ? "fullscreen"
-        : "browser"
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-  const swController = navigator.serviceWorker?.controller
-  return {
-    displayMode,
-    prefersColorScheme: prefersDark ? "dark" : "light",
-    themeColor: metaThemeColor,
-    serviceWorker: swController ? { scriptURL: swController.scriptURL } : null,
-    standalone: window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true,
-    displayModeMediaQuery: {
-      standalone: window.matchMedia("(display-mode: standalone)").matches,
-      browser: window.matchMedia("(display-mode: browser)").matches,
-    },
-  }
-}
-
 function shortSubscriptionLabel(endpoint: string): string {
   try {
     const url = new URL(endpoint)
@@ -536,18 +447,6 @@ function shortSubscriptionLabel(endpoint: string): string {
   } catch {
     return endpoint
   }
-}
-
-// helper: konversi base64url VAPID key ke Uint8Array (dibutuhkan pushManager.subscribe)
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/")
-  const rawData = window.atob(base64)
-  const outputArray = new Uint8Array(rawData.length)
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i)
-  }
-  return outputArray
 }
 
 export const Route = createFileRoute("/_dashboard/settings")({
