@@ -12,7 +12,6 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/in
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
-  getTutoringTeachersOptions,
   postTutoringBookingsMutation,
   getTutoringBookingsQueryKey,
   getStudentClassEnrollmentsOptions,
@@ -20,9 +19,8 @@ import {
   getSubjectsOptions,
   getUsersSearchOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { TutoringListTeachersResponse, UserAdminListUsersResponse } from "@/lib/api/types.gen"
-import { CalendarIcon, CheckCircle2, Search, Users, X, UserX } from "lucide-react"
-import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
+import { CalendarIcon, CheckCircle2, Search, Users, X } from "lucide-react"
 import { addWeeks, format } from "date-fns"
 import { id } from "date-fns/locale"
 import { useEffect, useState } from "react"
@@ -72,7 +70,6 @@ function NewBooking() {
   const [subjectId, setSubjectId] = useState("")
   const [start, setStart] = useState("")
   const [end, setEnd] = useState("")
-  const [teacher, setTeacher] = useState<TutoringListTeachersResponse | undefined>()
   const [mode, setMode] = useState<"private" | "group">("private")
   const [sessionCount, setSessionCount] = useState(1)
   const [classId, setClassId] = useState("")
@@ -122,15 +119,6 @@ function NewBooking() {
   const startDate = date ? new Date(date + "T00:00:00") : null
   const endDate = startDate ? addWeeks(startDate, sessionCount - 1) : null
 
-  const { data: teachers = [], isLoading: teachersLoading } = useQuery({
-    ...getTutoringTeachersOptions({
-      query: canSearch
-        ? { subject_id: Number(subjectId), date, start_time: start, end_time: end }
-        : undefined,
-    }),
-    enabled: canSearch,
-  })
-
   const { data: searchResults = [], isLoading: searchLoading } = useQuery({
     ...getUsersSearchOptions({ query: searchTerm ? { q: searchTerm } : undefined }),
     enabled: searchTerm.length > 0,
@@ -145,13 +133,6 @@ function NewBooking() {
     setClassId(preferred ?? String(bookableClasses[0].id ?? ""))
   }, [myClasses, bookableClasses, classId])
 
-  // daftar guru habis setelah guru dipilih (kuota/status berubah) → lepaskan pilihan
-  useEffect(() => {
-    if (canSearch && !teachersLoading && teachers.length === 0 && teacher) {
-      setTeacher(undefined)
-    }
-  }, [teachers, teachersLoading, canSearch, teacher])
-
   // kelas berubah → reset subject kalau sudah tidak ada di kelas baru
   useEffect(() => {
     if (subjectId && subjects.length > 0 && !subjects.some((s) => String(s.id) === subjectId)) {
@@ -161,17 +142,17 @@ function NewBooking() {
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
-  const changeSubject = (v: string | null) => { setSubjectId(v ?? ""); setTeacher(undefined); setDate("") }
-  const changeStart = (v: string | null) => { setStart(v ?? ""); setEnd(""); setTeacher(undefined); setDate("") }
-  const changeEnd = (v: string | null) => { setEnd(v ?? ""); setTeacher(undefined); setDate("") }
-  const changeDate = (d: Date | undefined) => { setDate(d ? format(d, "yyyy-MM-dd") : ""); setTeacher(undefined) }
+  const changeSubject = (v: string | null) => { setSubjectId(v ?? ""); setDate("") }
+  const changeStart = (v: string | null) => { setStart(v ?? ""); setEnd("") }
+  const changeEnd = (v: string | null) => { setEnd(v ?? "") }
+  const changeDate = (d: Date | undefined) => { setDate(d ? format(d, "yyyy-MM-dd") : "") }
 
   const { mutate: createBooking, isPending } = useMutation({
     ...postTutoringBookingsMutation(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getTutoringBookingsQueryKey() })
-      toast.success(teacher ? "Booking berhasil dikirim, tunggu konfirmasi guru" : "Permintaan dikirim, admin akan carikan guru")
-navigate({ to: "/student/tutoring", replace: true })
+      toast.success("Permintaan dikirim, admin akan carikan guru")
+      navigate({ to: "/student/tutoring", replace: true })
     },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal booking"),
   })
@@ -184,7 +165,6 @@ navigate({ to: "/student/tutoring", replace: true })
     if (!canSearch || !date || !classId) return
     createBooking({
       body: {
-        teacher_id: teacher?.id,
         subject_id: Number(subjectId),
         date,
         start_time: start,
@@ -214,7 +194,7 @@ navigate({ to: "/student/tutoring", replace: true })
     <main className="p-4 md:p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Booking Baru</h1>
-        <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam dulu, lalu pilih guru, atau kirim tanpa guru.</p>
+        <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam, nanti admin yang akan mencarikan guru untukmu.</p>
       </div>
       <div className="mx-auto max-w-2xl space-y-4 md:space-y-6">
 
@@ -323,80 +303,6 @@ navigate({ to: "/student/tutoring", replace: true })
             </div>
           </div>
         </div>
-
-        <div className="space-y-2 border-t pt-6">
-          <div className="flex items-center justify-between gap-2">
-            <Label>Pilih Guru</Label>
-            {canSearch && (
-              <span className="text-xs text-muted-foreground">
-                {format(new Date(date + "T00:00:00"), "EEE, dd MMM", { locale: id })} · {start}–{end}
-              </span>
-            )}
-          </div>
-            {!canSearch ? (
-              <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                Pilih mapel, tanggal, dan jam untuk menampilkan guru yang tersedia.
-              </p>
-            ) : teachersLoading ? (
-              <div className="space-y-2">
-                {[0, 1, 2].map((i) => (
-                  <div key={i} className="flex items-center gap-3 rounded-lg border p-3">
-                    <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-40" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : teachers.length === 0 ? (
-              <Empty className="py-8">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon"><UserX /></EmptyMedia>
-                  <EmptyTitle>Tidak ada guru untuk mapel & jam ini</EmptyTitle>
-                </EmptyHeader>
-                <EmptyContent className="gap-1">
-                  <Button variant="outline" size="sm" onClick={() => { setStart(""); setEnd(""); setDate("") }}>Cari Jam Lain</Button>
-                  <p className="px-4 text-xs text-muted-foreground">Bisa langsung kirim tanpa guru, admin yang carikan guru buat kamu.</p>
-                </EmptyContent>
-              </Empty>
-            ) : (
-              <>
-                <div className="max-h-[300px] space-y-2 overflow-y-auto pr-1">
-                  {teachers.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      aria-pressed={teacher?.id === t.id}
-                      onClick={() => setTeacher(t)}
-                      className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 ${teacher?.id === t.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-base font-bold text-primary">
-                        {t.avatar_url ? (
-                          <img src={t.avatar_url} alt={t.name} className="h-10 w-10 rounded-full object-cover" />
-                        ) : (
-                          t.name?.[0]
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{t.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">{t.email}</p>
-                      </div>
-                      {teacher?.id === t.id && <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />}
-                    </button>
-                  ))}
-                </div>
-                {teacher && (
-                  <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-sm">
-                    <span>Guru dipilih: <span className="font-medium">{teacher.name}</span></span>
-                    <button type="button" className="text-xs text-muted-foreground underline" onClick={() => setTeacher(undefined)}>
-                      Tanpa Guru
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
 
         <div className="space-y-4 border-t pt-6">
           <div className="space-y-1.5">
