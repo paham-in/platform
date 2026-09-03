@@ -49,6 +49,17 @@ func (r *Repository) ListTeachersBySubject(subjectID uint) ([]models.User, error
 	return users, nil
 }
 
+// ListAdminIDs mengembalikan semua user ID ber-role admin. Dipakai utk
+// mengirim notifikasi saat ada booking baru yang butuh pengurusan admin.
+func (r *Repository) ListAdminIDs() ([]uint, error) {
+	var userIDs []uint
+	err := r.db.Table("user_roles").
+		Joins("JOIN roles ON roles.id = user_roles.role_id").
+		Where("roles.name = ?", "admin").
+		Pluck("user_roles.user_id", &userIDs).Error
+	return userIDs, err
+}
+
 // ListBusyTeacherIDs mengembalikan himpunan teacher_id yang sibuk pada
 // (date, start, end): punya booking pending/confirmed yang rentang mingguannya
 // mencakup tanggal tersebut dan jamnya overlap, atau punya sesi di tanggal itu.

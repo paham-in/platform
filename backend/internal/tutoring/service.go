@@ -343,6 +343,7 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingRequ
 		base.GroupToken = token
 
 		var resp *CreateBookingResponse
+		var organizerName, subjectName string
 		err = s.db.Transaction(func(tx *gorm.DB) error {
 			organizer := base
 			organizer.StudentID = studentID
@@ -360,6 +361,12 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingRequ
 			if err != nil {
 				return err
 			}
+			if created.Student != nil {
+				organizerName = created.Student.Name
+			}
+			if created.Subject != nil {
+				subjectName = created.Subject.Name
+			}
 			r := newCreateBookingResponse(*created)
 			resp = &r
 			return nil
@@ -367,6 +374,7 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingRequ
 		if err != nil {
 			return nil, err
 		}
+		s.notifyAdminsNewBooking(organizerName, subjectName, input.Date, input.StartTime, input.EndTime)
 		return resp, nil
 	}
 
@@ -381,7 +389,32 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingRequ
 		return nil, err
 	}
 	r := newCreateBookingResponse(*created)
+	studentName := ""
+	if created.Student != nil {
+		studentName = created.Student.Name
+	}
+	subjectName := ""
+	if created.Subject != nil {
+		subjectName = created.Subject.Name
+	}
+	s.notifyAdminsNewBooking(studentName, subjectName, input.Date, input.StartTime, input.EndTime)
 	return &r, nil
+}
+
+// notifyAdminsNewBooking mengirim notifikasi ke semua admin bahwa ada booking
+// baru (tanpa guru) yang menunggu di-assign. Best-effort: kalau tidak ada
+// admin atau gagal query, dilewati diam-diam.
+func (s *Service) notifyAdminsNewBooking(studentName, subjectName, date, startTime, endTime string) {
+	if s.notifSvc == nil {
+		return
+	}
+	admins, err := s.repo.ListAdminIDs()
+	if err != nil || len(admins) == 0 {
+		return
+	}
+	body := fmt.Sprintf("%s buat booking %s - pada %s %s-%s, belum ada guru",
+		studentName, subjectName, date, startTime, endTime)
+	s.notifSvc.NotifyBatch(admins, "Booking baru menunggu guru", body, "tutoring", "/dashboard/admin/tutoring")
 }
 
 // validateSubjectProgram memastikan mapel satu program dengan kelas murid.
