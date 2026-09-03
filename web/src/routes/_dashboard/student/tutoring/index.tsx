@@ -53,11 +53,10 @@ function modeBadge(mode?: string) {
   return <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
 }
 
-// canCancel: booking masih bisa dibatalkan murid, pending (guru belum acc)
-// atau confirmed tapi invoice belum lunas (murid batal sebelum bayar).
+// canCancel: murid hanya bisa batal saat pending (guru belum di-assign admin).
+// Setelah confirmed, pembatalan lewat admin.
 function canCancel(b: TutoringListBookingsResponse) {
-  if (b.status === "pending") return true
-  return b.status === "confirmed" && b.invoice_status !== "paid"
+  return b.status === "pending"
 }
 
 function CancelBookingDialog({ booking, onClose }: { booking: TutoringListBookingsResponse; onClose: () => void }) {

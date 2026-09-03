@@ -790,11 +790,10 @@ func (s *Service) UpdateBookingStatus(id, teacherID uint, status string) (*Updat
 }
 
 // CancelBooking membatalkan booking oleh murid pemiliknya.
-// Bisa dilakukan saat status pending (guru belum acc) atau confirmed sebelum
-// invoice lunas. Sesi yang masih terjadwal ikut dibatalkan, invoice yang belum
-// lunas dihapus. Booking yang sudah lunas / punya pertemuan berjalan tidak bisa
-// dibatalkan sendiri, hubungi admin. Grup: hanya booking murid yang bersangkutan
-// yang dibatalkan, anggota lain tidak terpengaruh.
+// Hanya bisa saat status pending (guru belum di-assign admin). Setelah guru
+// di-assign & booking confirmed, murid tidak bisa batal sendiri, hubungi admin.
+// Grup: hanya booking murid yang bersangkutan yang dibatalkan, anggota lain
+// tidak terpengaruh.
 func (s *Service) CancelBooking(id, studentID uint) (*CancelBookingResponse, error) {
 	booking, err := s.repo.GetBooking(id)
 	if err != nil {
@@ -809,19 +808,7 @@ func (s *Service) CancelBooking(id, studentID uint) (*CancelBookingResponse, err
 	case "rejected":
 		return nil, errors.New("booking sudah ditolak guru")
 	case "confirmed":
-		var paid models.Invoice
-		if err := s.repo.db.Where("booking_id = ? AND status = ?", id, "paid").First(&paid).Error; err == nil {
-			return nil, errors.New("booking sudah lunas, hubungi admin untuk pembatalan")
-		}
-		var started int64
-		if err := s.repo.db.Model(&models.TutoringSession{}).
-			Where("booking_id = ? AND status IN ?", id, []string{"done", "review"}).
-			Count(&started).Error; err != nil {
-			return nil, err
-		}
-		if started > 0 {
-			return nil, errors.New("booking sudah ada pertemuan berjalan, hubungi admin")
-		}
+		return nil, errors.New("booking sudah punya guru, hubungi admin untuk pembatalan")
 	}
 
 	// status → cancelled; sesi terjadwal ikut batal; invoice belum lunas dihapus.
