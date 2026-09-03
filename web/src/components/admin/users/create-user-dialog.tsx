@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { postAdminUsersMutation, getAdminUsersQueryKey } from "@/lib/api/@tanstack/react-query.gen"
 
+const EMAIL_DOMAIN = "pahamin.my.id"
+
 interface CreateUserDialogProps {
   onClose: () => void
 }
@@ -15,7 +17,7 @@ interface CreateUserDialogProps {
 export function CreateUserDialog({ onClose }: CreateUserDialogProps) {
   const qc = useQueryClient()
   const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
+  const [emailInput, setEmailInput] = useState("")
 
   const { mutate: createUser, isPending } = useMutation({
     ...postAdminUsersMutation(),
@@ -27,11 +29,13 @@ export function CreateUserDialog({ onClose }: CreateUserDialogProps) {
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal membuat user"),
   })
 
-  const canSave = name.trim() !== "" && email.trim() !== "" && !isPending
+  const canSave = name.trim() !== "" && emailInput.trim() !== "" && !isPending
 
   const save = () => {
     if (!canSave) return
-    createUser({ body: { name: name.trim(), email: email.trim() } })
+    const input = emailInput.trim()
+    const email = input.includes("@") ? input : `${input}@${EMAIL_DOMAIN}`
+    createUser({ body: { name: name.trim(), email } })
   }
 
   return (
@@ -47,7 +51,10 @@ export function CreateUserDialog({ onClose }: CreateUserDialogProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="new-user-email">Email</Label>
-            <Input id="new-user-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@contoh.com" autoComplete="off"/>
+            <Input id="new-user-email" type="text" value={emailInput} onChange={(e) => setEmailInput(e.target.value)} placeholder="nama" autoComplete="off"/>
+            <p className="text-xs text-muted-foreground">
+              Cukup isi nama, domain <span className="font-medium">@{EMAIL_DOMAIN}</span> ditambahkan otomatis.
+            </p>
           </div>
           <p className="text-xs text-muted-foreground">
             Akses kelas diberikan terpisah, otomatis setelah invoice langganan/les lunas, atau manual lewat halaman Hak Akses Murid.
