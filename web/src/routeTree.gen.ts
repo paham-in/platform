@@ -9,85 +9,80 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as DashboardRouteImport } from './routes/_dashboard'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as DashboardRouteImport } from './routes/_dashboard'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard/settings'
-import { Route as DashboardUserSubscribeRouteImport } from './routes/_dashboard/user/subscribe'
-import { Route as DashboardUserMaterialsRouteImport } from './routes/_dashboard/user/materials'
-import { Route as DashboardUserDashboardRouteImport } from './routes/_dashboard/user/dashboard'
-import { Route as DashboardTeacherDashboardRouteImport } from './routes/_dashboard/teacher/dashboard'
-import { Route as DashboardTeacherCalendarRouteImport } from './routes/_dashboard/teacher/calendar'
-import { Route as DashboardStudentSubscribeRouteImport } from './routes/_dashboard/student/subscribe'
-import { Route as DashboardStudentPaymentsRouteImport } from './routes/_dashboard/student/payments'
-import { Route as DashboardStudentDashboardRouteImport } from './routes/_dashboard/student/dashboard'
-import { Route as DashboardStudentCalendarRouteImport } from './routes/_dashboard/student/calendar'
-import { Route as DashboardAdminUsersRouteImport } from './routes/_dashboard/admin/users'
-import { Route as DashboardAdminTutoringFeesRouteImport } from './routes/_dashboard/admin/tutoring-fees'
-import { Route as DashboardAdminTeacherSubjectsRouteImport } from './routes/_dashboard/admin/teacher-subjects'
-import { Route as DashboardAdminTeacherPermissionsRouteImport } from './routes/_dashboard/admin/teacher-permissions'
-import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard/admin/subjects'
-import { Route as DashboardAdminStudentClassEnrollmentsRouteImport } from './routes/_dashboard/admin/student-class-enrollments'
-import { Route as DashboardAdminProgramsRouteImport } from './routes/_dashboard/admin/programs'
-import { Route as DashboardAdminDevResetRouteImport } from './routes/_dashboard/admin/dev-reset'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as DashboardAdminDashboardRouteImport } from './routes/_dashboard/admin/dashboard'
-import { Route as DashboardTeacherTutoringIndexRouteImport } from './routes/_dashboard/teacher/tutoring/index'
-import { Route as DashboardTeacherPacksIndexRouteImport } from './routes/_dashboard/teacher/packs/index'
-import { Route as DashboardTeacherForumIndexRouteImport } from './routes/_dashboard/teacher/forum/index'
-import { Route as DashboardTeacherChaptersIndexRouteImport } from './routes/_dashboard/teacher/chapters/index'
-import { Route as DashboardStudentTutoringIndexRouteImport } from './routes/_dashboard/student/tutoring/index'
-import { Route as DashboardStudentPackagesIndexRouteImport } from './routes/_dashboard/student/packages/index'
-import { Route as DashboardStudentMaterialsIndexRouteImport } from './routes/_dashboard/student/materials/index'
-import { Route as DashboardStudentForumIndexRouteImport } from './routes/_dashboard/student/forum/index'
-import { Route as DashboardAdminTutoringIndexRouteImport } from './routes/_dashboard/admin/tutoring/index'
-import { Route as DashboardAdminPaymentsIndexRouteImport } from './routes/_dashboard/admin/payments/index'
-import { Route as DashboardAdminForumIndexRouteImport } from './routes/_dashboard/admin/forum/index'
+import { Route as DashboardAdminDevResetRouteImport } from './routes/_dashboard/admin/dev-reset'
+import { Route as DashboardAdminProgramsRouteImport } from './routes/_dashboard/admin/programs'
+import { Route as DashboardAdminStudentClassEnrollmentsRouteImport } from './routes/_dashboard/admin/student-class-enrollments'
+import { Route as DashboardAdminSubjectsRouteImport } from './routes/_dashboard/admin/subjects'
+import { Route as DashboardAdminTeacherPermissionsRouteImport } from './routes/_dashboard/admin/teacher-permissions'
+import { Route as DashboardAdminTeacherSubjectsRouteImport } from './routes/_dashboard/admin/teacher-subjects'
+import { Route as DashboardAdminTutoringFeesRouteImport } from './routes/_dashboard/admin/tutoring-fees'
+import { Route as DashboardAdminUsersRouteImport } from './routes/_dashboard/admin/users'
+import { Route as DashboardStudentCalendarRouteImport } from './routes/_dashboard/student/calendar'
+import { Route as DashboardStudentDashboardRouteImport } from './routes/_dashboard/student/dashboard'
+import { Route as DashboardStudentPaymentsRouteImport } from './routes/_dashboard/student/payments'
+import { Route as DashboardStudentSubscribeRouteImport } from './routes/_dashboard/student/subscribe'
+import { Route as DashboardTeacherCalendarRouteImport } from './routes/_dashboard/teacher/calendar'
+import { Route as DashboardTeacherDashboardRouteImport } from './routes/_dashboard/teacher/dashboard'
+import { Route as DashboardUserDashboardRouteImport } from './routes/_dashboard/user/dashboard'
+import { Route as DashboardUserMaterialsRouteImport } from './routes/_dashboard/user/materials'
+import { Route as DashboardUserSubscribeRouteImport } from './routes/_dashboard/user/subscribe'
 import { Route as DashboardAdminAttendanceIndexRouteImport } from './routes/_dashboard/admin/attendance/index'
-import { Route as DashboardUserMaterialsMaterialIdRouteImport } from './routes/_dashboard/user/materials/$materialId'
-import { Route as DashboardTeacherTutoringRequestsRouteImport } from './routes/_dashboard/teacher/tutoring/requests'
-import { Route as DashboardTeacherTutoringEarningsRouteImport } from './routes/_dashboard/teacher/tutoring/earnings'
-import { Route as DashboardTeacherForumIdRouteImport } from './routes/_dashboard/teacher/forum/$id'
-import { Route as DashboardStudentTutoringNewRouteImport } from './routes/_dashboard/student/tutoring/new'
-import { Route as DashboardStudentForumNewRouteImport } from './routes/_dashboard/student/forum/new'
-import { Route as DashboardStudentForumIdRouteImport } from './routes/_dashboard/student/forum/$id'
-import { Route as DashboardAdminTutoringNewRouteImport } from './routes/_dashboard/admin/tutoring/new'
-import { Route as DashboardAdminPaymentsUserIdRouteImport } from './routes/_dashboard/admin/payments/$userId'
-import { Route as DashboardAdminForumIdRouteImport } from './routes/_dashboard/admin/forum/$id'
 import { Route as DashboardAdminAttendanceUserIdRouteImport } from './routes/_dashboard/admin/attendance/$userId'
-import { Route as DashboardTeacherPacksCollectionIdIndexRouteImport } from './routes/_dashboard/teacher/packs/$collectionId/index'
-import { Route as DashboardStudentPackagesCollectionIdIndexRouteImport } from './routes/_dashboard/student/packages/$collectionId/index'
+import { Route as DashboardAdminForumIndexRouteImport } from './routes/_dashboard/admin/forum/index'
+import { Route as DashboardAdminForumIdRouteImport } from './routes/_dashboard/admin/forum/$id'
+import { Route as DashboardAdminPaymentsIndexRouteImport } from './routes/_dashboard/admin/payments/index'
+import { Route as DashboardAdminPaymentsUserIdRouteImport } from './routes/_dashboard/admin/payments/$userId'
+import { Route as DashboardAdminTutoringIndexRouteImport } from './routes/_dashboard/admin/tutoring/index'
+import { Route as DashboardAdminTutoringNewRouteImport } from './routes/_dashboard/admin/tutoring/new'
+import { Route as DashboardStudentForumIndexRouteImport } from './routes/_dashboard/student/forum/index'
+import { Route as DashboardStudentForumIdRouteImport } from './routes/_dashboard/student/forum/$id'
+import { Route as DashboardStudentForumNewRouteImport } from './routes/_dashboard/student/forum/new'
+import { Route as DashboardStudentMaterialsIndexRouteImport } from './routes/_dashboard/student/materials/index'
+import { Route as DashboardStudentPackagesIndexRouteImport } from './routes/_dashboard/student/packages/index'
+import { Route as DashboardStudentTutoringIndexRouteImport } from './routes/_dashboard/student/tutoring/index'
+import { Route as DashboardStudentTutoringNewRouteImport } from './routes/_dashboard/student/tutoring/new'
+import { Route as DashboardTeacherChaptersIndexRouteImport } from './routes/_dashboard/teacher/chapters/index'
+import { Route as DashboardTeacherForumIndexRouteImport } from './routes/_dashboard/teacher/forum/index'
+import { Route as DashboardTeacherForumIdRouteImport } from './routes/_dashboard/teacher/forum/$id'
+import { Route as DashboardTeacherPacksIndexRouteImport } from './routes/_dashboard/teacher/packs/index'
+import { Route as DashboardTeacherTutoringIndexRouteImport } from './routes/_dashboard/teacher/tutoring/index'
+import { Route as DashboardTeacherTutoringEarningsRouteImport } from './routes/_dashboard/teacher/tutoring/earnings'
+import { Route as DashboardTeacherTutoringRequestsRouteImport } from './routes/_dashboard/teacher/tutoring/requests'
+import { Route as DashboardUserMaterialsMaterialIdRouteImport } from './routes/_dashboard/user/materials/$materialId'
 import { Route as DashboardStudentForumIdIndexRouteImport } from './routes/_dashboard/student/forum/$id/index'
-import { Route as DashboardStudentMaterialsChaptersIdRouteImport } from './routes/_dashboard/student/materials/chapters/$id'
 import { Route as DashboardStudentForumIdEditRouteImport } from './routes/_dashboard/student/forum/$id/edit'
-import { Route as DashboardTeacherPacksCollectionIdPackageIdIndexRouteImport } from './routes/_dashboard/teacher/packs/$collectionId/$packageId/index'
-import { Route as DashboardTeacherChaptersChapterIdMaterialsIndexRouteImport } from './routes/_dashboard/teacher/chapters/$chapterId/materials/index'
-import { Route as DashboardStudentPackagesCollectionIdPackageIdIndexRouteImport } from './routes/_dashboard/student/packages/$collectionId/$packageId/index'
-import { Route as DashboardTeacherPacksCollectionIdPackageIdImportRouteImport } from './routes/_dashboard/teacher/packs/$collectionId/$packageId/import'
-import { Route as DashboardTeacherChaptersChapterIdMaterialsNewRouteImport } from './routes/_dashboard/teacher/chapters/$chapterId/materials/new'
+import { Route as DashboardStudentMaterialsChaptersIdRouteImport } from './routes/_dashboard/student/materials/chapters/$id'
+import { Route as DashboardStudentPackagesCollectionIdIndexRouteImport } from './routes/_dashboard/student/packages/$collectionId/index'
+import { Route as DashboardTeacherPacksCollectionIdIndexRouteImport } from './routes/_dashboard/teacher/packs/$collectionId/index'
 import { Route as DashboardStudentMaterialsChaptersChapterIdMaterialIdRouteImport } from './routes/_dashboard/student/materials/chapters/$chapterId/$materialId'
+import { Route as DashboardStudentPackagesCollectionIdPackageIdIndexRouteImport } from './routes/_dashboard/student/packages/$collectionId/$packageId/index'
+import { Route as DashboardTeacherChaptersChapterIdMaterialsIndexRouteImport } from './routes/_dashboard/teacher/chapters/$chapterId/materials/index'
+import { Route as DashboardTeacherChaptersChapterIdMaterialsNewRouteImport } from './routes/_dashboard/teacher/chapters/$chapterId/materials/new'
+import { Route as DashboardTeacherPacksCollectionIdPackageIdIndexRouteImport } from './routes/_dashboard/teacher/packs/$collectionId/$packageId/index'
+import { Route as DashboardTeacherPacksCollectionIdPackageIdImportRouteImport } from './routes/_dashboard/teacher/packs/$collectionId/$packageId/import'
 import { Route as DashboardStudentPackagesCollectionIdPackageIdWorkIndexRouteImport } from './routes/_dashboard/student/packages/$collectionId/$packageId/work/index'
-import { Route as DashboardTeacherPacksCollectionIdPackageIdQuestionsNewRouteImport } from './routes/_dashboard/teacher/packs/$collectionId/$packageId/questions/new'
 import { Route as DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRouteImport } from './routes/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit'
+import { Route as DashboardTeacherPacksCollectionIdPackageIdQuestionsNewRouteImport } from './routes/_dashboard/teacher/packs/$collectionId/$packageId/questions/new'
 import { Route as DashboardTeacherPacksCollectionIdPackageIdQuestionsQuestionIdEditRouteImport } from './routes/_dashboard/teacher/packs/$collectionId/$packageId/questions/$questionId/edit'
 
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/_dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
@@ -95,83 +90,24 @@ const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardUserSubscribeRoute = DashboardUserSubscribeRouteImport.update({
-  id: '/user/subscribe',
-  path: '/user/subscribe',
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardAdminDashboardRoute = DashboardAdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardUserMaterialsRoute = DashboardUserMaterialsRouteImport.update({
-  id: '/user/materials',
-  path: '/user/materials',
+const DashboardAdminDevResetRoute = DashboardAdminDevResetRouteImport.update({
+  id: '/admin/dev-reset',
+  path: '/admin/dev-reset',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardUserDashboardRoute = DashboardUserDashboardRouteImport.update({
-  id: '/user/dashboard',
-  path: '/user/dashboard',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardTeacherDashboardRoute =
-  DashboardTeacherDashboardRouteImport.update({
-    id: '/teacher/dashboard',
-    path: '/teacher/dashboard',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardTeacherCalendarRoute =
-  DashboardTeacherCalendarRouteImport.update({
-    id: '/teacher/calendar',
-    path: '/teacher/calendar',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentSubscribeRoute =
-  DashboardStudentSubscribeRouteImport.update({
-    id: '/student/subscribe',
-    path: '/student/subscribe',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentPaymentsRoute =
-  DashboardStudentPaymentsRouteImport.update({
-    id: '/student/payments',
-    path: '/student/payments',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentDashboardRoute =
-  DashboardStudentDashboardRouteImport.update({
-    id: '/student/dashboard',
-    path: '/student/dashboard',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentCalendarRoute =
-  DashboardStudentCalendarRouteImport.update({
-    id: '/student/calendar',
-    path: '/student/calendar',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardAdminUsersRoute = DashboardAdminUsersRouteImport.update({
-  id: '/admin/users',
-  path: '/admin/users',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardAdminTutoringFeesRoute =
-  DashboardAdminTutoringFeesRouteImport.update({
-    id: '/admin/tutoring-fees',
-    path: '/admin/tutoring-fees',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardAdminTeacherSubjectsRoute =
-  DashboardAdminTeacherSubjectsRouteImport.update({
-    id: '/admin/teacher-subjects',
-    path: '/admin/teacher-subjects',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardAdminTeacherPermissionsRoute =
-  DashboardAdminTeacherPermissionsRouteImport.update({
-    id: '/admin/teacher-permissions',
-    path: '/admin/teacher-permissions',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardAdminSubjectsRoute = DashboardAdminSubjectsRouteImport.update({
-  id: '/admin/subjects',
-  path: '/admin/subjects',
+const DashboardAdminProgramsRoute = DashboardAdminProgramsRouteImport.update({
+  id: '/admin/programs',
+  path: '/admin/programs',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAdminStudentClassEnrollmentsRoute =
@@ -180,79 +116,95 @@ const DashboardAdminStudentClassEnrollmentsRoute =
     path: '/admin/student-class-enrollments',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardAdminProgramsRoute = DashboardAdminProgramsRouteImport.update({
-  id: '/admin/programs',
-  path: '/admin/programs',
+const DashboardAdminSubjectsRoute = DashboardAdminSubjectsRouteImport.update({
+  id: '/admin/subjects',
+  path: '/admin/subjects',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardAdminDevResetRoute = DashboardAdminDevResetRouteImport.update({
-  id: '/admin/dev-reset',
-  path: '/admin/dev-reset',
+const DashboardAdminTeacherPermissionsRoute =
+  DashboardAdminTeacherPermissionsRouteImport.update({
+    id: '/admin/teacher-permissions',
+    path: '/admin/teacher-permissions',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAdminTeacherSubjectsRoute =
+  DashboardAdminTeacherSubjectsRouteImport.update({
+    id: '/admin/teacher-subjects',
+    path: '/admin/teacher-subjects',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAdminTutoringFeesRoute =
+  DashboardAdminTutoringFeesRouteImport.update({
+    id: '/admin/tutoring-fees',
+    path: '/admin/tutoring-fees',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAdminUsersRoute = DashboardAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardAdminDashboardRoute = DashboardAdminDashboardRouteImport.update({
-  id: '/admin/dashboard',
-  path: '/admin/dashboard',
+const DashboardStudentCalendarRoute =
+  DashboardStudentCalendarRouteImport.update({
+    id: '/student/calendar',
+    path: '/student/calendar',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardStudentDashboardRoute =
+  DashboardStudentDashboardRouteImport.update({
+    id: '/student/dashboard',
+    path: '/student/dashboard',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardStudentPaymentsRoute =
+  DashboardStudentPaymentsRouteImport.update({
+    id: '/student/payments',
+    path: '/student/payments',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardStudentSubscribeRoute =
+  DashboardStudentSubscribeRouteImport.update({
+    id: '/student/subscribe',
+    path: '/student/subscribe',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherCalendarRoute =
+  DashboardTeacherCalendarRouteImport.update({
+    id: '/teacher/calendar',
+    path: '/teacher/calendar',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherDashboardRoute =
+  DashboardTeacherDashboardRouteImport.update({
+    id: '/teacher/dashboard',
+    path: '/teacher/dashboard',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardUserDashboardRoute = DashboardUserDashboardRouteImport.update({
+  id: '/user/dashboard',
+  path: '/user/dashboard',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardTeacherTutoringIndexRoute =
-  DashboardTeacherTutoringIndexRouteImport.update({
-    id: '/teacher/tutoring/',
-    path: '/teacher/tutoring/',
+const DashboardUserMaterialsRoute = DashboardUserMaterialsRouteImport.update({
+  id: '/user/materials',
+  path: '/user/materials',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardUserSubscribeRoute = DashboardUserSubscribeRouteImport.update({
+  id: '/user/subscribe',
+  path: '/user/subscribe',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAdminAttendanceIndexRoute =
+  DashboardAdminAttendanceIndexRouteImport.update({
+    id: '/admin/attendance/',
+    path: '/admin/attendance/',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardTeacherPacksIndexRoute =
-  DashboardTeacherPacksIndexRouteImport.update({
-    id: '/teacher/packs/',
-    path: '/teacher/packs/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardTeacherForumIndexRoute =
-  DashboardTeacherForumIndexRouteImport.update({
-    id: '/teacher/forum/',
-    path: '/teacher/forum/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardTeacherChaptersIndexRoute =
-  DashboardTeacherChaptersIndexRouteImport.update({
-    id: '/teacher/chapters/',
-    path: '/teacher/chapters/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentTutoringIndexRoute =
-  DashboardStudentTutoringIndexRouteImport.update({
-    id: '/student/tutoring/',
-    path: '/student/tutoring/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentPackagesIndexRoute =
-  DashboardStudentPackagesIndexRouteImport.update({
-    id: '/student/packages/',
-    path: '/student/packages/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentMaterialsIndexRoute =
-  DashboardStudentMaterialsIndexRouteImport.update({
-    id: '/student/materials/',
-    path: '/student/materials/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentForumIndexRoute =
-  DashboardStudentForumIndexRouteImport.update({
-    id: '/student/forum/',
-    path: '/student/forum/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardAdminTutoringIndexRoute =
-  DashboardAdminTutoringIndexRouteImport.update({
-    id: '/admin/tutoring/',
-    path: '/admin/tutoring/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardAdminPaymentsIndexRoute =
-  DashboardAdminPaymentsIndexRouteImport.update({
-    id: '/admin/payments/',
-    path: '/admin/payments/',
+const DashboardAdminAttendanceUserIdRoute =
+  DashboardAdminAttendanceUserIdRouteImport.update({
+    id: '/admin/attendance/$userId',
+    path: '/admin/attendance/$userId',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardAdminForumIndexRoute =
@@ -261,56 +213,15 @@ const DashboardAdminForumIndexRoute =
     path: '/admin/forum/',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardAdminAttendanceIndexRoute =
-  DashboardAdminAttendanceIndexRouteImport.update({
-    id: '/admin/attendance/',
-    path: '/admin/attendance/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardUserMaterialsMaterialIdRoute =
-  DashboardUserMaterialsMaterialIdRouteImport.update({
-    id: '/$materialId',
-    path: '/$materialId',
-    getParentRoute: () => DashboardUserMaterialsRoute,
-  } as any)
-const DashboardTeacherTutoringRequestsRoute =
-  DashboardTeacherTutoringRequestsRouteImport.update({
-    id: '/teacher/tutoring/requests',
-    path: '/teacher/tutoring/requests',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardTeacherTutoringEarningsRoute =
-  DashboardTeacherTutoringEarningsRouteImport.update({
-    id: '/teacher/tutoring/earnings',
-    path: '/teacher/tutoring/earnings',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardTeacherForumIdRoute = DashboardTeacherForumIdRouteImport.update({
-  id: '/teacher/forum/$id',
-  path: '/teacher/forum/$id',
+const DashboardAdminForumIdRoute = DashboardAdminForumIdRouteImport.update({
+  id: '/admin/forum/$id',
+  path: '/admin/forum/$id',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardStudentTutoringNewRoute =
-  DashboardStudentTutoringNewRouteImport.update({
-    id: '/student/tutoring/new',
-    path: '/student/tutoring/new',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentForumNewRoute =
-  DashboardStudentForumNewRouteImport.update({
-    id: '/student/forum/new',
-    path: '/student/forum/new',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentForumIdRoute = DashboardStudentForumIdRouteImport.update({
-  id: '/student/forum/$id',
-  path: '/student/forum/$id',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardAdminTutoringNewRoute =
-  DashboardAdminTutoringNewRouteImport.update({
-    id: '/admin/tutoring/new',
-    path: '/admin/tutoring/new',
+const DashboardAdminPaymentsIndexRoute =
+  DashboardAdminPaymentsIndexRouteImport.update({
+    id: '/admin/payments/',
+    path: '/admin/payments/',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardAdminPaymentsUserIdRoute =
@@ -319,33 +230,116 @@ const DashboardAdminPaymentsUserIdRoute =
     path: '/admin/payments/$userId',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardAdminForumIdRoute = DashboardAdminForumIdRouteImport.update({
-  id: '/admin/forum/$id',
-  path: '/admin/forum/$id',
+const DashboardAdminTutoringIndexRoute =
+  DashboardAdminTutoringIndexRouteImport.update({
+    id: '/admin/tutoring/',
+    path: '/admin/tutoring/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAdminTutoringNewRoute =
+  DashboardAdminTutoringNewRouteImport.update({
+    id: '/admin/tutoring/new',
+    path: '/admin/tutoring/new',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardStudentForumIndexRoute =
+  DashboardStudentForumIndexRouteImport.update({
+    id: '/student/forum/',
+    path: '/student/forum/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardStudentForumIdRoute = DashboardStudentForumIdRouteImport.update({
+  id: '/student/forum/$id',
+  path: '/student/forum/$id',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardAdminAttendanceUserIdRoute =
-  DashboardAdminAttendanceUserIdRouteImport.update({
-    id: '/admin/attendance/$userId',
-    path: '/admin/attendance/$userId',
+const DashboardStudentForumNewRoute =
+  DashboardStudentForumNewRouteImport.update({
+    id: '/student/forum/new',
+    path: '/student/forum/new',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardTeacherPacksCollectionIdIndexRoute =
-  DashboardTeacherPacksCollectionIdIndexRouteImport.update({
-    id: '/teacher/packs/$collectionId/',
-    path: '/teacher/packs/$collectionId/',
+const DashboardStudentMaterialsIndexRoute =
+  DashboardStudentMaterialsIndexRouteImport.update({
+    id: '/student/materials/',
+    path: '/student/materials/',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardStudentPackagesCollectionIdIndexRoute =
-  DashboardStudentPackagesCollectionIdIndexRouteImport.update({
-    id: '/student/packages/$collectionId/',
-    path: '/student/packages/$collectionId/',
+const DashboardStudentPackagesIndexRoute =
+  DashboardStudentPackagesIndexRouteImport.update({
+    id: '/student/packages/',
+    path: '/student/packages/',
     getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardStudentTutoringIndexRoute =
+  DashboardStudentTutoringIndexRouteImport.update({
+    id: '/student/tutoring/',
+    path: '/student/tutoring/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardStudentTutoringNewRoute =
+  DashboardStudentTutoringNewRouteImport.update({
+    id: '/student/tutoring/new',
+    path: '/student/tutoring/new',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherChaptersIndexRoute =
+  DashboardTeacherChaptersIndexRouteImport.update({
+    id: '/teacher/chapters/',
+    path: '/teacher/chapters/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherForumIndexRoute =
+  DashboardTeacherForumIndexRouteImport.update({
+    id: '/teacher/forum/',
+    path: '/teacher/forum/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherForumIdRoute = DashboardTeacherForumIdRouteImport.update({
+  id: '/teacher/forum/$id',
+  path: '/teacher/forum/$id',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardTeacherPacksIndexRoute =
+  DashboardTeacherPacksIndexRouteImport.update({
+    id: '/teacher/packs/',
+    path: '/teacher/packs/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherTutoringIndexRoute =
+  DashboardTeacherTutoringIndexRouteImport.update({
+    id: '/teacher/tutoring/',
+    path: '/teacher/tutoring/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherTutoringEarningsRoute =
+  DashboardTeacherTutoringEarningsRouteImport.update({
+    id: '/teacher/tutoring/earnings',
+    path: '/teacher/tutoring/earnings',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherTutoringRequestsRoute =
+  DashboardTeacherTutoringRequestsRouteImport.update({
+    id: '/teacher/tutoring/requests',
+    path: '/teacher/tutoring/requests',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardUserMaterialsMaterialIdRoute =
+  DashboardUserMaterialsMaterialIdRouteImport.update({
+    id: '/$materialId',
+    path: '/$materialId',
+    getParentRoute: () => DashboardUserMaterialsRoute,
   } as any)
 const DashboardStudentForumIdIndexRoute =
   DashboardStudentForumIdIndexRouteImport.update({
     id: '/',
     path: '/',
+    getParentRoute: () => DashboardStudentForumIdRoute,
+  } as any)
+const DashboardStudentForumIdEditRoute =
+  DashboardStudentForumIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
     getParentRoute: () => DashboardStudentForumIdRoute,
   } as any)
 const DashboardStudentMaterialsChaptersIdRoute =
@@ -354,40 +348,16 @@ const DashboardStudentMaterialsChaptersIdRoute =
     path: '/student/materials/chapters/$id',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardStudentForumIdEditRoute =
-  DashboardStudentForumIdEditRouteImport.update({
-    id: '/edit',
-    path: '/edit',
-    getParentRoute: () => DashboardStudentForumIdRoute,
-  } as any)
-const DashboardTeacherPacksCollectionIdPackageIdIndexRoute =
-  DashboardTeacherPacksCollectionIdPackageIdIndexRouteImport.update({
-    id: '/teacher/packs/$collectionId/$packageId/',
-    path: '/teacher/packs/$collectionId/$packageId/',
+const DashboardStudentPackagesCollectionIdIndexRoute =
+  DashboardStudentPackagesCollectionIdIndexRouteImport.update({
+    id: '/student/packages/$collectionId/',
+    path: '/student/packages/$collectionId/',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardTeacherChaptersChapterIdMaterialsIndexRoute =
-  DashboardTeacherChaptersChapterIdMaterialsIndexRouteImport.update({
-    id: '/teacher/chapters/$chapterId/materials/',
-    path: '/teacher/chapters/$chapterId/materials/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardStudentPackagesCollectionIdPackageIdIndexRoute =
-  DashboardStudentPackagesCollectionIdPackageIdIndexRouteImport.update({
-    id: '/student/packages/$collectionId/$packageId/',
-    path: '/student/packages/$collectionId/$packageId/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardTeacherPacksCollectionIdPackageIdImportRoute =
-  DashboardTeacherPacksCollectionIdPackageIdImportRouteImport.update({
-    id: '/teacher/packs/$collectionId/$packageId/import',
-    path: '/teacher/packs/$collectionId/$packageId/import',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardTeacherChaptersChapterIdMaterialsNewRoute =
-  DashboardTeacherChaptersChapterIdMaterialsNewRouteImport.update({
-    id: '/teacher/chapters/$chapterId/materials/new',
-    path: '/teacher/chapters/$chapterId/materials/new',
+const DashboardTeacherPacksCollectionIdIndexRoute =
+  DashboardTeacherPacksCollectionIdIndexRouteImport.update({
+    id: '/teacher/packs/$collectionId/',
+    path: '/teacher/packs/$collectionId/',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute =
@@ -396,22 +366,52 @@ const DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute =
     path: '/student/materials/chapters/$chapterId/$materialId',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardStudentPackagesCollectionIdPackageIdIndexRoute =
+  DashboardStudentPackagesCollectionIdPackageIdIndexRouteImport.update({
+    id: '/student/packages/$collectionId/$packageId/',
+    path: '/student/packages/$collectionId/$packageId/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherChaptersChapterIdMaterialsIndexRoute =
+  DashboardTeacherChaptersChapterIdMaterialsIndexRouteImport.update({
+    id: '/teacher/chapters/$chapterId/materials/',
+    path: '/teacher/chapters/$chapterId/materials/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherChaptersChapterIdMaterialsNewRoute =
+  DashboardTeacherChaptersChapterIdMaterialsNewRouteImport.update({
+    id: '/teacher/chapters/$chapterId/materials/new',
+    path: '/teacher/chapters/$chapterId/materials/new',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherPacksCollectionIdPackageIdIndexRoute =
+  DashboardTeacherPacksCollectionIdPackageIdIndexRouteImport.update({
+    id: '/teacher/packs/$collectionId/$packageId/',
+    path: '/teacher/packs/$collectionId/$packageId/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherPacksCollectionIdPackageIdImportRoute =
+  DashboardTeacherPacksCollectionIdPackageIdImportRouteImport.update({
+    id: '/teacher/packs/$collectionId/$packageId/import',
+    path: '/teacher/packs/$collectionId/$packageId/import',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardStudentPackagesCollectionIdPackageIdWorkIndexRoute =
   DashboardStudentPackagesCollectionIdPackageIdWorkIndexRouteImport.update({
     id: '/student/packages/$collectionId/$packageId/work/',
     path: '/student/packages/$collectionId/$packageId/work/',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardTeacherPacksCollectionIdPackageIdQuestionsNewRoute =
-  DashboardTeacherPacksCollectionIdPackageIdQuestionsNewRouteImport.update({
-    id: '/teacher/packs/$collectionId/$packageId/questions/new',
-    path: '/teacher/packs/$collectionId/$packageId/questions/new',
-    getParentRoute: () => DashboardRoute,
-  } as any)
 const DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRoute =
   DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRouteImport.update({
     id: '/teacher/chapters/$chapterId/materials/$materialId/edit',
     path: '/teacher/chapters/$chapterId/materials/$materialId/edit',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardTeacherPacksCollectionIdPackageIdQuestionsNewRoute =
+  DashboardTeacherPacksCollectionIdPackageIdQuestionsNewRouteImport.update({
+    id: '/teacher/packs/$collectionId/$packageId/questions/new',
+    path: '/teacher/packs/$collectionId/$packageId/questions/new',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardTeacherPacksCollectionIdPackageIdQuestionsQuestionIdEditRoute =
@@ -808,11 +808,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_dashboard': {
@@ -822,18 +822,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_dashboard/settings': {
@@ -843,116 +836,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/user/subscribe': {
-      id: '/_dashboard/user/subscribe'
-      path: '/user/subscribe'
-      fullPath: '/user/subscribe'
-      preLoaderRoute: typeof DashboardUserSubscribeRouteImport
-      parentRoute: typeof DashboardRoute
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_dashboard/user/materials': {
-      id: '/_dashboard/user/materials'
-      path: '/user/materials'
-      fullPath: '/user/materials'
-      preLoaderRoute: typeof DashboardUserMaterialsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/user/dashboard': {
-      id: '/_dashboard/user/dashboard'
-      path: '/user/dashboard'
-      fullPath: '/user/dashboard'
-      preLoaderRoute: typeof DashboardUserDashboardRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/teacher/dashboard': {
-      id: '/_dashboard/teacher/dashboard'
-      path: '/teacher/dashboard'
-      fullPath: '/teacher/dashboard'
-      preLoaderRoute: typeof DashboardTeacherDashboardRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/teacher/calendar': {
-      id: '/_dashboard/teacher/calendar'
-      path: '/teacher/calendar'
-      fullPath: '/teacher/calendar'
-      preLoaderRoute: typeof DashboardTeacherCalendarRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/student/subscribe': {
-      id: '/_dashboard/student/subscribe'
-      path: '/student/subscribe'
-      fullPath: '/student/subscribe'
-      preLoaderRoute: typeof DashboardStudentSubscribeRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/student/payments': {
-      id: '/_dashboard/student/payments'
-      path: '/student/payments'
-      fullPath: '/student/payments'
-      preLoaderRoute: typeof DashboardStudentPaymentsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/student/dashboard': {
-      id: '/_dashboard/student/dashboard'
-      path: '/student/dashboard'
-      fullPath: '/student/dashboard'
-      preLoaderRoute: typeof DashboardStudentDashboardRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/student/calendar': {
-      id: '/_dashboard/student/calendar'
-      path: '/student/calendar'
-      fullPath: '/student/calendar'
-      preLoaderRoute: typeof DashboardStudentCalendarRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/users': {
-      id: '/_dashboard/admin/users'
-      path: '/admin/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof DashboardAdminUsersRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/tutoring-fees': {
-      id: '/_dashboard/admin/tutoring-fees'
-      path: '/admin/tutoring-fees'
-      fullPath: '/admin/tutoring-fees'
-      preLoaderRoute: typeof DashboardAdminTutoringFeesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/teacher-subjects': {
-      id: '/_dashboard/admin/teacher-subjects'
-      path: '/admin/teacher-subjects'
-      fullPath: '/admin/teacher-subjects'
-      preLoaderRoute: typeof DashboardAdminTeacherSubjectsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/teacher-permissions': {
-      id: '/_dashboard/admin/teacher-permissions'
-      path: '/admin/teacher-permissions'
-      fullPath: '/admin/teacher-permissions'
-      preLoaderRoute: typeof DashboardAdminTeacherPermissionsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/subjects': {
-      id: '/_dashboard/admin/subjects'
-      path: '/admin/subjects'
-      fullPath: '/admin/subjects'
-      preLoaderRoute: typeof DashboardAdminSubjectsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/student-class-enrollments': {
-      id: '/_dashboard/admin/student-class-enrollments'
-      path: '/admin/student-class-enrollments'
-      fullPath: '/admin/student-class-enrollments'
-      preLoaderRoute: typeof DashboardAdminStudentClassEnrollmentsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/programs': {
-      id: '/_dashboard/admin/programs'
-      path: '/admin/programs'
-      fullPath: '/admin/programs'
-      preLoaderRoute: typeof DashboardAdminProgramsRouteImport
+    '/_dashboard/admin/dashboard': {
+      id: '/_dashboard/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof DashboardAdminDashboardRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/admin/dev-reset': {
@@ -962,88 +857,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminDevResetRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/admin/dashboard': {
-      id: '/_dashboard/admin/dashboard'
-      path: '/admin/dashboard'
-      fullPath: '/admin/dashboard'
-      preLoaderRoute: typeof DashboardAdminDashboardRouteImport
+    '/_dashboard/admin/programs': {
+      id: '/_dashboard/admin/programs'
+      path: '/admin/programs'
+      fullPath: '/admin/programs'
+      preLoaderRoute: typeof DashboardAdminProgramsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/tutoring/': {
-      id: '/_dashboard/teacher/tutoring/'
-      path: '/teacher/tutoring'
-      fullPath: '/teacher/tutoring/'
-      preLoaderRoute: typeof DashboardTeacherTutoringIndexRouteImport
+    '/_dashboard/admin/student-class-enrollments': {
+      id: '/_dashboard/admin/student-class-enrollments'
+      path: '/admin/student-class-enrollments'
+      fullPath: '/admin/student-class-enrollments'
+      preLoaderRoute: typeof DashboardAdminStudentClassEnrollmentsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/packs/': {
-      id: '/_dashboard/teacher/packs/'
-      path: '/teacher/packs'
-      fullPath: '/teacher/packs/'
-      preLoaderRoute: typeof DashboardTeacherPacksIndexRouteImport
+    '/_dashboard/admin/subjects': {
+      id: '/_dashboard/admin/subjects'
+      path: '/admin/subjects'
+      fullPath: '/admin/subjects'
+      preLoaderRoute: typeof DashboardAdminSubjectsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/forum/': {
-      id: '/_dashboard/teacher/forum/'
-      path: '/teacher/forum'
-      fullPath: '/teacher/forum/'
-      preLoaderRoute: typeof DashboardTeacherForumIndexRouteImport
+    '/_dashboard/admin/teacher-permissions': {
+      id: '/_dashboard/admin/teacher-permissions'
+      path: '/admin/teacher-permissions'
+      fullPath: '/admin/teacher-permissions'
+      preLoaderRoute: typeof DashboardAdminTeacherPermissionsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/chapters/': {
-      id: '/_dashboard/teacher/chapters/'
-      path: '/teacher/chapters'
-      fullPath: '/teacher/chapters/'
-      preLoaderRoute: typeof DashboardTeacherChaptersIndexRouteImport
+    '/_dashboard/admin/teacher-subjects': {
+      id: '/_dashboard/admin/teacher-subjects'
+      path: '/admin/teacher-subjects'
+      fullPath: '/admin/teacher-subjects'
+      preLoaderRoute: typeof DashboardAdminTeacherSubjectsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/student/tutoring/': {
-      id: '/_dashboard/student/tutoring/'
-      path: '/student/tutoring'
-      fullPath: '/student/tutoring/'
-      preLoaderRoute: typeof DashboardStudentTutoringIndexRouteImport
+    '/_dashboard/admin/tutoring-fees': {
+      id: '/_dashboard/admin/tutoring-fees'
+      path: '/admin/tutoring-fees'
+      fullPath: '/admin/tutoring-fees'
+      preLoaderRoute: typeof DashboardAdminTutoringFeesRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/student/packages/': {
-      id: '/_dashboard/student/packages/'
-      path: '/student/packages'
-      fullPath: '/student/packages/'
-      preLoaderRoute: typeof DashboardStudentPackagesIndexRouteImport
+    '/_dashboard/admin/users': {
+      id: '/_dashboard/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof DashboardAdminUsersRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/student/materials/': {
-      id: '/_dashboard/student/materials/'
-      path: '/student/materials'
-      fullPath: '/student/materials/'
-      preLoaderRoute: typeof DashboardStudentMaterialsIndexRouteImport
+    '/_dashboard/student/calendar': {
+      id: '/_dashboard/student/calendar'
+      path: '/student/calendar'
+      fullPath: '/student/calendar'
+      preLoaderRoute: typeof DashboardStudentCalendarRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/student/forum/': {
-      id: '/_dashboard/student/forum/'
-      path: '/student/forum'
-      fullPath: '/student/forum/'
-      preLoaderRoute: typeof DashboardStudentForumIndexRouteImport
+    '/_dashboard/student/dashboard': {
+      id: '/_dashboard/student/dashboard'
+      path: '/student/dashboard'
+      fullPath: '/student/dashboard'
+      preLoaderRoute: typeof DashboardStudentDashboardRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/admin/tutoring/': {
-      id: '/_dashboard/admin/tutoring/'
-      path: '/admin/tutoring'
-      fullPath: '/admin/tutoring/'
-      preLoaderRoute: typeof DashboardAdminTutoringIndexRouteImport
+    '/_dashboard/student/payments': {
+      id: '/_dashboard/student/payments'
+      path: '/student/payments'
+      fullPath: '/student/payments'
+      preLoaderRoute: typeof DashboardStudentPaymentsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/admin/payments/': {
-      id: '/_dashboard/admin/payments/'
-      path: '/admin/payments'
-      fullPath: '/admin/payments/'
-      preLoaderRoute: typeof DashboardAdminPaymentsIndexRouteImport
+    '/_dashboard/student/subscribe': {
+      id: '/_dashboard/student/subscribe'
+      path: '/student/subscribe'
+      fullPath: '/student/subscribe'
+      preLoaderRoute: typeof DashboardStudentSubscribeRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/admin/forum/': {
-      id: '/_dashboard/admin/forum/'
-      path: '/admin/forum'
-      fullPath: '/admin/forum/'
-      preLoaderRoute: typeof DashboardAdminForumIndexRouteImport
+    '/_dashboard/teacher/calendar': {
+      id: '/_dashboard/teacher/calendar'
+      path: '/teacher/calendar'
+      fullPath: '/teacher/calendar'
+      preLoaderRoute: typeof DashboardTeacherCalendarRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/dashboard': {
+      id: '/_dashboard/teacher/dashboard'
+      path: '/teacher/dashboard'
+      fullPath: '/teacher/dashboard'
+      preLoaderRoute: typeof DashboardTeacherDashboardRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/user/dashboard': {
+      id: '/_dashboard/user/dashboard'
+      path: '/user/dashboard'
+      fullPath: '/user/dashboard'
+      preLoaderRoute: typeof DashboardUserDashboardRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/user/materials': {
+      id: '/_dashboard/user/materials'
+      path: '/user/materials'
+      fullPath: '/user/materials'
+      preLoaderRoute: typeof DashboardUserMaterialsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/user/subscribe': {
+      id: '/_dashboard/user/subscribe'
+      path: '/user/subscribe'
+      fullPath: '/user/subscribe'
+      preLoaderRoute: typeof DashboardUserSubscribeRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/admin/attendance/': {
@@ -1053,67 +976,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminAttendanceIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/user/materials/$materialId': {
-      id: '/_dashboard/user/materials/$materialId'
-      path: '/$materialId'
-      fullPath: '/user/materials/$materialId'
-      preLoaderRoute: typeof DashboardUserMaterialsMaterialIdRouteImport
-      parentRoute: typeof DashboardUserMaterialsRoute
-    }
-    '/_dashboard/teacher/tutoring/requests': {
-      id: '/_dashboard/teacher/tutoring/requests'
-      path: '/teacher/tutoring/requests'
-      fullPath: '/teacher/tutoring/requests'
-      preLoaderRoute: typeof DashboardTeacherTutoringRequestsRouteImport
+    '/_dashboard/admin/attendance/$userId': {
+      id: '/_dashboard/admin/attendance/$userId'
+      path: '/admin/attendance/$userId'
+      fullPath: '/admin/attendance/$userId'
+      preLoaderRoute: typeof DashboardAdminAttendanceUserIdRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/tutoring/earnings': {
-      id: '/_dashboard/teacher/tutoring/earnings'
-      path: '/teacher/tutoring/earnings'
-      fullPath: '/teacher/tutoring/earnings'
-      preLoaderRoute: typeof DashboardTeacherTutoringEarningsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/teacher/forum/$id': {
-      id: '/_dashboard/teacher/forum/$id'
-      path: '/teacher/forum/$id'
-      fullPath: '/teacher/forum/$id'
-      preLoaderRoute: typeof DashboardTeacherForumIdRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/student/tutoring/new': {
-      id: '/_dashboard/student/tutoring/new'
-      path: '/student/tutoring/new'
-      fullPath: '/student/tutoring/new'
-      preLoaderRoute: typeof DashboardStudentTutoringNewRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/student/forum/new': {
-      id: '/_dashboard/student/forum/new'
-      path: '/student/forum/new'
-      fullPath: '/student/forum/new'
-      preLoaderRoute: typeof DashboardStudentForumNewRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/student/forum/$id': {
-      id: '/_dashboard/student/forum/$id'
-      path: '/student/forum/$id'
-      fullPath: '/student/forum/$id'
-      preLoaderRoute: typeof DashboardStudentForumIdRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/tutoring/new': {
-      id: '/_dashboard/admin/tutoring/new'
-      path: '/admin/tutoring/new'
-      fullPath: '/admin/tutoring/new'
-      preLoaderRoute: typeof DashboardAdminTutoringNewRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/payments/$userId': {
-      id: '/_dashboard/admin/payments/$userId'
-      path: '/admin/payments/$userId'
-      fullPath: '/admin/payments/$userId'
-      preLoaderRoute: typeof DashboardAdminPaymentsUserIdRouteImport
+    '/_dashboard/admin/forum/': {
+      id: '/_dashboard/admin/forum/'
+      path: '/admin/forum'
+      fullPath: '/admin/forum/'
+      preLoaderRoute: typeof DashboardAdminForumIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/admin/forum/$id': {
@@ -1123,32 +997,151 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminForumIdRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/admin/attendance/$userId': {
-      id: '/_dashboard/admin/attendance/$userId'
-      path: '/admin/attendance/$userId'
-      fullPath: '/admin/attendance/$userId'
-      preLoaderRoute: typeof DashboardAdminAttendanceUserIdRouteImport
+    '/_dashboard/admin/payments/': {
+      id: '/_dashboard/admin/payments/'
+      path: '/admin/payments'
+      fullPath: '/admin/payments/'
+      preLoaderRoute: typeof DashboardAdminPaymentsIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/packs/$collectionId/': {
-      id: '/_dashboard/teacher/packs/$collectionId/'
-      path: '/teacher/packs/$collectionId'
-      fullPath: '/teacher/packs/$collectionId/'
-      preLoaderRoute: typeof DashboardTeacherPacksCollectionIdIndexRouteImport
+    '/_dashboard/admin/payments/$userId': {
+      id: '/_dashboard/admin/payments/$userId'
+      path: '/admin/payments/$userId'
+      fullPath: '/admin/payments/$userId'
+      preLoaderRoute: typeof DashboardAdminPaymentsUserIdRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/student/packages/$collectionId/': {
-      id: '/_dashboard/student/packages/$collectionId/'
-      path: '/student/packages/$collectionId'
-      fullPath: '/student/packages/$collectionId/'
-      preLoaderRoute: typeof DashboardStudentPackagesCollectionIdIndexRouteImport
+    '/_dashboard/admin/tutoring/': {
+      id: '/_dashboard/admin/tutoring/'
+      path: '/admin/tutoring'
+      fullPath: '/admin/tutoring/'
+      preLoaderRoute: typeof DashboardAdminTutoringIndexRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/tutoring/new': {
+      id: '/_dashboard/admin/tutoring/new'
+      path: '/admin/tutoring/new'
+      fullPath: '/admin/tutoring/new'
+      preLoaderRoute: typeof DashboardAdminTutoringNewRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/student/forum/': {
+      id: '/_dashboard/student/forum/'
+      path: '/student/forum'
+      fullPath: '/student/forum/'
+      preLoaderRoute: typeof DashboardStudentForumIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/student/forum/$id': {
+      id: '/_dashboard/student/forum/$id'
+      path: '/student/forum/$id'
+      fullPath: '/student/forum/$id'
+      preLoaderRoute: typeof DashboardStudentForumIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/student/forum/new': {
+      id: '/_dashboard/student/forum/new'
+      path: '/student/forum/new'
+      fullPath: '/student/forum/new'
+      preLoaderRoute: typeof DashboardStudentForumNewRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/student/materials/': {
+      id: '/_dashboard/student/materials/'
+      path: '/student/materials'
+      fullPath: '/student/materials/'
+      preLoaderRoute: typeof DashboardStudentMaterialsIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/student/packages/': {
+      id: '/_dashboard/student/packages/'
+      path: '/student/packages'
+      fullPath: '/student/packages/'
+      preLoaderRoute: typeof DashboardStudentPackagesIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/student/tutoring/': {
+      id: '/_dashboard/student/tutoring/'
+      path: '/student/tutoring'
+      fullPath: '/student/tutoring/'
+      preLoaderRoute: typeof DashboardStudentTutoringIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/student/tutoring/new': {
+      id: '/_dashboard/student/tutoring/new'
+      path: '/student/tutoring/new'
+      fullPath: '/student/tutoring/new'
+      preLoaderRoute: typeof DashboardStudentTutoringNewRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/chapters/': {
+      id: '/_dashboard/teacher/chapters/'
+      path: '/teacher/chapters'
+      fullPath: '/teacher/chapters/'
+      preLoaderRoute: typeof DashboardTeacherChaptersIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/forum/': {
+      id: '/_dashboard/teacher/forum/'
+      path: '/teacher/forum'
+      fullPath: '/teacher/forum/'
+      preLoaderRoute: typeof DashboardTeacherForumIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/forum/$id': {
+      id: '/_dashboard/teacher/forum/$id'
+      path: '/teacher/forum/$id'
+      fullPath: '/teacher/forum/$id'
+      preLoaderRoute: typeof DashboardTeacherForumIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/packs/': {
+      id: '/_dashboard/teacher/packs/'
+      path: '/teacher/packs'
+      fullPath: '/teacher/packs/'
+      preLoaderRoute: typeof DashboardTeacherPacksIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/tutoring/': {
+      id: '/_dashboard/teacher/tutoring/'
+      path: '/teacher/tutoring'
+      fullPath: '/teacher/tutoring/'
+      preLoaderRoute: typeof DashboardTeacherTutoringIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/tutoring/earnings': {
+      id: '/_dashboard/teacher/tutoring/earnings'
+      path: '/teacher/tutoring/earnings'
+      fullPath: '/teacher/tutoring/earnings'
+      preLoaderRoute: typeof DashboardTeacherTutoringEarningsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/tutoring/requests': {
+      id: '/_dashboard/teacher/tutoring/requests'
+      path: '/teacher/tutoring/requests'
+      fullPath: '/teacher/tutoring/requests'
+      preLoaderRoute: typeof DashboardTeacherTutoringRequestsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/user/materials/$materialId': {
+      id: '/_dashboard/user/materials/$materialId'
+      path: '/$materialId'
+      fullPath: '/user/materials/$materialId'
+      preLoaderRoute: typeof DashboardUserMaterialsMaterialIdRouteImport
+      parentRoute: typeof DashboardUserMaterialsRoute
     }
     '/_dashboard/student/forum/$id/': {
       id: '/_dashboard/student/forum/$id/'
       path: '/'
       fullPath: '/student/forum/$id/'
       preLoaderRoute: typeof DashboardStudentForumIdIndexRouteImport
+      parentRoute: typeof DashboardStudentForumIdRoute
+    }
+    '/_dashboard/student/forum/$id/edit': {
+      id: '/_dashboard/student/forum/$id/edit'
+      path: '/edit'
+      fullPath: '/student/forum/$id/edit'
+      preLoaderRoute: typeof DashboardStudentForumIdEditRouteImport
       parentRoute: typeof DashboardStudentForumIdRoute
     }
     '/_dashboard/student/materials/chapters/$id': {
@@ -1158,46 +1151,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentMaterialsChaptersIdRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/student/forum/$id/edit': {
-      id: '/_dashboard/student/forum/$id/edit'
-      path: '/edit'
-      fullPath: '/student/forum/$id/edit'
-      preLoaderRoute: typeof DashboardStudentForumIdEditRouteImport
-      parentRoute: typeof DashboardStudentForumIdRoute
-    }
-    '/_dashboard/teacher/packs/$collectionId/$packageId/': {
-      id: '/_dashboard/teacher/packs/$collectionId/$packageId/'
-      path: '/teacher/packs/$collectionId/$packageId'
-      fullPath: '/teacher/packs/$collectionId/$packageId/'
-      preLoaderRoute: typeof DashboardTeacherPacksCollectionIdPackageIdIndexRouteImport
+    '/_dashboard/student/packages/$collectionId/': {
+      id: '/_dashboard/student/packages/$collectionId/'
+      path: '/student/packages/$collectionId'
+      fullPath: '/student/packages/$collectionId/'
+      preLoaderRoute: typeof DashboardStudentPackagesCollectionIdIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/chapters/$chapterId/materials/': {
-      id: '/_dashboard/teacher/chapters/$chapterId/materials/'
-      path: '/teacher/chapters/$chapterId/materials'
-      fullPath: '/teacher/chapters/$chapterId/materials/'
-      preLoaderRoute: typeof DashboardTeacherChaptersChapterIdMaterialsIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/student/packages/$collectionId/$packageId/': {
-      id: '/_dashboard/student/packages/$collectionId/$packageId/'
-      path: '/student/packages/$collectionId/$packageId'
-      fullPath: '/student/packages/$collectionId/$packageId/'
-      preLoaderRoute: typeof DashboardStudentPackagesCollectionIdPackageIdIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/teacher/packs/$collectionId/$packageId/import': {
-      id: '/_dashboard/teacher/packs/$collectionId/$packageId/import'
-      path: '/teacher/packs/$collectionId/$packageId/import'
-      fullPath: '/teacher/packs/$collectionId/$packageId/import'
-      preLoaderRoute: typeof DashboardTeacherPacksCollectionIdPackageIdImportRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/teacher/chapters/$chapterId/materials/new': {
-      id: '/_dashboard/teacher/chapters/$chapterId/materials/new'
-      path: '/teacher/chapters/$chapterId/materials/new'
-      fullPath: '/teacher/chapters/$chapterId/materials/new'
-      preLoaderRoute: typeof DashboardTeacherChaptersChapterIdMaterialsNewRouteImport
+    '/_dashboard/teacher/packs/$collectionId/': {
+      id: '/_dashboard/teacher/packs/$collectionId/'
+      path: '/teacher/packs/$collectionId'
+      fullPath: '/teacher/packs/$collectionId/'
+      preLoaderRoute: typeof DashboardTeacherPacksCollectionIdIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/student/materials/chapters/$chapterId/$materialId': {
@@ -1207,6 +1172,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentMaterialsChaptersChapterIdMaterialIdRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/student/packages/$collectionId/$packageId/': {
+      id: '/_dashboard/student/packages/$collectionId/$packageId/'
+      path: '/student/packages/$collectionId/$packageId'
+      fullPath: '/student/packages/$collectionId/$packageId/'
+      preLoaderRoute: typeof DashboardStudentPackagesCollectionIdPackageIdIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/chapters/$chapterId/materials/': {
+      id: '/_dashboard/teacher/chapters/$chapterId/materials/'
+      path: '/teacher/chapters/$chapterId/materials'
+      fullPath: '/teacher/chapters/$chapterId/materials/'
+      preLoaderRoute: typeof DashboardTeacherChaptersChapterIdMaterialsIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/chapters/$chapterId/materials/new': {
+      id: '/_dashboard/teacher/chapters/$chapterId/materials/new'
+      path: '/teacher/chapters/$chapterId/materials/new'
+      fullPath: '/teacher/chapters/$chapterId/materials/new'
+      preLoaderRoute: typeof DashboardTeacherChaptersChapterIdMaterialsNewRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/packs/$collectionId/$packageId/': {
+      id: '/_dashboard/teacher/packs/$collectionId/$packageId/'
+      path: '/teacher/packs/$collectionId/$packageId'
+      fullPath: '/teacher/packs/$collectionId/$packageId/'
+      preLoaderRoute: typeof DashboardTeacherPacksCollectionIdPackageIdIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/packs/$collectionId/$packageId/import': {
+      id: '/_dashboard/teacher/packs/$collectionId/$packageId/import'
+      path: '/teacher/packs/$collectionId/$packageId/import'
+      fullPath: '/teacher/packs/$collectionId/$packageId/import'
+      preLoaderRoute: typeof DashboardTeacherPacksCollectionIdPackageIdImportRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/student/packages/$collectionId/$packageId/work/': {
       id: '/_dashboard/student/packages/$collectionId/$packageId/work/'
       path: '/student/packages/$collectionId/$packageId/work'
@@ -1214,18 +1214,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentPackagesCollectionIdPackageIdWorkIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/teacher/packs/$collectionId/$packageId/questions/new': {
-      id: '/_dashboard/teacher/packs/$collectionId/$packageId/questions/new'
-      path: '/teacher/packs/$collectionId/$packageId/questions/new'
-      fullPath: '/teacher/packs/$collectionId/$packageId/questions/new'
-      preLoaderRoute: typeof DashboardTeacherPacksCollectionIdPackageIdQuestionsNewRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit': {
       id: '/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit'
       path: '/teacher/chapters/$chapterId/materials/$materialId/edit'
       fullPath: '/teacher/chapters/$chapterId/materials/$materialId/edit'
       preLoaderRoute: typeof DashboardTeacherChaptersChapterIdMaterialsMaterialIdEditRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/teacher/packs/$collectionId/$packageId/questions/new': {
+      id: '/_dashboard/teacher/packs/$collectionId/$packageId/questions/new'
+      path: '/teacher/packs/$collectionId/$packageId/questions/new'
+      fullPath: '/teacher/packs/$collectionId/$packageId/questions/new'
+      preLoaderRoute: typeof DashboardTeacherPacksCollectionIdPackageIdQuestionsNewRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/teacher/packs/$collectionId/$packageId/questions/$questionId/edit': {
