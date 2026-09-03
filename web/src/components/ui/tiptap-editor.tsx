@@ -180,7 +180,6 @@ export function TiptapEditor({
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
-        underline: true,
       }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Mathematics,

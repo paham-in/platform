@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -139,8 +138,7 @@ function NewMaterial() {
             <p className="text-sm text-muted-foreground">Buat materi teks atau video untuk bab ini.</p>
           </div>
 
-          <Card>
-            <CardContent className="space-y-4 md:space-y-6">
+          <div className="space-y-4 md:space-y-6">
               <div className="space-y-2">
                 <Label>Judul</Label>
                 <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul materi" autoComplete="off"/>
@@ -174,6 +172,16 @@ function NewMaterial() {
                   ))}
                 </div>
               </div>
+
+              <label className="flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-colors hover:bg-muted/50">
+                <Checkbox checked={isFree} onCheckedChange={(v) => setIsFree(v === true)} />
+                <span>
+                  <span className="block font-medium">Materi gratis</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {isFree ? "Bisa diakses semua user tanpa berlangganan" : "Hanya untuk murid yang berlangganan"}
+                  </span>
+                </span>
+              </label>
 
               {type === "text" ? (
                 <div className="space-y-2">
@@ -209,25 +217,14 @@ function NewMaterial() {
                   ) : null}
                 </div>
               )}
-
-              <label className="flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-colors hover:bg-muted/50">
-                <Checkbox checked={isFree} onCheckedChange={(v) => setIsFree(v === true)} />
-                <span>
-                  <span className="block font-medium">Materi gratis</span>
-                  <span className="block text-xs text-muted-foreground">
-                    {isFree ? "Bisa diakses semua user tanpa berlangganan" : "Hanya untuk murid yang berlangganan"}
-                  </span>
-                </span>
-              </label>
-            </CardContent>
-            <CardFooter className="justify-end gap-3 border-t">
+            <div className="flex justify-end gap-3 pt-4">
               <Button variant="outline" type="button" onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId }, replace: true })}>Batal</Button>
               <Button onClick={save} disabled={!title || isPending || editorUploading || (type === "video" && !videoUrl)}>
                 {isPending && <Spinner />}
                 {editorUploading ? "Mengupload gambar..." : "Simpan"}
               </Button>
-            </CardFooter>
-          </Card>
+            </div>
+          </div>
         </div>
       </main>
 
