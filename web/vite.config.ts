@@ -33,11 +33,13 @@ export default defineConfig({
         scope: "/",
         theme_color: "#ffffff",
         background_color: "#ffffff",
-        // Dark mode colors untuk Chrome/WebAPK (spec manifest dark mode support).
+        // Dark mode colors untuk Chrome/WebAPK (spec manifest user preferences).
         // Belum ada di tipe ManifestOptions vite-plugin-pwa sehingga perlu di-cast lewat `as any`.
-        color_scheme_dark: {
-          theme_color: "#0c0c09",
-          background_color: "#0c0c09",
+        user_preferences: {
+          color_scheme_dark: {
+            theme_color: "#0c0c09",
+            background_color: "#0c0c09",
+          },
         },
         icons: [
           {
