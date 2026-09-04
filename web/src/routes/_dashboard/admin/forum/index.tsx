@@ -212,7 +212,7 @@ function AdminForum() {
                     <MoreVertical className="h-4 w-4" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => window.open(`/admin/forum/${q.public_id}`, "_blank")}>
+                    <DropdownMenuItem onClick={() => navigate({ to: `/admin/forum/${q.public_id}` })}>
                       <Eye className="h-4 w-4" /> Lihat
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => { setDeleteConfirm({ id: q.id!, content: q.plain_content! }); openModal("delete") }}>
