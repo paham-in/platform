@@ -42,20 +42,13 @@ export function ThemeProvider({
         : theme;
     root.classList.add(resolved);
 
+    // Update meta theme-color mengikuti mode light/dark (dibaca dari CSS var
+    // --background yang sudah beda per mode). Dinamis di tab browser; PWA
+    // standalone baca dari manifest (statis).
     document.querySelectorAll('meta[name="theme-color"]').forEach((el) => el.remove());
-
     const meta = document.createElement("meta");
     meta.name = "theme-color";
-    const bg = getComputedStyle(root).getPropertyValue("--background").trim();
-    const ctx = document.createElement("canvas").getContext("2d");
-    if (bg && ctx) {
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, 1, 1);
-      const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-      meta.content = `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
-    } else {
-      meta.content = resolved === "dark" ? "#0a0a0a" : "#ffffff";
-    }
+    meta.content = getComputedStyle(root).getPropertyValue("--background").trim() || (resolved === "dark" ? "#0c0c09" : "#ffffff");
     document.head.appendChild(meta);
   }, [theme]);
 

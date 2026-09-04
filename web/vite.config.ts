@@ -31,8 +31,7 @@ export default defineConfig({
         orientation: "portrait",
         start_url: "/login",
         scope: "/",
-        // theme_color = bg shadcn dark; background_color = primary shadcn (light/dark).
-        theme_color: "#0c0c09",
+        // background_color = primary shadcn (light/dark).
         background_color: "#1d1d16",
         icons: [
           {

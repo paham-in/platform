@@ -14,8 +14,14 @@
     <script>
       (() => {
         const theme = localStorage.getItem("vite-ui-theme");
-        if (theme === "dark" || (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        const dark = theme === "dark" || (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) {
           document.documentElement.classList.add("dark");
+        }
+        // Theme awal (pre-hydrate) ikut prefer-color-scheme untuk warnai status bar.
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) {
+          meta.content = dark ? "#0c0c09" : "#ffffff";
         }
       })();
     </script>
