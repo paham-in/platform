@@ -446,7 +446,7 @@ function ChapterMaterials() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => navigate({ to: "/user/materials/$materialId", params: { materialId: String(m.id!) } })}>
+                          <DropdownMenuItem onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/$materialId", params: { chapterId, materialId: String(m.id!) } })}>
                             <Eye className="h-4 w-4" /> Lihat
                           </DropdownMenuItem>
                           {canManage && canEdit(m) && (
@@ -573,7 +573,7 @@ function ChapterMaterials() {
                         <MoreVertical className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => navigate({ to: "/user/materials/$materialId", params: { materialId: String(m.id!) } })}>
+                        <DropdownMenuItem onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/$materialId", params: { chapterId, materialId: String(m.id!) } })}>
                           <Eye className="h-4 w-4" /> Lihat
                         </DropdownMenuItem>
                         {canManage && canEdit(m) && (
@@ -662,3 +662,4 @@ export const Route = createFileRoute("/_dashboard/teacher/chapters/$chapterId/ma
   component: ChapterMaterials,
   validateSearch: materialsSearchSchema,
 });
+
