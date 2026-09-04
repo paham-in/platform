@@ -1,7 +1,7 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -25,8 +25,6 @@ import { z } from "zod";
 import { toast } from "sonner";
 import {
   BookOpen,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   EyeOff,
   Gift,
@@ -62,8 +60,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
 import { useDialogBack } from "@/lib/hooks/use-dialog-back";
-
-const perPage = 10;
 
 const typeStyles: Record<string, string> = {
   video: "bg-violet-500/15 text-violet-700 dark:text-violet-400",
@@ -217,20 +213,16 @@ function ChapterMaterials() {
     return () => clearTimeout(timer);
   }, [searchInput, navigate]);
 
-  const [page, setPage] = useState(1);
   const activeFilterCount = [access, type, status].filter((f) => !!f).length;
   const hasActiveFilter = !!search || !!access || !!type || !!status;
   const setAccess = (v: string) => {
     navigate({ search: (prev) => ({ ...prev, access: v === "all" ? undefined : (v as "free" | "paid") }), replace: true });
-    setPage(1);
   };
   const setTypeFilter = (v: string) => {
     navigate({ search: (prev) => ({ ...prev, type: v === "all" ? undefined : (v as "text" | "video") }), replace: true });
-    setPage(1);
   };
   const setStatusFilter = (v: string) => {
     navigate({ search: (prev) => ({ ...prev, status: v === "all" ? undefined : (v as "published" | "draft") }), replace: true });
-    setPage(1);
   };
   const headerFilter = useMemo(
     () => (
@@ -278,18 +270,10 @@ function ChapterMaterials() {
     },
   });
 
-  const totalPages = Math.max(1, Math.ceil(materials.length / perPage));
-  const paged = materials.slice((page - 1) * perPage, page * perPage);
-
   useEffect(() => {
     if (modal !== "delete") setDeleteConfirm(null);
     if (modal !== "status") setPendingStatus(null);
   }, [modal]);
-
-  // clamp page kalau data mengecil (mis. setelah hapus item terakhir di halaman)
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
 
   if (isLoading) {
     return (
@@ -389,13 +373,13 @@ function ChapterMaterials() {
                 placeholder="Cari materi..."
                 className="pl-9 pr-9"
                 value={searchInput}
-                onChange={(e) => { setSearchInput(e.target.value); setPage(1); }}
+                onChange={(e) => { setSearchInput(e.target.value); }}
               autoComplete="off"/>
               {searchInput && (
                 <button
                   type="button"
                   aria-label="Bersihkan pencarian"
-                  onClick={() => { setSearchInput(""); setPage(1); }}
+                  onClick={() => { setSearchInput(""); }}
                   className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   <X className="h-4 w-4" />
@@ -433,7 +417,7 @@ function ChapterMaterials() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paged.map((m) => (
+                {materials.map((m) => (
                   <TableRow key={m.id}>
                     <TableCell className="max-w-xs truncate pl-6 font-medium" title={m.title}>{m.title}</TableCell>
                     <TableCell>
@@ -486,7 +470,7 @@ function ChapterMaterials() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {paged.length === 0 && (
+                {materials.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5}>
                       <Empty className="border-0 px-6 py-14">
@@ -510,7 +494,6 @@ function ChapterMaterials() {
                             <Button variant="outline" size="sm" onClick={() => {
                               setSearchInput("");
                               navigate({ search: {}, replace: true });
-                              setPage(1);
                             }}>
                               <X className="mr-1 h-4 w-4" /> Bersihkan filter
                             </Button>
@@ -527,41 +510,12 @@ function ChapterMaterials() {
               </TableBody>
             </Table>
           </CardContent>
-          {materials.length > 0 && (
-            <CardFooter className="flex flex-wrap items-center justify-between gap-2 border-t">
-              <p className="text-sm text-muted-foreground">
-                Menampilkan {(page - 1) * perPage + 1}-{Math.min(page * perPage, materials.length)} dari {materials.length} materi
-              </p>
-              {totalPages > 1 && (
-                <div className="flex gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    aria-label="Halaman sebelumnya"
-                    disabled={page === 1}
-                    onClick={() => setPage(page - 1)}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    aria-label="Halaman berikutnya"
-                    disabled={page === totalPages}
-                    onClick={() => setPage(page + 1)}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </CardFooter>
-          )}
         </Card>
 
         {/* Mobile card list */}
         <Card className="gap-0 py-0 md:hidden">
           <CardContent className="p-0">
-            {paged.length === 0 ? (
+            {materials.length === 0 ? (
               <Empty className="px-6 py-14">
                 <EmptyHeader>
                   <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <BookOpen />}</EmptyMedia>
@@ -583,7 +537,6 @@ function ChapterMaterials() {
                     <Button variant="outline" size="sm" onClick={() => {
                       setSearchInput("");
                       navigate({ search: {}, replace: true });
-                      setPage(1);
                     }}>
                       <X className="mr-1 h-4 w-4" /> Bersihkan filter
                     </Button>
@@ -596,7 +549,7 @@ function ChapterMaterials() {
               </Empty>
             ) : (
               <div className="divide-y">
-                {paged.map((m) => (
+                {materials.map((m) => (
                   <div key={m.id} className="flex items-start justify-between gap-3 p-4">
                     <div className="min-w-0">
                       <p className="truncate font-medium" title={m.title}>{m.title}</p>
@@ -646,35 +599,6 @@ function ChapterMaterials() {
               </div>
             )}
           </CardContent>
-          {materials.length > 0 && (
-            <CardFooter className="flex flex-wrap items-center justify-between gap-2 border-t">
-              <p className="text-sm text-muted-foreground">
-                Menampilkan {(page - 1) * perPage + 1}-{Math.min(page * perPage, materials.length)} dari {materials.length} materi
-              </p>
-              {totalPages > 1 && (
-                <div className="flex gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    aria-label="Halaman sebelumnya"
-                    disabled={page === 1}
-                    onClick={() => setPage(page - 1)}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    aria-label="Halaman berikutnya"
-                    disabled={page === totalPages}
-                    onClick={() => setPage(page + 1)}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </CardFooter>
-          )}
         </Card>
 
         {canManage && (
