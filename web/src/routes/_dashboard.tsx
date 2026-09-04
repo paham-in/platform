@@ -100,7 +100,7 @@ function AppSidebar({
   onLogoutClick: () => void;
 }) {
   const { pathname } = useRouterState().location;
-  const { setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const router = useRouter();
   const isActive = (to?: string) => !!to && (pathname === to || pathname.startsWith(to + "/"));
   const closeMobile = () => setOpenMobile(false);
@@ -175,7 +175,7 @@ function AppSidebar({
                     render={<SidebarMenuItem />}
                   >
                     <CollapsibleTrigger
-                      render={<SidebarMenuButton tooltip={item.label} />}
+                      render={<SidebarMenuButton size={isMobile ? "lg" : "default"} tooltip={item.label} />}
                     >
                       <item.icon />
                       <span>{item.label}</span>
@@ -199,6 +199,7 @@ function AppSidebar({
                 ) : (
                   <SidebarMenuItem key={item.label}>
                     <SidebarMenuButton
+                      size={isMobile ? "lg" : "default"}
                       tooltip={item.label}
                       isActive={isActive(item.to)}
                       onClick={() => goSection(item.to!)}
@@ -233,7 +234,7 @@ function AppSidebar({
             </div>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Keluar" onClick={onLogoutClick}>
+            <SidebarMenuButton size={isMobile ? "lg" : "default"} tooltip="Keluar" onClick={onLogoutClick}>
               {logoutPending ? <Spinner /> : <LogOut />}
               <span>Keluar</span>
             </SidebarMenuButton>
