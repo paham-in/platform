@@ -1,5 +1,5 @@
 ﻿import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,8 +53,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import {
   BookOpen,
-  ChevronLeft,
-  ChevronRight,
   Funnel,
   Loader2,
   MoreVertical,
@@ -88,7 +86,6 @@ import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 
 const COVER_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const COVER_MAX = 5 * 1024 * 1024;
-const perPage = 10;
 
 const chaptersSearchSchema = z.object({
   search: z.string().optional(),
@@ -164,7 +161,6 @@ function AdminChapters() {
   const { data: subjects = [] } = useQuery(getSubjectsOptions());
   const { data: classes = [] } = useQuery(getAdminClassesOptions());
   const [searchInput, setSearchInput] = useState(search ?? "");
-  const [page, setPage] = useState(1);
   const activeFilterCount = classId ? 1 : 0;
   const hasActiveFilter = !!search || !!classId;
   const [editing, setEditing] = useState<ChapterChapterResponse | null>(null);
@@ -205,7 +201,6 @@ function AdminChapters() {
 
   const setClassFilter = (v: string) => {
     navigate({ search: (prev) => ({ ...prev, classId: v === "all" ? undefined : v }), replace: true });
-    setPage(1);
   };
 
   const headerFilter = useMemo(
@@ -252,14 +247,6 @@ function AdminChapters() {
     if (modal !== "cover") setCoverView(null);
     if (modal !== "delete") setDeleteConfirm(null);
   }, [modal]);
-
-  const totalPages = Math.max(1, Math.ceil(chapters.length / perPage));
-  const paged = chapters.slice((page - 1) * perPage, page * perPage);
-
-  // clamp page kalau data mengecil (mis. setelah hapus item terakhir di halaman)
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
 
   const openAdd = () => {
     setEditing(null);
@@ -355,7 +342,6 @@ function AdminChapters() {
         toast.success("BAB berhasil ditambahkan.");
         setSearchInput("");
         navigate({ search: {}, replace: true });
-        setPage(1);
       }
       closeModal();
     } catch {
@@ -406,7 +392,6 @@ function AdminChapters() {
                 value={searchInput}
                 onChange={(e) => {
                   setSearchInput(e.target.value);
-                  setPage(1);
                 }}
               autoComplete="off"/>
               {searchInput && (
@@ -415,7 +400,6 @@ function AdminChapters() {
                   aria-label="Bersihkan pencarian"
                   onClick={() => {
                     setSearchInput("");
-                    setPage(1);
                   }}
                   className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
@@ -571,7 +555,7 @@ function AdminChapters() {
           )}
         </div>
         {/* Desktop table */}
-        <Card className="hidden gap-0 pt-0 md:block">
+        <Card className="hidden gap-0 pt-0 pb-0 md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -587,7 +571,7 @@ function AdminChapters() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paged.map((c) => (
+                {chapters.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="pl-6">
                       {c.cover_url ? (
@@ -653,7 +637,7 @@ function AdminChapters() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {paged.length === 0 && (
+                {chapters.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={8}>
                       <Empty className="border-0 p-8">
@@ -668,7 +652,6 @@ function AdminChapters() {
                             <Button variant="outline" size="sm" onClick={() => {
                               setSearchInput("");
                               navigate({ search: {}, replace: true });
-                              setPage(1);
                             }}>
                               <X className="mr-1 h-4 w-4" /> Bersihkan filter
                             </Button>
@@ -681,41 +664,12 @@ function AdminChapters() {
               </TableBody>
             </Table>
           </CardContent>
-          <CardFooter className="flex items-center justify-between border-t">
-            <p className="text-sm text-muted-foreground">
-              {chapters.length === 0
-                ? "Belum ada data"
-                : `Menampilkan ${(page - 1) * perPage + 1}–${Math.min(page * perPage, chapters.length)} dari ${chapters.length} bab`}
-            </p>
-            {totalPages > 1 && (
-              <div className="flex gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  aria-label="Halaman sebelumnya"
-                  disabled={page === 1}
-                  onClick={() => setPage(page - 1)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  aria-label="Halaman berikutnya"
-                  disabled={page === totalPages}
-                  onClick={() => setPage(page + 1)}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </CardFooter>
         </Card>
 
         {/* Mobile card list */}
         <Card className="gap-0 py-0 md:hidden">
           <CardContent className="p-0">
-            {paged.length === 0 ? (
+            {chapters.length === 0 ? (
               <Empty className="p-8">
                 <EmptyHeader>
                   <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <BookOpen />}</EmptyMedia>
@@ -728,7 +682,6 @@ function AdminChapters() {
                     <Button variant="outline" size="sm" onClick={() => {
                       setSearchInput("");
                       navigate({ search: {}, replace: true });
-                      setPage(1);
                     }}>
                       <X className="mr-1 h-4 w-4" /> Bersihkan filter
                     </Button>
@@ -737,7 +690,7 @@ function AdminChapters() {
               </Empty>
             ) : (
               <div className="divide-y">
-                {paged.map((c) => (
+                {chapters.map((c) => (
                   <div key={c.id} className="flex items-start gap-3 p-4">
                     {c.cover_url ? (
                       <button
@@ -794,35 +747,6 @@ function AdminChapters() {
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex items-center justify-between border-t">
-            <p className="text-sm text-muted-foreground">
-              {chapters.length === 0
-                ? "Belum ada data"
-                : `Menampilkan ${(page - 1) * perPage + 1}–${Math.min(page * perPage, chapters.length)} dari ${chapters.length} bab`}
-            </p>
-            {totalPages > 1 && (
-              <div className="flex gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  aria-label="Halaman sebelumnya"
-                  disabled={page === 1}
-                  onClick={() => setPage(page - 1)}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  aria-label="Halaman berikutnya"
-                  disabled={page === totalPages}
-                  onClick={() => setPage(page + 1)}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </CardFooter>
         </Card>
 
         {canManage && (
