@@ -1,6 +1,6 @@
 ﻿import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -196,10 +196,7 @@ function NewBooking() {
         <h1 className="text-2xl font-bold tracking-tight">Booking Baru</h1>
         <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam, nanti admin yang akan mencarikan guru untukmu.</p>
       </div>
-      <div className="mx-auto max-w-2xl space-y-4 md:space-y-6">
-
-      <Card>
-        <CardContent className="space-y-4 md:space-y-6">
+      <div className="max-w-2xl space-y-4 md:space-y-6">
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="new-class">Kelas</Label>
@@ -403,8 +400,6 @@ function NewBooking() {
             </Button>
           </div>
         </div>
-        </CardContent>
-      </Card>
       </div>
 
       {modal === "friend" && (
