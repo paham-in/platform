@@ -432,11 +432,13 @@ function AdminChapters() {
               />
             </div>
           </div>
+          {canManage && (
+            <Button className="hidden md:inline-flex" onClick={openAdd}>
+              <Plus className="mr-1 h-4 w-4" /> Tambah
+            </Button>
+          )}
           {canManage && modal === "form" && (
             <Dialog open onOpenChange={(o) => !o && closeModal()}>
-              <Button className="hidden md:inline-flex" onClick={openAdd}>
-                <Plus className="mr-1 h-4 w-4" /> Tambah
-              </Button>
               <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>{editing ? "Ubah BAB" : "Tambah BAB"}</DialogTitle>
