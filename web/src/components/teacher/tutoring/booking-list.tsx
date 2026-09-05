@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { getRouteApi } from "@tanstack/react-router"
 import {
   getTutoringBookingsOptions,
   getTutoringSessionsOptions,
@@ -43,9 +44,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
+
+const teacherBookingsRoute = getRouteApi("/_dashboard/teacher/bookings")
 
 function statusBadge(s: string) {
   const styles: Record<string, string> = {
@@ -122,7 +126,7 @@ export function BookingList() {
   })
   const overtime = useMutation({
     ...patchTutoringSessionsByIdOvertimeMutation(),
-    onSuccess: () => { toast.success("Overtime tercatat, charge diterapkan saat admin approve"); invalidate(); setOvertimeSession(null) },
+    onSuccess: () => { toast.success("Overtime tercatat, charge diterapkan saat admin approve"); invalidate(); closeModal() },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal mencatat overtime"),
   })
   const reschedule = useMutation({
@@ -147,7 +151,16 @@ export function BookingList() {
   const [pendingUploadSessionId, setPendingUploadSessionId] = useState<number | null>(null)
   const [overtimeSession, setOvertimeSession] = useState<TutoringListSessionsResponse | null>(null)
   const [overtimeEnd, setOvertimeEnd] = useState("")
-  const openOvertime = (s: TutoringListSessionsResponse) => { setOvertimeSession(s); setOvertimeEnd(s.actual_end_time ?? s.end_time ?? "") }
+  const openOvertime = (s: TutoringListSessionsResponse) => { setOvertimeSession(s); setOvertimeEnd(s.actual_end_time ?? s.end_time ?? ""); openModal("overtime") }
+  const { modal } = teacherBookingsRoute.useSearch()
+  const { openModal, closeModal } = useDialogBack()
+
+  useEffect(() => {
+    if (modal !== "detail") setDetailBooking(null)
+    if (modal !== "reschedule") setRescheduleSession(null)
+    if (modal !== "cancel") setCancelSession(null)
+    if (modal !== "overtime") setOvertimeSession(null)
+  }, [modal])
 
   const sessionsFor = (bookingId: number) => sessions.filter((s) => s.booking_id === bookingId)
   const nextScheduled = (bookingId: number) => sessionsFor(bookingId).find((s) => s.status === "scheduled")
@@ -222,7 +235,7 @@ export function BookingList() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => setDetailBooking(group[0])}>
+                          <DropdownMenuItem onClick={() => { setDetailBooking(group[0]); openModal("detail") }}>
                             <Eye className="h-4 w-4" /> Detail
                           </DropdownMenuItem>
                           {group[0].status === "confirmed" && (() => {
@@ -241,10 +254,11 @@ export function BookingList() {
                                   setReschedStart(ns.start_time!)
                                   setReschedEnd(ns.end_time!)
                                   setRescheduleSession(ns)
+                                  openModal("reschedule")
                                 }}>
                                   <CalendarClock className="h-4 w-4" /> Reschedule
                                 </DropdownMenuItem>
-                                <DropdownMenuItem variant="destructive" onClick={() => setCancelSession(ns)}>
+                                <DropdownMenuItem variant="destructive" onClick={() => { setCancelSession(ns); openModal("cancel") }}>
                                   <XCircle className="h-4 w-4" /> Batalkan Sesi
                                 </DropdownMenuItem>
                               </>
@@ -301,7 +315,7 @@ export function BookingList() {
                         <MoreVertical className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => setDetailBooking(group[0])}>
+                        <DropdownMenuItem onClick={() => { setDetailBooking(group[0]); openModal("detail") }}>
                           <Eye className="h-4 w-4" /> Detail
                         </DropdownMenuItem>
                         {group[0].status === "confirmed" && (() => {
@@ -320,10 +334,11 @@ export function BookingList() {
                                 setReschedStart(ns.start_time!)
                                 setReschedEnd(ns.end_time!)
                                 setRescheduleSession(ns)
+                                openModal("reschedule")
                               }}>
                                 <CalendarClock className="h-4 w-4" /> Reschedule
                               </DropdownMenuItem>
-                              <DropdownMenuItem variant="destructive" onClick={() => setCancelSession(ns)}>
+                              <DropdownMenuItem variant="destructive" onClick={() => { setCancelSession(ns); openModal("cancel") }}>
                                 <XCircle className="h-4 w-4" /> Batalkan Sesi
                               </DropdownMenuItem>
                             </>
@@ -360,7 +375,8 @@ export function BookingList() {
       />
 
       {/* Overtime dialog (menu terpisah dari upload bukti) */}
-      <Dialog open={!!overtimeSession} onOpenChange={(o) => { if (!o) setOvertimeSession(null) }}>
+      {modal === "overtime" && overtimeSession && (
+      <Dialog open onOpenChange={(o) => { if (!o) closeModal() }}>
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <DialogTitle>Lapor Overtime</DialogTitle>
@@ -381,7 +397,7 @@ export function BookingList() {
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOvertimeSession(null)}>Batal</Button>
+            <Button variant="outline" onClick={() => closeModal()}>Batal</Button>
             <Button
               disabled={!overtimeEnd || overtime.isPending}
               onClick={() => overtimeSession?.id && overtime.mutate({ path: { id: overtimeSession.id }, body: { actual_end_time: overtimeEnd } })}
@@ -391,9 +407,11 @@ export function BookingList() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* Detail modal */}
-      <Dialog open={!!detailBooking} onOpenChange={(o) => { if (!o) setDetailBooking(null) }}>
+      {modal === "detail" && detailBooking && (
+      <Dialog open onOpenChange={(o) => { if (!o) closeModal() }}>
         <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{detailBooking?.student_name}</DialogTitle>
@@ -478,6 +496,7 @@ export function BookingList() {
                                 setReschedStart(s.start_time!)
                                 setReschedEnd(s.end_time!)
                                 setRescheduleSession(s)
+                                openModal("reschedule")
                               }}
                             >
                               <CalendarClock className="h-3.5 w-3.5" />
@@ -486,7 +505,7 @@ export function BookingList() {
                               size="sm"
                               variant="outline"
                               className="text-red-600 hover:text-red-600"
-                              onClick={() => setCancelSession(s)}
+                              onClick={() => { setCancelSession(s); openModal("cancel") }}
                             >
                               <XCircle className="h-3.5 w-3.5" />
                             </Button>
@@ -500,13 +519,15 @@ export function BookingList() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDetailBooking(null)}>Tutup</Button>
+            <Button variant="outline" onClick={() => closeModal()}>Tutup</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* Reschedule dialog */}
-      <Dialog open={!!rescheduleSession} onOpenChange={(o) => { if (!o) setRescheduleSession(null) }}>
+      {modal === "reschedule" && rescheduleSession && (
+      <Dialog open onOpenChange={(o) => { if (!o) closeModal() }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Reschedule Sesi</DialogTitle>
@@ -529,13 +550,13 @@ export function BookingList() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRescheduleSession(null)}>Batal</Button>
+            <Button variant="outline" onClick={() => closeModal()}>Batal</Button>
             <Button
               disabled={!reschedDate || !reschedStart || !reschedEnd}
               onClick={() => {
                 if (rescheduleSession) {
                   reschedule.mutate({ path: { id: rescheduleSession.id! }, body: { date: reschedDate, start_time: reschedStart, end_time: reschedEnd } })
-                  setRescheduleSession(null)
+                  closeModal()
                 }
               }}
             >
@@ -544,9 +565,11 @@ export function BookingList() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* Cancel confirmation */}
-      <AlertDialog open={!!cancelSession} onOpenChange={(o) => { if (!o) setCancelSession(null) }}>
+      {modal === "cancel" && cancelSession && (
+      <AlertDialog open onOpenChange={(o) => { if (!o) closeModal() }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Batalkan sesi ini?</AlertDialogTitle>
@@ -561,7 +584,7 @@ export function BookingList() {
               onClick={() => {
                 if (cancelSession) {
                   cancel.mutate({ path: { id: cancelSession.id! } })
-                  setCancelSession(null)
+                  closeModal()
                 }
               }}
             >
@@ -570,6 +593,7 @@ export function BookingList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      )}
     </>
   )
 }

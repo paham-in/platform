@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { BookingList } from "@/components/teacher/tutoring/booking-list"
 import { usePageTitle } from "@/components/page-title"
+import { z } from "zod"
+
+const teacherBookingsSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 function TeacherBookingsPage() {
   usePageTitle("Booking Les")
@@ -17,4 +22,5 @@ function TeacherBookingsPage() {
 
 export const Route = createFileRoute("/_dashboard/teacher/bookings")({
   component: TeacherBookingsPage,
+  validateSearch: teacherBookingsSearchSchema,
 })
