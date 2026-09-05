@@ -84,7 +84,6 @@ export const sidebarGroups: SidebarGroup[] = [
         icon: Users,
         items: [
           { label: "Kelola User", to: "/admin/users" },
-          { label: "Hak Akses Murid", to: "/admin/student-class-enrollments" },
           { label: "Hak Akses Guru", to: "/admin/teacher-permissions" },
         ],
       },
@@ -113,6 +112,7 @@ export const sidebarGroups: SidebarGroup[] = [
           { label: "Validasi & Fee Guru", to: "/admin/attendance" },
         ],
       },
+      { label: "Langganan Konten", icon: Sparkles, to: "/admin/subscriptions" },
       { label: "Forum", icon: MessageSquare, to: "/admin/forum" },
       { label: "Dev Tools", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },
     ],

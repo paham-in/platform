@@ -12,7 +12,7 @@ import {
   getAdminUsersOptions,
   getAdminInvoicesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { Plus, MoreVertical, CheckCircle2, XCircle, Search, Trash2, Receipt, Funnel, X } from "lucide-react"
+import { MoreVertical, CheckCircle2, XCircle, Search, Trash2, Receipt, Funnel, X } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -25,7 +25,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CreateInvoiceDialog, DeleteInvoiceDialog, ToggleInvoiceDialog } from "@/components/admin/payments"
+import { DeleteInvoiceDialog, ToggleInvoiceDialog } from "@/components/admin/payments"
 import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
@@ -230,9 +230,6 @@ function PaymentsDetail() {
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        <Button className="ml-auto hidden md:inline-flex" onClick={() => openModal("create")}>
-          <Plus className="h-4 w-4" /> Buat Invoice
-        </Button>
       </div>
 
       {/* Desktop table */}
@@ -434,10 +431,6 @@ function PaymentsDetail() {
         </CardContent>
       </Card>
 
-      {modal === "create" && user && (
-        <CreateInvoiceDialog user={user} onClose={closeModal} />
-      )}
-
       {modal === "delete" && deleteTarget && (
         <DeleteInvoiceDialog invoices={deleteTarget} onClose={() => { closeModal(); setSelectedIds(new Set()) }} />
       )}
@@ -449,15 +442,6 @@ function PaymentsDetail() {
           onClose={() => { closeModal(); setSelectedIds(new Set()) }}
         />
       )}
-
-      <Button
-        onClick={() => openModal("create")}
-        size="icon"
-        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
-        aria-label="Buat Invoice"
-      >
-        <Plus className="size-6" />
-      </Button>
     </main>
   )
 }
