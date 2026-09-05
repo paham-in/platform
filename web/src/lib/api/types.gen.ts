@@ -169,6 +169,7 @@ export type InvoiceErrorResponse = {
 
 export type InvoiceInvoiceResponse = {
     amount?: number;
+    booking_id?: number;
     created_at?: string;
     end_date?: string;
     id?: number;
@@ -3541,6 +3542,36 @@ export type GetInvoicesResponses = {
 };
 
 export type GetInvoicesResponse = GetInvoicesResponses[keyof GetInvoicesResponses];
+
+export type DeleteInvoicesByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Invoice ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/invoices/{id}';
+};
+
+export type DeleteInvoicesByIdErrors = {
+    /**
+     * Bad Request
+     */
+    400: InvoiceErrorResponse;
+};
+
+export type DeleteInvoicesByIdError = DeleteInvoicesByIdErrors[keyof DeleteInvoicesByIdErrors];
+
+export type DeleteInvoicesByIdResponses = {
+    /**
+     * OK
+     */
+    200: InvoiceMessageResponse;
+};
+
+export type DeleteInvoicesByIdResponse = DeleteInvoicesByIdResponses[keyof DeleteInvoicesByIdResponses];
 
 export type PostLogoutData = {
     body?: never;

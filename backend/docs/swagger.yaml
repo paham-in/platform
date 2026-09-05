@@ -255,6 +255,8 @@ definitions:
     properties:
       amount:
         type: number
+      booking_id:
+        type: integer
       created_at:
         type: string
       end_date:
@@ -4307,6 +4309,32 @@ paths:
       security:
       - BearerAuth: []
       summary: My invoices
+      tags:
+      - Student
+  /invoices/{id}:
+    delete:
+      description: Murid membatalkan invoice langganan miliknya yang masih pending
+        dan bukan dari booking
+      parameters:
+      - description: Invoice ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/invoice.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/invoice.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel my invoice
       tags:
       - Student
   /logout:

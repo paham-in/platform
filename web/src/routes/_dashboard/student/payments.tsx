@@ -1,15 +1,40 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { z } from "zod"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table"
-import { useQuery } from "@tanstack/react-query"
-import { getInvoicesOptions } from "@/lib/api/@tanstack/react-query.gen"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { deleteInvoicesByIdMutation, getInvoicesOptions, getInvoicesQueryKey } from "@/lib/api/@tanstack/react-query.gen"
 import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
-import { CreditCard, CheckCircle2, Clock, ReceiptText } from "lucide-react"
+import { CreditCard, CheckCircle2, Clock, ReceiptText, MoreVertical, XCircle } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+
+const paymentsSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 function formatDate(iso?: string): string {
   if (!iso) return ""
@@ -18,9 +43,56 @@ function formatDate(iso?: string): string {
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
 }
 
+// canCancel: langganan milik sendiri yang masih pending dan bukan dari booking.
+// Invoice booking hanya bisa hilang lewat pembatalan booking.
+function canCancel(inv: InvoiceInvoiceResponse) {
+  return inv.status === "pending" && !inv.booking_id
+}
+
+function CancelInvoiceDialog({ invoice, onClose }: { invoice: InvoiceInvoiceResponse; onClose: () => void }) {
+  const qc = useQueryClient()
+
+  const { mutate: cancelInvoice, isPending } = useMutation({
+    ...deleteInvoicesByIdMutation(),
+    onSuccess: () => {
+      toast.success("Invoice dibatalkan")
+      qc.invalidateQueries({ queryKey: getInvoicesQueryKey() })
+      onClose()
+    },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal membatalkan invoice"),
+  })
+
+  return (
+    <AlertDialog open onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Batalkan Invoice</AlertDialogTitle>
+          <AlertDialogDescription>
+            Yakin batalkan tagihan Rp {invoice.amount?.toLocaleString("id-ID")} ({invoice.note || "tanpa catatan"})? Tindakan ini tidak bisa dibatalkan.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" onClick={() => invoice.id && cancelInvoice({ path: { id: invoice.id } })} disabled={isPending}>
+            {isPending && <Spinner />}
+            Batalkan
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
 function StudentPayments() {
   usePageTitle("Riwayat Pembayaran")
   const { data: invoices = [], isLoading } = useQuery(getInvoicesOptions())
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
+  const [cancelTarget, setCancelTarget] = useState<InvoiceInvoiceResponse | null>(null)
+
+  useEffect(() => {
+    if (modal !== "cancel") setCancelTarget(null)
+  }, [modal])
 
   if (isLoading) {
     return (
@@ -88,13 +160,14 @@ function StudentPayments() {
                   <TableHead>Jumlah</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Catatan</TableHead>
-                  <TableHead className="pr-6">Tgl Buat</TableHead>
+                  <TableHead>Tgl Buat</TableHead>
+                  <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {invoices.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={6}>
                       <Empty className="border-0 p-8">
                         <EmptyHeader>
                           <EmptyMedia variant="icon"><ReceiptText /></EmptyMedia>
@@ -124,7 +197,23 @@ function StudentPayments() {
                       <TableCell className="max-w-[200px] truncate text-muted-foreground">
                         {inv.note || "-"}
                       </TableCell>
-                      <TableCell className="pr-6 text-muted-foreground">{formatDate(inv.created_at)}</TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(inv.created_at)}</TableCell>
+                      <TableCell className="pr-6">
+                        <div className="flex items-center justify-end">
+                          {canCancel(inv) ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi invoice" />}>
+                                <MoreVertical className="h-4 w-4" />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem variant="destructive" onClick={() => { setCancelTarget(inv); openModal("cancel") }}>
+                                  <XCircle className="h-4 w-4" /> Batalkan Invoice
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : null}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -153,15 +242,29 @@ function StudentPayments() {
                       )}
                       <p className="mt-1 text-xs text-muted-foreground">Dibuat {formatDate(inv.created_at)}</p>
                     </div>
-                    {inv.status === "paid" ? (
-                      <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                        Lunas
-                      </span>
-                    ) : (
-                      <span className="shrink-0 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">
-                        Pending
-                      </span>
-                    )}
+                    <div className="flex shrink-0 items-center gap-2">
+                      {inv.status === "paid" ? (
+                        <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                          Lunas
+                        </span>
+                      ) : (
+                        <span className="shrink-0 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">
+                          Pending
+                        </span>
+                      )}
+                      {canCancel(inv) ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi invoice" className="shrink-0" />}>
+                            <MoreVertical className="h-4 w-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem variant="destructive" onClick={() => { setCancelTarget(inv); openModal("cancel") }}>
+                              <XCircle className="h-4 w-4" /> Batalkan Invoice
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : null}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -169,10 +272,13 @@ function StudentPayments() {
           </CardContent>
         </Card>
       </div>
+
+      {modal === "cancel" && cancelTarget && <CancelInvoiceDialog invoice={cancelTarget} onClose={closeModal} />}
     </main>
   )
 }
 
 export const Route = createFileRoute("/_dashboard/student/payments")({
   component: StudentPayments,
+  validateSearch: paymentsSearchSchema,
 })

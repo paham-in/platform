@@ -156,6 +156,31 @@ func (h *Handler) AdminToggleInvoice(c *fiber.Ctx) error {
 	return c.JSON(invoice)
 }
 
+// DeleteMyInvoice membatalkan invoice langganan milik murid yang login
+// @Summary      Cancel my invoice
+// @Description  Murid membatalkan invoice langganan miliknya yang masih pending dan bukan dari booking
+// @Tags         Student
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Invoice ID"
+// @Success      200 {object} MessageResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /invoices/{id} [delete]
+func (h *Handler) DeleteMyInvoice(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok || userID == 0 {
+		return c.Status(401).JSON(ErrorResponse{Error: "unauthorized"})
+	}
+	if err := h.svc.StudentDeleteInvoice(uint(id), userID); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(MessageResponse{Message: "invoice berhasil dibatalkan"})
+}
+
 // AdminDeleteInvoice menghapus invoice
 // @Summary      Delete invoice
 // @Description  Menghapus invoice berdasarkan ID
@@ -187,6 +212,7 @@ func AuthRoutes(auth fiber.Router, db *gorm.DB, notifSvc *notification.Service) 
 
 	auth.Get("/invoices", h.MyInvoices)
 	auth.Post("/subscribe", h.Subscribe)
+	auth.Delete("/invoices/:id", h.DeleteMyInvoice)
 }
 
 func AdminRoutes(admin fiber.Router, db *gorm.DB, notifSvc *notification.Service) {

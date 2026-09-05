@@ -22,6 +22,7 @@ type InvoiceResponse struct {
 	Status    string  `json:"status"`
 	Note      string  `json:"note"`
 	CreatedAt string  `json:"created_at"`
+	BookingID *uint   `json:"booking_id,omitempty"`
 }
 
 type Service struct {
@@ -179,6 +180,36 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 }
 
 func (s *Service) Delete(id uint) error {
+	invoice, err := s.repo.Get(id)
+	if err != nil {
+		return errors.New("invoice tidak ditemukan")
+	}
+	if invoice.BookingID != nil {
+		return errors.New("invoice dari booking tidak bisa dihapus")
+	}
+	if invoice.Status == "paid" {
+		return errors.New("invoice lunas tidak bisa dihapus")
+	}
+	return s.repo.Delete(id)
+}
+
+// StudentDeleteInvoice membatalkan invoice langganan milik murid sendiri.
+// Hanya yang masih pending dan bukan dari booking (invoice booking hanya bisa
+// hilang lewat pembatalan booking). Pending = belum ada uang masuk.
+func (s *Service) StudentDeleteInvoice(id, userID uint) error {
+	invoice, err := s.repo.Get(id)
+	if err != nil {
+		return errors.New("invoice tidak ditemukan")
+	}
+	if invoice.UserID != userID {
+		return errors.New("bukan invoice kamu")
+	}
+	if invoice.Status != "pending" {
+		return errors.New("hanya invoice pending yang bisa dibatalkan")
+	}
+	if invoice.BookingID != nil {
+		return errors.New("invoice booking hanya bisa hilang lewat pembatalan booking")
+	}
 	return s.repo.Delete(id)
 }
 
@@ -220,6 +251,7 @@ func toResponse(i models.Invoice) InvoiceResponse {
 		Status:    i.Status,
 		Note:      i.Note,
 		CreatedAt: i.CreatedAt.Format("2006-01-02"),
+		BookingID: i.BookingID,
 	}
 }
 

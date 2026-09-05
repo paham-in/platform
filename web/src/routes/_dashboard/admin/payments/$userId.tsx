@@ -36,6 +36,12 @@ const paymentsDetailSearchSchema = z.object({
   modal: z.string().optional(),
 })
 
+// canDelete: hanya invoice langganan manual (tanpa booking) yang masih pending.
+// Invoice les tidak bisa dihapus, invoice lunas tidak bisa dihapus.
+function canDelete(inv: InvoiceInvoiceResponse) {
+  return !inv.booking_id && inv.status === "pending"
+}
+
 function PaymentsStatusFilterMenu({
   compact,
   value,
@@ -224,9 +230,11 @@ function PaymentsDetail() {
               <DropdownMenuItem onClick={() => { setToggleTarget({ invoices: invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => i.status === "paid"), status: "pending" }); openModal("toggle") }}>
                 <XCircle className="h-4 w-4" /> Pending
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setDeleteTarget(invoices.filter((i) => selectedIds.has(i.id!))); openModal("delete") }}>
-                <Trash2 className="h-4 w-4 text-destructive" /> Hapus
-              </DropdownMenuItem>
+              {invoices.some((i) => selectedIds.has(i.id!) && !i.booking_id && i.status === "pending") ? (
+                <DropdownMenuItem onClick={() => { setDeleteTarget(invoices.filter((i) => selectedIds.has(i.id!)).filter((i) => !i.booking_id && i.status === "pending")); openModal("delete") }}>
+                  <Trash2 className="h-4 w-4 text-destructive" /> Hapus
+                </DropdownMenuItem>
+              ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -321,9 +329,11 @@ function PaymentsDetail() {
                             {inv.status === "paid" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                             {inv.status === "paid" ? "Pending" : "Lunas"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => { setDeleteTarget([inv]); openModal("delete") }}>
-                            <Trash2 className="h-4 w-4 text-destructive" /> Hapus
-                          </DropdownMenuItem>
+                          {canDelete(inv) ? (
+                            <DropdownMenuItem onClick={() => { setDeleteTarget([inv]); openModal("delete") }}>
+                              <Trash2 className="h-4 w-4 text-destructive" /> Hapus
+                            </DropdownMenuItem>
+                          ) : null}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -414,9 +424,11 @@ function PaymentsDetail() {
                         {inv.status === "paid" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                         {inv.status === "paid" ? "Pending" : "Lunas"}
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setDeleteTarget([inv]); openModal("delete") }}>
-                        <Trash2 className="h-4 w-4 text-destructive" /> Hapus
-                      </DropdownMenuItem>
+                      {canDelete(inv) ? (
+                        <DropdownMenuItem onClick={() => { setDeleteTarget([inv]); openModal("delete") }}>
+                          <Trash2 className="h-4 w-4 text-destructive" /> Hapus
+                        </DropdownMenuItem>
+                      ) : null}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

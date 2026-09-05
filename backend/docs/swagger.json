@@ -3592,6 +3592,46 @@
                 }
             }
         },
+        "/invoices/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Murid membatalkan invoice langganan miliknya yang masih pending dan bukan dari booking",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Student"
+                ],
+                "summary": "Cancel my invoice",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Invoice ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/invoice.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/invoice.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/logout": {
             "post": {
                 "security": [
@@ -5763,6 +5803,9 @@
             "properties": {
                 "amount": {
                     "type": "number"
+                },
+                "booking_id": {
+                    "type": "integer"
                 },
                 "created_at": {
                     "type": "string"
