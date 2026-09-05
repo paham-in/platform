@@ -379,6 +379,7 @@ function StudentTutoringIndex() {
               <TableHeader>
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Guru</TableHead>
+                  <TableHead>Mapel</TableHead>
                   <TableHead>Tipe</TableHead>
                   <TableHead>Pertemuan</TableHead>
                   <TableHead>Tanggal</TableHead>
@@ -390,7 +391,7 @@ function StudentTutoringIndex() {
               <TableBody>
                 {bookingsLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="p-4">
+                    <TableCell colSpan={8} className="p-4">
                       <div className="space-y-3">
                         {Array.from({ length: 3 }).map((_, i) => (
                           <Skeleton key={i} className="h-12 w-full" />
@@ -400,7 +401,7 @@ function StudentTutoringIndex() {
                   </TableRow>
                 ) : bookings.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7}>
+                    <TableCell colSpan={8}>
                       <Empty className="border-0 p-8">
                         <EmptyHeader>
                           <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
@@ -412,6 +413,7 @@ function StudentTutoringIndex() {
                 ) : bookings.map((b) => (
                   <TableRow key={b.id}>
                     <TableCell className="pl-6 font-medium">{b.teacher_name || "—"}</TableCell>
+                    <TableCell>{b.subject_name || "—"}</TableCell>
                     <TableCell>{modeBadge(b.mode)}</TableCell>
                     <TableCell>{b.session_count ?? 1}×</TableCell>
                     <TableCell>{b.date}</TableCell>
@@ -469,6 +471,7 @@ function StudentTutoringIndex() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="text-sm font-medium">{b.teacher_name || "—"}</p>
+                        <p className="mt-0.5 text-sm text-muted-foreground">{b.subject_name || "—"}</p>
                         <div className="mt-1">{modeBadge(b.mode)}</div>
                         <p className="mt-2 text-sm text-muted-foreground">{b.date} · {b.start_time} - {b.end_time}</p>
                         <p className="mt-0.5 text-xs text-muted-foreground">{b.session_count ?? 1}× pertemuan</p>
