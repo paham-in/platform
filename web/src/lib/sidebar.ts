@@ -94,7 +94,6 @@ export const sidebarGroups: SidebarGroup[] = [
         items: [
           { label: "Tarif Produk", to: "/admin/tutoring-fees" },
           { label: "Pembayaran Murid", to: "/admin/payments" },
-          { label: "Validasi & Fee Guru", to: "/admin/attendance" },
         ],
       },
       {
@@ -106,7 +105,14 @@ export const sidebarGroups: SidebarGroup[] = [
           { label: "Mata Pelajaran Guru", to: "/admin/teacher-subjects" },
         ],
       },
-      { label: "Les Privat", icon: Calendar, to: "/admin/tutoring" },
+      {
+        label: "Les Privat",
+        icon: Calendar,
+        items: [
+          { label: "Daftar Booking", to: "/admin/tutoring" },
+          { label: "Validasi & Fee Guru", to: "/admin/attendance" },
+        ],
+      },
       { label: "Forum", icon: MessageSquare, to: "/admin/forum" },
       { label: "Dev Tools", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },
     ],
