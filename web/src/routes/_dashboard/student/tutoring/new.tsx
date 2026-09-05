@@ -74,6 +74,7 @@ function NewBooking() {
   const [sessionCount, setSessionCount] = useState(1)
   const [classId, setClassId] = useState("")
   const [date, setDate] = useState("")
+  const [dateOpen, setDateOpen] = useState(false)
   const [note, setNote] = useState("")
   const [members, setMembers] = useState<UserAdminListUsersResponse[]>([])
   const { modal } = Route.useSearch()
@@ -241,7 +242,7 @@ function NewBooking() {
 
           <div className="space-y-1.5">
             <Label htmlFor="new-date">Tanggal Mulai</Label>
-            <Popover>
+            <Popover open={dateOpen} onOpenChange={setDateOpen}>
               <PopoverTrigger
                 render={
                   <Button
@@ -263,7 +264,7 @@ function NewBooking() {
                     return d < today
                   }}
                   selected={date ? new Date(date + "T00:00:00") : undefined}
-                  onSelect={changeDate}
+                  onSelect={(d) => { changeDate(d); if (d) setDateOpen(false) }}
                 />
               </PopoverContent>
             </Popover>
