@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
@@ -40,12 +39,19 @@ const adminTutoringNewSearchSchema = z.object({
   student_id: z.coerce.number().optional(),
 })
 
-const countOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12]
 const modeOptions = [
   { label: "Private", value: "private" },
   { label: "Kelompok", value: "group" },
 ]
 const SESSION_MINUTES = 90
+
+const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
+
+// 07:00 s/d 20:30, tiap 30 menit, biar durasi 90 menit (1 sesi les) bisa dipilih.
+const TIME_OPTIONS = Array.from({ length: 28 }, (_, i) => {
+  const total = 7 * 60 + i * 30
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`
+})
 
 function toMinutes(t: string): number {
   const [h, m] = t.split(":").map(Number)
@@ -66,7 +72,6 @@ function AdminTutoringNew() {
   const { student_id: presetStudentId } = Route.useSearch()
   const { data: students = [] } = useQuery(getAdminStudentsOptions())
   const { data: classes = [] } = useQuery(getAdminClassesOptions())
-  const { data: subjects = [] } = useQuery(getSubjectsOptions())
 
   const [student, setStudent] = useState<UserAdminListUsersResponse>()
   const [subjectId, setSubjectId] = useState("")
@@ -75,6 +80,7 @@ function AdminTutoringNew() {
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
   const [date, setDate] = useState("")
+  const [dateOpen, setDateOpen] = useState(false)
   const [note, setNote] = useState("")
   const [mode, setMode] = useState<"private" | "group">("private")
   const [members, setMembers] = useState<UserAdminListUsersResponse[]>([])
@@ -89,12 +95,28 @@ function AdminTutoringNew() {
     if (found) setStudent(found)
   }, [student, presetStudentId, students])
 
-  // guru difilter by mapel
+  // murid dikunci mengikuti konteks halaman asal; picker hanya tampil
+  // bila form dibuka langsung tanpa ?student_id=
+  const lockedStudent = presetStudentId ? (students.find((s) => s.id === presetStudentId) ?? student) : undefined
+
+  // guru difilter by mapel + jadwal (bila tanggal & jam sudah diisi)
+  const slotComplete = date !== "" && startTime !== "" && endTime !== ""
   const { data: teachers = [], isLoading: teachersLoading } = useQuery({
     ...getTutoringTeachersOptions({
-      query: subjectId ? { subject_id: Number(subjectId) } : undefined,
+      query: subjectId
+        ? {
+            subject_id: Number(subjectId),
+            ...(slotComplete ? { date, start_time: startTime, end_time: endTime } : {}),
+          }
+        : undefined,
     }),
     enabled: !!subjectId,
+  })
+
+  // mapel difilter by kelas (seperti form murid)
+  const { data: subjects = [] } = useQuery({
+    ...getSubjectsOptions({ query: classId ? { class_id: Number(classId) } : undefined }),
+    enabled: !!classId,
   })
 
   const { mutateAsync: createBooking } = useMutation(postAdminTutoringBookingsMutation())
@@ -104,15 +126,31 @@ function AdminTutoringNew() {
     setClassId("")
   }, [student])
 
-  const myClass = classes.find((c) => c.id === Number(classId))
-  const pricePerSession = myClass?.price_per_session ?? 0
+  const bookableClasses = classes.filter((c) => c.allow_tutoring !== false)
+  const myClass = bookableClasses.find((c) => c.id === Number(classId))
+  const pricePerSession = mode === "group" ? (myClass?.group_price ?? 0) : (myClass?.price_per_session ?? 0)
 
   const timesValid = startTime !== "" && endTime !== "" && startTime < endTime
   const perWeek = timesValid ? perWeekFor(startTime, endTime) : null
   const totalSessions = perWeek ? sessionCount * perWeek : 0
+  // jam mulai yang masih punya pilihan jam selesai valid (kelipatan 90 menit)
+  const startOptions = TIME_OPTIONS.filter((t) =>
+    TIME_OPTIONS.some((e) => {
+      const dur = toMinutes(e) - toMinutes(t)
+      return dur > 0 && dur % SESSION_MINUTES === 0
+    })
+  )
+  // jam selesai hanya yang durasinya kelipatan 90 menit
+  const endOptions = startTime === ""
+    ? []
+    : TIME_OPTIONS.filter((t) => {
+        const dur = toMinutes(t) - toMinutes(startTime)
+        return dur > 0 && dur % SESSION_MINUTES === 0
+      })
+  const changeStartTime = (v: string | null) => { setStartTime(v ?? ""); setEndTime(""); setTeacher(undefined) }
+  const changeEndTime = (v: string | null) => { setEndTime(v ?? ""); setTeacher(undefined) }
   const canSubmit =
     !!student && classId && subjectId && teacher && timesValid && perWeek !== null && date && !submitting &&
-    myClass?.allow_tutoring !== false &&
     (mode === "private" || members.length > 0)
 
   const memberEmails = mode === "group"
@@ -157,6 +195,14 @@ navigate({ to: "/admin/tutoring", replace: true })
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
+  // kelas berubah → reset subject (dan guru) kalau sudah tidak ada di kelas baru
+  useEffect(() => {
+    if (subjectId && classId && subjects.length > 0 && !subjects.some((s) => String(s.id) === subjectId)) {
+      setSubjectId("")
+      setTeacher(undefined)
+    }
+  }, [subjects, subjectId, classId])
+
   return (
     <main className="p-4 md:p-6">
       <div className="mb-6">
@@ -166,10 +212,16 @@ navigate({ to: "/admin/tutoring", replace: true })
           </p>
         </div>
 
-      <Card className="gap-0 pt-0 pb-0">
-        <CardContent className="space-y-4 md:space-y-6 p-6">
+      <div className="flex max-w-lg flex-col gap-4 md:gap-6">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="admin-booking-student">Murid</Label>
+            {lockedStudent ? (
+              <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm">
+                <span className="font-medium">{lockedStudent.name}</span>
+                <span className="text-muted-foreground">, {lockedStudent.email}</span>
+              </p>
+            ) : (
             <Combobox
               autoHighlight
               items={students}
@@ -196,17 +248,18 @@ navigate({ to: "/admin/tutoring", replace: true })
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="admin-booking-class">Kelas</Label>
               {!student ? (
                 <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">Pilih murid dulu</p>
-              ) : classes.length === 0 ? (
+              ) : bookableClasses.length === 0 ? (
                 <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">Belum ada kelas tersedia.</p>
               ) : (
                 <>
                   <Select
-                    items={classes.map((c) => ({ label: c.name, value: String(c.id) }))}
+                    items={bookableClasses.map((c) => ({ label: c.name, value: String(c.id) }))}
                     value={classId}
                     onValueChange={(v) => setClassId(v ?? "")}
                   >
@@ -214,7 +267,7 @@ navigate({ to: "/admin/tutoring", replace: true })
                       <SelectValue placeholder="Pilih kelas" />
                     </SelectTrigger>
                     <SelectContent>
-                      {classes.map((c) => (
+                      {bookableClasses.map((c) => (
                         <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -226,15 +279,10 @@ navigate({ to: "/admin/tutoring", replace: true })
               )}
             </div>
           </div>
-
+          </div>
+          <div className="space-y-4 border-t pt-6">
           <div className="space-y-2">
             <Label htmlFor="admin-booking-mode">Mode</Label>
-            {myClass && myClass.allow_tutoring === false ? (
-              <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-                Kelas ini tidak menyediakan layanan les.
-              </div>
-            ) : (
-            <>
             <Select
               items={modeOptions}
               value={mode}
@@ -255,8 +303,6 @@ navigate({ to: "/admin/tutoring", replace: true })
             <p className="text-xs text-muted-foreground">
               {mode === "group" ? "Maksimal 5 siswa termasuk murid utama." : "Les sendiri berdua dengan guru."}
             </p>
-            </>
-            )}
           </div>
 
           {mode === "group" && (
@@ -305,6 +351,8 @@ navigate({ to: "/admin/tutoring", replace: true })
             </div>
           )}
 
+          </div>
+          <div className="space-y-4 border-t pt-6">
           <div className="space-y-2">
             <Label htmlFor="admin-booking-subject">Mata Pelajaran</Label>
             <Select
@@ -329,84 +377,41 @@ navigate({ to: "/admin/tutoring", replace: true })
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="admin-booking-teacher">Guru</Label>
-            {!subjectId ? (
-              <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">Pilih mapel dulu</p>
-            ) : teachersLoading ? (
-              <div className="flex items-center justify-center py-4">
-                <Spinner />
-              </div>
-            ) : teachers.length === 0 ? (
-              <Empty className="border-0 px-0 py-4">
-                <EmptyHeader className="gap-1">
-                  <EmptyMedia variant="icon"><UserX /></EmptyMedia>
-                  <EmptyTitle className="text-sm">Tidak ada guru untuk mapel ini</EmptyTitle>
-                </EmptyHeader>
-              </Empty>
-            ) : (
-              <Combobox
-                autoHighlight
-                items={teachers}
-                value={teacher}
-                onValueChange={(v) => {
-                  setTeacher(v ?? undefined)
-                  setStartTime("")
-                  setEndTime("")
-                  setDate("")
-                }}
-                itemToStringLabel={(t) => (t ? t.name ?? "" : "")}
-              >
-                <ComboboxInput id="admin-booking-teacher" placeholder="Pilih guru..." />
-                <ComboboxContent>
-                  <ComboboxEmpty>Tidak ada guru ditemukan</ComboboxEmpty>
-                  <ComboboxList>
-                    {(t: TutoringListTeachersResponse) => (
-                      <ComboboxItem key={t.id} value={t}>
-                        <span className="flex min-w-0 flex-col">
-                          <span className="truncate">{t.name}</span>
-                          <span className="truncate text-xs text-muted-foreground">{t.email}</span>
-                        </span>
-                      </ComboboxItem>
-                    )}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
-            )}
           </div>
-
-          {teacher && (
-            <>
+          <div className="space-y-4 border-t pt-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="admin-booking-start">Jam Mulai</Label>
-                  <Input
-                    id="admin-booking-start"
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                  autoComplete="off"/>
+                  <Select items={startOptions.map((t) => ({ label: t, value: t }))} value={startTime} onValueChange={changeStartTime}>
+                    <SelectTrigger id="admin-booking-start" className="w-full">
+                      <SelectValue placeholder="Pilih jam" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {startOptions.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Durasi les kelipatan {SESSION_MINUTES} menit ({SESSION_MINUTES / 60} jam).</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="admin-booking-end">Jam Selesai</Label>
-                  <Input
-                    id="admin-booking-end"
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                  autoComplete="off"/>
+                  <Select items={endOptions.map((t) => ({ label: t, value: t }))} value={endTime} onValueChange={changeEndTime}>
+                    <SelectTrigger id="admin-booking-end" className="w-full">
+                      <SelectValue placeholder="Pilih jam" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {endOptions.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-              {startTime !== "" && endTime !== "" && !(startTime < endTime) && (
-                <p className="text-xs text-destructive">Jam selesai harus setelah jam mulai.</p>
-              )}
-              {timesValid && perWeek === null && (
-                <p className="text-xs text-destructive">Durasi les harus kelipatan {SESSION_MINUTES} menit (1,5 jam).</p>
-              )}
 
               <div className="space-y-2">
                 <Label htmlFor="admin-booking-date">Tanggal Mulai</Label>
-                <Popover>
+                <Popover open={dateOpen} onOpenChange={setDateOpen}>
                   <PopoverTrigger
                     render={
                       <Button
@@ -428,7 +433,7 @@ navigate({ to: "/admin/tutoring", replace: true })
                         return d < today
                       }}
                       selected={date ? new Date(date + "T00:00:00") : undefined}
-                      onSelect={(d) => setDate(d ? format(d, "yyyy-MM-dd") : "")}
+                      onSelect={(d) => { setDate(d ? format(d, "yyyy-MM-dd") : ""); setTeacher(undefined); if (d) setDateOpen(false) }}
                     />
                   </PopoverContent>
                 </Popover>
@@ -436,19 +441,63 @@ navigate({ to: "/admin/tutoring", replace: true })
               </div>
 
               <div className="space-y-2">
-                <Label>Jumlah Pertemuan</Label>
-                <div className="flex flex-wrap gap-1.5">
-                  {countOptions.map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      aria-pressed={sessionCount === n}
-                      onClick={() => setSessionCount(n)}
-                      className={`rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${sessionCount === n ? "border-primary bg-primary/5 text-primary ring-1 ring-primary" : "hover:bg-muted/50"}`}
-                    >
-                      {n}×
-                    </button>
-                  ))}
+                <Label htmlFor="admin-booking-teacher">Guru</Label>
+                {!subjectId ? (
+                  <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">Pilih mapel dulu</p>
+                ) : teachersLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Spinner />
+                  </div>
+                ) : teachers.length === 0 ? (
+                  <Empty className="border-0 px-0 py-4">
+                    <EmptyHeader className="gap-1">
+                      <EmptyMedia variant="icon"><UserX /></EmptyMedia>
+                      <EmptyTitle className="text-sm">
+                        {slotComplete ? "Tidak ada guru yang free di jadwal ini" : "Tidak ada guru untuk mapel ini"}
+                      </EmptyTitle>
+                    </EmptyHeader>
+                  </Empty>
+                ) : (
+                  <Combobox
+                    autoHighlight
+                    items={teachers}
+                    value={teacher}
+                    onValueChange={(v) => setTeacher(v ?? undefined)}
+                    itemToStringLabel={(t) => (t ? t.name ?? "" : "")}
+                  >
+                    <ComboboxInput id="admin-booking-teacher" placeholder="Pilih guru..." />
+                    <ComboboxContent>
+                      <ComboboxEmpty>Tidak ada guru ditemukan</ComboboxEmpty>
+                      <ComboboxList>
+                        {(t: TutoringListTeachersResponse) => (
+                          <ComboboxItem key={t.id} value={t}>
+                            <span className="flex min-w-0 flex-col">
+                              <span className="truncate">{t.name}</span>
+                              <span className="truncate text-xs text-muted-foreground">{t.email}</span>
+                            </span>
+                          </ComboboxItem>
+                        )}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-booking-session-count">Jumlah Pertemuan</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="admin-booking-session-count"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={12}
+                    value={sessionCount}
+                    onChange={(e) => setSessionCount(Math.max(1, Number(e.target.value) || 1))}
+                    onBlur={() => setSessionCount(Math.min(12, Math.max(1, sessionCount)))}
+                    className="w-24 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  autoComplete="off"/>
+                  <span className="text-sm text-muted-foreground">kali</span>
                 </div>
               </div>
 
@@ -461,16 +510,15 @@ navigate({ to: "/admin/tutoring", replace: true })
                 <div className="text-sm">
                   <p className="font-medium">Total ({sessionCount}× pertemuan{perWeek ? ` · ${totalSessions} sesi` : ""})</p>
                   <p className="text-xs text-muted-foreground">
-                    Rp {pricePerSession.toLocaleString("id-ID")} / sesi (90 menit)
-                    {myClass && !myClass.price_per_session && (
+                    {mode === "group" ? `${fmtRp(myClass?.group_price)} / sesi` : `${fmtRp(myClass?.price_per_session)} / sesi`} (90 menit)
+                    {myClass && (mode === "group" ? !myClass.group_price : !myClass.price_per_session) && (
                       <span className="ml-1 text-amber-600">(kelas tanpa harga)</span>
                     )}
                   </p>
                 </div>
                 <p className="text-lg font-bold">Rp {(pricePerSession * totalSessions).toLocaleString("id-ID")}</p>
               </div>
-            </>
-          )}
+          </div>
 
           <div className="flex justify-end gap-3 border-t pt-4">
             <Button variant="outline" onClick={() => navigate({ to: "/admin/tutoring", replace: true })}>Batal</Button>
@@ -479,8 +527,7 @@ navigate({ to: "/admin/tutoring", replace: true })
               Buat Booking
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
     </main>
   )
 }
