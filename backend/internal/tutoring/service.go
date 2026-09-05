@@ -615,20 +615,6 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 	return resp, nil
 }
 
-// AdminDeleteBooking menghapus booking beserta sesi & invoice terkait (admin).
-// Dipakai utk koreksi booking manual yang salah input. Booking yang invoice-nya
-// sudah lunas ditolak, riwayat pembayaran tidak boleh hilang.
-func (s *Service) AdminDeleteBooking(id uint) error {
-	if _, err := s.repo.GetBooking(id); err != nil {
-		return errors.New("booking tidak ditemukan")
-	}
-	var paid models.Invoice
-	if err := s.repo.db.Where("booking_id = ? AND status = ?", id, "paid").First(&paid).Error; err == nil {
-		return errors.New("booking sudah punya invoice lunas, tidak bisa dihapus")
-	}
-	return s.repo.DeleteBookingCascade(id)
-}
-
 // checkBookingConflict mengecek keseluruhan bentrokan jadwal guru: booking
 // existing pada date+time, dan sesi pertemuan yang sudah di-expand dari booking
 // berulang (multi-week). Dipanggil saat create/assign booking, termasuk path

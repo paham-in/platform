@@ -3,24 +3,14 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getAdminTutoringBookingsOptions, getAdminTutoringBookingsQueryKey, patchAdminTutoringBookingsByIdAssignMutation, deleteAdminTutoringBookingsByIdMutation, getTutoringTeachersOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminTutoringBookingsOptions, getAdminTutoringBookingsQueryKey, patchAdminTutoringBookingsByIdAssignMutation, getTutoringTeachersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListBookingsResponse, TutoringListTeachersResponse } from "@/lib/api/types.gen"
-import { Plus, Trash2, UserRound, Users, CalendarX2 } from "lucide-react"
+import { Plus, UserRound, Users, CalendarX2 } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
@@ -126,44 +116,6 @@ function AssignTeacherDialog({ booking, onClose }: { booking: TutoringListBookin
   )
 }
 
-function DeleteBookingDialog({ booking, onClose }: { booking: TutoringListBookingsResponse; onClose: () => void }) {
-  const qc = useQueryClient()
-
-  const { mutate: deleteBooking, isPending } = useMutation({
-    ...deleteAdminTutoringBookingsByIdMutation(),
-    onSuccess: () => {
-      toast.success("Booking dihapus")
-      qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
-      onClose()
-    },
-    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal menghapus booking"),
-  })
-
-  return (
-    <AlertDialog open onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Hapus Booking</AlertDialogTitle>
-          <AlertDialogDescription>
-            Yakin hapus booking {booking.student_name ?? "—"} · {booking.subject_name ?? "Mapel?"} · {booking.date} {booking.start_time}–{booking.end_time}? Sesi dan invoice terkait ikut terhapus.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Batal</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            disabled={isPending}
-            onClick={() => booking.id && deleteBooking({ path: { id: booking.id } })}
-          >
-            {isPending && <Spinner />}
-            Hapus
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  )
-}
-
 function AdminTutoring() {
   usePageTitle("Les Privat")
   const navigate = useNavigate({ from: Route.fullPath })
@@ -171,11 +123,9 @@ function AdminTutoring() {
   const { openModal, closeModal } = useDialogBack()
   const { data: bookings = [], isLoading } = useQuery(getAdminTutoringBookingsOptions())
   const [assignBooking, setAssignBooking] = useState<TutoringListBookingsResponse | null>(null)
-  const [deleteBooking, setDeleteBooking] = useState<TutoringListBookingsResponse | null>(null)
 
   useEffect(() => {
     if (modal !== "assign") setAssignBooking(null)
-    if (modal !== "delete") setDeleteBooking(null)
   }, [modal])
 
   return (
@@ -249,11 +199,6 @@ function AdminTutoring() {
                       {b.status === "pending" && !b.teacher_id ? (
                         <Button size="sm" onClick={() => { setAssignBooking(b); openModal("assign") }}>Assign Guru</Button>
                       ) : null}
-                      {b.invoice_status !== "paid" && (
-                        <Button size="sm" variant="outline" onClick={() => { setDeleteBooking(b); openModal("delete") }}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -304,11 +249,6 @@ function AdminTutoring() {
                     {b.status === "pending" && !b.teacher_id ? (
                       <Button size="sm" onClick={() => { setAssignBooking(b); openModal("assign") }}>Assign</Button>
                     ) : null}
-                    {b.invoice_status !== "paid" && (
-                      <Button size="sm" variant="outline" onClick={() => { setDeleteBooking(b); openModal("delete") }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
                   </div>
                 </div>
               ))}
@@ -318,7 +258,6 @@ function AdminTutoring() {
       </Card>
 
       {modal === "assign" && assignBooking && <AssignTeacherDialog booking={assignBooking} onClose={closeModal} />}
-      {modal === "delete" && deleteBooking && <DeleteBookingDialog booking={deleteBooking} onClose={closeModal} />}
 
       <Button
         onClick={() => navigate({ to: "/admin/tutoring/new" })}

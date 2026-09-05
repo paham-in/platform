@@ -199,3 +199,40 @@ func (r *Runner) runNotificationCleanup() {
 	}
 }
 
+// cancelledBookingRetentionDays adalah masa tenggang riwayat booking terminal
+// (cancelled/rejected) sebelum dihapus permanen oleh cron.
+const cancelledBookingRetentionDays = 7
+
+// CancelledBookingCleanup hard-deletes booking cancelled/rejected yang lebih
+// dari masa tenggang, beserta sesi & invoice terkait. Mengembalikan jumlah
+// booking yang dihapus.
+func (r *Runner) CancelledBookingCleanup() (int64, error) {
+	cutoff := time.Now().AddDate(0, 0, -cancelledBookingRetentionDays)
+	return r.tutoringRepo.DeleteCancelledOlderThan(cutoff)
+}
+
+// StartCancelledBookingCleanup menjalankan cleanup riwayat booking batal tiap
+// hari pukul 00:00. Sengaja tanpa run-at-boot: penghapusan permanen hanya
+// berjalan sesuai jadwal. Panic di dalam job di-recover otomatis oleh
+// cron.Recover, satu job yang panik tidak mematikan server, dan jadwal
+// berikutnya tetap berjalan.
+func (r *Runner) StartCancelledBookingCleanup() {
+	c := cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger)))
+	if _, err := c.AddFunc("0 0 * * *", r.runCancelledBookingCleanup); err != nil {
+		log.Printf("[cancelled-booking-cleanup] gagal daftarkan jadwal: %v", err)
+		return
+	}
+	c.Start()
+}
+
+func (r *Runner) runCancelledBookingCleanup() {
+	deleted, err := r.CancelledBookingCleanup()
+	if err != nil {
+		log.Printf("[cancelled-booking-cleanup] gagal hapus riwayat booking: %v", err)
+		return
+	}
+	if deleted > 0 {
+		log.Printf("[cancelled-booking-cleanup] %d riwayat booking batal dihapus permanen", deleted)
+	}
+}
+

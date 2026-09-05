@@ -266,16 +266,6 @@ func newAdminCreateBookingResponse(b models.Booking) AdminCreateBookingResponse 
 	return AdminCreateBookingResponse(buildBookingItem(b))
 }
 
-//, handler: AdminDeleteBooking (DELETE /admin/tutoring/bookings/:id)
-
-type AdminDeleteBookingResponse struct {
-	Message string `json:"message"`
-}
-
-func newAdminDeleteBookingResponse() AdminDeleteBookingResponse {
-	return AdminDeleteBookingResponse{Message: "booking berhasil dihapus"}
-}
-
 //, handler: AssignTeacher (PATCH /admin/tutoring/bookings/:id/assign)
 
 type AssignTeacherResponse struct {

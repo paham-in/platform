@@ -445,6 +445,40 @@
                 }
             }
         },
+        "/admin/dev/cron/cancelled-booking-cleanup": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menghapus permanen booking cancelled/rejected yang lebih dari 7 hari beserta sesi \u0026 invoice terkait",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Run cancelled booking cleanup job",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.RunJobResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/dev/cron/evidence-cleanup": {
             "post": {
                 "security": [
@@ -2522,49 +2556,6 @@
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/tutoring.AdminCreateBookingResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/admin/tutoring/bookings/{id}": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Menghapus booking beserta sesi dan invoice terkait. Dipakai utk koreksi booking manual yang salah input.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Tutoring"
-                ],
-                "summary": "Delete booking",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Booking ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/tutoring.AdminDeleteBookingResponse"
                         }
                     },
                     "400": {
@@ -6630,14 +6621,6 @@
                     "type": "integer"
                 },
                 "teacher_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "tutoring.AdminDeleteBookingResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
                     "type": "string"
                 }
             }

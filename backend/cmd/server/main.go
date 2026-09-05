@@ -136,11 +136,13 @@ func main() {
 	devreset.AdminRoutes(admin, db, cfg, jobRunner)
 
 	// background job: hapus sesi kedaluwarsa tiap jam, bukti kehadiran lewat masa
-	// simpan, & gambar temp yang ditinggalkan (tiap tengah malam).
+	// simpan, gambar temp yang ditinggalkan, & riwayat booking batal yang lewat
+	// masa tenggang (tiap tengah malam).
 	jobRunner.StartSessionCleanup()
 	jobRunner.StartEvidenceCleanup()
 	jobRunner.StartTempImageCleanup()
 	jobRunner.StartNotificationCleanup()
+	jobRunner.StartCancelledBookingCleanup()
 
 	port := cfg.Port
 	log.Printf("Server running on :%s", port)

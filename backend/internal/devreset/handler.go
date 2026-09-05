@@ -321,6 +321,28 @@ func (h *Handler) RunNotificationCleanup(c *fiber.Ctx) error {
 	})
 }
 
+// RunCancelledBookingCleanup menjalankan job hapus permanen riwayat booking batal secara manual
+// @Summary      Run cancelled booking cleanup job
+// @Description  Menghapus permanen booking cancelled/rejected yang lebih dari 7 hari beserta sesi & invoice terkait
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} RunJobResponse
+// @Failure      500 {object} ErrorResponse
+// @Router       /admin/dev/cron/cancelled-booking-cleanup [post]
+func (h *Handler) RunCancelledBookingCleanup(c *fiber.Ctx) error {
+	deleted, err := h.jobs.CancelledBookingCleanup()
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal bersihkan riwayat booking: " + err.Error()})
+	}
+	return c.JSON(RunJobResponse{
+		Job:     "cancelled-booking-cleanup",
+		Deleted: deleted,
+		Message: fmt.Sprintf("%d riwayat booking batal dihapus permanen", deleted),
+	})
+}
+
 func AdminRoutes(admin fiber.Router, db *gorm.DB, cfg *config.Config, jobRunner *jobs.Runner) {
 	h := NewHandler(db, cfg, jobRunner)
 	// GET selalu diregistrasi (FE butuh flag enabled buat hide menu).
@@ -332,5 +354,6 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, cfg *config.Config, jobRunner 
 		admin.Post("/dev/cron/evidence-cleanup", h.RunEvidenceCleanup)
 		admin.Post("/dev/cron/temp-image-cleanup", h.RunTempImageCleanup)
 		admin.Post("/dev/cron/notification-cleanup", h.RunNotificationCleanup)
+		admin.Post("/dev/cron/cancelled-booking-cleanup", h.RunCancelledBookingCleanup)
 	}
 }

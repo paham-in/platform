@@ -942,11 +942,6 @@ definitions:
       teacher_name:
         type: string
     type: object
-  tutoring.AdminDeleteBookingResponse:
-    properties:
-      message:
-        type: string
-    type: object
   tutoring.AdminListBookingsResponse:
     properties:
       class_id:
@@ -2102,6 +2097,28 @@ paths:
       security:
       - BearerAuth: []
       summary: Update class
+      tags:
+      - Admin
+  /admin/dev/cron/cancelled-booking-cleanup:
+    post:
+      consumes:
+      - application/json
+      description: Menghapus permanen booking cancelled/rejected yang lebih dari 7
+        hari beserta sesi & invoice terkait
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/devreset.RunJobResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/devreset.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Run cancelled booking cleanup job
       tags:
       - Admin
   /admin/dev/cron/evidence-cleanup:
@@ -3428,34 +3445,6 @@ paths:
       summary: Create booking manually
       tags:
       - Admin Tutoring
-  /admin/tutoring/bookings/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Menghapus booking beserta sesi dan invoice terkait. Dipakai utk
-        koreksi booking manual yang salah input.
-      parameters:
-      - description: Booking ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/tutoring.AdminDeleteBookingResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/tutoring.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Delete booking
-      tags:
-      - Tutoring
   /admin/tutoring/bookings/{id}/assign:
     patch:
       consumes:

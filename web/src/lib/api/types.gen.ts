@@ -596,10 +596,6 @@ export type TutoringAdminCreateBookingResponse = {
     teacher_name?: string;
 };
 
-export type TutoringAdminDeleteBookingResponse = {
-    message?: string;
-};
-
 export type TutoringAdminListBookingsResponse = {
     class_id?: number;
     created_at?: string;
@@ -1380,6 +1376,31 @@ export type PatchAdminClassesByIdResponses = {
 };
 
 export type PatchAdminClassesByIdResponse = PatchAdminClassesByIdResponses[keyof PatchAdminClassesByIdResponses];
+
+export type PostAdminDevCronCancelledBookingCleanupData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/dev/cron/cancelled-booking-cleanup';
+};
+
+export type PostAdminDevCronCancelledBookingCleanupErrors = {
+    /**
+     * Internal Server Error
+     */
+    500: DevresetErrorResponse;
+};
+
+export type PostAdminDevCronCancelledBookingCleanupError = PostAdminDevCronCancelledBookingCleanupErrors[keyof PostAdminDevCronCancelledBookingCleanupErrors];
+
+export type PostAdminDevCronCancelledBookingCleanupResponses = {
+    /**
+     * OK
+     */
+    200: DevresetRunJobResponse;
+};
+
+export type PostAdminDevCronCancelledBookingCleanupResponse = PostAdminDevCronCancelledBookingCleanupResponses[keyof PostAdminDevCronCancelledBookingCleanupResponses];
 
 export type PostAdminDevCronEvidenceCleanupData = {
     body?: never;
@@ -2752,36 +2773,6 @@ export type PostAdminTutoringBookingsResponses = {
 };
 
 export type PostAdminTutoringBookingsResponse = PostAdminTutoringBookingsResponses[keyof PostAdminTutoringBookingsResponses];
-
-export type DeleteAdminTutoringBookingsByIdData = {
-    body?: never;
-    path: {
-        /**
-         * Booking ID
-         */
-        id: number;
-    };
-    query?: never;
-    url: '/admin/tutoring/bookings/{id}';
-};
-
-export type DeleteAdminTutoringBookingsByIdErrors = {
-    /**
-     * Bad Request
-     */
-    400: TutoringErrorResponse;
-};
-
-export type DeleteAdminTutoringBookingsByIdError = DeleteAdminTutoringBookingsByIdErrors[keyof DeleteAdminTutoringBookingsByIdErrors];
-
-export type DeleteAdminTutoringBookingsByIdResponses = {
-    /**
-     * OK
-     */
-    200: TutoringAdminDeleteBookingResponse;
-};
-
-export type DeleteAdminTutoringBookingsByIdResponse = DeleteAdminTutoringBookingsByIdResponses[keyof DeleteAdminTutoringBookingsByIdResponses];
 
 export type PatchAdminTutoringBookingsByIdAssignData = {
     /**

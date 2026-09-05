@@ -199,17 +199,38 @@ func (r *Repository) ListBookingsByTeacherAndDate(teacherID uint, date string, s
 	return bookings, nil
 }
 
-// DeleteBookingCascade menghapus booking + sesi + invoice terkait dalam satu transaksi.
-func (r *Repository) DeleteBookingCascade(id uint) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("booking_id = ?", id).Delete(&models.TutoringSession{}).Error; err != nil {
+// DeleteCancelledOlderThan menghapus permanen (hard delete) booking terminal
+// (cancelled/rejected) yang terakhir diubah sebelum cutoff, beserta sesi &
+// invoice terkait dalam satu transaksi. Mengembalikan jumlah booking yang dihapus.
+func (r *Repository) DeleteCancelledOlderThan(cutoff time.Time) (int64, error) {
+	var ids []uint
+	if err := r.db.Model(&models.Booking{}).
+		Where("status IN ? AND updated_at < ?", []string{"cancelled", "rejected"}, cutoff).
+		Pluck("id", &ids).Error; err != nil {
+		return 0, err
+	}
+	if len(ids) == 0 {
+		return 0, nil
+	}
+	var deleted int64
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Unscoped().Where("booking_id IN ?", ids).Delete(&models.TutoringSession{}).Error; err != nil {
 			return err
 		}
-		if err := tx.Where("booking_id = ?", id).Delete(&models.Invoice{}).Error; err != nil {
+		if err := tx.Unscoped().Where("booking_id IN ?", ids).Delete(&models.Invoice{}).Error; err != nil {
 			return err
 		}
-		return tx.Delete(&models.Booking{}, id).Error
+		res := tx.Unscoped().Where("id IN ?", ids).Delete(&models.Booking{})
+		if res.Error != nil {
+			return res.Error
+		}
+		deleted = res.RowsAffected
+		return nil
 	})
+	if err != nil {
+		return 0, err
+	}
+	return deleted, nil
 }
 
 func (r *Repository) GetBooking(id uint) (*models.Booking, error) {
