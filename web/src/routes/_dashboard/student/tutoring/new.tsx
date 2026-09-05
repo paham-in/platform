@@ -196,7 +196,7 @@ function NewBooking() {
         <h1 className="text-2xl font-bold tracking-tight">Booking Baru</h1>
         <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam, nanti admin yang akan mencarikan guru untukmu.</p>
       </div>
-      <div className="max-w-2xl space-y-4 md:space-y-6">
+      <div className="flex max-w-lg flex-col gap-4 md:gap-6">
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="new-class">Kelas</Label>
