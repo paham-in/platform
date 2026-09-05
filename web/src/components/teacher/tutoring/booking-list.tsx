@@ -44,7 +44,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
@@ -121,7 +121,7 @@ export function BookingList() {
 
   const upload = useMutation({
     ...postTutoringSessionsByIdEvidenceMutation(),
-    onSuccess: () => { toast.success("Bukti terunggah, menunggu validasi admin"); invalidate() },
+    onSuccess: () => { toast.success("Bukti terunggah, menunggu validasi admin"); invalidate(); setUploadFile(null); closeModal() },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal upload bukti"),
   })
   const overtime = useMutation({
@@ -146,9 +146,8 @@ export function BookingList() {
   const [reschedStart, setReschedStart] = useState("")
   const [reschedEnd, setReschedEnd] = useState("")
   const [cancelSession, setCancelSession] = useState<TutoringListSessionsResponse | null>(null)
-  const [uploadingId, setUploadingId] = useState<number | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [pendingUploadSessionId, setPendingUploadSessionId] = useState<number | null>(null)
+  const [uploadSession, setUploadSession] = useState<TutoringListSessionsResponse | null>(null)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [overtimeSession, setOvertimeSession] = useState<TutoringListSessionsResponse | null>(null)
   const [overtimeEnd, setOvertimeEnd] = useState("")
   const openOvertime = (s: TutoringListSessionsResponse) => { setOvertimeSession(s); setOvertimeEnd(s.actual_end_time ?? s.end_time ?? ""); openModal("overtime") }
@@ -160,6 +159,7 @@ export function BookingList() {
     if (modal !== "reschedule") setRescheduleSession(null)
     if (modal !== "cancel") setCancelSession(null)
     if (modal !== "overtime") setOvertimeSession(null)
+    if (modal !== "upload") { setUploadSession(null); setUploadFile(null) }
   }, [modal])
 
   const sessionsFor = (bookingId: number) => sessions.filter((s) => s.booking_id === bookingId)
@@ -243,7 +243,7 @@ export function BookingList() {
                             if (!ns) return null
                             return (
                               <>
-                                <DropdownMenuItem onClick={() => { setPendingUploadSessionId(ns.id!); fileInputRef.current?.click() }}>
+                                <DropdownMenuItem onClick={() => { setUploadSession(ns); setUploadFile(null); openModal("upload") }}>
                                   <Upload className="h-4 w-4" /> Upload Bukti
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => { openOvertime(sessionsFor(group[0].id!).find((s) => s.status === "review") ?? ns) }}>
@@ -323,7 +323,7 @@ export function BookingList() {
                           if (!ns) return null
                           return (
                             <>
-                              <DropdownMenuItem onClick={() => { setPendingUploadSessionId(ns.id!); fileInputRef.current?.click() }}>
+                              <DropdownMenuItem onClick={() => { setUploadSession(ns); setUploadFile(null); openModal("upload") }}>
                                 <Upload className="h-4 w-4" /> Upload Bukti
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => { openOvertime(sessionsFor(group[0].id!).find((s) => s.status === "review") ?? ns) }}>
@@ -354,25 +354,40 @@ export function BookingList() {
         </CardContent>
       </Card>
 
-      {/* Hidden file input for evidence upload */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={async (e) => {
-          const f = e.target.files?.[0]
-          e.target.value = ""
-          if (f && pendingUploadSessionId) {
-            setUploadingId(pendingUploadSessionId)
-            try {
-              await upload.mutateAsync({ path: { id: pendingUploadSessionId }, body: { image: f } })
-            } catch { /* toast handled */ }
-            setUploadingId(null)
-            setPendingUploadSessionId(null)
-          }
-        }}
-      />
+      {/* Upload evidence dialog */}
+      {modal === "upload" && uploadSession && (
+      <Dialog open onOpenChange={(o) => { if (!o) closeModal() }}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Upload Bukti</DialogTitle>
+            <DialogDescription>
+              Sesi {uploadSession?.date} · {uploadSession?.start_time} - {uploadSession?.end_time}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="evidence-file">Foto Bukti</Label>
+            <Input
+              id="evidence-file"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Format jpg, png, gif, atau webp, maksimal 5MB.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => closeModal()}>Batal</Button>
+            <Button
+              disabled={!uploadFile || upload.isPending}
+              onClick={() => uploadSession?.id && uploadFile && upload.mutate({ path: { id: uploadSession.id }, body: { image: uploadFile } })}
+            >
+              {upload.isPending && <Spinner />} Upload
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      )}
 
       {/* Overtime dialog (menu terpisah dari upload bukti) */}
       {modal === "overtime" && overtimeSession && (
@@ -478,39 +493,6 @@ export function BookingList() {
                             </a>
                           )}
                         </div>
-                        {s.status === "scheduled" && (
-                          <div className="flex shrink-0 gap-1.5">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={uploadingId === s.id}
-                              onClick={() => { setPendingUploadSessionId(s.id!); fileInputRef.current?.click() }}
-                            >
-                              {uploadingId === s.id ? <Spinner /> : <Upload className="h-3.5 w-3.5" />}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setReschedDate(s.date!)
-                                setReschedStart(s.start_time!)
-                                setReschedEnd(s.end_time!)
-                                setRescheduleSession(s)
-                                openModal("reschedule")
-                              }}
-                            >
-                              <CalendarClock className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 hover:text-red-600"
-                              onClick={() => { setCancelSession(s); openModal("cancel") }}
-                            >
-                              <XCircle className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>
