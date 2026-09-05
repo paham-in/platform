@@ -25,6 +25,7 @@ import {
   deleteAdminDevTablesByTableMutation,
   getAdminDevTablesOptions,
   getAdminDevTablesQueryKey,
+  postAdminDevCronCancelledBookingCleanupMutation,
   postAdminDevCronEvidenceCleanupMutation,
   postAdminDevCronNotificationCleanupMutation,
   postAdminDevCronSessionCleanupMutation,
@@ -97,6 +98,15 @@ function DevReset() {
     ...postAdminDevCronNotificationCleanupMutation(),
     onSuccess: (data) => {
       toast.success(data.message || "Pembersihan notifikasi selesai")
+      qc.invalidateQueries({ queryKey: getAdminDevTablesQueryKey() })
+    },
+    onError: (err: any) => toast.error(err?.error || "Gagal menjalankan job"),
+  })
+
+  const runCancelledBookingCleanup = useMutation({
+    ...postAdminDevCronCancelledBookingCleanupMutation(),
+    onSuccess: (data) => {
+      toast.success(data.message || "Pembersihan riwayat booking selesai")
       qc.invalidateQueries({ queryKey: getAdminDevTablesQueryKey() })
     },
     onError: (err: any) => toast.error(err?.error || "Gagal menjalankan job"),
@@ -192,6 +202,23 @@ function DevReset() {
                 disabled={runNotificationCleanup.isPending}
               >
                 {runNotificationCleanup.isPending && <Spinner />}
+                Jalankan Sekarang
+              </Button>
+            </div>
+            <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+              <div>
+                <p className="font-medium">Bersihkan Riwayat Booking Batal</p>
+                <p className="text-xs text-muted-foreground">
+                  Hapus permanen booking cancelled/rejected yang berumur lebih dari 7 hari beserta sesi & invoice terkait. Berjalan otomatis tiap 24 jam.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => runCancelledBookingCleanup.mutate({})}
+                disabled={runCancelledBookingCleanup.isPending}
+              >
+                {runCancelledBookingCleanup.isPending && <Spinner />}
                 Jalankan Sekarang
               </Button>
             </div>
