@@ -633,6 +633,8 @@ export type TutoringAdminListEvidenceResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_charge?: number;
+    overtime_fee?: number;
     overtime_minutes?: number;
     start_time?: string;
     status?: string;
@@ -655,6 +657,8 @@ export type TutoringAdminListFeesResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_charge?: number;
+    overtime_fee?: number;
     overtime_minutes?: number;
     start_time?: string;
     status?: string;
@@ -701,6 +705,8 @@ export type TutoringAdminReviewEvidenceResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_charge?: number;
+    overtime_fee?: number;
     overtime_minutes?: number;
     start_time?: string;
     status?: string;
@@ -723,6 +729,8 @@ export type TutoringAdminToggleFeePaidResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_charge?: number;
+    overtime_fee?: number;
     overtime_minutes?: number;
     start_time?: string;
     status?: string;
@@ -793,6 +801,8 @@ export type TutoringCancelSessionResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_charge?: number;
+    overtime_fee?: number;
     overtime_minutes?: number;
     start_time?: string;
     status?: string;
@@ -891,6 +901,8 @@ export type TutoringListSessionsResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_charge?: number;
+    overtime_fee?: number;
     overtime_minutes?: number;
     start_time?: string;
     status?: string;
@@ -953,6 +965,8 @@ export type TutoringReportOvertimeResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_charge?: number;
+    overtime_fee?: number;
     overtime_minutes?: number;
     start_time?: string;
     status?: string;
@@ -1023,6 +1037,8 @@ export type TutoringUpdateSessionResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_charge?: number;
+    overtime_fee?: number;
     overtime_minutes?: number;
     start_time?: string;
     status?: string;
@@ -1045,6 +1061,8 @@ export type TutoringUploadSessionEvidenceResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_charge?: number;
+    overtime_fee?: number;
     overtime_minutes?: number;
     start_time?: string;
     status?: string;

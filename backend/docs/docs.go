@@ -6931,6 +6931,12 @@ const docTemplate = `{
                 "note": {
                     "type": "string"
                 },
+                "overtime_charge": {
+                    "type": "number"
+                },
+                "overtime_fee": {
+                    "type": "number"
+                },
                 "overtime_minutes": {
                     "type": "integer"
                 },
@@ -6992,6 +6998,12 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_charge": {
+                    "type": "number"
+                },
+                "overtime_fee": {
+                    "type": "number"
                 },
                 "overtime_minutes": {
                     "type": "integer"
@@ -7111,6 +7123,12 @@ const docTemplate = `{
                 "note": {
                     "type": "string"
                 },
+                "overtime_charge": {
+                    "type": "number"
+                },
+                "overtime_fee": {
+                    "type": "number"
+                },
                 "overtime_minutes": {
                     "type": "integer"
                 },
@@ -7172,6 +7190,12 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_charge": {
+                    "type": "number"
+                },
+                "overtime_fee": {
+                    "type": "number"
                 },
                 "overtime_minutes": {
                     "type": "integer"
@@ -7366,6 +7390,12 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_charge": {
+                    "type": "number"
+                },
+                "overtime_fee": {
+                    "type": "number"
                 },
                 "overtime_minutes": {
                     "type": "integer"
@@ -7604,6 +7634,12 @@ const docTemplate = `{
                 "note": {
                     "type": "string"
                 },
+                "overtime_charge": {
+                    "type": "number"
+                },
+                "overtime_fee": {
+                    "type": "number"
+                },
                 "overtime_minutes": {
                     "type": "integer"
                 },
@@ -7750,6 +7786,12 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_charge": {
+                    "type": "number"
+                },
+                "overtime_fee": {
+                    "type": "number"
                 },
                 "overtime_minutes": {
                     "type": "integer"
@@ -7917,6 +7959,12 @@ const docTemplate = `{
                 "note": {
                     "type": "string"
                 },
+                "overtime_charge": {
+                    "type": "number"
+                },
+                "overtime_fee": {
+                    "type": "number"
+                },
                 "overtime_minutes": {
                     "type": "integer"
                 },
@@ -7978,6 +8026,12 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_charge": {
+                    "type": "number"
+                },
+                "overtime_fee": {
+                    "type": "number"
                 },
                 "overtime_minutes": {
                     "type": "integer"

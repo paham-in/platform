@@ -1422,6 +1422,12 @@ func (s *Service) ListEvidence(status, search string) ([]AdminListEvidenceRespon
 		res[i] = newAdminListEvidenceResponse(v)
 		paid := v.Booking != nil && v.Booking.Invoice != nil && v.Booking.Invoice.Status == "paid"
 		res[i].InvoicePaid = paid
+		// preview overtime utk dialog approve (status apa pun selama ada extra).
+		if v.ExtraSessions > 0 && v.Booking != nil {
+			perSession := s.perSessionPrice(v.Booking.ClassID, v.Booking.Mode)
+			res[i].OvertimeFee = s.sessionFee(perSession) * float64(v.ExtraSessions)
+			res[i].OvertimeCharge = perSession * float64(v.ExtraSessions)
+		}
 		// fee_amount cuma relevan utk sesi selesai yg muridnya sudah lunas
 		if v.Status == "done" && paid {
 			perSession := s.perSessionPrice(v.Booking.ClassID, v.Booking.Mode)

@@ -1013,6 +1013,10 @@ definitions:
         type: string
       note:
         type: string
+      overtime_charge:
+        type: number
+      overtime_fee:
+        type: number
       overtime_minutes:
         type: integer
       start_time:
@@ -1054,6 +1058,10 @@ definitions:
         type: string
       note:
         type: string
+      overtime_charge:
+        type: number
+      overtime_fee:
+        type: number
       overtime_minutes:
         type: integer
       start_time:
@@ -1132,6 +1140,10 @@ definitions:
         type: string
       note:
         type: string
+      overtime_charge:
+        type: number
+      overtime_fee:
+        type: number
       overtime_minutes:
         type: integer
       start_time:
@@ -1173,6 +1185,10 @@ definitions:
         type: string
       note:
         type: string
+      overtime_charge:
+        type: number
+      overtime_fee:
+        type: number
       overtime_minutes:
         type: integer
       start_time:
@@ -1301,6 +1317,10 @@ definitions:
         type: string
       note:
         type: string
+      overtime_charge:
+        type: number
+      overtime_fee:
+        type: number
       overtime_minutes:
         type: integer
       start_time:
@@ -1459,6 +1479,10 @@ definitions:
         type: string
       note:
         type: string
+      overtime_charge:
+        type: number
+      overtime_fee:
+        type: number
       overtime_minutes:
         type: integer
       start_time:
@@ -1556,6 +1580,10 @@ definitions:
         type: string
       note:
         type: string
+      overtime_charge:
+        type: number
+      overtime_fee:
+        type: number
       overtime_minutes:
         type: integer
       start_time:
@@ -1666,6 +1694,10 @@ definitions:
         type: string
       note:
         type: string
+      overtime_charge:
+        type: number
+      overtime_fee:
+        type: number
       overtime_minutes:
         type: integer
       start_time:
@@ -1707,6 +1739,10 @@ definitions:
         type: string
       note:
         type: string
+      overtime_charge:
+        type: number
+      overtime_fee:
+        type: number
       overtime_minutes:
         type: integer
       start_time:

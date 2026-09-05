@@ -104,6 +104,8 @@ type sessionItem struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	OvertimeFee float64 `json:"overtime_fee,omitempty"`
+	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -324,6 +326,8 @@ type ListSessionsResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	OvertimeFee float64 `json:"overtime_fee,omitempty"`
+	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -352,6 +356,8 @@ type UpdateSessionResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	OvertimeFee float64 `json:"overtime_fee,omitempty"`
+	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -380,6 +386,8 @@ type CancelSessionResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	OvertimeFee float64 `json:"overtime_fee,omitempty"`
+	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -408,6 +416,8 @@ type UploadSessionEvidenceResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	OvertimeFee float64 `json:"overtime_fee,omitempty"`
+	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -436,6 +446,8 @@ type ReportOvertimeResponse struct {
 	ActualEndTime   string  `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int     `json:"overtime_minutes,omitempty"`
 	ExtraSessions   int     `json:"extra_sessions,omitempty"`
+	OvertimeFee     float64 `json:"overtime_fee,omitempty"`
+	OvertimeCharge  float64 `json:"overtime_charge,omitempty"`
 	FeePaid         bool    `json:"fee_paid,omitempty"`
 	FeeTaken        bool    `json:"fee_taken,omitempty"`
 	FeeAmount       float64 `json:"fee_amount,omitempty"`
@@ -464,6 +476,8 @@ type AdminListEvidenceResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	OvertimeFee float64 `json:"overtime_fee,omitempty"`
+	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -492,6 +506,8 @@ type AdminReviewEvidenceResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	OvertimeFee float64 `json:"overtime_fee,omitempty"`
+	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -653,7 +669,7 @@ func (s *Service) newAdminListReportResponse(b models.Booking) AdminListReportRe
 		case "done":
 			rep.DoneCount++
 			if !sess.FeePaid {
-				rep.FeeUnpaidTotal += rep.FeePerSession
+				rep.FeeUnpaidTotal += s.sessionFeeTotal(perSession, sess.ExtraSessions)
 			}
 		case "cancelled":
 			rep.CancelledCount++
@@ -683,6 +699,8 @@ type AdminListFeesResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	OvertimeFee float64 `json:"overtime_fee,omitempty"`
+	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -711,6 +729,8 @@ type AdminToggleFeePaidResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	OvertimeFee float64 `json:"overtime_fee,omitempty"`
+	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
