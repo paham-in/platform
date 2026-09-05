@@ -40,6 +40,15 @@ type AdminCreateBookingRequest struct {
 	MemberEmails []string `json:"member_emails"` // group: email member (wajib ≥1)
 }
 
+//, handler: RescheduleBooking (PATCH /tutoring/bookings/:id/schedule)
+//, handler: AdminRescheduleBooking (PATCH /admin/tutoring/bookings/:id/schedule)
+
+type RescheduleBookingRequest struct {
+	Date      string `json:"date"`       // "YYYY-MM-DD"
+	StartTime string `json:"start_time"` // "HH:mm"
+	EndTime   string `json:"end_time"`   // "HH:mm"
+}
+
 //, handler: AssignTeacher (PATCH /admin/tutoring/bookings/:id/assign)
 
 type AssignTeacherRequest struct {

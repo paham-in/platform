@@ -2622,6 +2622,98 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/tutoring/bookings/{id}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin menolak booking pending (mis. tidak ada guru tersedia). Grup ditolak sekaligus. Murid diberi tahu.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "Reject booking",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Booking ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.RejectBookingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/tutoring/bookings/{id}/schedule": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin menggeser tanggal \u0026 jam booking pending (private atau grup sekaligus). Durasi tidak boleh berubah.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "Reschedule booking (admin)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Booking ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Jadwal baru",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.RescheduleBookingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.RescheduleBookingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/tutoring/evidence": {
             "get": {
                 "security": [
@@ -4818,6 +4910,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/tutoring/bookings/{id}/schedule": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Murid menggeser tanggal \u0026 jam booking pending miliknya (private atau grup yang ia buat). Durasi tidak boleh berubah.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Reschedule booking",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Booking ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Jadwal baru",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.RescheduleBookingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.RescheduleBookingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tutoring/earnings": {
             "get": {
                 "security": [
@@ -6593,6 +6737,9 @@ const docTemplate = `{
                 "invoice_status": {
                     "type": "string"
                 },
+                "is_organizer": {
+                    "type": "boolean"
+                },
                 "mode": {
                     "type": "string"
                 },
@@ -6651,6 +6798,9 @@ const docTemplate = `{
                 },
                 "invoice_status": {
                     "type": "string"
+                },
+                "is_organizer": {
+                    "type": "boolean"
                 },
                 "mode": {
                     "type": "string"
@@ -6987,6 +7137,9 @@ const docTemplate = `{
                 "invoice_status": {
                     "type": "string"
                 },
+                "is_organizer": {
+                    "type": "boolean"
+                },
                 "mode": {
                     "type": "string"
                 },
@@ -7045,6 +7198,9 @@ const docTemplate = `{
                 },
                 "invoice_status": {
                     "type": "string"
+                },
+                "is_organizer": {
+                    "type": "boolean"
                 },
                 "mode": {
                     "type": "string"
@@ -7201,6 +7357,9 @@ const docTemplate = `{
                 "invoice_status": {
                     "type": "string"
                 },
+                "is_organizer": {
+                    "type": "boolean"
+                },
                 "mode": {
                     "type": "string"
                 },
@@ -7267,6 +7426,9 @@ const docTemplate = `{
                 },
                 "invoice_status": {
                     "type": "string"
+                },
+                "is_organizer": {
+                    "type": "boolean"
                 },
                 "mode": {
                     "type": "string"
@@ -7421,6 +7583,93 @@ const docTemplate = `{
                 },
                 "total_sessions": {
                     "type": "integer"
+                }
+            }
+        },
+        "tutoring.RejectBookingResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.RescheduleBookingRequest": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "description": "\"YYYY-MM-DD\"",
+                    "type": "string"
+                },
+                "end_time": {
+                    "description": "\"HH:mm\"",
+                    "type": "string"
+                },
+                "start_time": {
+                    "description": "\"HH:mm\"",
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.RescheduleBookingResponse": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "group_token": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_status": {
+                    "type": "string"
+                },
+                "is_organizer": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "session_count": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "subject_name": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                },
+                "teacher_name": {
+                    "type": "string"
                 }
             }
         },

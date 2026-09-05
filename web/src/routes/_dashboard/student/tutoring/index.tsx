@@ -22,6 +22,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -35,10 +36,15 @@ import {
   getTutoringSessionsQueryKey,
   getClassesOptions,
   postTutoringBookingsByIdCancelMutation,
+  patchTutoringBookingsByIdScheduleMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListBookingsResponse, TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { CalendarX2, Plus, UserRound, Users, CalendarDays, Eye, MoreVertical, XCircle } from "lucide-react"
+import { CalendarX2, Plus, UserRound, Users, CalendarDays, Eye, MoreVertical, XCircle, CalendarClock, CalendarIcon } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
 import { useState, useEffect, useMemo } from "react"
@@ -73,6 +79,117 @@ function modeBadge(mode?: string) {
 // Setelah confirmed, pembatalan lewat admin.
 function canCancel(b: TutoringListBookingsResponse) {
   return b.status === "pending"
+}
+
+// canReschedule: booking pending milik sendiri; grup hanya oleh pembuatnya.
+function canReschedule(b: TutoringListBookingsResponse) {
+  return b.status === "pending" && (b.mode !== "group" || b.is_organizer)
+}
+
+// 07:00 s/d 20:30, tiap 30 menit.
+const TIME_OPTIONS = Array.from({ length: 28 }, (_, i) => {
+  const total = 7 * 60 + i * 30
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`
+})
+
+function toMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number)
+  return h * 60 + m
+}
+
+function minutesToHHMM(min: number): string {
+  return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`
+}
+
+function parseYMD(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number)
+  return new Date(y, m - 1, d)
+}
+
+function ScheduleBookingDialog({ booking, onClose }: { booking: TutoringListBookingsResponse; onClose: () => void }) {
+  const qc = useQueryClient()
+  const dur = toMinutes(booking.end_time!) - toMinutes(booking.start_time!)
+  const [date, setDate] = useState(booking.date ?? "")
+  const [start, setStart] = useState(booking.start_time ?? "")
+  const end = start ? minutesToHHMM(toMinutes(start) + dur) : ""
+  const startOptions = TIME_OPTIONS.filter((t) => TIME_OPTIONS.includes(minutesToHHMM(toMinutes(t) + dur)))
+
+  const { mutate: reschedule, isPending } = useMutation({
+    ...patchTutoringBookingsByIdScheduleMutation(),
+    onSuccess: () => {
+      toast.success("Jadwal booking diubah")
+      qc.invalidateQueries({ queryKey: getTutoringBookingsQueryKey() })
+      qc.invalidateQueries({ queryKey: getTutoringSessionsQueryKey() })
+      onClose()
+    },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal mengubah jadwal"),
+  })
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle>Ubah Jadwal</DialogTitle>
+          <DialogDescription>{booking.subject_name} — durasi tetap {dur} menit, status tetap menunggu guru.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>Tanggal</Label>
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <Button variant="outline" data-empty={!date} className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground" />
+                }
+              >
+                <CalendarIcon />
+                {date ? format(parseYMD(date), "EEE, dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  disabled={(d) => {
+                    const today = new Date(); today.setHours(0, 0, 0, 0)
+                    return d < today
+                  }}
+                  selected={date ? parseYMD(date) : undefined}
+                  onSelect={(d) => setDate(d ? format(d, "yyyy-MM-dd") : "")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Jam Mulai</Label>
+              <Select items={startOptions.map((t) => ({ label: t, value: t }))} value={start} onValueChange={(v) => setStart(v ?? "")}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Pilih jam" />
+                </SelectTrigger>
+                <SelectContent>
+                  {startOptions.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Jam Selesai</Label>
+              <p className="flex h-9 items-center rounded-md border border-input bg-muted/50 px-3 text-sm tabular-nums">{end || "—"}</p>
+              <p className="text-xs text-muted-foreground">Otomatis (durasi tetap).</p>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Batal</Button>
+          <Button
+            disabled={!date || !start || isPending}
+            onClick={() => booking.id && reschedule({ path: { id: booking.id }, body: { date, start_time: start, end_time: end } })}
+          >
+            {isPending && <Spinner />} Simpan
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 function CancelBookingDialog({ booking, onClose }: { booking: TutoringListBookingsResponse; onClose: () => void }) {
@@ -227,12 +344,14 @@ function StudentTutoringIndex() {
   const classNameById = useMemo(() => new Map(classes.map((c) => [c.id, c.name])), [classes])
   const [cancelTarget, setCancelTarget] = useState<TutoringListBookingsResponse | null>(null)
   const [detailTarget, setDetailTarget] = useState<TutoringListBookingsResponse | null>(null)
+  const [scheduleTarget, setScheduleTarget] = useState<TutoringListBookingsResponse | null>(null)
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
 
   useEffect(() => {
     if (modal !== "cancel") setCancelTarget(null)
     if (modal !== "detail") setDetailTarget(null)
+    if (modal !== "schedule") setScheduleTarget(null)
   }, [modal])
 
   const upcomingSessions = sessions.filter((s) => s.status !== "cancelled")
@@ -303,6 +422,11 @@ function StudentTutoringIndex() {
                             <DropdownMenuItem onClick={() => { setDetailTarget(b); openModal("detail") }}>
                               <Eye className="h-4 w-4" /> Lihat Detail
                             </DropdownMenuItem>
+                            {canReschedule(b) && (
+                              <DropdownMenuItem onClick={() => { setScheduleTarget(b); openModal("schedule") }}>
+                                <CalendarClock className="h-4 w-4" /> Ubah Jadwal
+                              </DropdownMenuItem>
+                            )}
                             {canCancel(b) && (
                               <DropdownMenuItem variant="destructive" onClick={() => { setCancelTarget(b); openModal("cancel") }}>
                                 <XCircle className="h-4 w-4" /> Batalkan Booking
@@ -354,6 +478,11 @@ function StudentTutoringIndex() {
                             <DropdownMenuItem onClick={() => { setDetailTarget(b); openModal("detail") }}>
                               <Eye className="h-4 w-4" /> Lihat Detail
                             </DropdownMenuItem>
+                            {canReschedule(b) && (
+                              <DropdownMenuItem onClick={() => { setScheduleTarget(b); openModal("schedule") }}>
+                                <CalendarClock className="h-4 w-4" /> Ubah Jadwal
+                              </DropdownMenuItem>
+                            )}
                             {canCancel(b) && (
                               <DropdownMenuItem variant="destructive" onClick={() => { setCancelTarget(b); openModal("cancel") }}>
                                 <XCircle className="h-4 w-4" /> Batalkan Booking
@@ -457,6 +586,7 @@ function StudentTutoringIndex() {
 
       {modal === "cancel" && cancelTarget && <CancelBookingDialog booking={cancelTarget} onClose={closeModal} />}
       {modal === "detail" && detailTarget && <BookingDetailDialog booking={detailTarget} sessions={sessions} className={detailTarget.class_id ? (classNameById.get(detailTarget.class_id) ?? "—") : "—"} onClose={closeModal} />}
+      {modal === "schedule" && scheduleTarget && <ScheduleBookingDialog booking={scheduleTarget} onClose={closeModal} />}
       </div>
 
       <Button

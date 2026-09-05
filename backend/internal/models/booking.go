@@ -18,6 +18,7 @@ type Booking struct {
 	Mode         string `gorm:"size:20;default:private" json:"mode"`   // private/group
 	SessionCount int    `gorm:"not null;default:1" json:"session_count"`
 	GroupToken   string `gorm:"size:64;index" json:"group_token"`      // token undangan grup
+	IsOrganizer  bool   `gorm:"default:false" json:"is_organizer"`        // true = pembuat booking grup
 	Note         string `gorm:"size:500" json:"note"`
 	ClassID      *uint  `gorm:"index" json:"class_id,omitempty"`       // snapshot kelas murid saat booking
 	Sessions     []TutoringSession `gorm:"foreignKey:BookingID" json:"sessions,omitempty"`

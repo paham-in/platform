@@ -206,6 +206,7 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingRequest) (*
 			}
 			organizer := base
 			organizer.StudentID = studentID
+			organizer.IsOrganizer = true
 			if err := tx.Create(&organizer).Error; err != nil {
 				return err
 			}
@@ -356,6 +357,7 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingRequ
 		err = s.db.Transaction(func(tx *gorm.DB) error {
 			organizer := base
 			organizer.StudentID = studentID
+			organizer.IsOrganizer = true
 			if err := tx.Create(&organizer).Error; err != nil {
 				return err
 			}
@@ -533,6 +535,9 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 			for i, sid := range students {
 				b := base
 				b.StudentID = sid
+				if i == 0 {
+					b.IsOrganizer = true
+				}
 				if err := tx.Create(&b).Error; err != nil {
 					return err
 				}
@@ -803,6 +808,161 @@ func (s *Service) CancelBooking(id, studentID uint) (*CancelBookingResponse, err
 		return nil, err
 	}
 	r := newCancelBookingResponse(*updated)
+	return &r, nil
+}
+
+// ReschedulePendingBooking menggeser tanggal & jam booking yang masih pending
+// (belum ada sesi/invoice, jadi cukup UPDATE baris booking). Durasi blok harus
+// sama, tanggal & jam boleh pindah; grup digeser serentak se-token.
+// Murid hanya boleh geser booking private miliknya atau grup yang ia buat
+// (is_organizer); perubahan grup oleh anggota biasa harus lewat admin.
+func (s *Service) ReschedulePendingBooking(id, requesterID uint, isAdmin bool, input RescheduleBookingRequest) (*RescheduleBookingResponse, error) {
+	booking, err := s.repo.GetBooking(id)
+	if err != nil {
+		return nil, errors.New("booking tidak ditemukan")
+	}
+	if booking.Status != "pending" {
+		return nil, errors.New("hanya booking pending yang bisa diubah jadwalnya")
+	}
+	targets := []models.Booking{*booking}
+	if booking.GroupToken != "" {
+		group, err := s.repo.ListBookingsByGroupToken(booking.GroupToken)
+		if err != nil {
+			return nil, err
+		}
+		targets = group
+	}
+	if !isAdmin {
+		var own *models.Booking
+		for i := range targets {
+			if targets[i].StudentID == requesterID {
+				own = &targets[i]
+				break
+			}
+		}
+		if own == nil {
+			return nil, errors.New("bukan booking kamu")
+		}
+		if own.Mode == "group" && !own.IsOrganizer {
+			return nil, errors.New("hanya pembuat grup yang bisa mengubah jadwal grup, hubungi admin")
+		}
+	}
+	if input.Date < time.Now().Format("2006-01-02") {
+		return nil, errors.New("tanggal tidak boleh di masa lalu")
+	}
+	if input.StartTime >= input.EndTime {
+		return nil, errors.New("start_time harus sebelum end_time")
+	}
+	oldStart, _ := timeToMinutes(booking.StartTime)
+	oldEnd, _ := timeToMinutes(booking.EndTime)
+	newStart, err1 := timeToMinutes(input.StartTime)
+	newEnd, err2 := timeToMinutes(input.EndTime)
+	if err1 != nil || err2 != nil {
+		return nil, errors.New("format waktu tidak valid")
+	}
+	if newEnd-newStart != oldEnd-oldStart {
+		return nil, errors.New("durasi les tidak boleh berubah, batalkan dan buat booking baru")
+	}
+	if _, err := sessionsPerWeekFor(input.StartTime, input.EndTime); err != nil {
+		return nil, err
+	}
+	for _, t := range targets {
+		weeks, err := bookingWeeks(t.StartTime, t.EndTime, t.SessionCount)
+		if err != nil {
+			return nil, err
+		}
+		if err := s.checkStudentConflict(t.StudentID, input.Date, input.StartTime, input.EndTime, weeks, t.ID, 0); err != nil {
+			return nil, err
+		}
+	}
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		for _, t := range targets {
+			if err := tx.Model(&models.Booking{}).Where("id = ?", t.ID).Updates(map[string]interface{}{
+				"date":       input.Date,
+				"start_time": input.StartTime,
+				"end_time":   input.EndTime,
+			}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	updated, err := s.repo.GetBooking(id)
+	if err != nil {
+		return nil, err
+	}
+	r := newRescheduleBookingResponse(*updated)
+	if s.notifSvc != nil {
+		if isAdmin {
+			for _, t := range targets {
+				s.notifSvc.Notify(t.StudentID, "Jadwal les diubah admin",
+					fmt.Sprintf("Booking les kamu dipindah ke %s %s-%s", input.Date, input.StartTime, input.EndTime),
+					"tutoring", "/dashboard/tutoring")
+			}
+		} else {
+			if admins, err := s.repo.ListAdminIDs(); err == nil && len(admins) > 0 {
+				studentName := ""
+				if updated.Student != nil {
+					studentName = updated.Student.Name
+				}
+				s.notifSvc.NotifyBatch(admins, "Jadwal booking diubah murid",
+					fmt.Sprintf("%s memindah booking ke %s %s-%s", studentName, input.Date, input.StartTime, input.EndTime),
+					"tutoring", "/dashboard/admin/tutoring")
+			}
+			for _, t := range targets {
+				if t.StudentID == requesterID {
+					continue
+				}
+				s.notifSvc.Notify(t.StudentID, "Jadwal les grup diubah",
+					fmt.Sprintf("Jadwal les grup kamu dipindah ke %s %s-%s", input.Date, input.StartTime, input.EndTime),
+					"tutoring", "/dashboard/tutoring")
+			}
+		}
+	}
+	return &r, nil
+}
+
+// AdminRejectBooking menolak booking pending (mis. tidak ada guru yang
+// tersedia). Grup ditolak serentak se-token. Murid diberi tahu; baris rejected
+// dibersihkan otomatis oleh cron setelah masa tenggang.
+func (s *Service) AdminRejectBooking(id uint) (*RejectBookingResponse, error) {
+	booking, err := s.repo.GetBooking(id)
+	if err != nil {
+		return nil, errors.New("booking tidak ditemukan")
+	}
+	if booking.Status != "pending" {
+		return nil, errors.New("hanya booking pending yang bisa ditolak")
+	}
+	targets := []models.Booking{*booking}
+	if booking.GroupToken != "" {
+		group, err := s.repo.ListBookingsByGroupToken(booking.GroupToken)
+		if err != nil {
+			return nil, err
+		}
+		targets = group
+	}
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		for _, t := range targets {
+			if err := tx.Model(&models.Booking{}).Where("id = ? AND status = ?", t.ID, "pending").Update("status", "rejected").Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if s.notifSvc != nil {
+		for _, t := range targets {
+			s.notifSvc.Notify(t.StudentID, "Booking les ditolak",
+				fmt.Sprintf("Booking %s %s-%s tidak bisa diproses (tidak ada guru tersedia), silakan buat booking di jadwal lain", booking.Date, booking.StartTime, booking.EndTime),
+				"tutoring", "/dashboard/tutoring")
+		}
+	}
+	r := newRejectBookingResponse()
 	return &r, nil
 }
 

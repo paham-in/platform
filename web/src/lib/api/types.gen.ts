@@ -583,6 +583,7 @@ export type TutoringAdminCreateBookingResponse = {
     group_token?: string;
     id?: number;
     invoice_status?: string;
+    is_organizer?: boolean;
     mode?: string;
     note?: string;
     session_count?: number;
@@ -604,6 +605,7 @@ export type TutoringAdminListBookingsResponse = {
     group_token?: string;
     id?: number;
     invoice_status?: string;
+    is_organizer?: boolean;
     mode?: string;
     note?: string;
     session_count?: number;
@@ -729,6 +731,7 @@ export type TutoringAssignTeacherResponse = {
     group_token?: string;
     id?: number;
     invoice_status?: string;
+    is_organizer?: boolean;
     mode?: string;
     note?: string;
     session_count?: number;
@@ -750,6 +753,7 @@ export type TutoringCancelBookingResponse = {
     group_token?: string;
     id?: number;
     invoice_status?: string;
+    is_organizer?: boolean;
     mode?: string;
     note?: string;
     session_count?: number;
@@ -818,6 +822,7 @@ export type TutoringCreateBookingResponse = {
     group_token?: string;
     id?: number;
     invoice_status?: string;
+    is_organizer?: boolean;
     mode?: string;
     note?: string;
     session_count?: number;
@@ -843,6 +848,7 @@ export type TutoringListBookingsResponse = {
     group_token?: string;
     id?: number;
     invoice_status?: string;
+    is_organizer?: boolean;
     mode?: string;
     note?: string;
     session_count?: number;
@@ -902,6 +908,47 @@ export type TutoringMyEarningsResponse = {
     sessions?: Array<TutoringListSessionsResponse>;
     total_fee?: number;
     total_sessions?: number;
+};
+
+export type TutoringRejectBookingResponse = {
+    message?: string;
+};
+
+export type TutoringRescheduleBookingRequest = {
+    /**
+     * "YYYY-MM-DD"
+     */
+    date?: string;
+    /**
+     * "HH:mm"
+     */
+    end_time?: string;
+    /**
+     * "HH:mm"
+     */
+    start_time?: string;
+};
+
+export type TutoringRescheduleBookingResponse = {
+    class_id?: number;
+    created_at?: string;
+    date?: string;
+    end_time?: string;
+    group_token?: string;
+    id?: number;
+    invoice_status?: string;
+    is_organizer?: boolean;
+    mode?: string;
+    note?: string;
+    session_count?: number;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    subject_id?: number;
+    subject_name?: string;
+    teacher_id?: number;
+    teacher_name?: string;
 };
 
 export type TutoringSubjectInfo = {
@@ -2807,6 +2854,69 @@ export type PatchAdminTutoringBookingsByIdAssignResponses = {
 
 export type PatchAdminTutoringBookingsByIdAssignResponse = PatchAdminTutoringBookingsByIdAssignResponses[keyof PatchAdminTutoringBookingsByIdAssignResponses];
 
+export type PostAdminTutoringBookingsByIdRejectData = {
+    body?: never;
+    path: {
+        /**
+         * Booking ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/tutoring/bookings/{id}/reject';
+};
+
+export type PostAdminTutoringBookingsByIdRejectErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PostAdminTutoringBookingsByIdRejectError = PostAdminTutoringBookingsByIdRejectErrors[keyof PostAdminTutoringBookingsByIdRejectErrors];
+
+export type PostAdminTutoringBookingsByIdRejectResponses = {
+    /**
+     * OK
+     */
+    200: TutoringRejectBookingResponse;
+};
+
+export type PostAdminTutoringBookingsByIdRejectResponse = PostAdminTutoringBookingsByIdRejectResponses[keyof PostAdminTutoringBookingsByIdRejectResponses];
+
+export type PatchAdminTutoringBookingsByIdScheduleData = {
+    /**
+     * Jadwal baru
+     */
+    body: TutoringRescheduleBookingRequest;
+    path: {
+        /**
+         * Booking ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/tutoring/bookings/{id}/schedule';
+};
+
+export type PatchAdminTutoringBookingsByIdScheduleErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PatchAdminTutoringBookingsByIdScheduleError = PatchAdminTutoringBookingsByIdScheduleErrors[keyof PatchAdminTutoringBookingsByIdScheduleErrors];
+
+export type PatchAdminTutoringBookingsByIdScheduleResponses = {
+    /**
+     * OK
+     */
+    200: TutoringRescheduleBookingResponse;
+};
+
+export type PatchAdminTutoringBookingsByIdScheduleResponse = PatchAdminTutoringBookingsByIdScheduleResponses[keyof PatchAdminTutoringBookingsByIdScheduleResponses];
+
 export type GetAdminTutoringEvidenceData = {
     body?: never;
     path?: never;
@@ -4207,6 +4317,39 @@ export type PostTutoringBookingsByIdCancelResponses = {
 };
 
 export type PostTutoringBookingsByIdCancelResponse = PostTutoringBookingsByIdCancelResponses[keyof PostTutoringBookingsByIdCancelResponses];
+
+export type PatchTutoringBookingsByIdScheduleData = {
+    /**
+     * Jadwal baru
+     */
+    body: TutoringRescheduleBookingRequest;
+    path: {
+        /**
+         * Booking ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/tutoring/bookings/{id}/schedule';
+};
+
+export type PatchTutoringBookingsByIdScheduleErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PatchTutoringBookingsByIdScheduleError = PatchTutoringBookingsByIdScheduleErrors[keyof PatchTutoringBookingsByIdScheduleErrors];
+
+export type PatchTutoringBookingsByIdScheduleResponses = {
+    /**
+     * OK
+     */
+    200: TutoringRescheduleBookingResponse;
+};
+
+export type PatchTutoringBookingsByIdScheduleResponse = PatchTutoringBookingsByIdScheduleResponses[keyof PatchTutoringBookingsByIdScheduleResponses];
 
 export type GetTutoringEarningsData = {
     body?: never;

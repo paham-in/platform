@@ -2,15 +2,37 @@
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
+import { Label } from "@/components/ui/label"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getAdminTutoringBookingsOptions, getAdminTutoringBookingsQueryKey, patchAdminTutoringBookingsByIdAssignMutation, getTutoringTeachersOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminTutoringBookingsOptions, getAdminTutoringBookingsQueryKey, patchAdminTutoringBookingsByIdAssignMutation, patchAdminTutoringBookingsByIdScheduleMutation, postAdminTutoringBookingsByIdRejectMutation, getTutoringTeachersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListBookingsResponse, TutoringListTeachersResponse } from "@/lib/api/types.gen"
-import { Plus, UserRound, Users, CalendarX2 } from "lucide-react"
+import { Plus, UserRound, Users, CalendarX2, CalendarClock, CalendarIcon, XCircle, MoreVertical, UserPlus } from "lucide-react"
+import { format } from "date-fns"
+import { id as localeId } from "date-fns/locale"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
@@ -116,6 +138,149 @@ function AssignTeacherDialog({ booking, onClose }: { booking: TutoringListBookin
   )
 }
 
+// 07:00 s/d 20:30, tiap 30 menit.
+const TIME_OPTIONS = Array.from({ length: 28 }, (_, i) => {
+  const total = 7 * 60 + i * 30
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`
+})
+
+function toMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number)
+  return h * 60 + m
+}
+
+function minutesToHHMM(min: number): string {
+  return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`
+}
+
+function parseYMD(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number)
+  return new Date(y, m - 1, d)
+}
+
+function ScheduleBookingDialog({ booking, onClose }: { booking: TutoringListBookingsResponse; onClose: () => void }) {
+  const qc = useQueryClient()
+  const dur = toMinutes(booking.end_time!) - toMinutes(booking.start_time!)
+  const [date, setDate] = useState(booking.date ?? "")
+  const [start, setStart] = useState(booking.start_time ?? "")
+  const end = start ? minutesToHHMM(toMinutes(start) + dur) : ""
+  const startOptions = TIME_OPTIONS.filter((t) => TIME_OPTIONS.includes(minutesToHHMM(toMinutes(t) + dur)))
+
+  const { mutate: reschedule, isPending } = useMutation({
+    ...patchAdminTutoringBookingsByIdScheduleMutation(),
+    onSuccess: () => {
+      toast.success("Jadwal booking diubah")
+      qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
+      onClose()
+    },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal mengubah jadwal"),
+  })
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle>Ubah Jadwal</DialogTitle>
+          <DialogDescription>{booking.student_name} · {booking.subject_name} — durasi tetap {dur} menit.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>Tanggal</Label>
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <Button variant="outline" data-empty={!date} className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground" />
+                }
+              >
+                <CalendarIcon />
+                {date ? format(parseYMD(date), "EEE, dd MMM yyyy", { locale: localeId }) : <span>Pilih tanggal</span>}
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  disabled={(d) => {
+                    const today = new Date(); today.setHours(0, 0, 0, 0)
+                    return d < today
+                  }}
+                  selected={date ? parseYMD(date) : undefined}
+                  onSelect={(d) => setDate(d ? format(d, "yyyy-MM-dd") : "")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Jam Mulai</Label>
+              <Select items={startOptions.map((t) => ({ label: t, value: t }))} value={start} onValueChange={(v) => setStart(v ?? "")}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Pilih jam" />
+                </SelectTrigger>
+                <SelectContent>
+                  {startOptions.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Jam Selesai</Label>
+              <p className="flex h-9 items-center rounded-md border border-input bg-muted/50 px-3 text-sm tabular-nums">{end || "—"}</p>
+              <p className="text-xs text-muted-foreground">Otomatis (durasi tetap).</p>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Batal</Button>
+          <Button
+            disabled={!date || !start || isPending}
+            onClick={() => booking.id && reschedule({ path: { id: booking.id }, body: { date, start_time: start, end_time: end } })}
+          >
+            {isPending && <Spinner />} Simpan
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function RejectBookingDialog({ booking, onClose }: { booking: TutoringListBookingsResponse; onClose: () => void }) {
+  const qc = useQueryClient()
+
+  const { mutate: reject, isPending } = useMutation({
+    ...postAdminTutoringBookingsByIdRejectMutation(),
+    onSuccess: () => {
+      toast.success("Booking ditolak")
+      qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
+      onClose()
+    },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal menolak booking"),
+  })
+
+  return (
+    <AlertDialog open onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Tolak Booking</AlertDialogTitle>
+          <AlertDialogDescription>
+            Yakin tolak booking {booking.student_name ?? "—"} · {booking.subject_name ?? "—"} · {booking.date} {booking.start_time}–{booking.end_time}? Murid akan diberi tahu.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            disabled={isPending}
+            onClick={() => booking.id && reject({ path: { id: booking.id } })}
+          >
+            {isPending && <Spinner />}
+            Tolak
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
 function AdminTutoring() {
   usePageTitle("Les Privat")
   const navigate = useNavigate({ from: Route.fullPath })
@@ -123,9 +288,13 @@ function AdminTutoring() {
   const { openModal, closeModal } = useDialogBack()
   const { data: bookings = [], isLoading } = useQuery(getAdminTutoringBookingsOptions())
   const [assignBooking, setAssignBooking] = useState<TutoringListBookingsResponse | null>(null)
+  const [scheduleTarget, setScheduleTarget] = useState<TutoringListBookingsResponse | null>(null)
+  const [rejectTarget, setRejectTarget] = useState<TutoringListBookingsResponse | null>(null)
 
   useEffect(() => {
     if (modal !== "assign") setAssignBooking(null)
+    if (modal !== "schedule") setScheduleTarget(null)
+    if (modal !== "reject") setRejectTarget(null)
   }, [modal])
 
   return (
@@ -156,7 +325,7 @@ function AdminTutoring() {
                 <TableHead>Tanggal</TableHead>
                 <TableHead>Jam</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="pr-6">Aksi</TableHead>
+                <TableHead className="pr-6 text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -195,9 +364,26 @@ function AdminTutoring() {
                   <TableCell>{b.start_time} - {b.end_time}</TableCell>
                   <TableCell>{statusBadge(b.status!)}</TableCell>
                   <TableCell className="pr-6">
-                    <div className="flex items-center justify-end gap-2">
-                      {b.status === "pending" && !b.teacher_id ? (
-                        <Button size="sm" onClick={() => { setAssignBooking(b); openModal("assign") }}>Assign Guru</Button>
+                    <div className="flex items-center justify-end">
+                      {b.status === "pending" ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi booking" />}>
+                            <MoreVertical className="h-4 w-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            {!b.teacher_id ? (
+                              <DropdownMenuItem onClick={() => { setAssignBooking(b); openModal("assign") }}>
+                                <UserPlus className="h-4 w-4" /> Assign Guru
+                              </DropdownMenuItem>
+                            ) : null}
+                            <DropdownMenuItem onClick={() => { setScheduleTarget(b); openModal("schedule") }}>
+                              <CalendarClock className="h-4 w-4" /> Ubah Jadwal
+                            </DropdownMenuItem>
+                            <DropdownMenuItem variant="destructive" onClick={() => { setRejectTarget(b); openModal("reject") }}>
+                              <XCircle className="h-4 w-4" /> Tolak Booking
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       ) : null}
                     </div>
                   </TableCell>
@@ -246,8 +432,25 @@ function AdminTutoring() {
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    {b.status === "pending" && !b.teacher_id ? (
-                      <Button size="sm" onClick={() => { setAssignBooking(b); openModal("assign") }}>Assign</Button>
+                    {b.status === "pending" ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi booking" className="shrink-0" />}>
+                          <MoreVertical className="h-4 w-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {!b.teacher_id ? (
+                            <DropdownMenuItem onClick={() => { setAssignBooking(b); openModal("assign") }}>
+                              <UserPlus className="h-4 w-4" /> Assign Guru
+                            </DropdownMenuItem>
+                          ) : null}
+                          <DropdownMenuItem onClick={() => { setScheduleTarget(b); openModal("schedule") }}>
+                            <CalendarClock className="h-4 w-4" /> Ubah Jadwal
+                          </DropdownMenuItem>
+                          <DropdownMenuItem variant="destructive" onClick={() => { setRejectTarget(b); openModal("reject") }}>
+                            <XCircle className="h-4 w-4" /> Tolak Booking
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     ) : null}
                   </div>
                 </div>
@@ -258,6 +461,8 @@ function AdminTutoring() {
       </Card>
 
       {modal === "assign" && assignBooking && <AssignTeacherDialog booking={assignBooking} onClose={closeModal} />}
+      {modal === "schedule" && scheduleTarget && <ScheduleBookingDialog booking={scheduleTarget} onClose={closeModal} />}
+      {modal === "reject" && rejectTarget && <RejectBookingDialog booking={rejectTarget} onClose={closeModal} />}
 
       <Button
         onClick={() => navigate({ to: "/admin/tutoring/new" })}

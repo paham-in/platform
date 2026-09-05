@@ -500,6 +500,88 @@ func (h *Handler) CancelBooking(c *fiber.Ctx) error {
 	return c.JSON(booking)
 }
 
+// RescheduleBooking menggeser jadwal booking pending milik murid sendiri
+// @Summary      Reschedule booking
+// @Description  Murid menggeser tanggal & jam booking pending miliknya (private atau grup yang ia buat). Durasi tidak boleh berubah.
+// @Tags         Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Booking ID"
+// @Param        body body RescheduleBookingRequest true "Jadwal baru"
+// @Success      200 {object} RescheduleBookingResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /tutoring/bookings/{id}/schedule [patch]
+func (h *Handler) RescheduleBooking(c *fiber.Ctx) error {
+	if !hasRole(c, "student") {
+		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk murid"})
+	}
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input RescheduleBookingRequest
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	userID := c.Locals("user_id").(uint)
+	booking, err := h.svc.ReschedulePendingBooking(uint(id), userID, false, input)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(booking)
+}
+
+// AdminRescheduleBooking menggeser jadwal booking pending (admin)
+// @Summary      Reschedule booking (admin)
+// @Description  Admin menggeser tanggal & jam booking pending (private atau grup sekaligus). Durasi tidak boleh berubah.
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Booking ID"
+// @Param        body body RescheduleBookingRequest true "Jadwal baru"
+// @Success      200 {object} RescheduleBookingResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/tutoring/bookings/{id}/schedule [patch]
+func (h *Handler) AdminRescheduleBooking(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input RescheduleBookingRequest
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	booking, err := h.svc.ReschedulePendingBooking(uint(id), 0, true, input)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(booking)
+}
+
+// AdminRejectBooking menolak booking pending (admin)
+// @Summary      Reject booking
+// @Description  Admin menolak booking pending (mis. tidak ada guru tersedia). Grup ditolak sekaligus. Murid diberi tahu.
+// @Tags         Admin Tutoring
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Booking ID"
+// @Success      200 {object} RejectBookingResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/tutoring/bookings/{id}/reject [post]
+func (h *Handler) AdminRejectBooking(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	resp, err := h.svc.AdminRejectBooking(uint(id))
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(resp)
+}
+
 // MyEarnings returns teacher's done sessions + fee estimate (teacher)
 // @Summary      My earnings
 // @Description  Riwayat sesi selesai milik guru + estimasi fee (persen dari harga sesi).
@@ -625,6 +707,8 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage, 
 
 	admin.Get("/tutoring/bookings", h.AdminListBookings)
 	admin.Post("/tutoring/bookings", h.AdminCreateBooking)
+	admin.Patch("/tutoring/bookings/:id/schedule", h.AdminRescheduleBooking)
+	admin.Post("/tutoring/bookings/:id/reject", h.AdminRejectBooking)
 	admin.Patch("/tutoring/bookings/:id/assign", h.AssignTeacher)
 	admin.Get("/tutoring/evidence", h.AdminListEvidence)
 	admin.Patch("/tutoring/evidence/:id", h.AdminReviewEvidence)
@@ -643,6 +727,7 @@ func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settin
 	auth.Get("/tutoring/bookings", h.ListBookings)
 	auth.Post("/tutoring/bookings", h.CreateBooking)
 	auth.Post("/tutoring/bookings/:id/cancel", h.CancelBooking)
+	auth.Patch("/tutoring/bookings/:id/schedule", h.RescheduleBooking)
 	auth.Get("/tutoring/sessions", h.ListSessions)
 	auth.Get("/tutoring/earnings", h.MyEarnings)
 	auth.Patch("/tutoring/earnings/taken", h.MarkEarningsTaken)

@@ -39,6 +39,7 @@ type bookingItem struct {
 	Mode          string `json:"mode"`
 	SessionCount  int    `json:"session_count"`
 	GroupToken    string `json:"group_token"`
+	IsOrganizer   bool   `json:"is_organizer"`
 	Note          string `json:"note"`
 	ClassID       *uint  `json:"class_id,omitempty"`
 	CreatedAt     string `json:"created_at"`
@@ -77,6 +78,7 @@ func buildBookingItem(b models.Booking) bookingItem {
 		Mode:          b.Mode,
 		SessionCount:  b.SessionCount,
 		GroupToken:    b.GroupToken,
+		IsOrganizer:   b.IsOrganizer,
 		Note:          b.Note,
 		ClassID:       b.ClassID,
 		CreatedAt:     b.CreatedAt.Format("2006-01-02"),
@@ -175,6 +177,7 @@ type ListBookingsResponse struct {
 	Mode          string `json:"mode"`
 	SessionCount  int    `json:"session_count"`
 	GroupToken    string `json:"group_token"`
+	IsOrganizer   bool   `json:"is_organizer"`
 	Note          string `json:"note"`
 	ClassID       *uint  `json:"class_id,omitempty"`
 	CreatedAt     string `json:"created_at"`
@@ -202,6 +205,7 @@ type CreateBookingResponse struct {
 	Mode          string `json:"mode"`
 	SessionCount  int    `json:"session_count"`
 	GroupToken    string `json:"group_token"`
+	IsOrganizer   bool   `json:"is_organizer"`
 	Note          string `json:"note"`
 	ClassID       *uint  `json:"class_id,omitempty"`
 	CreatedAt     string `json:"created_at"`
@@ -229,6 +233,7 @@ type AdminListBookingsResponse struct {
 	Mode          string `json:"mode"`
 	SessionCount  int    `json:"session_count"`
 	GroupToken    string `json:"group_token"`
+	IsOrganizer   bool   `json:"is_organizer"`
 	Note          string `json:"note"`
 	ClassID       *uint  `json:"class_id,omitempty"`
 	CreatedAt     string `json:"created_at"`
@@ -256,6 +261,7 @@ type AdminCreateBookingResponse struct {
 	Mode          string `json:"mode"`
 	SessionCount  int    `json:"session_count"`
 	GroupToken    string `json:"group_token"`
+	IsOrganizer   bool   `json:"is_organizer"`
 	Note          string `json:"note"`
 	ClassID       *uint  `json:"class_id,omitempty"`
 	CreatedAt     string `json:"created_at"`
@@ -283,6 +289,7 @@ type AssignTeacherResponse struct {
 	Mode          string `json:"mode"`
 	SessionCount  int    `json:"session_count"`
 	GroupToken    string `json:"group_token"`
+	IsOrganizer   bool   `json:"is_organizer"`
 	Note          string `json:"note"`
 	ClassID       *uint  `json:"class_id,omitempty"`
 	CreatedAt     string `json:"created_at"`
@@ -460,6 +467,7 @@ type CancelBookingResponse struct {
 	Mode          string `json:"mode"`
 	SessionCount  int    `json:"session_count"`
 	GroupToken    string `json:"group_token"`
+	IsOrganizer   bool   `json:"is_organizer"`
 	Note          string `json:"note"`
 	ClassID       *uint  `json:"class_id,omitempty"`
 	CreatedAt     string `json:"created_at"`
@@ -468,6 +476,45 @@ type CancelBookingResponse struct {
 
 func newCancelBookingResponse(b models.Booking) CancelBookingResponse {
 	return CancelBookingResponse(buildBookingItem(b))
+}
+
+//, handler: RescheduleBooking (PATCH /tutoring/bookings/:id/schedule)
+//, handler: AdminRescheduleBooking (PATCH /admin/tutoring/bookings/:id/schedule)
+
+type RescheduleBookingResponse struct {
+	ID            uint   `json:"id"`
+	TeacherID     *uint  `json:"teacher_id,omitempty"`
+	Teacher       string `json:"teacher_name"`
+	StudentID     uint   `json:"student_id"`
+	Student       string `json:"student_name"`
+	SubjectID     uint   `json:"subject_id"`
+	Subject       string `json:"subject_name"`
+	Date          string `json:"date"`
+	StartTime     string `json:"start_time"`
+	EndTime       string `json:"end_time"`
+	Status        string `json:"status"`
+	Mode          string `json:"mode"`
+	SessionCount  int    `json:"session_count"`
+	GroupToken    string `json:"group_token"`
+	IsOrganizer   bool   `json:"is_organizer"`
+	Note          string `json:"note"`
+	ClassID       *uint  `json:"class_id,omitempty"`
+	CreatedAt     string `json:"created_at"`
+	InvoiceStatus string `json:"invoice_status,omitempty"`
+}
+
+func newRescheduleBookingResponse(b models.Booking) RescheduleBookingResponse {
+	return RescheduleBookingResponse(buildBookingItem(b))
+}
+
+//, handler: AdminRejectBooking (POST /admin/tutoring/bookings/:id/reject)
+
+type RejectBookingResponse struct {
+	Message string `json:"message"`
+}
+
+func newRejectBookingResponse() RejectBookingResponse {
+	return RejectBookingResponse{Message: "booking ditolak"}
 }
 
 //, handler: MyEarnings (GET /tutoring/earnings)
