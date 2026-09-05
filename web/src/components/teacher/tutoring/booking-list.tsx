@@ -13,7 +13,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
-import { History, UserRound, Users, MoreVertical, Eye, Upload, CalendarClock, XCircle, Timer } from "lucide-react"
+import { History, UserRound, Users, MoreVertical, Eye, Upload, CalendarClock, XCircle, Timer, RefreshCw, ExternalLink } from "lucide-react"
 import type { TutoringListBookingsResponse, TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import {
   DropdownMenu,
@@ -240,12 +240,28 @@ export function BookingList() {
                           </DropdownMenuItem>
                           {group[0].status === "confirmed" && (() => {
                             const ns = nextScheduled(group[0].id!)
-                            if (!ns) return null
+                            const evList = sessionsFor(group[0].id!).filter((s) => s.status === "review" && s.evidence_url)
+                            const ev = evList[evList.length - 1]
+                            if (!ns && !ev) return null
                             return (
                               <>
+                                {ns ? (
                                 <DropdownMenuItem onClick={() => { setUploadSession(ns); setUploadFile(null); openModal("upload") }}>
                                   <Upload className="h-4 w-4" /> Upload Bukti
                                 </DropdownMenuItem>
+                                ) : null}
+                                {ev ? (
+                                <>
+                                <DropdownMenuItem onClick={() => { setUploadSession(ev); setUploadFile(null); openModal("upload") }}>
+                                  <RefreshCw className="h-4 w-4" /> Ganti Bukti
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.open(ev.evidence_url!, "_blank", "noopener")}>
+                                  <ExternalLink className="h-4 w-4" /> Lihat Bukti
+                                </DropdownMenuItem>
+                                </>
+                                ) : null}
+                                {ns ? (
+                                <>
                                 <DropdownMenuItem onClick={() => { openOvertime(sessionsFor(group[0].id!).find((s) => s.status === "review") ?? ns) }}>
                                   <Timer className="h-4 w-4" /> Lapor Overtime
                                 </DropdownMenuItem>
@@ -261,6 +277,8 @@ export function BookingList() {
                                 <DropdownMenuItem variant="destructive" onClick={() => { setCancelSession(ns); openModal("cancel") }}>
                                   <XCircle className="h-4 w-4" /> Batalkan Sesi
                                 </DropdownMenuItem>
+                                </>
+                                ) : null}
                               </>
                             )
                           })()}
@@ -320,12 +338,28 @@ export function BookingList() {
                         </DropdownMenuItem>
                         {group[0].status === "confirmed" && (() => {
                           const ns = nextScheduled(group[0].id!)
-                          if (!ns) return null
+                          const evList = sessionsFor(group[0].id!).filter((s) => s.status === "review" && s.evidence_url)
+                          const ev = evList[evList.length - 1]
+                          if (!ns && !ev) return null
                           return (
                             <>
+                              {ns ? (
                               <DropdownMenuItem onClick={() => { setUploadSession(ns); setUploadFile(null); openModal("upload") }}>
                                 <Upload className="h-4 w-4" /> Upload Bukti
                               </DropdownMenuItem>
+                              ) : null}
+                              {ev ? (
+                              <>
+                              <DropdownMenuItem onClick={() => { setUploadSession(ev); setUploadFile(null); openModal("upload") }}>
+                                <RefreshCw className="h-4 w-4" /> Ganti Bukti
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => window.open(ev.evidence_url!, "_blank", "noopener")}>
+                                <ExternalLink className="h-4 w-4" /> Lihat Bukti
+                              </DropdownMenuItem>
+                              </>
+                              ) : null}
+                              {ns ? (
+                              <>
                               <DropdownMenuItem onClick={() => { openOvertime(sessionsFor(group[0].id!).find((s) => s.status === "review") ?? ns) }}>
                                 <Timer className="h-4 w-4" /> Lapor Overtime
                               </DropdownMenuItem>
@@ -341,6 +375,8 @@ export function BookingList() {
                               <DropdownMenuItem variant="destructive" onClick={() => { setCancelSession(ns); openModal("cancel") }}>
                                 <XCircle className="h-4 w-4" /> Batalkan Sesi
                               </DropdownMenuItem>
+                              </>
+                              ) : null}
                             </>
                           )
                         })()}
@@ -359,7 +395,7 @@ export function BookingList() {
       <Dialog open onOpenChange={(o) => { if (!o) closeModal() }}>
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
-            <DialogTitle>Upload Bukti</DialogTitle>
+            <DialogTitle>{uploadSession?.evidence_url ? "Ganti Bukti" : "Upload Bukti"}</DialogTitle>
             <DialogDescription>
               Sesi {uploadSession?.date} · {uploadSession?.start_time} - {uploadSession?.end_time}
             </DialogDescription>
@@ -486,11 +522,6 @@ export function BookingList() {
                             <p className="mt-1 text-xs font-medium text-amber-600">
                               +{s.overtime_minutes} mnt (s.d. {s.actual_end_time}) · +{s.extra_sessions ?? 0} sesi
                             </p>
-                          )}
-                          {s.evidence_url && (
-                            <a href={s.evidence_url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-primary hover:underline">
-                              Lihat bukti
-                            </a>
                           )}
                         </div>
                       </div>
