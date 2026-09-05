@@ -506,8 +506,11 @@ func (h *Handler) AdminReviewEvidence(c *fiber.Ctx) error {
 // @Failure      400 {object} ErrorResponse
 // @Router       /tutoring/bookings/{id}/cancel [post]
 func (h *Handler) CancelBooking(c *fiber.Ctx) error {
-	publicID := c.Params("id")
-	existing, err := h.svc.GetBookingByPublicID(publicID)
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	existing, err := h.svc.GetBooking(uint(id))
 	if err != nil {
 		return c.Status(404).JSON(ErrorResponse{Error: "booking tidak ditemukan"})
 	}

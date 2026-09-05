@@ -767,6 +767,10 @@ func (s *Service) GetBookingByPublicID(publicID string) (*models.Booking, error)
 	return s.repo.GetBookingByPublicID(publicID)
 }
 
+func (s *Service) GetBooking(id uint) (*models.Booking, error) {
+	return s.repo.GetBooking(id)
+}
+
 // CancelBooking membatalkan booking oleh murid pemiliknya.
 // Hanya bisa saat status pending (guru belum di-assign admin). Setelah guru
 // di-assign & booking confirmed, murid tidak bisa batal sendiri, hubungi admin.
