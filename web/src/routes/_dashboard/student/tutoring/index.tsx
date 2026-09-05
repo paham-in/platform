@@ -323,6 +323,11 @@ function BookingDetailDialog({ booking, sessions, className, onClose }: {
                         {s.start_time} - {s.end_time}
                       </p>
                       <div className="mt-1">{sessionStatusBadge(s.status)}</div>
+                      {(s.overtime_minutes ?? 0) > 0 && (
+                        <p className="mt-1 text-xs font-medium text-amber-600">
+                          +{s.overtime_minutes} mnt (s.d. {s.actual_end_time}) · +{s.extra_sessions ?? 0} sesi
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}

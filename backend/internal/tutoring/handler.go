@@ -390,6 +390,38 @@ func (h *Handler) UploadSessionEvidence(c *fiber.Ctx) error {
 	return c.JSON(session)
 }
 
+// ReportOvertime records actual session end time (teacher only)
+// @Summary      Report session overtime
+// @Description  Guru melaporkan jam selesai aktual sesi (terpisah dari upload bukti). Overtime dihitung backend: toleransi 15 menit, selebihnya per blok 90 menit. Charge diterapkan saat admin approve.
+// @Tags         Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Session ID"
+// @Param        body body ReportOvertimeRequest true "Jam selesai aktual"
+// @Success      200 {object} ReportOvertimeResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /tutoring/sessions/{id}/overtime [patch]
+func (h *Handler) ReportOvertime(c *fiber.Ctx) error {
+	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
+		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
+	}
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input ReportOvertimeRequest
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	userID := c.Locals("user_id").(uint)
+	session, err := h.svc.ReportOvertime(uint(id), userID, input.ActualEndTime)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(session)
+}
+
 // AdminListEvidence lists sessions with attendance evidence (admin only)
 // @Summary      List attendance evidence
 // @Description  Mengembalikan sesi yang punya bukti kehadiran + info fee guru & status invoice. Filter status opsional: review/done, filter search opsional: nama/email murid.
@@ -732,6 +764,7 @@ func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settin
 	auth.Get("/tutoring/earnings", h.MyEarnings)
 	auth.Patch("/tutoring/earnings/taken", h.MarkEarningsTaken)
 	auth.Patch("/tutoring/sessions/:id", h.UpdateSession)
+	auth.Patch("/tutoring/sessions/:id/overtime", h.ReportOvertime)
 	auth.Post("/tutoring/sessions/:id/cancel", h.CancelSession)
 	auth.Post("/tutoring/sessions/:id/evidence", h.UploadSessionEvidence)
 }

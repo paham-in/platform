@@ -101,6 +101,9 @@ type sessionItem struct {
 	Mode        string  `json:"mode"`
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
+	ActualEndTime string `json:"actual_end_time,omitempty"`
+	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
+	ExtraSessions int `json:"extra_sessions,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -135,6 +138,9 @@ func buildSessionItem(v models.TutoringSession) sessionItem {
 		Mode:        mode,
 		Note:        note,
 		EvidenceURL: v.EvidenceURL,
+		ActualEndTime: v.ActualEndTime,
+		OvertimeMinutes: v.OvertimeMinutes,
+		ExtraSessions: v.ExtraSessions,
 		FeePaid:     v.FeePaid,
 		FeeTaken:    v.FeeTaken,
 	}
@@ -315,6 +321,9 @@ type ListSessionsResponse struct {
 	Mode        string  `json:"mode"`
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
+	ActualEndTime string `json:"actual_end_time,omitempty"`
+	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
+	ExtraSessions int `json:"extra_sessions,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -340,6 +349,9 @@ type UpdateSessionResponse struct {
 	Mode        string  `json:"mode"`
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
+	ActualEndTime string `json:"actual_end_time,omitempty"`
+	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
+	ExtraSessions int `json:"extra_sessions,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -365,6 +377,9 @@ type CancelSessionResponse struct {
 	Mode        string  `json:"mode"`
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
+	ActualEndTime string `json:"actual_end_time,omitempty"`
+	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
+	ExtraSessions int `json:"extra_sessions,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -390,6 +405,9 @@ type UploadSessionEvidenceResponse struct {
 	Mode        string  `json:"mode"`
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
+	ActualEndTime string `json:"actual_end_time,omitempty"`
+	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
+	ExtraSessions int `json:"extra_sessions,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -398,6 +416,34 @@ type UploadSessionEvidenceResponse struct {
 
 func newUploadSessionEvidenceResponse(v models.TutoringSession) UploadSessionEvidenceResponse {
 	return UploadSessionEvidenceResponse(buildSessionItem(v))
+}
+
+//, handler: ReportOvertime (PATCH /tutoring/sessions/:id/overtime)
+
+type ReportOvertimeResponse struct {
+	ID              uint    `json:"id"`
+	BookingID       uint    `json:"booking_id"`
+	Date            string  `json:"date"`
+	StartTime       string  `json:"start_time"`
+	EndTime         string  `json:"end_time"`
+	Status          string  `json:"status"`
+	StudentID       uint    `json:"student_id"`
+	Teacher         string  `json:"teacher_name"`
+	Student         string  `json:"student_name"`
+	Mode            string  `json:"mode"`
+	Note            string  `json:"note"`
+	EvidenceURL     string  `json:"evidence_url,omitempty"`
+	ActualEndTime   string  `json:"actual_end_time,omitempty"`
+	OvertimeMinutes int     `json:"overtime_minutes,omitempty"`
+	ExtraSessions   int     `json:"extra_sessions,omitempty"`
+	FeePaid         bool    `json:"fee_paid,omitempty"`
+	FeeTaken        bool    `json:"fee_taken,omitempty"`
+	FeeAmount       float64 `json:"fee_amount,omitempty"`
+	InvoicePaid     bool    `json:"invoice_paid,omitempty"`
+}
+
+func newReportOvertimeResponse(v models.TutoringSession) ReportOvertimeResponse {
+	return ReportOvertimeResponse(buildSessionItem(v))
 }
 
 //, handler: AdminListEvidence (GET /admin/tutoring/evidence)
@@ -415,6 +461,9 @@ type AdminListEvidenceResponse struct {
 	Mode        string  `json:"mode"`
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
+	ActualEndTime string `json:"actual_end_time,omitempty"`
+	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
+	ExtraSessions int `json:"extra_sessions,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -440,6 +489,9 @@ type AdminReviewEvidenceResponse struct {
 	Mode        string  `json:"mode"`
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
+	ActualEndTime string `json:"actual_end_time,omitempty"`
+	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
+	ExtraSessions int `json:"extra_sessions,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -537,7 +589,7 @@ func (s *Service) newMyEarningsResponse(sessions []models.TutoringSession) MyEar
 			continue
 		}
 		perSession := s.perSessionPrice(v.Booking.ClassID, v.Booking.Mode)
-		fee := s.sessionFee(perSession)
+		fee := s.sessionFeeTotal(perSession, v.ExtraSessions)
 		sv := ListSessionsResponse(buildSessionItem(v))
 		sv.FeeAmount = fee
 		resp.Sessions = append(resp.Sessions, sv)
@@ -628,6 +680,9 @@ type AdminListFeesResponse struct {
 	Mode        string  `json:"mode"`
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
+	ActualEndTime string `json:"actual_end_time,omitempty"`
+	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
+	ExtraSessions int `json:"extra_sessions,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`
@@ -653,6 +708,9 @@ type AdminToggleFeePaidResponse struct {
 	Mode        string  `json:"mode"`
 	Note        string  `json:"note"`
 	EvidenceURL string  `json:"evidence_url,omitempty"`
+	ActualEndTime string `json:"actual_end_time,omitempty"`
+	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
+	ExtraSessions int `json:"extra_sessions,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
 	FeeTaken    bool    `json:"fee_taken,omitempty"`
 	FeeAmount   float64 `json:"fee_amount,omitempty"`

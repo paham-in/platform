@@ -620,10 +620,12 @@ export type TutoringAdminListBookingsResponse = {
 };
 
 export type TutoringAdminListEvidenceResponse = {
+    actual_end_time?: string;
     booking_id?: number;
     date?: string;
     end_time?: string;
     evidence_url?: string;
+    extra_sessions?: number;
     fee_amount?: number;
     fee_paid?: boolean;
     fee_taken?: boolean;
@@ -631,6 +633,7 @@ export type TutoringAdminListEvidenceResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_minutes?: number;
     start_time?: string;
     status?: string;
     student_id?: number;
@@ -639,10 +642,12 @@ export type TutoringAdminListEvidenceResponse = {
 };
 
 export type TutoringAdminListFeesResponse = {
+    actual_end_time?: string;
     booking_id?: number;
     date?: string;
     end_time?: string;
     evidence_url?: string;
+    extra_sessions?: number;
     fee_amount?: number;
     fee_paid?: boolean;
     fee_taken?: boolean;
@@ -650,6 +655,7 @@ export type TutoringAdminListFeesResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_minutes?: number;
     start_time?: string;
     status?: string;
     student_id?: number;
@@ -682,10 +688,12 @@ export type TutoringAdminReviewEvidenceRequest = {
 };
 
 export type TutoringAdminReviewEvidenceResponse = {
+    actual_end_time?: string;
     booking_id?: number;
     date?: string;
     end_time?: string;
     evidence_url?: string;
+    extra_sessions?: number;
     fee_amount?: number;
     fee_paid?: boolean;
     fee_taken?: boolean;
@@ -693,6 +701,7 @@ export type TutoringAdminReviewEvidenceResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_minutes?: number;
     start_time?: string;
     status?: string;
     student_id?: number;
@@ -701,10 +710,12 @@ export type TutoringAdminReviewEvidenceResponse = {
 };
 
 export type TutoringAdminToggleFeePaidResponse = {
+    actual_end_time?: string;
     booking_id?: number;
     date?: string;
     end_time?: string;
     evidence_url?: string;
+    extra_sessions?: number;
     fee_amount?: number;
     fee_paid?: boolean;
     fee_taken?: boolean;
@@ -712,6 +723,7 @@ export type TutoringAdminToggleFeePaidResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_minutes?: number;
     start_time?: string;
     status?: string;
     student_id?: number;
@@ -768,10 +780,12 @@ export type TutoringCancelBookingResponse = {
 };
 
 export type TutoringCancelSessionResponse = {
+    actual_end_time?: string;
     booking_id?: number;
     date?: string;
     end_time?: string;
     evidence_url?: string;
+    extra_sessions?: number;
     fee_amount?: number;
     fee_paid?: boolean;
     fee_taken?: boolean;
@@ -779,6 +793,7 @@ export type TutoringCancelSessionResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_minutes?: number;
     start_time?: string;
     status?: string;
     student_id?: number;
@@ -863,10 +878,12 @@ export type TutoringListBookingsResponse = {
 };
 
 export type TutoringListSessionsResponse = {
+    actual_end_time?: string;
     booking_id?: number;
     date?: string;
     end_time?: string;
     evidence_url?: string;
+    extra_sessions?: number;
     fee_amount?: number;
     fee_paid?: boolean;
     fee_taken?: boolean;
@@ -874,6 +891,7 @@ export type TutoringListSessionsResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_minutes?: number;
     start_time?: string;
     status?: string;
     student_id?: number;
@@ -912,6 +930,35 @@ export type TutoringMyEarningsResponse = {
 
 export type TutoringRejectBookingResponse = {
     message?: string;
+};
+
+export type TutoringReportOvertimeRequest = {
+    /**
+     * jam selesai aktual ("HH:mm")
+     */
+    actual_end_time?: string;
+};
+
+export type TutoringReportOvertimeResponse = {
+    actual_end_time?: string;
+    booking_id?: number;
+    date?: string;
+    end_time?: string;
+    evidence_url?: string;
+    extra_sessions?: number;
+    fee_amount?: number;
+    fee_paid?: boolean;
+    fee_taken?: boolean;
+    id?: number;
+    invoice_paid?: boolean;
+    mode?: string;
+    note?: string;
+    overtime_minutes?: number;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    teacher_name?: string;
 };
 
 export type TutoringRescheduleBookingRequest = {
@@ -963,10 +1010,12 @@ export type TutoringUpdateSessionRequest = {
 };
 
 export type TutoringUpdateSessionResponse = {
+    actual_end_time?: string;
     booking_id?: number;
     date?: string;
     end_time?: string;
     evidence_url?: string;
+    extra_sessions?: number;
     fee_amount?: number;
     fee_paid?: boolean;
     fee_taken?: boolean;
@@ -974,6 +1023,7 @@ export type TutoringUpdateSessionResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_minutes?: number;
     start_time?: string;
     status?: string;
     student_id?: number;
@@ -982,10 +1032,12 @@ export type TutoringUpdateSessionResponse = {
 };
 
 export type TutoringUploadSessionEvidenceResponse = {
+    actual_end_time?: string;
     booking_id?: number;
     date?: string;
     end_time?: string;
     evidence_url?: string;
+    extra_sessions?: number;
     fee_amount?: number;
     fee_paid?: boolean;
     fee_taken?: boolean;
@@ -993,6 +1045,7 @@ export type TutoringUploadSessionEvidenceResponse = {
     invoice_paid?: boolean;
     mode?: string;
     note?: string;
+    overtime_minutes?: number;
     start_time?: string;
     status?: string;
     student_id?: number;
@@ -4512,6 +4565,39 @@ export type PostTutoringSessionsByIdEvidenceResponses = {
 };
 
 export type PostTutoringSessionsByIdEvidenceResponse = PostTutoringSessionsByIdEvidenceResponses[keyof PostTutoringSessionsByIdEvidenceResponses];
+
+export type PatchTutoringSessionsByIdOvertimeData = {
+    /**
+     * Jam selesai aktual
+     */
+    body: TutoringReportOvertimeRequest;
+    path: {
+        /**
+         * Session ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/tutoring/sessions/{id}/overtime';
+};
+
+export type PatchTutoringSessionsByIdOvertimeErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PatchTutoringSessionsByIdOvertimeError = PatchTutoringSessionsByIdOvertimeErrors[keyof PatchTutoringSessionsByIdOvertimeErrors];
+
+export type PatchTutoringSessionsByIdOvertimeResponses = {
+    /**
+     * OK
+     */
+    200: TutoringReportOvertimeResponse;
+};
+
+export type PatchTutoringSessionsByIdOvertimeResponse = PatchTutoringSessionsByIdOvertimeResponses[keyof PatchTutoringSessionsByIdOvertimeResponses];
 
 export type GetTutoringTeachersData = {
     body?: never;

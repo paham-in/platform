@@ -728,6 +728,43 @@ func minutesToHHMM(min int) string {
 // sessionDurationMinutes adalah durasi standar 1 sesi les.
 const sessionDurationMinutes = 90
 
+// overtimeGraceMinutes adalah toleransi overtime gratis (menit).
+const overtimeGraceMinutes = 15
+
+// overtimeFor menghitung kelebihan menit & blok 90-menit tambahan dari jam
+// selesai aktual vs terjadwal. Kosong = tidak lapor. Di bawah toleransi = 0.
+// Selebihnya dibulatkan ke atas per blok 90 menit (1 sesi).
+func overtimeFor(scheduledEnd, actualEnd string) (overtimeMinutes, extraSessions int, err error) {
+	if actualEnd == "" {
+		return 0, 0, nil
+	}
+	sched, err := timeToMinutes(scheduledEnd)
+	if err != nil {
+		return 0, 0, errors.New("format jam selesai terjadwal tidak valid")
+	}
+	actual, err := timeToMinutes(actualEnd)
+	if err != nil {
+		return 0, 0, errors.New("format jam selesai aktual tidak valid (HH:mm)")
+	}
+	if actual < sched {
+		return 0, 0, errors.New("jam selesai aktual tidak boleh lebih awal dari jadwal")
+	}
+	over := actual - sched
+	if over <= overtimeGraceMinutes {
+		return 0, 0, nil
+	}
+	extra := (over + sessionDurationMinutes - 1) / sessionDurationMinutes
+	return over, extra, nil
+}
+
+// sessionFeeTotal menghitung fee guru utk satu sesi termasuk blok overtime.
+func (s *Service) sessionFeeTotal(price float64, extraSessions int) float64 {
+	if extraSessions < 0 {
+		extraSessions = 0
+	}
+	return s.sessionFee(price) * float64(1+extraSessions)
+}
+
 // sessionsPerWeekFor menghitung jumlah sesi 90-menit dalam satu blok (start..end).
 // Durasi harus kelipatan 90, kalau tidak, tolak.
 func sessionsPerWeekFor(start, end string) (int, error) {
@@ -1333,6 +1370,45 @@ func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (
 	return &r, oldObject, nil
 }
 
+// ReportOvertime mencatat jam selesai aktual sesi oleh guru (menu terpisah dari
+// upload bukti). Overtime dihitung backend: toleransi 15 menit gratis,
+// selebihnya dibulatkan ke atas per blok 90 menit. Boleh dilaporkan ulang
+// (menimpa) selama sesi belum divalidasi admin; charge-nya diterapkan saat
+// approve. Sesi yang sudah done ditolak (hubungi admin).
+func (s *Service) ReportOvertime(sessionID, teacherID uint, actualEndTime string) (*ReportOvertimeResponse, error) {
+	session, err := s.getOwnedSession(sessionID, teacherID)
+	if err != nil {
+		return nil, err
+	}
+	if session.Status != "scheduled" && session.Status != "review" {
+		return nil, errors.New("overtime hanya bisa dilaporkan untuk sesi terjadwal atau menunggu validasi (sesi selesai hubungi admin)")
+	}
+	end, err := time.ParseInLocation("2006-01-02 15:04", session.Date+" "+session.EndTime, time.Local)
+	if err != nil {
+		return nil, errors.New("waktu sesi tidak valid")
+	}
+	if time.Now().Before(end) {
+		return nil, errors.New("overtime baru bisa dilaporkan setelah jam selesai terjadwal")
+	}
+	over, extra, err := overtimeFor(session.EndTime, actualEndTime)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.UpdateSession(sessionID, map[string]interface{}{
+		"actual_end_time":  actualEndTime,
+		"overtime_minutes": over,
+		"extra_sessions":   extra,
+	}); err != nil {
+		return nil, err
+	}
+	updated, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	r := newReportOvertimeResponse(*updated)
+	return &r, nil
+}
+
 // ListEvidence mengembalikan sesi yang punya bukti, difilter status ("" = semua)
 // dan search (nama/email murid, opsional).
 // Plus info fee & status invoice utk halaman admin gabungan validasi + fee guru.
@@ -1349,13 +1425,15 @@ func (s *Service) ListEvidence(status, search string) ([]AdminListEvidenceRespon
 		// fee_amount cuma relevan utk sesi selesai yg muridnya sudah lunas
 		if v.Status == "done" && paid {
 			perSession := s.perSessionPrice(v.Booking.ClassID, v.Booking.Mode)
-			res[i].FeeAmount = s.sessionFee(perSession)
+			res[i].FeeAmount = s.sessionFeeTotal(perSession, v.ExtraSessions)
 		}
 	}
 	return res, nil
 }
 
-// ApproveEvidence menyetujui bukti → sesi selesai.
+// ApproveEvidence menyetujui bukti → sesi selesai. Charge overtime (kalau ada)
+// diterapkan di transaksi yang sama: invoice pending ditambah, kalau invoice
+// sudah lunas (atau tidak ada) dibuatkan invoice baru.
 func (s *Service) ApproveEvidence(sessionID uint) (*AdminReviewEvidenceResponse, error) {
 	session, err := s.repo.GetSession(sessionID)
 	if err != nil {
@@ -1364,7 +1442,13 @@ func (s *Service) ApproveEvidence(sessionID uint) (*AdminReviewEvidenceResponse,
 	if session.EvidenceURL == "" || session.Status != "review" {
 		return nil, errors.New("tidak ada bukti yang menunggu validasi pada sesi ini")
 	}
-	if err := s.repo.UpdateSession(sessionID, map[string]interface{}{"status": "done"}); err != nil {
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&models.TutoringSession{}).Where("id = ?", sessionID).Update("status", "done").Error; err != nil {
+			return err
+		}
+		return s.applyOvertimeCharge(tx, session)
+	})
+	if err != nil {
 		return nil, err
 	}
 	updated, err := s.repo.GetSession(sessionID)
@@ -1373,6 +1457,42 @@ func (s *Service) ApproveEvidence(sessionID uint) (*AdminReviewEvidenceResponse,
 	}
 	r := newAdminReviewEvidenceResponse(*updated)
 	return &r, nil
+}
+
+// applyOvertimeCharge menagihkan blok overtime sesi ke murid. Invoice utama
+// yang masih pending ditambah nominalnya; kalau sudah lunas (atau tidak ada),
+// dibuatkan invoice baru khusus overtime.
+func (s *Service) applyOvertimeCharge(tx *gorm.DB, session *models.TutoringSession) error {
+	if session.ExtraSessions <= 0 || session.Booking == nil {
+		return nil
+	}
+	perSession := s.perSessionPrice(session.Booking.ClassID, session.Booking.Mode)
+	extra := perSession * float64(session.ExtraSessions)
+	if extra <= 0 {
+		return nil
+	}
+	var inv models.Invoice
+	if err := tx.Where("booking_id = ?", session.BookingID).Order("id asc").First(&inv).Error; err == nil && inv.Status == "pending" {
+		note := inv.Note + fmt.Sprintf(" + overtime %d sesi %s", session.ExtraSessions, session.Date)
+		if len(note) > 450 {
+			note = inv.Note
+		}
+		return tx.Model(&models.Invoice{}).Where("id = ?", inv.ID).Updates(map[string]interface{}{
+			"amount": inv.Amount + extra,
+			"note":   note,
+		}).Error
+	}
+	bookingID := session.BookingID
+	return tx.Create(&models.Invoice{
+		UserID:    session.Booking.StudentID,
+		Amount:    extra,
+		StartDate: session.Date,
+		EndDate:   session.Date,
+		Status:    "pending",
+		Note:      fmt.Sprintf("Kelebihan waktu %d sesi (%s)", session.ExtraSessions, session.Date),
+		BookingID: &bookingID,
+		ClassID:   session.Booking.ClassID,
+	}).Error
 }
 
 // ValidateEvidenceReject memvalidasi sesi punya bukti yang menunggu validasi
@@ -1442,7 +1562,7 @@ func (s *Service) ListTeacherFeeSessions() ([]AdminListFeesResponse, error) {
 		}
 		res := newAdminListFeesResponse(v)
 		perSession := s.perSessionPrice(v.Booking.ClassID, v.Booking.Mode)
-		res.FeeAmount = s.sessionFee(perSession)
+		res.FeeAmount = s.sessionFeeTotal(perSession, v.ExtraSessions)
 		result = append(result, res)
 	}
 	return result, nil

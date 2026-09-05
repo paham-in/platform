@@ -49,6 +49,12 @@ type RescheduleBookingRequest struct {
 	EndTime   string `json:"end_time"`   // "HH:mm"
 }
 
+//, handler: ReportOvertime (PATCH /tutoring/sessions/:id/overtime)
+
+type ReportOvertimeRequest struct {
+	ActualEndTime string `json:"actual_end_time"` // jam selesai aktual ("HH:mm")
+}
+
 //, handler: AssignTeacher (PATCH /admin/tutoring/bookings/:id/assign)
 
 type AssignTeacherRequest struct {

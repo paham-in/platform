@@ -5217,6 +5217,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/tutoring/sessions/{id}/overtime": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Guru melaporkan jam selesai aktual sesi (terpisah dari upload bukti). Overtime dihitung backend: toleransi 15 menit, selebihnya per blok 90 menit. Charge diterapkan saat admin approve.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tutoring"
+                ],
+                "summary": "Report session overtime",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Jam selesai aktual",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ReportOvertimeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ReportOvertimeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tutoring/teachers": {
             "get": {
                 "security": [
@@ -6840,6 +6892,9 @@ const docTemplate = `{
         "tutoring.AdminListEvidenceResponse": {
             "type": "object",
             "properties": {
+                "actual_end_time": {
+                    "type": "string"
+                },
                 "booking_id": {
                     "type": "integer"
                 },
@@ -6851,6 +6906,9 @@ const docTemplate = `{
                 },
                 "evidence_url": {
                     "type": "string"
+                },
+                "extra_sessions": {
+                    "type": "integer"
                 },
                 "fee_amount": {
                     "type": "number"
@@ -6872,6 +6930,9 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_minutes": {
+                    "type": "integer"
                 },
                 "start_time": {
                     "type": "string"
@@ -6893,6 +6954,9 @@ const docTemplate = `{
         "tutoring.AdminListFeesResponse": {
             "type": "object",
             "properties": {
+                "actual_end_time": {
+                    "type": "string"
+                },
                 "booking_id": {
                     "type": "integer"
                 },
@@ -6904,6 +6968,9 @@ const docTemplate = `{
                 },
                 "evidence_url": {
                     "type": "string"
+                },
+                "extra_sessions": {
+                    "type": "integer"
                 },
                 "fee_amount": {
                     "type": "number"
@@ -6925,6 +6992,9 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_minutes": {
+                    "type": "integer"
                 },
                 "start_time": {
                     "type": "string"
@@ -7002,6 +7072,9 @@ const docTemplate = `{
         "tutoring.AdminReviewEvidenceResponse": {
             "type": "object",
             "properties": {
+                "actual_end_time": {
+                    "type": "string"
+                },
                 "booking_id": {
                     "type": "integer"
                 },
@@ -7013,6 +7086,9 @@ const docTemplate = `{
                 },
                 "evidence_url": {
                     "type": "string"
+                },
+                "extra_sessions": {
+                    "type": "integer"
                 },
                 "fee_amount": {
                     "type": "number"
@@ -7034,6 +7110,9 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_minutes": {
+                    "type": "integer"
                 },
                 "start_time": {
                     "type": "string"
@@ -7055,6 +7134,9 @@ const docTemplate = `{
         "tutoring.AdminToggleFeePaidResponse": {
             "type": "object",
             "properties": {
+                "actual_end_time": {
+                    "type": "string"
+                },
                 "booking_id": {
                     "type": "integer"
                 },
@@ -7066,6 +7148,9 @@ const docTemplate = `{
                 },
                 "evidence_url": {
                     "type": "string"
+                },
+                "extra_sessions": {
+                    "type": "integer"
                 },
                 "fee_amount": {
                     "type": "number"
@@ -7087,6 +7172,9 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_minutes": {
+                    "type": "integer"
                 },
                 "start_time": {
                     "type": "string"
@@ -7240,6 +7328,9 @@ const docTemplate = `{
         "tutoring.CancelSessionResponse": {
             "type": "object",
             "properties": {
+                "actual_end_time": {
+                    "type": "string"
+                },
                 "booking_id": {
                     "type": "integer"
                 },
@@ -7251,6 +7342,9 @@ const docTemplate = `{
                 },
                 "evidence_url": {
                     "type": "string"
+                },
+                "extra_sessions": {
+                    "type": "integer"
                 },
                 "fee_amount": {
                     "type": "number"
@@ -7272,6 +7366,9 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_minutes": {
+                    "type": "integer"
                 },
                 "start_time": {
                     "type": "string"
@@ -7468,6 +7565,9 @@ const docTemplate = `{
         "tutoring.ListSessionsResponse": {
             "type": "object",
             "properties": {
+                "actual_end_time": {
+                    "type": "string"
+                },
                 "booking_id": {
                     "type": "integer"
                 },
@@ -7479,6 +7579,9 @@ const docTemplate = `{
                 },
                 "evidence_url": {
                     "type": "string"
+                },
+                "extra_sessions": {
+                    "type": "integer"
                 },
                 "fee_amount": {
                     "type": "number"
@@ -7500,6 +7603,9 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_minutes": {
+                    "type": "integer"
                 },
                 "start_time": {
                     "type": "string"
@@ -7590,6 +7696,77 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.ReportOvertimeRequest": {
+            "type": "object",
+            "properties": {
+                "actual_end_time": {
+                    "description": "jam selesai aktual (\"HH:mm\")",
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.ReportOvertimeResponse": {
+            "type": "object",
+            "properties": {
+                "actual_end_time": {
+                    "type": "string"
+                },
+                "booking_id": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "evidence_url": {
+                    "type": "string"
+                },
+                "extra_sessions": {
+                    "type": "integer"
+                },
+                "fee_amount": {
+                    "type": "number"
+                },
+                "fee_paid": {
+                    "type": "boolean"
+                },
+                "fee_taken": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_paid": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "overtime_minutes": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "teacher_name": {
                     "type": "string"
                 }
             }
@@ -7701,6 +7878,9 @@ const docTemplate = `{
         "tutoring.UpdateSessionResponse": {
             "type": "object",
             "properties": {
+                "actual_end_time": {
+                    "type": "string"
+                },
                 "booking_id": {
                     "type": "integer"
                 },
@@ -7712,6 +7892,9 @@ const docTemplate = `{
                 },
                 "evidence_url": {
                     "type": "string"
+                },
+                "extra_sessions": {
+                    "type": "integer"
                 },
                 "fee_amount": {
                     "type": "number"
@@ -7733,6 +7916,9 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_minutes": {
+                    "type": "integer"
                 },
                 "start_time": {
                     "type": "string"
@@ -7754,6 +7940,9 @@ const docTemplate = `{
         "tutoring.UploadSessionEvidenceResponse": {
             "type": "object",
             "properties": {
+                "actual_end_time": {
+                    "type": "string"
+                },
                 "booking_id": {
                     "type": "integer"
                 },
@@ -7765,6 +7954,9 @@ const docTemplate = `{
                 },
                 "evidence_url": {
                     "type": "string"
+                },
+                "extra_sessions": {
+                    "type": "integer"
                 },
                 "fee_amount": {
                     "type": "number"
@@ -7786,6 +7978,9 @@ const docTemplate = `{
                 },
                 "note": {
                     "type": "string"
+                },
+                "overtime_minutes": {
+                    "type": "integer"
                 },
                 "start_time": {
                     "type": "string"

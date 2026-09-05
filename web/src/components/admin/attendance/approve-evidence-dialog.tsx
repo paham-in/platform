@@ -45,6 +45,12 @@ export function ApproveEvidenceDialog({ session, onClose }: ApproveEvidenceDialo
           <AlertDialogDescription>
             Sesi {session.date} {session.start_time} – {session.end_time} ({session.teacher_name ?? "—"}) akan
             ditandai selesai dan fee guru masuk ke daftar pembayaran.
+            {(session.overtime_minutes ?? 0) > 0 && (
+              <>
+                {" "}Overtime +{session.overtime_minutes} menit (+{session.extra_sessions ?? 0} sesi): fee guru
+                dan tagihan murid ikut bertambah.
+              </>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

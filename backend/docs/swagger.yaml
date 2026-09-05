@@ -987,6 +987,8 @@ definitions:
     type: object
   tutoring.AdminListEvidenceResponse:
     properties:
+      actual_end_time:
+        type: string
       booking_id:
         type: integer
       date:
@@ -995,6 +997,8 @@ definitions:
         type: string
       evidence_url:
         type: string
+      extra_sessions:
+        type: integer
       fee_amount:
         type: number
       fee_paid:
@@ -1009,6 +1013,8 @@ definitions:
         type: string
       note:
         type: string
+      overtime_minutes:
+        type: integer
       start_time:
         type: string
       status:
@@ -1022,6 +1028,8 @@ definitions:
     type: object
   tutoring.AdminListFeesResponse:
     properties:
+      actual_end_time:
+        type: string
       booking_id:
         type: integer
       date:
@@ -1030,6 +1038,8 @@ definitions:
         type: string
       evidence_url:
         type: string
+      extra_sessions:
+        type: integer
       fee_amount:
         type: number
       fee_paid:
@@ -1044,6 +1054,8 @@ definitions:
         type: string
       note:
         type: string
+      overtime_minutes:
+        type: integer
       start_time:
         type: string
       status:
@@ -1094,6 +1106,8 @@ definitions:
     type: object
   tutoring.AdminReviewEvidenceResponse:
     properties:
+      actual_end_time:
+        type: string
       booking_id:
         type: integer
       date:
@@ -1102,6 +1116,8 @@ definitions:
         type: string
       evidence_url:
         type: string
+      extra_sessions:
+        type: integer
       fee_amount:
         type: number
       fee_paid:
@@ -1116,6 +1132,8 @@ definitions:
         type: string
       note:
         type: string
+      overtime_minutes:
+        type: integer
       start_time:
         type: string
       status:
@@ -1129,6 +1147,8 @@ definitions:
     type: object
   tutoring.AdminToggleFeePaidResponse:
     properties:
+      actual_end_time:
+        type: string
       booking_id:
         type: integer
       date:
@@ -1137,6 +1157,8 @@ definitions:
         type: string
       evidence_url:
         type: string
+      extra_sessions:
+        type: integer
       fee_amount:
         type: number
       fee_paid:
@@ -1151,6 +1173,8 @@ definitions:
         type: string
       note:
         type: string
+      overtime_minutes:
+        type: integer
       start_time:
         type: string
       status:
@@ -1251,6 +1275,8 @@ definitions:
     type: object
   tutoring.CancelSessionResponse:
     properties:
+      actual_end_time:
+        type: string
       booking_id:
         type: integer
       date:
@@ -1259,6 +1285,8 @@ definitions:
         type: string
       evidence_url:
         type: string
+      extra_sessions:
+        type: integer
       fee_amount:
         type: number
       fee_paid:
@@ -1273,6 +1301,8 @@ definitions:
         type: string
       note:
         type: string
+      overtime_minutes:
+        type: integer
       start_time:
         type: string
       status:
@@ -1403,6 +1433,8 @@ definitions:
     type: object
   tutoring.ListSessionsResponse:
     properties:
+      actual_end_time:
+        type: string
       booking_id:
         type: integer
       date:
@@ -1411,6 +1443,8 @@ definitions:
         type: string
       evidence_url:
         type: string
+      extra_sessions:
+        type: integer
       fee_amount:
         type: number
       fee_paid:
@@ -1425,6 +1459,8 @@ definitions:
         type: string
       note:
         type: string
+      overtime_minutes:
+        type: integer
       start_time:
         type: string
       status:
@@ -1484,6 +1520,53 @@ definitions:
   tutoring.RejectBookingResponse:
     properties:
       message:
+        type: string
+    type: object
+  tutoring.ReportOvertimeRequest:
+    properties:
+      actual_end_time:
+        description: jam selesai aktual ("HH:mm")
+        type: string
+    type: object
+  tutoring.ReportOvertimeResponse:
+    properties:
+      actual_end_time:
+        type: string
+      booking_id:
+        type: integer
+      date:
+        type: string
+      end_time:
+        type: string
+      evidence_url:
+        type: string
+      extra_sessions:
+        type: integer
+      fee_amount:
+        type: number
+      fee_paid:
+        type: boolean
+      fee_taken:
+        type: boolean
+      id:
+        type: integer
+      invoice_paid:
+        type: boolean
+      mode:
+        type: string
+      note:
+        type: string
+      overtime_minutes:
+        type: integer
+      start_time:
+        type: string
+      status:
+        type: string
+      student_id:
+        type: integer
+      student_name:
+        type: string
+      teacher_name:
         type: string
     type: object
   tutoring.RescheduleBookingRequest:
@@ -1557,6 +1640,8 @@ definitions:
     type: object
   tutoring.UpdateSessionResponse:
     properties:
+      actual_end_time:
+        type: string
       booking_id:
         type: integer
       date:
@@ -1565,6 +1650,8 @@ definitions:
         type: string
       evidence_url:
         type: string
+      extra_sessions:
+        type: integer
       fee_amount:
         type: number
       fee_paid:
@@ -1579,6 +1666,8 @@ definitions:
         type: string
       note:
         type: string
+      overtime_minutes:
+        type: integer
       start_time:
         type: string
       status:
@@ -1592,6 +1681,8 @@ definitions:
     type: object
   tutoring.UploadSessionEvidenceResponse:
     properties:
+      actual_end_time:
+        type: string
       booking_id:
         type: integer
       date:
@@ -1600,6 +1691,8 @@ definitions:
         type: string
       evidence_url:
         type: string
+      extra_sessions:
+        type: integer
       fee_amount:
         type: number
       fee_paid:
@@ -1614,6 +1707,8 @@ definitions:
         type: string
       note:
         type: string
+      overtime_minutes:
+        type: integer
       start_time:
         type: string
       status:
@@ -5211,6 +5306,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Upload attendance evidence
+      tags:
+      - Tutoring
+  /tutoring/sessions/{id}/overtime:
+    patch:
+      consumes:
+      - application/json
+      description: 'Guru melaporkan jam selesai aktual sesi (terpisah dari upload
+        bukti). Overtime dihitung backend: toleransi 15 menit, selebihnya per blok
+        90 menit. Charge diterapkan saat admin approve.'
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Jam selesai aktual
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tutoring.ReportOvertimeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.ReportOvertimeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Report session overtime
       tags:
       - Tutoring
   /tutoring/teachers:

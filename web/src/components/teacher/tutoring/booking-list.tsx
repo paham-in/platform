@@ -6,12 +6,13 @@ import {
   getTutoringSessionsOptions,
   getTutoringSessionsQueryKey,
   patchTutoringSessionsByIdMutation,
+  patchTutoringSessionsByIdOvertimeMutation,
   postTutoringSessionsByIdCancelMutation,
   postTutoringSessionsByIdEvidenceMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
-import { History, UserRound, Users, MoreVertical, Eye, Upload, CalendarClock, XCircle } from "lucide-react"
+import { History, UserRound, Users, MoreVertical, Eye, Upload, CalendarClock, XCircle, Timer } from "lucide-react"
 import type { TutoringListBookingsResponse, TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import {
   DropdownMenu,
@@ -39,6 +40,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { toast } from "sonner"
 import { useRef, useState } from "react"
@@ -78,8 +80,14 @@ function modeBadge(mode?: string) {
   return <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
 }
 
-function groupBookings(bookings: TutoringListBookingsResponse[]): TutoringListBookingsResponse[][] {
-  const groups: TutoringListBookingsResponse[][] = []
+function overtimeSummary(sessions: TutoringListSessionsResponse[]): string | null {
+  const ot = sessions.filter((s) => (s.overtime_minutes ?? 0) > 0)
+  if (ot.length === 0) return null
+  const extra = ot.reduce((sum, s) => sum + (s.extra_sessions ?? 0), 0)
+  return `+${extra} sesi`
+}
+
+function groupBookings(bookings: TutoringListBookingsResponse[]): TutoringListBookingsResponse[][] {  const groups: TutoringListBookingsResponse[][] = []
   const index = new Map<string, number>()
   for (const b of bookings) {
     if (b.mode === "group" && b.group_token) {
@@ -112,6 +120,11 @@ export function BookingList() {
     onSuccess: () => { toast.success("Bukti terunggah, menunggu validasi admin"); invalidate() },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal upload bukti"),
   })
+  const overtime = useMutation({
+    ...patchTutoringSessionsByIdOvertimeMutation(),
+    onSuccess: () => { toast.success("Overtime tercatat, charge diterapkan saat admin approve"); invalidate(); setOvertimeSession(null) },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal mencatat overtime"),
+  })
   const reschedule = useMutation({
     ...patchTutoringSessionsByIdMutation(),
     onSuccess: () => { toast.success("Jadwal sesi diperbarui"); invalidate() },
@@ -132,6 +145,9 @@ export function BookingList() {
   const [uploadingId, setUploadingId] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [pendingUploadSessionId, setPendingUploadSessionId] = useState<number | null>(null)
+  const [overtimeSession, setOvertimeSession] = useState<TutoringListSessionsResponse | null>(null)
+  const [overtimeEnd, setOvertimeEnd] = useState("")
+  const openOvertime = (s: TutoringListSessionsResponse) => { setOvertimeSession(s); setOvertimeEnd(s.actual_end_time ?? s.end_time ?? "") }
 
   const sessionsFor = (bookingId: number) => sessions.filter((s) => s.booking_id === bookingId)
   const nextScheduled = (bookingId: number) => sessionsFor(bookingId).find((s) => s.status === "scheduled")
@@ -151,6 +167,7 @@ export function BookingList() {
                 <TableHead>Tanggal</TableHead>
                 <TableHead>Jam</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Overtime</TableHead>
                 <TableHead className="pr-6 text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -163,12 +180,13 @@ export function BookingList() {
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell className="pr-6"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : groups.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={7}>
                     <Empty className="border-0 p-8">
                       <EmptyHeader>
                         <EmptyMedia variant="icon"><History /></EmptyMedia>
@@ -187,6 +205,14 @@ export function BookingList() {
                   <TableCell>{group[0].date}</TableCell>
                   <TableCell>{group[0].start_time} - {group[0].end_time}</TableCell>
                   <TableCell>{statusBadge(group[0].status!)}</TableCell>
+                  <TableCell>
+                    {(() => {
+                      const label = overtimeSummary(group.flatMap((b) => sessionsFor(b.id!)))
+                      return label
+                        ? <span className="font-medium tabular-nums text-amber-600">{label}</span>
+                        : <span className="text-muted-foreground">—</span>
+                    })()}
+                  </TableCell>
                   <TableCell className="pr-6">
                     <div className="flex items-center justify-end">
                       <DropdownMenu>
@@ -206,6 +232,9 @@ export function BookingList() {
                               <>
                                 <DropdownMenuItem onClick={() => { setPendingUploadSessionId(ns.id!); fileInputRef.current?.click() }}>
                                   <Upload className="h-4 w-4" /> Upload Bukti
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { openOvertime(sessionsFor(group[0].id!).find((s) => s.status === "review") ?? ns) }}>
+                                  <Timer className="h-4 w-4" /> Lapor Overtime
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => {
                                   setReschedDate(ns.date!)
@@ -261,6 +290,10 @@ export function BookingList() {
                         {statusBadge(group[0].status!)}
                       </div>
                       <p className="mt-2 text-sm text-muted-foreground">{group[0].date} · {group[0].start_time} - {group[0].end_time}</p>
+                      {(() => {
+                        const label = overtimeSummary(group.flatMap((b) => sessionsFor(b.id!)))
+                        return label ? <p className="mt-0.5 text-xs font-medium text-amber-600">Overtime {label}</p> : null
+                      })()}
                       <p className="mt-0.5 text-xs text-muted-foreground">Dibuat {group[0].created_at}</p>
                     </div>
                     <DropdownMenu>
@@ -278,6 +311,9 @@ export function BookingList() {
                             <>
                               <DropdownMenuItem onClick={() => { setPendingUploadSessionId(ns.id!); fileInputRef.current?.click() }}>
                                 <Upload className="h-4 w-4" /> Upload Bukti
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { openOvertime(sessionsFor(group[0].id!).find((s) => s.status === "review") ?? ns) }}>
+                                <Timer className="h-4 w-4" /> Lapor Overtime
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => {
                                 setReschedDate(ns.date!)
@@ -322,6 +358,39 @@ export function BookingList() {
           }
         }}
       />
+
+      {/* Overtime dialog (menu terpisah dari upload bukti) */}
+      <Dialog open={!!overtimeSession} onOpenChange={(o) => { if (!o) setOvertimeSession(null) }}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Lapor Overtime</DialogTitle>
+            <DialogDescription>
+              Sesi {overtimeSession?.date} · {overtimeSession?.start_time} - {overtimeSession?.end_time}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="overtime-end">Jam Selesai Aktual</Label>
+            <Input
+              id="overtime-end"
+              type="time"
+              value={overtimeEnd}
+              onChange={(e) => setOvertimeEnd(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Toleransi 15 menit, selebihnya dihitung tambahan sesi (90 menit) untuk fee & tagihan. Charge diterapkan saat admin approve.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOvertimeSession(null)}>Batal</Button>
+            <Button
+              disabled={!overtimeEnd || overtime.isPending}
+              onClick={() => overtimeSession?.id && overtime.mutate({ path: { id: overtimeSession.id }, body: { actual_end_time: overtimeEnd } })}
+            >
+              {overtime.isPending && <Spinner />} Simpan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Detail modal */}
       <Dialog open={!!detailBooking} onOpenChange={(o) => { if (!o) setDetailBooking(null) }}>
@@ -380,6 +449,11 @@ export function BookingList() {
                             {s.start_time} - {s.end_time}
                           </p>
                           <div className="mt-1">{sessionStatusBadge(s.status)}</div>
+                          {(s.overtime_minutes ?? 0) > 0 && (
+                            <p className="mt-1 text-xs font-medium text-amber-600">
+                              +{s.overtime_minutes} mnt (s.d. {s.actual_end_time}) · +{s.extra_sessions ?? 0} sesi
+                            </p>
+                          )}
                           {s.evidence_url && (
                             <a href={s.evidence_url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-primary hover:underline">
                               Lihat bukti

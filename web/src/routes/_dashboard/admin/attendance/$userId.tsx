@@ -162,7 +162,14 @@ function AttendanceDetail() {
                 <TableRow key={s.id}>
                   <TableCell className="pl-6 font-medium">{s.teacher_name ?? "—"}</TableCell>
                   <TableCell>{s.date}</TableCell>
-                  <TableCell className="tabular-nums">{s.start_time} – {s.end_time}</TableCell>
+                  <TableCell className="tabular-nums">
+                    {s.start_time} – {s.end_time}
+                    {(s.overtime_minutes ?? 0) > 0 && (
+                      <span className="mt-0.5 block text-xs font-medium text-amber-600">
+                        +{s.overtime_minutes} mnt (s.d. {s.actual_end_time}) · +{s.extra_sessions ?? 0} sesi
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>{statusBadge(s.status)}</TableCell>
                   <TableCell>
                     {s.evidence_url ? (
