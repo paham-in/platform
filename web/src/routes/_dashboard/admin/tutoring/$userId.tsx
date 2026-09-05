@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminTutoringBookingsOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
-import { UserRound, Users, CalendarX2, CalendarClock, XCircle, MoreVertical, UserPlus } from "lucide-react"
+import { UserRound, Users, CalendarX2, CalendarClock, XCircle, MoreVertical, UserPlus, Plus } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
 import { usePageTitle } from "@/components/page-title"
@@ -48,6 +48,7 @@ function AdminTutoringDetail() {
   const { userId } = Route.useParams()
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
+  const navigate = useNavigate()
   const { data: bookings = [], isLoading } = useQuery(getAdminTutoringBookingsOptions())
   const { data: users = [] } = useQuery(getAdminUsersOptions())
   const [assignBooking, setAssignBooking] = useState<TutoringListBookingsResponse | null>(null)
@@ -67,9 +68,17 @@ function AdminTutoringDetail() {
 
   return (
     <main className="p-4 md:p-6">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold tracking-tight">{studentName}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{user?.email ?? ""}</p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{studentName}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{user?.email ?? ""}</p>
+        </div>
+        <Button
+          className="hidden md:inline-flex"
+          onClick={() => navigate({ to: "/admin/tutoring/new", search: { student_id: Number(userId) } })}
+        >
+          <Plus className="mr-1 h-4 w-4" /> Tambah Booking Manual
+        </Button>
       </div>
 
       {/* Desktop table */}
@@ -220,6 +229,15 @@ function AdminTutoringDetail() {
       {modal === "assign" && assignBooking && <AssignTeacherDialog booking={assignBooking} onClose={closeModal} />}
       {modal === "schedule" && scheduleTarget && <ScheduleBookingDialog booking={scheduleTarget} onClose={closeModal} />}
       {modal === "reject" && rejectTarget && <RejectBookingDialog booking={rejectTarget} onClose={closeModal} />}
+
+      <Button
+        onClick={() => navigate({ to: "/admin/tutoring/new", search: { student_id: Number(userId) } })}
+        size="icon"
+        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+        aria-label="Tambah Booking Manual"
+      >
+        <Plus className="size-6" />
+      </Button>
     </main>
   )
 }

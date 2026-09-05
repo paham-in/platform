@@ -34,6 +34,11 @@ import {
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { usePageTitle } from "@/components/page-title"
+import { z } from "zod"
+
+const adminTutoringNewSearchSchema = z.object({
+  student_id: z.coerce.number().optional(),
+})
 
 const countOptions = [1, 2, 3, 4, 5, 6, 8, 10, 12]
 const modeOptions = [
@@ -58,6 +63,7 @@ function AdminTutoringNew() {
   usePageTitle("Tambah Booking Manual")
   const qc = useQueryClient()
   const navigate = useNavigate({ from: Route.fullPath })
+  const { student_id: presetStudentId } = Route.useSearch()
   const { data: students = [] } = useQuery(getAdminStudentsOptions())
   const { data: classes = [] } = useQuery(getAdminClassesOptions())
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
@@ -75,6 +81,13 @@ function AdminTutoringNew() {
   const [memberPick, setMemberPick] = useState<UserAdminListUsersResponse | null>(null)
   const [classId, setClassId] = useState("")
   const [submitting, setSubmitting] = useState(false)
+
+  // prefill murid bila dibuka dari halaman booking seorang murid (?student_id=)
+  useEffect(() => {
+    if (student || !presetStudentId || students.length === 0) return
+    const found = students.find((s) => s.id === presetStudentId)
+    if (found) setStudent(found)
+  }, [student, presetStudentId, students])
 
   // guru difilter by mapel
   const { data: teachers = [], isLoading: teachersLoading } = useQuery({
@@ -474,4 +487,5 @@ navigate({ to: "/admin/tutoring", replace: true })
 
 export const Route = createFileRoute("/_dashboard/admin/tutoring/new")({
   component: AdminTutoringNew,
+  validateSearch: adminTutoringNewSearchSchema,
 })

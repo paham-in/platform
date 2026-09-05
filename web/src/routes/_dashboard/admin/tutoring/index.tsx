@@ -1,13 +1,12 @@
 ﻿import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminTutoringBookingsOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { Plus, CalendarX2, Search, X } from "lucide-react"
+import { CalendarX2, Search, X } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
 import { usePageTitle } from "@/components/page-title"
@@ -107,9 +106,6 @@ function AdminTutoring() {
             Antrean booking les privat per murid, yang menunggu paling lama di atas.
           </p>
         </div>
-        <Button className="hidden md:inline-flex" onClick={() => navigate({ to: "/admin/tutoring/new" })}>
-          <Plus className="mr-1 h-4 w-4" /> Tambah Booking Manual
-        </Button>
       </div>
 
       <div className="mb-4 flex min-w-0 flex-1 flex-wrap items-center gap-2">
@@ -242,15 +238,6 @@ function AdminTutoring() {
           )}
         </CardContent>
       </Card>
-
-      <Button
-        onClick={() => navigate({ to: "/admin/tutoring/new" })}
-        size="icon"
-        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
-        aria-label="Tambah Booking Manual"
-      >
-        <Plus className="size-6" />
-      </Button>
     </main>
   )
 }
