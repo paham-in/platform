@@ -199,13 +199,16 @@ function AttendanceIndex() {
                 <TableHead className="pl-6">Nama</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Sesi</TableHead>
-                <TableHead>Fee Belum Dibayar</TableHead>
-                <TableHead className="pr-6">Aksi</TableHead>
+                <TableHead className="pr-6">Fee Belum Dibayar</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.map((r) => (
-                <TableRow key={r.id}>
+                <TableRow
+                  key={r.id}
+                  className="cursor-pointer"
+                  onClick={() => navigate({ to: "/admin/attendance/$userId", params: { userId: String(r.id) }, search: { status } })}
+                >
                   <TableCell className="pl-6">
                     <div className="flex items-center gap-3">
                       {r.avatar ? (
@@ -218,19 +221,12 @@ function AttendanceIndex() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{r.email || "—"}</TableCell>
                   <TableCell className="tabular-nums">{r.count}</TableCell>
-                  <TableCell className="tabular-nums font-medium">{r.feeUnpaid > 0 ? fmtRp(r.feeUnpaid) : "—"}</TableCell>
-                  <TableCell className="pr-6">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate({ to: "/admin/attendance/$userId", params: { userId: String(r.id) }, search: { status } })}
-                    >Lihat Sesi</Button>
-                  </TableCell>
+                  <TableCell className="pr-6 tabular-nums font-medium">{r.feeUnpaid > 0 ? fmtRp(r.feeUnpaid) : "—"}</TableCell>
                 </TableRow>
               ))}
               {rows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5}>
+                  <TableCell colSpan={4}>
                     <Empty className="border-0 p-8">
                       <EmptyHeader>
                         <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <ClipboardCheck />}</EmptyMedia>
