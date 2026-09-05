@@ -19,7 +19,6 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
 import { usePageTitle } from "@/components/page-title"
 
 function EditQuestion() {
@@ -65,7 +64,7 @@ navigate({ to: "/student/forum/$id", params: { id }, replace: true })
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner />
       </div>
     )
   }

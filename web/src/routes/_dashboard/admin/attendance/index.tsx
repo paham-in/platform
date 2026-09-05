@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Search, SearchX, X, ClipboardCheck, Funnel } from "lucide-react"
+import { Search, SearchX, X, ClipboardCheck, Funnel } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect, useMemo } from "react"
 import {
@@ -146,7 +147,7 @@ function AttendanceIndex() {
   if (isLoading) {
     return (
       <main className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner />
       </main>
     )
   }

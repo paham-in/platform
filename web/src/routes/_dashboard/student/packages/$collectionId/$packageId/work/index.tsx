@@ -5,6 +5,7 @@ import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
 import { RichContent } from "@/components/ui/rich-content"
 import { toast } from "sonner"
 import {
@@ -241,6 +242,7 @@ function WorkPage() {
 
           {!revealed ? (
             <Button onClick={handleSubmit} disabled={selectedAnswerId === null || submitMutation.isPending}>
+              {submitMutation.isPending && <Spinner />}
               {submitMutation.isPending ? "Menyimpan..." : "Kirim Jawaban"}
             </Button>
           ) : (

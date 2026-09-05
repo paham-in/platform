@@ -6,7 +6,7 @@ import {
   getClassesOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useParams } from "@tanstack/react-router"
-import { Loader2 } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 import { RichContent } from "@/components/ui/rich-content"
 import { usePageTitle } from "@/components/page-title"
 
@@ -31,7 +31,7 @@ function UserMaterialDetail() {
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner />
       </div>
     )
   }

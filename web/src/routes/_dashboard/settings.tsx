@@ -17,7 +17,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { postPushSubscribe } from "@/lib/api/sdk.gen"
 import { isPushSupported, subscribeNotifications } from "@/lib/subscribe-notification"
-import { Loader2, Save, Bell, BellOff, Download, Moon, Sun } from "lucide-react"
+import { Save, Bell, BellOff, Download, Moon, Sun } from "lucide-react"
 import { toast } from "sonner"
 import { usePwaInstall } from "@/lib/hooks/use-pwa-install"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
@@ -125,7 +125,7 @@ function SettingsPage() {
   if (userLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner />
       </div>
     )
   }

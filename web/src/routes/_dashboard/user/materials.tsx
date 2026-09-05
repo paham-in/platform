@@ -7,7 +7,8 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { Loader2, BookOpen, FileText } from "lucide-react"
+import { BookOpen, FileText } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { usePageTitle } from "@/components/page-title"
 
@@ -22,7 +23,7 @@ function UserMaterials() {
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner />
       </div>
     )
   }

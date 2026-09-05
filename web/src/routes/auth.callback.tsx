@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { client } from "@/lib/api/client.gen"
 import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { useQuery } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 import { homeForRoles } from "@/lib/role"
 
 function AuthCallback() {
@@ -33,7 +33,7 @@ function AuthCallback() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <Spinner />
     </div>
   )
 }

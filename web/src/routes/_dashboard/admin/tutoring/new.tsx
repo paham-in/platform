@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon, Loader2, UserX, X } from "lucide-react"
+import { CalendarIcon, UserX, X } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
@@ -322,7 +322,7 @@ navigate({ to: "/admin/tutoring", replace: true })
               <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">Pilih mapel dulu</p>
             ) : teachersLoading ? (
               <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                <Spinner />
               </div>
             ) : teachers.length === 0 ? (
               <Empty className="border-0 px-0 py-4">

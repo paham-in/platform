@@ -14,7 +14,8 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Loader2, Trash2, MessageCircle, Pencil } from "lucide-react"
+import { Trash2, MessageCircle, Pencil } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { AnswerForm } from "@/components/forum"
 import {
@@ -82,7 +83,7 @@ function ForumDetail() {
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner />
       </div>
     )
   }

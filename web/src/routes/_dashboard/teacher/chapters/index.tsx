@@ -54,7 +54,6 @@ import { z } from "zod";
 import {
   BookOpen,
   Funnel,
-  Loader2,
   MoreVertical,
   Pencil,
   Plus,
@@ -81,6 +80,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
 import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
 import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 
@@ -354,7 +354,7 @@ function AdminChapters() {
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner />
       </div>
     );
   }
@@ -540,6 +540,7 @@ function AdminChapters() {
                     onClick={save}
                     disabled={!form.title || !form.class_id || !form.subject_id || saving || !!coverError}
                   >
+                    {saving && <Spinner />}
                     {saving
                       ? uploadingCover
                         ? "Mengunggah..."

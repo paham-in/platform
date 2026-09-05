@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
-import { Loader2, ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { RichContent } from "@/components/ui/rich-content";
 import { usePageTitle } from "@/components/page-title";
@@ -26,7 +27,7 @@ function MaterialDetail() {
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner />
       </div>
     )
   }
