@@ -12,6 +12,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -20,12 +33,15 @@ import {
   getTutoringBookingsQueryKey,
   getTutoringSessionsOptions,
   getTutoringSessionsQueryKey,
+  getClassesOptions,
   postTutoringBookingsByIdCancelMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
-import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
+import type { TutoringListBookingsResponse, TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { CalendarX2, Plus, UserRound, Users, CalendarDays } from "lucide-react"
-import { useState, useEffect } from "react"
+import { CalendarX2, Plus, UserRound, Users, CalendarDays, Eye, MoreVertical, XCircle } from "lucide-react"
+import { format, parseISO } from "date-fns"
+import { id } from "date-fns/locale"
+import { useState, useEffect, useMemo } from "react"
 import { toast } from "sonner"
 import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
@@ -95,17 +111,128 @@ function CancelBookingDialog({ booking, onClose }: { booking: TutoringListBookin
   )
 }
 
+function sessionStatusBadge(s?: string) {
+  const styles: Record<string, string> = {
+    scheduled: "bg-blue-100 text-blue-700",
+    done: "bg-green-100 text-green-700",
+    cancelled: "bg-gray-100 text-gray-700",
+    review: "bg-amber-100 text-amber-700",
+  }
+  const labels: Record<string, string> = {
+    scheduled: "Terjadwal", done: "Selesai", cancelled: "Dibatalkan", review: "Menunggu Validasi",
+  }
+  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[s || ""] || ""}`}>{labels[s || ""] || s}</span>
+}
+
+function BookingDetailDialog({ booking, sessions, className, onClose }: {
+  booking: TutoringListBookingsResponse
+  sessions: TutoringListSessionsResponse[]
+  className: string
+  onClose: () => void
+}) {
+  const bookingSessions = sessions.filter((s) => s.booking_id === booking.id)
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Detail Booking</DialogTitle>
+          <DialogDescription>Detail booking & sesi les</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Mata Pelajaran</p>
+              <p>{booking.subject_name || "—"}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Kelas</p>
+              <p>{className}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Guru</p>
+              <p>{booking.teacher_name || "Menunggu admin carikan guru"}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Tipe</p>
+              <p>{booking.mode === "group" ? "Kelompok" : "Private"}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Tanggal Mulai</p>
+              <p>{booking.date}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Jam</p>
+              <p>{booking.start_time} - {booking.end_time}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Pertemuan</p>
+              <p>{booking.session_count ?? 1}×</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Status</p>
+              <p>{statusBadge(booking.status!)}</p>
+            </div>
+            {booking.invoice_status && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Pembayaran</p>
+                <p className="capitalize">{booking.invoice_status}</p>
+              </div>
+            )}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Dibuat</p>
+              <p>{booking.created_at}</p>
+            </div>
+          </div>
+          {booking.note && (
+            <div className="rounded-lg bg-muted/50 px-3 py-2">
+              <p className="mb-0.5 text-xs font-medium text-muted-foreground">Catatan</p>
+              <p className="whitespace-pre-wrap">{booking.note}</p>
+            </div>
+          )}
+
+          <div className="border-t pt-4">
+            <p className="mb-3 font-medium">Sesi Pertemuan</p>
+            {bookingSessions.length === 0 ? (
+              <p className="text-muted-foreground">Belum ada sesi terjadwal.</p>
+            ) : (
+              <div className="space-y-2">
+                {bookingSessions.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                    <div className="min-w-0">
+                      <p className="font-medium">
+                        {s.date && format(parseISO(s.date), "EEE, dd MMM yyyy", { locale: id })}
+                        {" · "}
+                        {s.start_time} - {s.end_time}
+                      </p>
+                      <div className="mt-1">{sessionStatusBadge(s.status)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function StudentTutoringIndex() {
   usePageTitle("Les Privat")
   const navigate = useNavigate()
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getTutoringBookingsOptions())
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getTutoringSessionsOptions())
+  const { data: classes = [] } = useQuery(getClassesOptions())
+  const classNameById = useMemo(() => new Map(classes.map((c) => [c.id, c.name])), [classes])
   const [cancelTarget, setCancelTarget] = useState<TutoringListBookingsResponse | null>(null)
+  const [detailTarget, setDetailTarget] = useState<TutoringListBookingsResponse | null>(null)
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
 
   useEffect(() => {
     if (modal !== "cancel") setCancelTarget(null)
+    if (modal !== "detail") setDetailTarget(null)
   }, [modal])
 
   const upcomingSessions = sessions.filter((s) => s.status !== "cancelled")
@@ -133,7 +260,7 @@ function StudentTutoringIndex() {
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Jam</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="pr-6">Aksi</TableHead>
+                  <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -167,9 +294,23 @@ function StudentTutoringIndex() {
                     <TableCell>{b.start_time} - {b.end_time}</TableCell>
                     <TableCell>{statusBadge(b.status!)}</TableCell>
                     <TableCell className="pr-6">
-                      {canCancel(b) && (
-                        <Button variant="outline" size="sm" onClick={() => { setCancelTarget(b); openModal("cancel") }}>Batalkan</Button>
-                      )}
+                      <div className="flex items-center justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi booking" />}>
+                            <MoreVertical className="h-4 w-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => { setDetailTarget(b); openModal("detail") }}>
+                              <Eye className="h-4 w-4" /> Lihat Detail
+                            </DropdownMenuItem>
+                            {canCancel(b) && (
+                              <DropdownMenuItem variant="destructive" onClick={() => { setCancelTarget(b); openModal("cancel") }}>
+                                <XCircle className="h-4 w-4" /> Batalkan Booking
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -203,11 +344,23 @@ function StudentTutoringIndex() {
                         <p className="mt-2 text-sm text-muted-foreground">{b.date} · {b.start_time} - {b.end_time}</p>
                         <p className="mt-0.5 text-xs text-muted-foreground">{b.session_count ?? 1}× pertemuan</p>
                       </div>
-                      <div className="flex shrink-0 flex-col items-end gap-2">
+                      <div className="flex shrink-0 items-center gap-2">
                         {statusBadge(b.status!)}
-                        {canCancel(b) && (
-                          <Button variant="outline" size="sm" onClick={() => { setCancelTarget(b); openModal("cancel") }}>Batalkan</Button>
-                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi booking" className="shrink-0" />}>
+                            <MoreVertical className="h-4 w-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => { setDetailTarget(b); openModal("detail") }}>
+                              <Eye className="h-4 w-4" /> Lihat Detail
+                            </DropdownMenuItem>
+                            {canCancel(b) && (
+                              <DropdownMenuItem variant="destructive" onClick={() => { setCancelTarget(b); openModal("cancel") }}>
+                                <XCircle className="h-4 w-4" /> Batalkan Booking
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   </div>
@@ -303,6 +456,7 @@ function StudentTutoringIndex() {
       </div>
 
       {modal === "cancel" && cancelTarget && <CancelBookingDialog booking={cancelTarget} onClose={closeModal} />}
+      {modal === "detail" && detailTarget && <BookingDetailDialog booking={detailTarget} sessions={sessions} className={detailTarget.class_id ? (classNameById.get(detailTarget.class_id) ?? "—") : "—"} onClose={closeModal} />}
       </div>
 
       <Button
