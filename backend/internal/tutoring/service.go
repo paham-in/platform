@@ -178,6 +178,9 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingRequest) (*
 		if err != nil {
 			return nil, err
 		}
+		if err := s.checkStudentsConflict(append([]uint{studentID}, memberIDs...), input.Date, input.StartTime, input.EndTime, input.SessionCount); err != nil {
+			return nil, err
+		}
 		token, err := generateToken()
 		if err != nil {
 			return nil, errors.New("gagal membuat token grup")
@@ -232,6 +235,9 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingRequest) (*
 
 	total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.checkStudentConflict(studentID, input.Date, input.StartTime, input.EndTime, input.SessionCount, 0, 0); err != nil {
 		return nil, err
 	}
 	booking := models.Booking{
@@ -335,6 +341,9 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingRequ
 		if err != nil {
 			return nil, err
 		}
+		if err := s.checkStudentsConflict(append([]uint{studentID}, memberIDs...), input.Date, input.StartTime, input.EndTime, input.SessionCount); err != nil {
+			return nil, err
+		}
 		token, err := generateToken()
 		if err != nil {
 			return nil, errors.New("gagal membuat token grup")
@@ -381,6 +390,9 @@ func (s *Service) createNoTeacherBooking(studentID uint, input CreateBookingRequ
 	base.Mode = "private"
 	booking := base
 	booking.StudentID = studentID
+	if err := s.checkStudentConflict(studentID, input.Date, input.StartTime, input.EndTime, input.SessionCount, 0, 0); err != nil {
+		return nil, err
+	}
 	if err := s.repo.CreateBooking(&booking); err != nil {
 		return nil, err
 	}
@@ -490,6 +502,9 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 		if err != nil {
 			return nil, err
 		}
+		if err := s.checkStudentsConflict(append([]uint{input.StudentID}, memberIDs...), input.Date, input.StartTime, input.EndTime, input.SessionCount); err != nil {
+			return nil, err
+		}
 		token, err := generateToken()
 		if err != nil {
 			return nil, errors.New("gagal membuat token grup")
@@ -550,6 +565,9 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 	// input.SessionCount = jumlah minggu → total sesi = minggu × sesi-per-minggu
 	total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.checkStudentConflict(input.StudentID, input.Date, input.StartTime, input.EndTime, input.SessionCount, 0, 0); err != nil {
 		return nil, err
 	}
 	input.SessionCount = total
@@ -652,6 +670,54 @@ func (s *Service) checkTeacherConflict(teacherID uint, date, startTime, endTime,
 		}
 	}
 	return nil
+}
+
+// checkStudentConflict menolak slot yang bertabrakan dengan jadwal les murid
+// yang lain (booking pending/confirmed mingguan + sesi, termasuk reschedule).
+func (s *Service) checkStudentConflict(studentID uint, date, startTime, endTime string, weeks int, excludeBookingID, excludeSessionID uint) error {
+	conflict, err := s.repo.StudentConflict(studentID, date, startTime, endTime, weeks, excludeBookingID, excludeSessionID)
+	if err != nil {
+		return err
+	}
+	if conflict {
+		return errors.New("jadwal bentrok dengan booking les kamu yang lain")
+	}
+	return nil
+}
+
+// checkStudentsConflict memeriksa beberapa murid sekaligus (organizer + anggota grup).
+func (s *Service) checkStudentsConflict(studentIDs []uint, date, startTime, endTime string, weeks int) error {
+	for _, id := range studentIDs {
+		if err := s.checkStudentConflict(id, date, startTime, endTime, weeks, 0, 0); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// bookingWeeks menghitung jumlah minggu dari booking tersimpan
+// (SessionCount = total sesi, perWeek dari durasi blok).
+func bookingWeeks(startTime, endTime string, total int) (int, error) {
+	s, err := timeToMinutes(startTime)
+	if err != nil {
+		return 0, errors.New("format jam mulai tidak valid")
+	}
+	e, err := timeToMinutes(endTime)
+	if err != nil {
+		return 0, errors.New("format jam selesai tidak valid")
+	}
+	dur := e - s
+	if dur <= 0 || dur%sessionDurationMinutes != 0 {
+		return 0, fmt.Errorf("durasi les harus kelipatan %d menit (%d jam)", sessionDurationMinutes, sessionDurationMinutes/60)
+	}
+	if total <= 0 {
+		return 1, nil
+	}
+	weeks := (total + dur/sessionDurationMinutes - 1) / (dur / sessionDurationMinutes)
+	if weeks < 1 {
+		weeks = 1
+	}
+	return weeks, nil
 }
 
 // timeToMinutes mengubah "HH:mm" menjadi menit sejak tengah malam.
@@ -777,6 +843,17 @@ func (s *Service) AssignTeacher(id, teacherID uint) (*AssignTeacherResponse, err
 			return nil, err
 		}
 		targets = group
+	}
+
+	// murid (organizer + anggota grup) tidak boleh bentrok dengan jadwalnya sendiri.
+	for _, t := range targets {
+		weeks, err := bookingWeeks(t.StartTime, t.EndTime, t.SessionCount)
+		if err != nil {
+			return nil, err
+		}
+		if err := s.checkStudentConflict(t.StudentID, t.Date, t.StartTime, t.EndTime, weeks, t.ID, 0); err != nil {
+			return nil, err
+		}
 	}
 
 	// set guru + confirm + buat sesi & invoice utk semua target dalam satu transaksi.
@@ -988,6 +1065,10 @@ func (s *Service) RescheduleSession(sessionID, teacherID uint, input UpdateSessi
 	}
 	if conflict {
 		return nil, errors.New("guru sudah memiliki sesi pada jam tersebut")
+	}
+	// murid pemilik sesi juga tidak boleh bentrok dengan jadwal lesnya yang lain.
+	if err := s.checkStudentConflict(session.Booking.StudentID, input.Date, input.StartTime, input.EndTime, 1, session.BookingID, sessionID); err != nil {
+		return nil, err
 	}
 	if err := s.repo.UpdateSession(sessionID, map[string]interface{}{
 		"date":       input.Date,

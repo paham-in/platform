@@ -417,6 +417,124 @@ func (r *Repository) SessionConflict(teacherID uint, date, startTime, endTime st
 	return false, nil
 }
 
+// StudentConflict memeriksa apakah murid sudah punya jadwal les lain yang
+// bertabrakan dengan slot (date, startTime..endTime) berulang mingguan
+// sebanyak weeks minggu. Mengecek booking pending/confirmed (di-expand
+// mingguan per 90 menit) + sesi milik murid (status selain cancelled,
+// termasuk sesi yang sudah di-reschedule keluar pola mingguan).
+// excludeBookingID mengabaikan satu booking (assign/reschedule agar tidak
+// konflik dengan dirinya sendiri); excludeSessionID mengabaikan satu sesi.
+// 0 = tanpa pengecualian.
+func (r *Repository) StudentConflict(studentID uint, date, startTime, endTime string, weeks int, excludeBookingID, excludeSessionID uint) (bool, error) {
+	newStart, err1 := timeToMinutes(startTime)
+	newEnd, err2 := timeToMinutes(endTime)
+	if err1 != nil || err2 != nil {
+		return true, errors.New("format waktu tidak valid")
+	}
+	if newEnd <= newStart {
+		return true, errors.New("start_time harus sebelum end_time")
+	}
+	if (newEnd-newStart)%90 != 0 {
+		return true, errors.New("durasi les harus kelipatan 90 menit (1 jam 30 menit)")
+	}
+	perWeekNew := (newEnd - newStart) / 90
+	dateObj, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		return true, errors.New("format tanggal tidak valid")
+	}
+	if weeks < 1 {
+		weeks = 1
+	}
+
+	// slot baru di-expand: tanggal -> interval 90-menit.
+	type interval struct{ start, end int }
+	newOcc := map[string][]interval{}
+	newDates := make([]string, 0, weeks)
+	for w := 0; w < weeks; w++ {
+		d := dateObj.AddDate(0, 0, 7*w).Format("2006-01-02")
+		newDates = append(newDates, d)
+		for j := 0; j < perWeekNew; j++ {
+			ss := newStart + j*90
+			newOcc[d] = append(newOcc[d], interval{ss, ss + 90})
+		}
+	}
+
+	// 1) booking pending/confirmed milik murid, di-expand mingguan.
+	// SessionCount tersimpan = total sesi, jadi minggu = ceil(total/perWeek).
+	var bookings []models.Booking
+	if err := r.db.Where("student_id = ? AND status IN ?", studentID, []string{"pending", "confirmed"}).Find(&bookings).Error; err != nil {
+		return false, err
+	}
+	for _, b := range bookings {
+		if excludeBookingID != 0 && b.ID == excludeBookingID {
+			continue
+		}
+		bDate, err := time.Parse("2006-01-02", b.Date)
+		if err != nil {
+			continue
+		}
+		bStart, e1 := timeToMinutes(b.StartTime)
+		bEnd, e2 := timeToMinutes(b.EndTime)
+		if e1 != nil || e2 != nil || bEnd <= bStart || (bEnd-bStart)%90 != 0 {
+			continue
+		}
+		perWeekB := (bEnd - bStart) / 90
+		weeksB := (b.SessionCount + perWeekB - 1) / perWeekB
+		if weeksB < 1 {
+			weeksB = 1
+		}
+		for w := 0; w < weeksB; w++ {
+			d := bDate.AddDate(0, 0, 7*w).Format("2006-01-02")
+			cand, ok := newOcc[d]
+			if !ok {
+				continue
+			}
+			for j := 0; j < perWeekB; j++ {
+				bs := bStart + j*90
+				be := bs + 90
+				for _, iv := range cand {
+					if hasOverlap(iv.start, iv.end, bs, be) {
+						return true, nil
+					}
+				}
+			}
+		}
+	}
+
+	// 2) sesi milik murid (menangkap sesi reschedule di luar pola mingguan).
+	type sessionRow struct {
+		Date      string
+		StartTime string
+		EndTime   string
+	}
+	var rows []sessionRow
+	if err := r.db.Table("tutoring_sessions").
+		Select("tutoring_sessions.date AS date, tutoring_sessions.start_time AS start_time, tutoring_sessions.end_time AS end_time").
+		Joins("JOIN bookings ON bookings.id = tutoring_sessions.booking_id").
+		Where("bookings.student_id = ? AND tutoring_sessions.status <> ? AND tutoring_sessions.id <> ?", studentID, "cancelled", excludeSessionID).
+		Where("tutoring_sessions.date IN ?", newDates).
+		Scan(&rows).Error; err != nil {
+		return false, err
+	}
+	for _, row := range rows {
+		cand, ok := newOcc[row.Date]
+		if !ok {
+			continue
+		}
+		sStart, e1 := timeToMinutes(row.StartTime)
+		sEnd, e2 := timeToMinutes(row.EndTime)
+		if e1 != nil || e2 != nil {
+			continue
+		}
+		for _, iv := range cand {
+			if hasOverlap(iv.start, iv.end, sStart, sEnd) {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
+
 // UpdateSession memperbarui field sesi tertentu.
 func (r *Repository) UpdateSession(id uint, fields map[string]interface{}) error {
 	return r.db.Model(&models.TutoringSession{}).Where("id = ?", id).Updates(fields).Error
