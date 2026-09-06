@@ -1998,7 +1998,19 @@ func (s *Service) ListTeacherFeeSessions() ([]AdminListFeesResponse, error) {
 }
 
 // ToggleSessionFeePaid membalik status pembayaran fee guru pada sesi.
+// Hanya untuk sesi done yang invoice muridnya sudah lunas.
 func (s *Service) ToggleSessionFeePaid(sessionID uint) (*AdminToggleFeePaidResponse, error) {
+	session, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, errors.New("sesi tidak ditemukan")
+	}
+	if session.Status != "done" {
+		return nil, errors.New("fee hanya bisa ditandai untuk sesi yang sudah selesai")
+	}
+	var inv models.Invoice
+	if err := s.db.Where("booking_id = ?", session.BookingID).Order("id asc").First(&inv).Error; err != nil || inv.Status != "paid" {
+		return nil, errors.New("fee hanya bisa ditandai jika invoice murid sudah lunas")
+	}
 	if _, err := s.repo.ToggleSessionFeePaid(sessionID); err != nil {
 		return nil, errors.New("sesi tidak ditemukan")
 	}
