@@ -39,16 +39,17 @@ function periodLabel(inv: InvoiceInvoiceResponse) {
   return `${f(inv.start_date)}, ${f(inv.end_date)}`
 }
 
-function amountCell(inv: InvoiceInvoiceResponse) {
+const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
+const netOf = (inv: InvoiceInvoiceResponse) => (inv.amount ?? 0) - (inv.refund_amount ?? 0)
+// Refund hanya bermakna setelah invoice lunas; invoice pending/batal selalu tampil tanpa refund.
+const refundVisible = (inv: InvoiceInvoiceResponse) => inv.status === "paid" && (inv.refund_amount ?? 0) > 0
+
+function refundCell(inv: InvoiceInvoiceResponse) {
+  if (!refundVisible(inv)) return <span className="text-muted-foreground">—</span>
   return (
     <>
-      <p className="font-medium tabular-nums">Rp {inv.amount?.toLocaleString("id-ID")}</p>
-      {(inv.refund_amount ?? 0) > 0 && (
-        <p className="mt-0.5 text-xs font-medium text-amber-600">
-          − refund Rp {(inv.refund_amount ?? 0).toLocaleString("id-ID")} (net Rp {((inv.amount ?? 0) - (inv.refund_amount ?? 0)).toLocaleString("id-ID")})
-          {inv.refund_done ? " · sudah direfund" : ""}
-        </p>
-      )}
+      <p className="font-medium text-amber-600 tabular-nums">{fmtRp(inv.refund_amount)}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{inv.refund_done ? "sudah direfund" : "belum ditransfer"}</p>
     </>
   )
 }
@@ -120,7 +121,9 @@ export function InvoiceSection({ title, invoices, isLoading, modal, openModal, c
             <TableHeader>
               <TableRow className="bg-muted/30">
                 <TableHead className="pl-6">Periode</TableHead>
-                <TableHead>Jumlah</TableHead>
+                <TableHead>Tagihan</TableHead>
+                <TableHead>Refund</TableHead>
+                <TableHead>Total Bersih</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Catatan</TableHead>
                 <TableHead className="pr-6 text-right">Aksi</TableHead>
@@ -132,6 +135,8 @@ export function InvoiceSection({ title, invoices, isLoading, modal, openModal, c
                   <TableRow key={`skeleton-${i}`}>
                     <TableCell className="pl-6"><Skeleton className="h-4 w-28" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell className="pr-6 text-right"><Skeleton className="ml-auto h-8 w-8 rounded" /></TableCell>
@@ -139,7 +144,7 @@ export function InvoiceSection({ title, invoices, isLoading, modal, openModal, c
                 ))
               ) : invoices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5}>
+                  <TableCell colSpan={7}>
                     <Empty className="border-0 p-8">
                       <EmptyHeader>
                         <EmptyMedia variant="icon"><Receipt /></EmptyMedia>
@@ -152,7 +157,9 @@ export function InvoiceSection({ title, invoices, isLoading, modal, openModal, c
                 invoices.map((inv) => (
                   <TableRow key={inv.id}>
                     <TableCell className="pl-6 font-medium">{periodLabel(inv)}</TableCell>
-                    <TableCell className="tabular-nums">{amountCell(inv)}</TableCell>
+                    <TableCell className="tabular-nums">{fmtRp(inv.amount)}</TableCell>
+                    <TableCell>{refundCell(inv)}</TableCell>
+                    <TableCell className="font-semibold tabular-nums">{fmtRp(refundVisible(inv) ? netOf(inv) : inv.amount)}</TableCell>
                     <TableCell>{invoiceBadge(inv.status)}</TableCell>
                     <TableCell className="max-w-[200px] truncate text-muted-foreground">{inv.note || "-"}</TableCell>
                     <TableCell className="pr-6 text-right">
@@ -204,7 +211,22 @@ export function InvoiceSection({ title, invoices, isLoading, modal, openModal, c
                       <p className="min-w-0 truncate font-medium">{periodLabel(inv)}</p>
                       {invoiceBadge(inv.status)}
                     </div>
-                    <div className="mt-1 tabular-nums">{amountCell(inv)}</div>
+                    <div className="mt-2 space-y-1 text-sm tabular-nums">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">Tagihan</span>
+                        <span className="font-medium">{fmtRp(inv.amount)}</span>
+                      </div>
+                      {(inv.refund_amount ?? 0) > 0 && inv.status === "paid" && (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-muted-foreground">Refund{inv.refund_done ? " (sudah direfund)" : ""}</span>
+                          <span className="font-medium text-amber-600">{fmtRp(inv.refund_amount)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">Total Bersih</span>
+                        <span className="font-semibold">{fmtRp(refundVisible(inv) ? netOf(inv) : inv.amount)}</span>
+                      </div>
+                    </div>
                     <p className="mt-1 truncate text-sm text-muted-foreground">{inv.note || "—"}</p>
                   </div>
                   {inv.status === "paid" || inv.status === "pending" ? (
