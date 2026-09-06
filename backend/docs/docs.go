@@ -6777,7 +6777,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "member_emails": {
-                    "description": "group: email member (wajib ≥1)",
+                    "description": "group: email member terdaftar",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -6786,6 +6786,13 @@ const docTemplate = `{
                 "mode": {
                     "description": "private/group",
                     "type": "string"
+                },
+                "new_members": {
+                    "description": "group: nama anggota baru (akun dibuat otomatis)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "note": {
                     "type": "string"
@@ -6816,6 +6823,12 @@ const docTemplate = `{
                 },
                 "created_at": {
                     "type": "string"
+                },
+                "created_members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tutoring.CreatedGroupMember"
+                    }
                 },
                 "date": {
                     "type": "string"
@@ -7561,6 +7574,17 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.CreatedGroupMember": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

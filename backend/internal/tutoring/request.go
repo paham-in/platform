@@ -37,7 +37,8 @@ type AdminCreateBookingRequest struct {
 	SessionCount int      `json:"session_count"` // jumlah pertemuan (default 1)
 	Note         string   `json:"note"`
 	ClassID      *uint    `json:"class_id,omitempty"`
-	MemberEmails []string `json:"member_emails"` // group: email member (wajib ≥1)
+	MemberEmails []string `json:"member_emails"` // group: email member terdaftar
+	NewMembers   []string `json:"new_members"`   // group: nama anggota baru (akun dibuat otomatis)
 }
 
 //, handler: RescheduleBooking (PATCH /tutoring/bookings/:id/schedule)

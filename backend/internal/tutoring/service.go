@@ -269,6 +269,93 @@ func (s *Service) createOrganizer(studentID uint, input CreateBookingRequest) (*
 	return &r, nil
 }
 
+// dummyEmailDomain adalah domain email akun dummy murid.
+// Sama dengan yang dipakai dialog tambah user di frontend.
+const dummyEmailDomain = "pahamin.my.id"
+
+// newGroupMember adalah calon anggota grup baru (nama ketikan admin +
+// email hasil generate). Dibuatkan akun student di transaksi yang sama
+// dengan booking, jadi gagal satu = batal semua (atomik).
+type newGroupMember struct {
+	Name  string
+	Email string
+}
+
+// slugForEmail mengubah nama menjadi slug email (kecil semua, a-z0-9 saja).
+// "" kalau tidak ada karakter valid.
+func slugForEmail(name string) string {
+	var b strings.Builder
+	for _, r := range strings.ToLower(strings.TrimSpace(name)) {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
+// normalizeNewMembers memvalidasi nama anggota baru & membuat emailnya:
+// slug(nama) + "." + 6 char terakhir token grup + @domain.
+// Suffix token membuat email unik per grup; nama kembar segrup ditolak
+// (tidak ditebak diam-diam).
+func normalizeNewMembers(names []string, token string) ([]newGroupMember, error) {
+	suffix := token
+	if len(suffix) > 6 {
+		suffix = suffix[len(suffix)-6:]
+	}
+	seen := map[string]bool{}
+	var out []newGroupMember
+	for _, raw := range names {
+		name := strings.TrimSpace(raw)
+		if name == "" {
+			continue
+		}
+		slug := slugForEmail(name)
+		if slug == "" {
+			return nil, fmt.Errorf("nama %q tidak bisa dipakai email", name)
+		}
+		email := slug + "." + suffix + "@" + dummyEmailDomain
+		if seen[email] {
+			return nil, fmt.Errorf("nama kembar %q, bedakan sedikit (mis. tambah nama belakang)", name)
+		}
+		seen[email] = true
+		out = append(out, newGroupMember{Name: name, Email: email})
+	}
+	return out, nil
+}
+
+// createDummyStudents membuat akun student utk anggota baru di dalam
+// transaksi booking (tx). Sengaja tidak memakai user.AdminCreateStudent
+// karena fungsi itu bertransaksi sendiri (tidak bisa digabung atomik).
+// Email yang sudah dipakai user lain ditolak dengan pesan jelas.
+func (s *Service) createDummyStudents(tx *gorm.DB, members []newGroupMember) ([]uint, error) {
+	if len(members) == 0 {
+		return nil, nil
+	}
+	var role models.Role
+	if err := tx.Where("name = ?", "student").First(&role).Error; err != nil {
+		return nil, err
+	}
+	ids := make([]uint, 0, len(members))
+	for _, m := range members {
+		var count int64
+		if err := tx.Model(&models.User{}).Where("email = ?", m.Email).Count(&count).Error; err != nil {
+			return nil, err
+		}
+		if count > 0 {
+			return nil, fmt.Errorf("email %s sudah terdaftar, pilih dari daftar", m.Email)
+		}
+		u := models.User{Name: m.Name, Email: m.Email}
+		if err := tx.Create(&u).Error; err != nil {
+			return nil, fmt.Errorf("email %s sudah terdaftar, pilih dari daftar", m.Email)
+		}
+		if err := tx.Model(&u).Association("Roles").Append(&role); err != nil {
+			return nil, err
+		}
+		ids = append(ids, u.ID)
+	}
+	return ids, nil
+}
+
 // resolveGroupMembers memvalidasi & meresolve email member grup.
 // Email tanpa akun student → error (register-first: semua wajib daftar dulu).
 // Mengembalikan member user IDs, sudah dedupe dan tanpa organizer.
@@ -511,12 +598,25 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 		if err != nil {
 			return nil, errors.New("gagal membuat token grup")
 		}
+		// anggota baru: nama → akun student otomatis (email dari nama + token).
+		// Akun baru tidak mungkin bentrok jadwal (belum punya riwayat).
+		newMembers, err := normalizeNewMembers(input.NewMembers, token)
+		if err != nil {
+			return nil, err
+		}
+		if len(memberIDs)+len(newMembers)+1 > maxGroupSlots {
+			return nil, fmt.Errorf("grup maksimal %d siswa termasuk kamu", maxGroupSlots)
+		}
 		total, err := sessionCountForTotal(input.SessionCount, input.StartTime, input.EndTime)
 		if err != nil {
 			return nil, err
 		}
 		var resp *AdminCreateBookingResponse
 		err = s.db.Transaction(func(tx *gorm.DB) error {
+			createdIDs, err := s.createDummyStudents(tx, newMembers)
+			if err != nil {
+				return err
+			}
 			base := models.Booking{
 				TeacherID:    &input.TeacherID,
 				SubjectID:    input.SubjectID,
@@ -530,7 +630,7 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 				Note:         input.Note,
 				ClassID:      input.ClassID,
 			}
-			students := append([]uint{input.StudentID}, memberIDs...)
+			students := append(append([]uint{input.StudentID}, memberIDs...), createdIDs...)
 			var firstID uint
 			for i, sid := range students {
 				b := base
@@ -554,6 +654,9 @@ func (s *Service) AdminCreateBooking(input AdminCreateBookingRequest) (*AdminCre
 				return err
 			}
 			r := newAdminCreateBookingResponse(*created)
+			for _, m := range newMembers {
+				r.CreatedMembers = append(r.CreatedMembers, CreatedGroupMember{Name: m.Name, Email: m.Email})
+			}
 			resp = &r
 			return nil
 		})

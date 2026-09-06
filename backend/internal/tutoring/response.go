@@ -274,10 +274,55 @@ type AdminCreateBookingResponse struct {
 	ClassID       *uint  `json:"class_id,omitempty"`
 	CreatedAt     string `json:"created_at"`
 	InvoiceStatus string `json:"invoice_status,omitempty"`
+	CreatedMembers []CreatedGroupMember `json:"created_members,omitempty"`
 }
 
 func newAdminCreateBookingResponse(b models.Booking) AdminCreateBookingResponse {
-	return AdminCreateBookingResponse(buildBookingItem(b))
+	// eksplisit (tanpa konversi bookingItem) karena ada field tambahan CreatedMembers.
+	studentName := ""
+	teacherName := ""
+	subjectName := ""
+	if b.Student != nil {
+		studentName = b.Student.Name
+	}
+	if b.Teacher != nil {
+		teacherName = b.Teacher.Name
+	}
+	if b.Subject != nil {
+		subjectName = b.Subject.Name
+	}
+	invoiceStatus := ""
+	if b.Invoice != nil {
+		invoiceStatus = b.Invoice.Status
+	}
+	return AdminCreateBookingResponse{
+		ID:            b.ID,
+		TeacherID:     b.TeacherID,
+		Teacher:       teacherName,
+		StudentID:     b.StudentID,
+		Student:       studentName,
+		SubjectID:     b.SubjectID,
+		Subject:       subjectName,
+		Date:          b.Date,
+		StartTime:     b.StartTime,
+		EndTime:       b.EndTime,
+		Status:        b.Status,
+		Mode:          b.Mode,
+		SessionCount:  b.SessionCount,
+		GroupToken:    b.GroupToken,
+		IsOrganizer:   b.IsOrganizer,
+		Note:          b.Note,
+		ClassID:       b.ClassID,
+		CreatedAt:     b.CreatedAt.Format("2006-01-02"),
+		InvoiceStatus: invoiceStatus,
+	}
+}
+
+// CreatedGroupMember adalah akun murid baru yang dibuat otomatis saat
+// booking grup (nama + email hasil generate).
+type CreatedGroupMember struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 //, handler: AssignTeacher (PATCH /admin/tutoring/bookings/:id/assign)

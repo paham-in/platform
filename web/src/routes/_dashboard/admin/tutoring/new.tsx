@@ -58,6 +58,12 @@ function toMinutes(t: string): number {
   return h * 60 + m
 }
 
+// slug preview email akun baru (disamakan dengan backend).
+// Kode aslinya dibuat server saat simpan, di sini tampil "xxxxxx".
+function slugPreview(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, "")
+}
+
 // sesi-per-minggu dari durasi blok; null kalau bukan kelipatan 90.
 function perWeekFor(start: string, end: string): number | null {
   const dur = toMinutes(end) - toMinutes(start)
@@ -85,6 +91,8 @@ function AdminTutoringNew() {
   const [mode, setMode] = useState<"private" | "group">("private")
   const [members, setMembers] = useState<UserAdminListUsersResponse[]>([])
   const [memberPick, setMemberPick] = useState<UserAdminListUsersResponse | null>(null)
+  const [newMemberName, setNewMemberName] = useState("")
+  const [newMemberNames, setNewMemberNames] = useState<string[]>([])
   const [classId, setClassId] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
@@ -151,7 +159,7 @@ function AdminTutoringNew() {
   const changeEndTime = (v: string | null) => { setEndTime(v ?? ""); setTeacher(undefined) }
   const canSubmit =
     !!student && classId && subjectId && teacher && timesValid && perWeek !== null && date && !submitting &&
-    (mode === "private" || members.length > 0)
+    (mode === "private" || members.length + newMemberNames.length > 0)
 
   const memberEmails = mode === "group"
     ? Array.from(new Set(
@@ -163,10 +171,10 @@ function AdminTutoringNew() {
 
   const save = async () => {
     if (!student || !teacher || !timesValid || !date || !classId || !subjectId) return
-    if (mode === "group" && (memberEmails ?? []).length === 0) return
+    if (mode === "group" && (memberEmails ?? []).length === 0 && newMemberNames.length === 0) return
     setSubmitting(true)
     try {
-      await createBooking({
+      const created = await createBooking({
         body: {
           student_id: student.id!,
           teacher_id: teacher.id!,
@@ -179,9 +187,15 @@ function AdminTutoringNew() {
           note,
           class_id: Number(classId),
           member_emails: memberEmails,
+          new_members: mode === "group" ? newMemberNames : undefined,
         },
       })
-      toast.success("Booking berhasil dibuat")
+      const createdMails = created?.created_members ?? []
+      if (createdMails.length > 0) {
+        toast.success(`Booking dibuat + ${createdMails.length} akun baru (${createdMails.map((m) => m.email).join(", ")})`)
+      } else {
+        toast.success("Booking berhasil dibuat")
+      }
       qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminUsersQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminStudentClassEnrollmentsQueryKey() })
@@ -289,6 +303,8 @@ navigate({ to: "/admin/tutoring", replace: true })
               onValueChange={(v) => {
                 setMode(v === "group" ? "group" : "private")
                 setMembers([])
+                setNewMemberNames([])
+                setNewMemberName("")
               }}
             >
               <SelectTrigger id="admin-booking-mode" className="w-full">
@@ -315,7 +331,7 @@ navigate({ to: "/admin/tutoring", replace: true })
                 onValueChange={(v) => {
                   setMemberPick(v ?? null)
                   if (v) {
-                    setMembers((prev) => (prev.length + 1 > 4 ? prev : [...prev, v]))
+                    setMembers((prev) => (prev.length + newMemberNames.length + 1 > 4 ? prev : [...prev, v]))
                     setMemberPick(null)
                   }
                 }}
@@ -336,17 +352,56 @@ navigate({ to: "/admin/tutoring", replace: true })
                   </ComboboxList>
                 </ComboboxContent>
               </Combobox>
-              <p className="text-xs text-muted-foreground">Semua member harus sudah punya akun. Booking ditolak kalau ada email belum terdaftar.</p>
-              {members.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
+              <p className="text-xs text-muted-foreground">Pilih dari murid terdaftar, atau ketik nama di bawah untuk buatkan akun otomatis.</p>
+              {(members.length > 0 || newMemberNames.length > 0) && (
+                <div className="divide-y rounded-lg border">
                   {members.map((m) => (
-                    <span key={m.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs">
-                      {m.name}
-                      <button type="button" aria-label={`Hapus ${m.name}`} className="text-muted-foreground hover:text-foreground" onClick={() => setMembers(members.filter((x) => x.id !== m.id))}><X className="h-3 w-3" /></button>
-                    </span>
+                    <div key={m.id} className="flex items-center justify-between gap-3 p-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{m.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">{m.email}</p>
+                      </div>
+                      <button type="button" aria-label={`Hapus ${m.name}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" onClick={() => setMembers(members.filter((x) => x.id !== m.id))}><X className="h-4 w-4" /></button>
+                    </div>
                   ))}
-                  <span className="text-xs text-muted-foreground">{members.length + 1}/5</span>
+                  {newMemberNames.map((n) => (
+                    <div key={n} className="flex items-center justify-between gap-3 p-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{n}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {slugPreview(n) ? `${slugPreview(n)}.xxxxxx@pahamin.my.id` : "email dibuat otomatis saat disimpan"}
+                        </p>
+                      </div>
+                      <button type="button" aria-label={`Hapus ${n}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" onClick={() => setNewMemberNames(newMemberNames.filter((x) => x !== n))}><X className="h-4 w-4" /></button>
+                    </div>
+                  ))}
                 </div>
+              )}
+              <div className="flex gap-2">
+                <Input
+                  value={newMemberName}
+                  onChange={(e) => setNewMemberName(e.target.value)}
+                  placeholder="Nama anggota baru..."
+                  autoComplete="off" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0"
+                  disabled={!newMemberName.trim() || members.length + newMemberNames.length + 1 > 4}
+                  onClick={() => {
+                    const name = newMemberName.trim()
+                    if (!name) return
+                    if (newMemberNames.some((x) => x.toLowerCase() === name.toLowerCase())) return
+                    setNewMemberNames((prev) => [...prev, name])
+                    setNewMemberName("")
+                  }}
+                >
+                  Tambah
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Akun dibuat otomatis (nama.xxxxxx@pahamin.my.id) saat booking disimpan.</p>
+              {(members.length > 0 || newMemberNames.length > 0) && (
+                <p className="text-xs text-muted-foreground">{members.length + newMemberNames.length + 1}/5</p>
               )}
             </div>
           )}

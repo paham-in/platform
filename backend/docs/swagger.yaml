@@ -884,13 +884,18 @@ definitions:
       end_time:
         type: string
       member_emails:
-        description: 'group: email member (wajib ≥1)'
+        description: 'group: email member terdaftar'
         items:
           type: string
         type: array
       mode:
         description: private/group
         type: string
+      new_members:
+        description: 'group: nama anggota baru (akun dibuat otomatis)'
+        items:
+          type: string
+        type: array
       note:
         type: string
       session_count:
@@ -911,6 +916,10 @@ definitions:
         type: integer
       created_at:
         type: string
+      created_members:
+        items:
+          $ref: '#/definitions/tutoring.CreatedGroupMember'
+        type: array
       date:
         type: string
       end_time:
@@ -1405,6 +1414,13 @@ definitions:
       teacher_id:
         type: integer
       teacher_name:
+        type: string
+    type: object
+  tutoring.CreatedGroupMember:
+    properties:
+      email:
+        type: string
+      name:
         type: string
     type: object
   tutoring.ErrorResponse:

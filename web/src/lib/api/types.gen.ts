@@ -558,13 +558,17 @@ export type TutoringAdminCreateBookingRequest = {
     date?: string;
     end_time?: string;
     /**
-     * group: email member (wajib ≥1)
+     * group: email member terdaftar
      */
     member_emails?: Array<string>;
     /**
      * private/group
      */
     mode?: string;
+    /**
+     * group: nama anggota baru (akun dibuat otomatis)
+     */
+    new_members?: Array<string>;
     note?: string;
     /**
      * jumlah pertemuan (default 1)
@@ -579,6 +583,7 @@ export type TutoringAdminCreateBookingRequest = {
 export type TutoringAdminCreateBookingResponse = {
     class_id?: number;
     created_at?: string;
+    created_members?: Array<TutoringCreatedGroupMember>;
     date?: string;
     end_time?: string;
     group_token?: string;
@@ -860,6 +865,11 @@ export type TutoringCreateBookingResponse = {
     subject_name?: string;
     teacher_id?: number;
     teacher_name?: string;
+};
+
+export type TutoringCreatedGroupMember = {
+    email?: string;
+    name?: string;
 };
 
 export type TutoringErrorResponse = {
