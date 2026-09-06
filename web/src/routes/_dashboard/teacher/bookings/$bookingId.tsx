@@ -232,7 +232,7 @@ function TeacherBookingDetail() {
                 ? <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
                 : <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>}
               {statusBadge(booking.status!)}
-              <span>{booking.subject_name ?? "—"} · {booking.date} {booking.start_time}–{booking.end_time} · {booking.session_count ?? 1}×</span>
+              <span>{booking.subject_name ?? "—"} · {booking.date} {booking.start_time}–{booking.end_time} · {bookingSessions.length || booking.session_count || 1}×</span>
             </p>
           </>
         )}

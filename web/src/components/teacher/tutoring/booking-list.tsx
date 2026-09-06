@@ -68,7 +68,9 @@ export function BookingList() {
 
   const groupProgress = (group: TutoringListBookingsResponse[]) => {
     const list = group.flatMap((b) => sessionsFor(b.id!))
-    const total = group.reduce((sum, b) => sum + (b.session_count ?? 0), 0) || list.length
+    // progres = sesi milik guru ini saja, bukan total booking (guru pengganti
+    // cuma pegang sebagian sesi). Fallback ke session_count bila sesi belum ada.
+    const total = list.length || group.reduce((sum, b) => sum + (b.session_count ?? 0), 0)
     return progressText(list, total)
   }
 

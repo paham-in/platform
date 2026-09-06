@@ -137,7 +137,10 @@ func (r *Repository) ListBusyTeacherIDs(date, startTime, endTime string) (map[ui
 
 func (r *Repository) ListBookingsByTeacher(teacherID uint) ([]models.Booking, error) {
 	var bookings []models.Booking
-	if err := r.db.Preload("Student").Preload("Subject").Where("teacher_id = ?", teacherID).Order("date desc, start_time desc").Find(&bookings).Error; err != nil {
+	// Termasuk booking yang punya ≥1 sesi diajar guru ini (hasil swap/alih sesi),
+	// walaupun booking.teacher_id masih guru lain. Tanpa ini sesi swap tak terlihat
+	// di daftar booking guru pengganti.
+	if err := r.db.Preload("Student").Preload("Subject").Where("teacher_id = ? OR EXISTS (SELECT 1 FROM tutoring_sessions WHERE booking_id = bookings.id AND tutoring_sessions.teacher_id = ?)", teacherID, teacherID).Order("date desc, start_time desc").Find(&bookings).Error; err != nil {
 		return nil, err
 	}
 	return bookings, nil
