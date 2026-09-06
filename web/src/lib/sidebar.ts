@@ -97,13 +97,7 @@ export const sidebarGroups: SidebarGroup[] = [
           { label: "Mata Pelajaran Guru", to: "/admin/teacher-subjects" },
         ],
       },
-      {
-        label: "Les Privat",
-        icon: Calendar,
-        items: [
-          { label: "Daftar Booking", to: "/admin/tutoring" },
-        ],
-      },
+      { label: "Daftar Booking", icon: Calendar, to: "/admin/tutoring" },
       { label: "Langganan Konten", icon: Sparkles, to: "/admin/subscriptions" },
       { label: "Forum", icon: MessageSquare, to: "/admin/forum" },
       { label: "Dev Tools", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },
