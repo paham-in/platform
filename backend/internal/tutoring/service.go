@@ -1647,7 +1647,7 @@ func (s *Service) RescheduleSession(sessionID, teacherID uint, input UpdateSessi
 // tak bisa batal, jadi tak perlu dihitung ulang). Invoice lunas tidak diubah
 // statusnya (admin transfer manual); bila tak ada sisa sesi aktif dan invoice
 // masih pending → invoice dibatalkan. Mengembalikan true bila ada uang berubah.
-func (s *Service) reconcileBookingInvoice(tx *gorm.DB, bookingID uint) (bool, error) {
+func (s *Service) reconcileBookingInvoice(tx *gorm.DB, bookingID uint, newlyCancelled int) (bool, error) {
 	var booking models.Booking
 	if err := tx.First(&booking, bookingID).Error; err != nil {
 		return false, err
@@ -1674,7 +1674,27 @@ func (s *Service) reconcileBookingInvoice(tx *gorm.DB, bookingID uint) (bool, er
 	perSession := s.perSessionPrice(booking.ClassID, booking.Mode)
 	refund := perSession * float64(cancelled)
 	updates := map[string]interface{}{}
-	if inv.RefundAmount != refund {
+	if inv.Status == "pending" {
+		// Tagihan belum dibayar → koreksi nominalnya langsung, bukan refund.
+		// Potongan bersifat inkremental (sesi yang baru batal di panggilan ini),
+		// karena amount sudah mencerminkan pembatalan sebelumnya.
+		// Jejak koreksi dicatat di note mengikuti gaya overtime charge.
+		deduction := perSession * float64(newlyCancelled)
+		newAmount := inv.Amount - deduction
+		if newAmount < 0 {
+			newAmount = 0
+		}
+		if newAmount != inv.Amount {
+			updates["amount"] = newAmount
+			note := inv.Note + fmt.Sprintf(" - batal %d sesi", newlyCancelled)
+			if len(note) > 450 {
+				note = inv.Note
+			}
+			updates["note"] = note
+		}
+	} else if inv.RefundAmount != refund {
+		// Tagihan sudah lunas → uang sudah masuk, koreksi dicatat sebagai refund
+		// (penulisan absolut, idempotent).
 		updates["refund_amount"] = refund
 	}
 	if active == 0 && inv.Status == "pending" {
@@ -1713,7 +1733,7 @@ func (s *Service) CancelSession(sessionID, teacherID uint, isAdmin bool) (*Cance
 		if err := tx.Model(&models.TutoringSession{}).Where("id = ?", sessionID).Update("status", "cancelled").Error; err != nil {
 			return err
 		}
-		changed, err := s.reconcileBookingInvoice(tx, session.BookingID)
+		changed, err := s.reconcileBookingInvoice(tx, session.BookingID, 1)
 		if err != nil {
 			return err
 		}

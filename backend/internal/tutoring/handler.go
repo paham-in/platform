@@ -281,7 +281,7 @@ func (h *Handler) UpdateSession(c *fiber.Ctx) error {
 
 // CancelSession cancels a scheduled session (teacher owner or admin)
 // @Summary      Cancel session
-// @Description  Guru membatalkan sesi yang tidak bisa dihadiri, atau admin membatalkan sesi terjadwal. Invoice tidak berubah.
+// @Description  Guru membatalkan sesi yang tidak bisa dihadiri, atau admin membatalkan sesi terjadwal. Invoice pending dikoreksi nominalnya, invoice lunas dicatat refund.
 // @Tags         Tutoring
 // @Accept       json
 // @Produce      json
