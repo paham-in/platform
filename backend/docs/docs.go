@@ -2818,6 +2818,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/tutoring/bookings/{id}/sessions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengembalikan semua sesi satu booking + nama guru per sesi. Dipakai halaman detail booking admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "List booking sessions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Booking ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/tutoring.ListSessionsResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/tutoring/evidence": {
             "get": {
                 "security": [

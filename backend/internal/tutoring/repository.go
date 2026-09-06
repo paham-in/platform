@@ -405,12 +405,16 @@ func (r *Repository) ListSessionsWithEvidence(status, search string) ([]models.T
 }
 
 // ListSessionsByBooking mengembalikan semua sesi satu booking + muridnya,
-// urut tanggal. Dipakai alihkan guru (sisa sesi terjadwal ikut pindah).
+// urut tanggal. Dipakai alihkan guru (sisa sesi terjadwal ikut pindah)
+// dan halaman detail booking admin (butuh nama guru per sesi).
 func (r *Repository) ListSessionsByBooking(bookingID uint) ([]models.TutoringSession, error) {
 	var sessions []models.TutoringSession
 	if err := r.db.
 		Where("booking_id = ?", bookingID).
+		Preload("Teacher").
 		Preload("Booking").
+		Preload("Booking.Student").
+		Preload("Booking.Teacher").
 		Order("date, start_time").
 		Find(&sessions).Error; err != nil {
 		return nil, err

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox"
 import { Spinner } from "@/components/ui/spinner"
 import {
+  getAdminTutoringBookingsByIdSessionsQueryKey,
   getAdminTutoringEvidenceQueryKey,
   getAdminTutoringReportQueryKey,
   getTutoringTeachersOptions,
@@ -29,6 +30,9 @@ export function SwapSessionTeacherDialog({ session, onClose }: SwapSessionTeache
       toast.success("Guru sesi diganti")
       qc.invalidateQueries({ queryKey: getAdminTutoringEvidenceQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminTutoringReportQueryKey() })
+      if (session.booking_id) {
+        qc.invalidateQueries({ queryKey: getAdminTutoringBookingsByIdSessionsQueryKey({ path: { id: session.booking_id } }) })
+      }
       onClose()
     },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal mengganti guru"),

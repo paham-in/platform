@@ -13,12 +13,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminTutoringBookingsOptions, getAdminTutoringReportOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
-import { UserRound, Users, CalendarX2, CalendarClock, XCircle, MoreVertical, UserPlus, Plus, ArrowLeftRight } from "lucide-react"
+import { UserRound, Users, CalendarX2, CalendarClock, XCircle, MoreVertical, UserPlus, Plus } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
 import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
-import { AssignTeacherDialog, ScheduleBookingDialog, RejectBookingDialog, ReassignTeacherDialog } from "@/components/admin/tutoring"
+import { AssignTeacherDialog, ScheduleBookingDialog, RejectBookingDialog } from "@/components/admin/tutoring"
 
 const adminTutoringDetailSearchSchema = z.object({
   modal: z.string().optional(),
@@ -56,13 +56,11 @@ function AdminTutoringDetail() {
   const [assignBooking, setAssignBooking] = useState<TutoringListBookingsResponse | null>(null)
   const [scheduleTarget, setScheduleTarget] = useState<TutoringListBookingsResponse | null>(null)
   const [rejectTarget, setRejectTarget] = useState<TutoringListBookingsResponse | null>(null)
-  const [reassignTarget, setReassignTarget] = useState<TutoringListBookingsResponse | null>(null)
 
   useEffect(() => {
     if (modal !== "assign") setAssignBooking(null)
     if (modal !== "schedule") setScheduleTarget(null)
     if (modal !== "reject") setRejectTarget(null)
-    if (modal !== "reassign") setReassignTarget(null)
   }, [modal])
 
   const studentBookings = bookings.filter((b) => b.student_id === Number(userId))
@@ -141,7 +139,11 @@ function AdminTutoringDetail() {
                   </TableCell>
                 </TableRow>
               ) : studentBookings.map((b) => (
-                <TableRow key={b.id}>
+                <TableRow
+                  key={b.id}
+                  className="cursor-pointer"
+                  onClick={() => navigate({ to: "/admin/tutoring/bookings/$bookingId", params: { bookingId: String(b.id) } })}
+                >
                   <TableCell className="pl-6 font-medium">{b.subject_name ?? "—"}</TableCell>
                   <TableCell>{b.teacher_name ?? "—"}</TableCell>
                   <TableCell>{modeBadge(b.mode)}</TableCell>
@@ -157,20 +159,18 @@ function AdminTutoringDetail() {
                   </TableCell>
                   <TableCell className="pr-6">
                     <div className="flex items-center justify-end">
-                      {b.status === "pending" || b.teacher_id ? (
+                      {b.status === "pending" ? (
                         <DropdownMenu>
-                          <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi booking" />}>
+                          <DropdownMenuTrigger
+                            render={<Button variant="outline" size="icon" aria-label="Aksi booking" />}
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <MoreVertical className="h-4 w-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
                             {b.status === "pending" && !b.teacher_id ? (
                               <DropdownMenuItem onClick={() => { setAssignBooking(b); openModal("assign") }}>
                                 <UserPlus className="h-4 w-4" /> Assign Guru
-                              </DropdownMenuItem>
-                            ) : null}
-                            {b.teacher_id && b.status !== "cancelled" && b.status !== "rejected" ? (
-                              <DropdownMenuItem onClick={() => { setReassignTarget(b); openModal("reassign") }}>
-                                <ArrowLeftRight className="h-4 w-4" /> Alihkan Guru
                               </DropdownMenuItem>
                             ) : null}
                             {b.status === "pending" ? (
@@ -220,7 +220,11 @@ function AdminTutoringDetail() {
           ) : (
             <div className="divide-y">
               {studentBookings.map((b) => (
-                <div key={b.id} className="flex items-start justify-between gap-3 p-4">
+                <div
+                  key={b.id}
+                  className="flex cursor-pointer items-start justify-between gap-3 p-4"
+                  onClick={() => navigate({ to: "/admin/tutoring/bookings/$bookingId", params: { bookingId: String(b.id) } })}
+                >
                   <div className="min-w-0">
                     <p className="truncate font-medium">{b.subject_name ?? "—"}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
@@ -236,20 +240,15 @@ function AdminTutoringDetail() {
                     })()}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    {b.status === "pending" || b.teacher_id ? (
+                    {b.status === "pending" ? (
                       <DropdownMenu>
-                        <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi booking" className="shrink-0" />}>
+                        <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi booking" className="shrink-0" />} onClick={(e) => e.stopPropagation()}>
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           {b.status === "pending" && !b.teacher_id ? (
                             <DropdownMenuItem onClick={() => { setAssignBooking(b); openModal("assign") }}>
                               <UserPlus className="h-4 w-4" /> Assign Guru
-                            </DropdownMenuItem>
-                          ) : null}
-                          {b.teacher_id && b.status !== "cancelled" && b.status !== "rejected" ? (
-                            <DropdownMenuItem onClick={() => { setReassignTarget(b); openModal("reassign") }}>
-                              <ArrowLeftRight className="h-4 w-4" /> Alihkan Guru
                             </DropdownMenuItem>
                           ) : null}
                           {b.status === "pending" ? (
@@ -276,7 +275,6 @@ function AdminTutoringDetail() {
       {modal === "assign" && assignBooking && <AssignTeacherDialog booking={assignBooking} onClose={closeModal} />}
       {modal === "schedule" && scheduleTarget && <ScheduleBookingDialog booking={scheduleTarget} onClose={closeModal} />}
       {modal === "reject" && rejectTarget && <RejectBookingDialog booking={rejectTarget} onClose={closeModal} />}
-      {modal === "reassign" && reassignTarget && <ReassignTeacherDialog booking={reassignTarget} onClose={closeModal} />}
 
       <Button
         onClick={() => navigate({ to: "/admin/tutoring/new", search: { student_id: Number(userId) } })}

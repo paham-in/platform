@@ -3893,6 +3893,36 @@ paths:
       summary: Reschedule booking (admin)
       tags:
       - Admin Tutoring
+  /admin/tutoring/bookings/{id}/sessions:
+    get:
+      consumes:
+      - application/json
+      description: Mengembalikan semua sesi satu booking + nama guru per sesi. Dipakai
+        halaman detail booking admin.
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/tutoring.ListSessionsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List booking sessions
+      tags:
+      - Admin Tutoring
   /admin/tutoring/evidence:
     get:
       consumes:

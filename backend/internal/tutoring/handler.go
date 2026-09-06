@@ -670,6 +670,37 @@ func (h *Handler) AdminSwapSessionTeacher(c *fiber.Ctx) error {
 	return c.JSON(session)
 }
 
+// AdminBookingSessions lists all sessions of one booking (admin only)
+// @Summary      List booking sessions
+// @Description  Mengembalikan semua sesi satu booking + nama guru per sesi. Dipakai halaman detail booking admin.
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Booking ID"
+// @Success      200 {array} ListSessionsResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/tutoring/bookings/{id}/sessions [get]
+func (h *Handler) AdminBookingSessions(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	sessions, err := h.svc.ListBookingSessions(uint(id))
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	for i := range sessions {
+		if sessions[i].EvidenceURL == "" || h.storage == nil {
+			continue
+		}
+		if url, err := h.storage.URL(c.Context(), sessions[i].EvidenceURL, 24*time.Hour); err == nil {
+			sessions[i].EvidenceURL = url
+		}
+	}
+	return c.JSON(sessions)
+}
+
 // MyEarnings returns teacher's done sessions + fee estimate (teacher)
 // @Summary      My earnings
 // @Description  Riwayat sesi selesai milik guru + estimasi fee (persen dari harga sesi).
@@ -799,6 +830,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage, 
 	admin.Post("/tutoring/bookings/:id/reject", h.AdminRejectBooking)
 	admin.Patch("/tutoring/bookings/:id/assign", h.AssignTeacher)
 	admin.Patch("/tutoring/bookings/:id/reassign", h.AdminReassignTeacher)
+	admin.Get("/tutoring/bookings/:id/sessions", h.AdminBookingSessions)
 	admin.Patch("/tutoring/sessions/:id/teacher", h.AdminSwapSessionTeacher)
 	admin.Get("/tutoring/evidence", h.AdminListEvidence)
 	admin.Patch("/tutoring/evidence/:id", h.AdminReviewEvidence)

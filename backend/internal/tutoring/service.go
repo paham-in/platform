@@ -1537,6 +1537,20 @@ func (s *Service) ListTeacherSessions(teacherID uint) ([]ListSessionsResponse, e
 	return res, nil
 }
 
+// ListBookingSessions mengembalikan semua sesi satu booking (admin).
+// Dipakai halaman detail booking admin: butuh guru per sesi + status sesi.
+func (s *Service) ListBookingSessions(bookingID uint) ([]ListSessionsResponse, error) {
+	sessions, err := s.repo.ListSessionsByBooking(bookingID)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]ListSessionsResponse, len(sessions))
+	for i, v := range sessions {
+		res[i] = newListSessionsResponse(v)
+	}
+	return res, nil
+}
+
 func (s *Service) ListMySessions(studentID uint) ([]ListSessionsResponse, error) {
 	sessions, err := s.repo.ListSessionsByUser(studentID)
 	if err != nil {

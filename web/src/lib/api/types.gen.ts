@@ -3102,6 +3102,36 @@ export type PatchAdminTutoringBookingsByIdScheduleResponses = {
 
 export type PatchAdminTutoringBookingsByIdScheduleResponse = PatchAdminTutoringBookingsByIdScheduleResponses[keyof PatchAdminTutoringBookingsByIdScheduleResponses];
 
+export type GetAdminTutoringBookingsByIdSessionsData = {
+    body?: never;
+    path: {
+        /**
+         * Booking ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/tutoring/bookings/{id}/sessions';
+};
+
+export type GetAdminTutoringBookingsByIdSessionsErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type GetAdminTutoringBookingsByIdSessionsError = GetAdminTutoringBookingsByIdSessionsErrors[keyof GetAdminTutoringBookingsByIdSessionsErrors];
+
+export type GetAdminTutoringBookingsByIdSessionsResponses = {
+    /**
+     * OK
+     */
+    200: Array<TutoringListSessionsResponse>;
+};
+
+export type GetAdminTutoringBookingsByIdSessionsResponse = GetAdminTutoringBookingsByIdSessionsResponses[keyof GetAdminTutoringBookingsByIdSessionsResponses];
+
 export type GetAdminTutoringEvidenceData = {
     body?: never;
     path?: never;
