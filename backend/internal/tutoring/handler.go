@@ -616,7 +616,7 @@ func (h *Handler) AdminRejectBooking(c *fiber.Ctx) error {
 
 // AdminReassignTeacher memindahkan sisa booking ke guru lain (admin)
 // @Summary      Reassign booking to another teacher
-// @Description  Admin mengalihkan sisa sesi terjadwal ke guru lain. Sesi selesai/menunggu validasi/batal tetap milik guru lama.
+// @Description  Admin mengalihkan sisa sesi terjadwal ke guru lain. Sesi selesai/menunggu validasi/batal tetap milik guru lama. Ditolak bila ada sesi yang sudah berjalan (bukti kehadiran terupload).
 // @Tags         Admin Tutoring
 // @Accept       json
 // @Produce      json

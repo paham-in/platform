@@ -1230,6 +1230,9 @@ func (s *Service) AdminReassignTeacher(id, teacherID uint) (*ReassignTeacherResp
 			return nil, err
 		}
 		for _, sess := range sessions {
+			if sess.EvidenceURL != "" {
+				return nil, errors.New("sudah ada sesi yang berjalan (bukti kehadiran terupload), alihkan satu per satu saja")
+			}
 			if sess.Status != "scheduled" {
 				continue
 			}
