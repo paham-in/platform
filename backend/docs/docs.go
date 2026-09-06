@@ -826,6 +826,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/invoices/{id}/refund": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menandai refund invoice sudah ditransfer admin atau membatalkannya",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Set refund done",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Invoice ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status refund",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/invoice.SetRefundDoneInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/invoice.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/invoice.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/invoices/{id}/toggle": {
             "patch": {
                 "security": [
@@ -5926,6 +5978,12 @@ const docTemplate = `{
                 "note": {
                     "type": "string"
                 },
+                "refund_amount": {
+                    "type": "number"
+                },
+                "refund_done": {
+                    "type": "boolean"
+                },
                 "start_date": {
                     "type": "string"
                 },
@@ -5945,6 +6003,14 @@ const docTemplate = `{
             "properties": {
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "invoice.SetRefundDoneInput": {
+            "type": "object",
+            "properties": {
+                "done": {
+                    "type": "boolean"
                 }
             }
         },

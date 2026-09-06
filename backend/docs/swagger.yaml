@@ -265,6 +265,10 @@ definitions:
         type: integer
       note:
         type: string
+      refund_amount:
+        type: number
+      refund_done:
+        type: boolean
       start_date:
         type: string
       status:
@@ -278,6 +282,11 @@ definitions:
     properties:
       message:
         type: string
+    type: object
+  invoice.SetRefundDoneInput:
+    properties:
+      done:
+        type: boolean
     type: object
   material.CreateInput:
     properties:
@@ -2613,6 +2622,39 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete invoice
+      tags:
+      - Admin
+  /admin/invoices/{id}/refund:
+    patch:
+      consumes:
+      - application/json
+      description: Menandai refund invoice sudah ditransfer admin atau membatalkannya
+      parameters:
+      - description: Invoice ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Status refund
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/invoice.SetRefundDoneInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/invoice.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/invoice.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set refund done
       tags:
       - Admin
   /admin/invoices/{id}/toggle:

@@ -924,7 +924,8 @@ func (s *Service) CancelBooking(id, studentID uint) (*CancelBookingResponse, err
 		return nil, errors.New("booking sudah punya guru, hubungi admin untuk pembatalan")
 	}
 
-	// status → cancelled; sesi terjadwal ikut batal; invoice belum lunas dihapus.
+	// status → cancelled; sesi terjadwal ikut batal; invoice pending ikut batal
+	// (tetap terlihat sebagai riwayat, bukan dihapus diam-diam).
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&models.Booking{}).Where("id = ?", id).Update("status", "cancelled").Error; err != nil {
 			return err
@@ -934,7 +935,7 @@ func (s *Service) CancelBooking(id, studentID uint) (*CancelBookingResponse, err
 			Update("status", "cancelled").Error; err != nil {
 			return err
 		}
-		if err := tx.Where("booking_id = ? AND status = ?", id, "pending").Delete(&models.Invoice{}).Error; err != nil {
+		if err := tx.Model(&models.Invoice{}).Where("booking_id = ? AND status = ?", id, "pending").Update("status", "batal").Error; err != nil {
 			return err
 		}
 		return nil
@@ -1621,6 +1622,53 @@ func (s *Service) RescheduleSession(sessionID, teacherID uint, input UpdateSessi
 	return &r, nil
 }
 
+// reconcileBookingInvoice menghitung ulang refund invoice booking dalam tx.
+// refund = harga per sesi × sesi batal (overtime hanya milik sesi done yang
+// tak bisa batal, jadi tak perlu dihitung ulang). Invoice lunas tidak diubah
+// statusnya (admin transfer manual); bila tak ada sisa sesi aktif dan invoice
+// masih pending → invoice dibatalkan. Mengembalikan true bila ada uang berubah.
+func (s *Service) reconcileBookingInvoice(tx *gorm.DB, bookingID uint) (bool, error) {
+	var booking models.Booking
+	if err := tx.First(&booking, bookingID).Error; err != nil {
+		return false, err
+	}
+	var sessions []models.TutoringSession
+	if err := tx.Where("booking_id = ?", bookingID).Find(&sessions).Error; err != nil {
+		return false, err
+	}
+	active, cancelled := 0, 0
+	for _, sess := range sessions {
+		if sess.Status == "cancelled" {
+			cancelled++
+		} else {
+			active++
+		}
+	}
+	if cancelled == 0 {
+		return false, nil
+	}
+	var inv models.Invoice
+	if err := tx.Where("booking_id = ?", bookingID).Order("id asc").First(&inv).Error; err != nil {
+		return false, nil // tidak ada invoice → tidak ada yang direkonsiliasi
+	}
+	perSession := s.perSessionPrice(booking.ClassID, booking.Mode)
+	refund := perSession * float64(cancelled)
+	updates := map[string]interface{}{}
+	if inv.RefundAmount != refund {
+		updates["refund_amount"] = refund
+	}
+	if active == 0 && inv.Status == "pending" {
+		updates["status"] = "batal"
+	}
+	if len(updates) == 0 {
+		return false, nil
+	}
+	if err := tx.Model(&models.Invoice{}).Where("id = ?", inv.ID).Updates(updates).Error; err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // CancelSession membatalkan sesi oleh guru (scheduled → cancelled).
 func (s *Service) CancelSession(sessionID, teacherID uint) (*CancelSessionResponse, error) {
 	session, err := s.getOwnedSession(sessionID, teacherID)
@@ -1630,7 +1678,19 @@ func (s *Service) CancelSession(sessionID, teacherID uint) (*CancelSessionRespon
 	if session.Status != "scheduled" {
 		return nil, errors.New("hanya sesi terjadwal yang bisa dibatalkan")
 	}
-	if err := s.repo.UpdateSession(sessionID, map[string]interface{}{"status": "cancelled"}); err != nil {
+	var moneyChanged bool
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&models.TutoringSession{}).Where("id = ?", sessionID).Update("status", "cancelled").Error; err != nil {
+			return err
+		}
+		changed, err := s.reconcileBookingInvoice(tx, session.BookingID)
+		if err != nil {
+			return err
+		}
+		moneyChanged = changed
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
 	updated, err := s.repo.GetSession(sessionID)
@@ -1643,6 +1703,13 @@ func (s *Service) CancelSession(sessionID, teacherID uint) (*CancelSessionRespon
 		s.notifSvc.Notify(session.Booking.StudentID, "Sesi les dibatalkan",
 			fmt.Sprintf("Sesi tanggal %s %s telah dibatalkan oleh guru", session.Date, session.StartTime),
 			"tutoring", "/dashboard/tutoring")
+		if moneyChanged {
+			if admins, err := s.repo.ListAdminIDs(); err == nil && len(admins) > 0 {
+				s.notifSvc.NotifyBatch(admins, "Tagihan berubah",
+					fmt.Sprintf("Sesi %s %s batal, refund tercatat di invoice booking", session.Date, session.StartTime),
+					"tutoring", "/dashboard/admin/tutoring")
+			}
+		}
 	}
 
 	return &r, nil

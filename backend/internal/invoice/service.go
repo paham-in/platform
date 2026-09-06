@@ -13,16 +13,18 @@ import (
 )
 
 type InvoiceResponse struct {
-	ID        uint    `json:"id"`
-	UserID    uint    `json:"user_id"`
-	UserName  string  `json:"user_name"`
-	Amount    float64 `json:"amount"`
-	StartDate string  `json:"start_date"`
-	EndDate   string  `json:"end_date"`
-	Status    string  `json:"status"`
-	Note      string  `json:"note"`
-	CreatedAt string  `json:"created_at"`
-	BookingID *uint   `json:"booking_id,omitempty"`
+	ID           uint    `json:"id"`
+	UserID       uint    `json:"user_id"`
+	UserName     string  `json:"user_name"`
+	Amount       float64 `json:"amount"`
+	RefundAmount float64 `json:"refund_amount"`
+	RefundDone   bool    `json:"refund_done"`
+	StartDate    string  `json:"start_date"`
+	EndDate      string  `json:"end_date"`
+	Status       string  `json:"status"`
+	Note         string  `json:"note"`
+	CreatedAt    string  `json:"created_at"`
+	BookingID    *uint   `json:"booking_id,omitempty"`
 }
 
 type Service struct {
@@ -64,6 +66,10 @@ type CreateInput struct {
 	EndDate   string  `json:"end_date"`
 	Note      string  `json:"note"`
 	ClassID   *uint   `json:"class_id,omitempty"`
+}
+
+type SetRefundDoneInput struct {
+	Done bool `json:"done"`
 }
 
 func (s *Service) Create(input CreateInput) (*InvoiceResponse, error) {
@@ -108,6 +114,9 @@ func (s *Service) ToggleStatus(id uint) (*InvoiceResponse, error) {
 	invoice, err := s.repo.Get(id)
 	if err != nil {
 		return nil, errors.New("invoice tidak ditemukan")
+	}
+	if invoice.Status != "paid" && invoice.Status != "pending" {
+		return nil, errors.New("invoice batal tidak bisa diubah")
 	}
 
 	newStatus := "paid"
@@ -193,6 +202,19 @@ func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
+// SetRefundDone menandai refund invoice sudah ditransfer admin (atau
+// membatalkannya). Hanya untuk invoice yang punya nominal refund.
+func (s *Service) SetRefundDone(id uint, done bool) error {
+	invoice, err := s.repo.Get(id)
+	if err != nil {
+		return errors.New("invoice tidak ditemukan")
+	}
+	if invoice.RefundAmount <= 0 {
+		return errors.New("invoice ini tidak ada refund")
+	}
+	return s.repo.UpdateRefundDone(id, done)
+}
+
 // StudentDeleteInvoice membatalkan invoice langganan milik murid sendiri.
 // Hanya yang masih pending dan bukan dari booking (invoice booking hanya bisa
 // hilang lewat pembatalan booking). Pending = belum ada uang masuk.
@@ -242,16 +264,18 @@ func toResponse(i models.Invoice) InvoiceResponse {
 		name = i.User.Name
 	}
 	return InvoiceResponse{
-		ID:        i.ID,
-		UserID:    i.UserID,
-		UserName:  name,
-		Amount:    i.Amount,
-		StartDate: i.StartDate,
-		EndDate:   i.EndDate,
-		Status:    i.Status,
-		Note:      i.Note,
-		CreatedAt: i.CreatedAt.Format("2006-01-02"),
-		BookingID: i.BookingID,
+		ID:           i.ID,
+		UserID:       i.UserID,
+		UserName:     name,
+		Amount:       i.Amount,
+		RefundAmount: i.RefundAmount,
+		RefundDone:   i.RefundDone,
+		StartDate:    i.StartDate,
+		EndDate:      i.EndDate,
+		Status:       i.Status,
+		Note:         i.Note,
+		CreatedAt:    i.CreatedAt.Format("2006-01-02"),
+		BookingID:    i.BookingID,
 	}
 }
 

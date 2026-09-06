@@ -7,12 +7,14 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { useState, useEffect, useMemo } from "react"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   getAdminUsersOptions,
   getAdminInvoicesOptions,
+  getAdminInvoicesQueryKey,
+  patchAdminInvoicesByIdRefundMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { MoreVertical, CheckCircle2, XCircle, Search, Trash2, Receipt, Funnel, X } from "lucide-react"
+import { MoreVertical, CheckCircle2, XCircle, Search, Trash2, Receipt, Funnel, X, HandCoins } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -24,7 +26,19 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
+import { toast } from "sonner"
 import { DeleteInvoiceDialog, ToggleInvoiceDialog } from "@/components/admin/payments"
 import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
@@ -32,9 +46,58 @@ import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
 
 const paymentsDetailSearchSchema = z.object({
   search: z.string().optional(),
-  status: z.enum(["all", "paid", "pending"]).optional(),
+  status: z.enum(["all", "paid", "pending", "batal"]).optional(),
   modal: z.string().optional(),
 })
+
+function invoiceBadge(status?: string) {
+  if (status === "paid") {
+    return <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Lunas</span>
+  }
+  if (status === "batal") {
+    return <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">Batal</span>
+  }
+  return <span className="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">Pending</span>
+}
+
+function RefundDialog({ invoice, onClose }: { invoice: InvoiceInvoiceResponse; onClose: () => void }) {
+  const qc = useQueryClient()
+  const done = !!invoice.refund_done
+
+  const { mutate: setRefund, isPending } = useMutation({
+    ...patchAdminInvoicesByIdRefundMutation(),
+    onSuccess: () => {
+      toast.success(done ? "Tanda refund dibatalkan" : "Refund ditandai sudah ditransfer")
+      qc.invalidateQueries({ queryKey: getAdminInvoicesQueryKey() })
+      onClose()
+    },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal menyimpan status refund"),
+  })
+
+  return (
+    <AlertDialog open onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{done ? "Batalkan tanda refund?" : "Tandai sudah direfund?"}</AlertDialogTitle>
+          <AlertDialogDescription>
+            Refund Rp {(invoice.refund_amount ?? 0).toLocaleString("id-ID")} untuk tagihan Rp {(invoice.amount ?? 0).toLocaleString("id-ID")}
+            {done ? " ditandai belum ditransfer." : ". Pastikan uang sudah ditransfer manual ke murid."}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={isPending}
+            onClick={() => invoice.id && setRefund({ path: { id: invoice.id }, body: { done: !done } })}
+          >
+            {isPending && <Spinner />}
+            {done ? "Batalkan Tanda" : "Sudah Ditransfer"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
 
 // canDelete: hanya invoice langganan manual (tanpa booking) yang masih pending.
 // Invoice les tidak bisa dihapus, invoice lunas tidak bisa dihapus.
@@ -125,12 +188,14 @@ function PaymentsDetail() {
   }))
   const [deleteTarget, setDeleteTarget] = useState<InvoiceInvoiceResponse[] | null>(null)
   const [toggleTarget, setToggleTarget] = useState<{ invoices: InvoiceInvoiceResponse[]; status: "paid" | "pending" } | null>(null)
+  const [refundTarget, setRefundTarget] = useState<InvoiceInvoiceResponse | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     if (modal !== "delete") setDeleteTarget(null)
     if (modal !== "toggle") setToggleTarget(null)
-    if (modal !== "delete" && modal !== "toggle") setSelectedIds(new Set())
+    if (modal !== "refund") setRefundTarget(null)
+    if (modal !== "delete" && modal !== "toggle" && modal !== "refund") setSelectedIds(new Set())
   }, [modal])
 
   const statusOptions = useMemo(
@@ -138,6 +203,7 @@ function PaymentsDetail() {
       { label: "Semua", value: "all" },
       { label: "Lunas", value: "paid" },
       { label: "Pending", value: "pending" },
+      { label: "Batal", value: "batal" },
     ],
     []
   )
@@ -162,7 +228,7 @@ function PaymentsDetail() {
 
   const activeFilterCount = statusFilter !== "all" ? 1 : 0
   const setStatusFilter = (v: string) => {
-    navigate({ search: (prev) => ({ ...prev, status: v === "all" ? undefined : v as "paid" | "pending" }), replace: true })
+    navigate({ search: (prev) => ({ ...prev, status: v === "all" ? undefined : v as "paid" | "pending" | "batal" }), replace: true })
     setSelectedIds(new Set())
   }
   const headerFilter = useMemo(
@@ -303,18 +369,16 @@ function PaymentsDetail() {
                     <TableCell className="pl-0 font-medium">
                       {inv.start_date && inv.end_date ? `${format(parseISO(inv.start_date), "dd MMM yyyy", { locale: id })}, ${format(parseISO(inv.end_date), "dd MMM yyyy", { locale: id })}` : "—"}
                     </TableCell>
-                    <TableCell>Rp {inv.amount?.toLocaleString("id-ID")}</TableCell>
-                    <TableCell>
-                      {inv.status === "paid" ? (
-                        <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                          Lunas
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">
-                          Pending
-                        </span>
+                    <TableCell className="tabular-nums">
+                      <p className="font-medium">Rp {inv.amount?.toLocaleString("id-ID")}</p>
+                      {(inv.refund_amount ?? 0) > 0 && (
+                        <p className="mt-0.5 text-xs font-medium text-amber-600">
+                          − refund Rp {(inv.refund_amount ?? 0).toLocaleString("id-ID")} (net Rp {((inv.amount ?? 0) - (inv.refund_amount ?? 0)).toLocaleString("id-ID")})
+                          {inv.refund_done ? " · sudah direfund" : ""}
+                        </p>
                       )}
                     </TableCell>
+                    <TableCell>{invoiceBadge(inv.status)}</TableCell>
                     <TableCell className="text-muted-foreground max-w-[200px] truncate">
                       {inv.note || "-"}
                     </TableCell>
@@ -325,10 +389,18 @@ function PaymentsDetail() {
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => { setToggleTarget({ invoices: [inv], status: inv.status === "paid" ? "pending" : "paid" }); openModal("toggle") }}>
-                            {inv.status === "paid" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
-                            {inv.status === "paid" ? "Pending" : "Lunas"}
-                          </DropdownMenuItem>
+                          {(inv.status === "paid" || inv.status === "pending") ? (
+                            <DropdownMenuItem onClick={() => { setToggleTarget({ invoices: [inv], status: inv.status === "paid" ? "pending" : "paid" }); openModal("toggle") }}>
+                              {inv.status === "paid" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                              {inv.status === "paid" ? "Pending" : "Lunas"}
+                            </DropdownMenuItem>
+                          ) : null}
+                          {(inv.refund_amount ?? 0) > 0 ? (
+                            <DropdownMenuItem onClick={() => { setRefundTarget(inv); openModal("refund") }}>
+                              <HandCoins className="h-4 w-4" />
+                              {inv.refund_done ? "Batalkan Tanda Refund" : "Tandai Sudah Direfund"}
+                            </DropdownMenuItem>
+                          ) : null}
                           {canDelete(inv) ? (
                             <DropdownMenuItem onClick={() => { setDeleteTarget([inv]); openModal("delete") }}>
                               <Trash2 className="h-4 w-4 text-destructive" /> Hapus
@@ -405,13 +477,15 @@ function PaymentsDetail() {
                       <p className="min-w-0 truncate font-medium">
                         {inv.start_date && inv.end_date ? `${format(parseISO(inv.start_date), "dd MMM yyyy", { locale: id })}, ${format(parseISO(inv.end_date), "dd MMM yyyy", { locale: id })}` : "—"}
                       </p>
-                      {inv.status === "paid" ? (
-                        <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Lunas</span>
-                      ) : (
-                        <span className="shrink-0 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">Pending</span>
-                      )}
+                      {invoiceBadge(inv.status)}
                     </div>
-                    <p className="mt-1 font-semibold">Rp {inv.amount?.toLocaleString("id-ID")}</p>
+                    <p className="mt-1 font-semibold tabular-nums">Rp {inv.amount?.toLocaleString("id-ID")}</p>
+                    {(inv.refund_amount ?? 0) > 0 && (
+                      <p className="mt-0.5 text-xs font-medium text-amber-600">
+                        − refund Rp {(inv.refund_amount ?? 0).toLocaleString("id-ID")} (net Rp {((inv.amount ?? 0) - (inv.refund_amount ?? 0)).toLocaleString("id-ID")})
+                        {inv.refund_done ? " · sudah direfund" : ""}
+                      </p>
+                    )}
                     <p className="mt-1 truncate text-sm text-muted-foreground">{inv.note || "—"}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">{inv.created_at}</p>
                   </div>
@@ -420,10 +494,18 @@ function PaymentsDetail() {
                       <MoreVertical className="h-4 w-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => { setToggleTarget({ invoices: [inv], status: inv.status === "paid" ? "pending" : "paid" }); openModal("toggle") }}>
-                        {inv.status === "paid" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
-                        {inv.status === "paid" ? "Pending" : "Lunas"}
-                      </DropdownMenuItem>
+                      {(inv.status === "paid" || inv.status === "pending") ? (
+                        <DropdownMenuItem onClick={() => { setToggleTarget({ invoices: [inv], status: inv.status === "paid" ? "pending" : "paid" }); openModal("toggle") }}>
+                          {inv.status === "paid" ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                          {inv.status === "paid" ? "Pending" : "Lunas"}
+                        </DropdownMenuItem>
+                      ) : null}
+                      {(inv.refund_amount ?? 0) > 0 ? (
+                        <DropdownMenuItem onClick={() => { setRefundTarget(inv); openModal("refund") }}>
+                          <HandCoins className="h-4 w-4" />
+                          {inv.refund_done ? "Batalkan Tanda Refund" : "Tandai Sudah Direfund"}
+                        </DropdownMenuItem>
+                      ) : null}
                       {canDelete(inv) ? (
                         <DropdownMenuItem onClick={() => { setDeleteTarget([inv]); openModal("delete") }}>
                           <Trash2 className="h-4 w-4 text-destructive" /> Hapus
@@ -445,6 +527,10 @@ function PaymentsDetail() {
 
       {modal === "delete" && deleteTarget && (
         <DeleteInvoiceDialog invoices={deleteTarget} onClose={() => { closeModal(); setSelectedIds(new Set()) }} />
+      )}
+
+      {modal === "refund" && refundTarget && (
+        <RefundDialog invoice={refundTarget} onClose={closeModal} />
       )}
 
       {modal === "toggle" && toggleTarget && (

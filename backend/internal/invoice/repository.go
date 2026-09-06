@@ -63,3 +63,8 @@ func (r *Repository) Create(invoice *models.Invoice) error {
 func (r *Repository) Delete(id uint) error {
 	return r.db.Unscoped().Delete(&models.Invoice{}, id).Error
 }
+
+// UpdateRefundDone menandai refund invoice sudah/belum ditransfer admin.
+func (r *Repository) UpdateRefundDone(id uint, done bool) error {
+	return r.db.Model(&models.Invoice{}).Where("id = ?", id).Update("refund_done", done).Error
+}

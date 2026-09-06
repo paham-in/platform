@@ -174,6 +174,8 @@ export type InvoiceInvoiceResponse = {
     end_date?: string;
     id?: number;
     note?: string;
+    refund_amount?: number;
+    refund_done?: boolean;
     start_date?: string;
     status?: string;
     user_id?: number;
@@ -182,6 +184,10 @@ export type InvoiceInvoiceResponse = {
 
 export type InvoiceMessageResponse = {
     message?: string;
+};
+
+export type InvoiceSetRefundDoneInput = {
+    done?: boolean;
 };
 
 export type MaterialCreateInput = {
@@ -1804,6 +1810,39 @@ export type DeleteAdminInvoicesByIdResponses = {
 };
 
 export type DeleteAdminInvoicesByIdResponse = DeleteAdminInvoicesByIdResponses[keyof DeleteAdminInvoicesByIdResponses];
+
+export type PatchAdminInvoicesByIdRefundData = {
+    /**
+     * Status refund
+     */
+    body: InvoiceSetRefundDoneInput;
+    path: {
+        /**
+         * Invoice ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/invoices/{id}/refund';
+};
+
+export type PatchAdminInvoicesByIdRefundErrors = {
+    /**
+     * Bad Request
+     */
+    400: InvoiceErrorResponse;
+};
+
+export type PatchAdminInvoicesByIdRefundError = PatchAdminInvoicesByIdRefundErrors[keyof PatchAdminInvoicesByIdRefundErrors];
+
+export type PatchAdminInvoicesByIdRefundResponses = {
+    /**
+     * OK
+     */
+    200: InvoiceMessageResponse;
+};
+
+export type PatchAdminInvoicesByIdRefundResponse = PatchAdminInvoicesByIdRefundResponses[keyof PatchAdminInvoicesByIdRefundResponses];
 
 export type PatchAdminInvoicesByIdToggleData = {
     body?: never;

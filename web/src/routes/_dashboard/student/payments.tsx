@@ -102,9 +102,10 @@ function StudentPayments() {
     )
   }
 
-  const total = invoices.reduce((sum, inv) => sum + (inv.amount ?? 0), 0)
-  const totalPaid = invoices.filter((inv) => inv.status === "paid").reduce((sum, inv) => sum + (inv.amount ?? 0), 0)
-  const totalPending = invoices.filter((inv) => inv.status === "pending").reduce((sum, inv) => sum + (inv.amount ?? 0), 0)
+  const visible = invoices.filter((inv) => inv.status !== "batal")
+  const total = visible.reduce((sum, inv) => sum + (inv.amount ?? 0) - (inv.refund_amount ?? 0), 0)
+  const totalPaid = invoices.filter((inv) => inv.status === "paid").reduce((sum, inv) => sum + (inv.amount ?? 0) - (inv.refund_amount ?? 0), 0)
+  const totalPending = invoices.filter((inv) => inv.status === "pending").reduce((sum, inv) => sum + (inv.amount ?? 0) - (inv.refund_amount ?? 0), 0)
 
   const stats = [
     { icon: CreditCard, label: "Total Tagihan", value: total, color: "text-blue-600 bg-blue-100" },
@@ -182,16 +183,32 @@ function StudentPayments() {
                       <TableCell className="pl-6 font-medium">
                         {formatDate(inv.start_date)} - {formatDate(inv.end_date)}
                       </TableCell>
-                      <TableCell>Rp {inv.amount?.toLocaleString("id-ID")}</TableCell>
+                      <TableCell className="tabular-nums">
+                        <p className="font-medium">Rp {inv.amount?.toLocaleString("id-ID")}</p>
+                        {(inv.refund_amount ?? 0) > 0 && (
+                          <p className="mt-0.5 text-xs font-medium text-amber-600">
+                            − refund Rp {(inv.refund_amount ?? 0).toLocaleString("id-ID")}
+                          </p>
+                        )}
+                      </TableCell>
                       <TableCell>
                         {inv.status === "paid" ? (
                           <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
                             Lunas
                           </span>
+                        ) : inv.status === "batal" ? (
+                          <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                            Batal
+                          </span>
                         ) : (
                           <span className="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">
                             Pending
                           </span>
+                        )}
+                        {(inv.refund_amount ?? 0) > 0 && (
+                          <p className="mt-1 text-xs font-medium text-amber-600">
+                            − refund Rp {(inv.refund_amount ?? 0).toLocaleString("id-ID")}
+                          </p>
                         )}
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate text-muted-foreground">
@@ -237,6 +254,11 @@ function StudentPayments() {
                     <div className="min-w-0">
                       <p className="text-xs font-medium text-muted-foreground">{formatDate(inv.start_date)} - {formatDate(inv.end_date)}</p>
                       <p className="mt-0.5 text-base font-semibold">Rp {inv.amount?.toLocaleString("id-ID")}</p>
+                      {(inv.refund_amount ?? 0) > 0 && (
+                        <p className="mt-0.5 text-xs font-medium text-amber-600">
+                          − refund Rp {(inv.refund_amount ?? 0).toLocaleString("id-ID")}
+                        </p>
+                      )}
                       {inv.note && (
                         <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{inv.note}</p>
                       )}
@@ -246,6 +268,10 @@ function StudentPayments() {
                       {inv.status === "paid" ? (
                         <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
                           Lunas
+                        </span>
+                      ) : inv.status === "batal" ? (
+                        <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                          Batal
                         </span>
                       ) : (
                         <span className="shrink-0 rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">

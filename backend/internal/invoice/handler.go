@@ -181,6 +181,36 @@ func (h *Handler) DeleteMyInvoice(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "invoice berhasil dibatalkan"})
 }
 
+// AdminSetRefundDone menandai refund invoice sudah/belum ditransfer (admin)
+// @Summary      Set refund done
+// @Description  Menandai refund invoice sudah ditransfer admin atau membatalkannya
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Invoice ID"
+// @Param        body body SetRefundDoneInput true "Status refund"
+// @Success      200 {object} MessageResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/invoices/{id}/refund [patch]
+func (h *Handler) AdminSetRefundDone(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input SetRefundDoneInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	if err := h.svc.SetRefundDone(uint(id), input.Done); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	if input.Done {
+		return c.JSON(MessageResponse{Message: "refund ditandai sudah ditransfer"})
+	}
+	return c.JSON(MessageResponse{Message: "tanda refund dibatalkan"})
+}
+
 // AdminDeleteInvoice menghapus invoice
 // @Summary      Delete invoice
 // @Description  Menghapus invoice berdasarkan ID
@@ -224,5 +254,6 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, notifSvc *notification.Service
 	admin.Get("/invoices", h.AdminListInvoices)
 	admin.Post("/invoices", h.AdminCreateInvoice)
 	admin.Patch("/invoices/:id/toggle", h.AdminToggleInvoice)
+	admin.Patch("/invoices/:id/refund", h.AdminSetRefundDone)
 	admin.Delete("/invoices/:id", h.AdminDeleteInvoice)
 }
