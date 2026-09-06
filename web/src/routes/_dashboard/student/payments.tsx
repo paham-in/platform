@@ -184,10 +184,10 @@ function StudentPayments() {
                         {formatDate(inv.start_date)} - {formatDate(inv.end_date)}
                       </TableCell>
                       <TableCell className="tabular-nums">
-                        <p className="font-medium">Rp {inv.amount?.toLocaleString("id-ID")}</p>
+                        <p className="font-medium">Rp {((inv.amount ?? 0) - (inv.refund_amount ?? 0)).toLocaleString("id-ID")}</p>
                         {(inv.refund_amount ?? 0) > 0 && (
                           <p className="mt-0.5 text-xs font-medium text-amber-600">
-                            − refund Rp {(inv.refund_amount ?? 0).toLocaleString("id-ID")}
+                            dari Rp {(inv.amount ?? 0).toLocaleString("id-ID")} · − refund Rp {(inv.refund_amount ?? 0).toLocaleString("id-ID")}
                           </p>
                         )}
                       </TableCell>
@@ -248,10 +248,10 @@ function StudentPayments() {
                   <div key={inv.id} className="flex items-start justify-between gap-3 p-4">
                     <div className="min-w-0">
                       <p className="text-xs font-medium text-muted-foreground">{formatDate(inv.start_date)} - {formatDate(inv.end_date)}</p>
-                      <p className="mt-0.5 text-base font-semibold">Rp {inv.amount?.toLocaleString("id-ID")}</p>
+                      <p className="mt-0.5 text-base font-semibold">Rp {((inv.amount ?? 0) - (inv.refund_amount ?? 0)).toLocaleString("id-ID")}</p>
                       {(inv.refund_amount ?? 0) > 0 && (
                         <p className="mt-0.5 text-xs font-medium text-amber-600">
-                          − refund Rp {(inv.refund_amount ?? 0).toLocaleString("id-ID")}
+                          dari Rp {(inv.amount ?? 0).toLocaleString("id-ID")} · − refund Rp {(inv.refund_amount ?? 0).toLocaleString("id-ID")}
                         </p>
                       )}
                       {inv.note && (

@@ -5113,7 +5113,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Murid membatalkan booking les privat miliknya sendiri. Bisa saat status pending (guru belum menyetujui) atau setelah disetujui selama invoice belum lunas.",
+                "description": "Murid membatalkan booking les privat miliknya sendiri. Hanya saat status pending (belum ada guru bertugas). Setelah guru di-assign (confirmed), pembatalan hanya lewat guru per sesi.",
                 "consumes": [
                     "application/json"
                 ],

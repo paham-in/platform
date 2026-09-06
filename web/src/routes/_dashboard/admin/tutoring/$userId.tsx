@@ -169,16 +169,16 @@ function AdminTutoringDetail() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
                             {b.status === "pending" && !b.teacher_id ? (
-                              <DropdownMenuItem onClick={() => { setAssignBooking(b); openModal("assign") }}>
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setAssignBooking(b); openModal("assign") }}>
                                 <UserPlus className="h-4 w-4" /> Assign Guru
                               </DropdownMenuItem>
                             ) : null}
                             {b.status === "pending" ? (
                               <>
-                                <DropdownMenuItem onClick={() => { setScheduleTarget(b); openModal("schedule") }}>
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setScheduleTarget(b); openModal("schedule") }}>
                                   <CalendarClock className="h-4 w-4" /> Ubah Jadwal
                                 </DropdownMenuItem>
-                                <DropdownMenuItem variant="destructive" onClick={() => { setRejectTarget(b); openModal("reject") }}>
+                                <DropdownMenuItem variant="destructive" onClick={(e) => { e.stopPropagation(); setRejectTarget(b); openModal("reject") }}>
                                   <XCircle className="h-4 w-4" /> Tolak Booking
                                 </DropdownMenuItem>
                               </>
@@ -247,16 +247,16 @@ function AdminTutoringDetail() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           {b.status === "pending" && !b.teacher_id ? (
-                            <DropdownMenuItem onClick={() => { setAssignBooking(b); openModal("assign") }}>
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setAssignBooking(b); openModal("assign") }}>
                               <UserPlus className="h-4 w-4" /> Assign Guru
                             </DropdownMenuItem>
                           ) : null}
                           {b.status === "pending" ? (
                             <>
-                              <DropdownMenuItem onClick={() => { setScheduleTarget(b); openModal("schedule") }}>
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setScheduleTarget(b); openModal("schedule") }}>
                                 <CalendarClock className="h-4 w-4" /> Ubah Jadwal
                               </DropdownMenuItem>
-                              <DropdownMenuItem variant="destructive" onClick={() => { setRejectTarget(b); openModal("reject") }}>
+                              <DropdownMenuItem variant="destructive" onClick={(e) => { e.stopPropagation(); setRejectTarget(b); openModal("reject") }}>
                                 <XCircle className="h-4 w-4" /> Tolak Booking
                               </DropdownMenuItem>
                             </>

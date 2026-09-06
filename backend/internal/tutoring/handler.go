@@ -506,7 +506,7 @@ func (h *Handler) AdminReviewEvidence(c *fiber.Ctx) error {
 
 // CancelBooking membatalkan booking oleh murid pemiliknya
 // @Summary      Cancel booking
-// @Description  Murid membatalkan booking les privat miliknya sendiri. Bisa saat status pending (guru belum menyetujui) atau setelah disetujui selama invoice belum lunas.
+// @Description  Murid membatalkan booking les privat miliknya sendiri. Hanya saat status pending (belum ada guru bertugas). Setelah guru di-assign (confirmed), pembatalan hanya lewat guru per sesi.
 // @Tags         Tutoring
 // @Accept       json
 // @Produce      json
