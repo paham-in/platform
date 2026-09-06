@@ -1667,9 +1667,18 @@ func (s *Service) reconcileBookingInvoice(tx *gorm.DB, bookingID uint, newlyCanc
 	if cancelled == 0 {
 		return false, nil
 	}
+	changed := false
+	if active == 0 && booking.Status == "confirmed" {
+		// Tidak ada sesi tersisa yang aktif → booking ikut batal agar tidak
+		// nyangkut confirmed selamanya dan tersapu cron setelah masa tenggang.
+		if err := tx.Model(&models.Booking{}).Where("id = ?", bookingID).Update("status", "cancelled").Error; err != nil {
+			return false, err
+		}
+		changed = true
+	}
 	var inv models.Invoice
 	if err := tx.Where("booking_id = ?", bookingID).Order("id asc").First(&inv).Error; err != nil {
-		return false, nil // tidak ada invoice → tidak ada yang direkonsiliasi
+		return changed, nil // tidak ada invoice → tidak ada yang direkonsiliasi
 	}
 	perSession := s.perSessionPrice(booking.ClassID, booking.Mode)
 	refund := perSession * float64(cancelled)
@@ -1701,7 +1710,7 @@ func (s *Service) reconcileBookingInvoice(tx *gorm.DB, bookingID uint, newlyCanc
 		updates["status"] = "batal"
 	}
 	if len(updates) == 0 {
-		return false, nil
+		return changed, nil
 	}
 	if err := tx.Model(&models.Invoice{}).Where("id = ?", inv.ID).Updates(updates).Error; err != nil {
 		return false, err
