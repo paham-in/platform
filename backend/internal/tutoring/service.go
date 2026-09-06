@@ -1689,11 +1689,21 @@ func (s *Service) reconcileBookingInvoice(tx *gorm.DB, bookingID uint) (bool, er
 	return true, nil
 }
 
-// CancelSession membatalkan sesi oleh guru (scheduled → cancelled).
-func (s *Service) CancelSession(sessionID, teacherID uint) (*CancelSessionResponse, error) {
-	session, err := s.getOwnedSession(sessionID, teacherID)
-	if err != nil {
-		return nil, err
+// CancelSession membatalkan sesi (scheduled → cancelled) oleh guru pemilik
+// atau admin (isAdmin melewati cek kepemilikan).
+func (s *Service) CancelSession(sessionID, teacherID uint, isAdmin bool) (*CancelSessionResponse, error) {
+	var session *models.TutoringSession
+	var err error
+	if isAdmin {
+		session, err = s.repo.GetSession(sessionID)
+		if err != nil || session.Booking == nil {
+			return nil, errors.New("sesi tidak ditemukan")
+		}
+	} else {
+		session, err = s.getOwnedSession(sessionID, teacherID)
+		if (err != nil) {
+			return nil, err
+		}
 	}
 	if session.Status != "scheduled" {
 		return nil, errors.New("hanya sesi terjadwal yang bisa dibatalkan")
@@ -1720,8 +1730,12 @@ func (s *Service) CancelSession(sessionID, teacherID uint) (*CancelSessionRespon
 	r := newCancelSessionResponse(*updated)
 
 	if s.notifSvc != nil && session.Booking != nil {
+		actor := "guru"
+		if isAdmin {
+			actor = "admin"
+		}
 		s.notifSvc.Notify(session.Booking.StudentID, "Sesi les dibatalkan",
-			fmt.Sprintf("Sesi tanggal %s %s telah dibatalkan oleh guru", session.Date, session.StartTime),
+			fmt.Sprintf("Sesi tanggal %s %s telah dibatalkan oleh %s", session.Date, session.StartTime, actor),
 			"tutoring", "/dashboard/tutoring")
 		if moneyChanged {
 			if admins, err := s.repo.ListAdminIDs(); err == nil && len(admins) > 0 {

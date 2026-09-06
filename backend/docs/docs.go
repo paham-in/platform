@@ -5373,7 +5373,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Guru membatalkan sesi yang tidak bisa dihadiri. Invoice tidak berubah.",
+                "description": "Guru membatalkan sesi yang tidak bisa dihadiri, atau admin membatalkan sesi terjadwal. Invoice tidak berubah.",
                 "consumes": [
                     "application/json"
                 ],

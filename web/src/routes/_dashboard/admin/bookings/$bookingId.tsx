@@ -25,7 +25,7 @@ import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
 import { SwapSessionTeacherDialog } from "@/components/admin/attendance/swap-session-teacher-dialog"
-import { ApproveEvidenceDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
+import { ApproveEvidenceDialog, CancelSessionDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
 import { InvoiceSection } from "@/components/admin/payments"
 
 const adminBookingDetailSearchSchema = z.object({
@@ -85,12 +85,14 @@ function AdminBookingDetail() {
   const [approveTarget, setApproveTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [rejectTarget, setRejectTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [feeTarget, setFeeTarget] = useState<TutoringListSessionsResponse | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<TutoringListSessionsResponse | null>(null)
 
   useEffect(() => {
     if (modal !== "swap") setSwapSession(null)
     if (modal !== "approve") setApproveTarget(null)
     if (modal !== "reject") setRejectTarget(null)
     if (modal !== "fee") setFeeTarget(null)
+    if (modal !== "cancel") setCancelTarget(null)
   }, [modal])
 
   const evidenceById = new Map((evidence ?? []).map((s) => [s.id!, s]))
@@ -260,9 +262,14 @@ function AdminBookingDetail() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           {s.status === "scheduled" ? (
-                            <DropdownMenuItem onClick={() => { setSwapSession(s); openModal("swap") }}>
-                              <ArrowLeftRight className="h-4 w-4" /> Alihkan Sesi Ini
-                            </DropdownMenuItem>
+                            <>
+                              <DropdownMenuItem onClick={() => { setSwapSession(s); openModal("swap") }}>
+                                <ArrowLeftRight className="h-4 w-4" /> Alihkan Sesi Ini
+                              </DropdownMenuItem>
+                              <DropdownMenuItem variant="destructive" onClick={() => { setCancelTarget(s); openModal("cancel") }}>
+                                <X className="h-4 w-4" /> Batalkan Sesi
+                              </DropdownMenuItem>
+                            </>
                           ) : s.status === "review" ? (
                             <>
                               <DropdownMenuItem onClick={() => { setApproveTarget(s); openModal("approve") }}>
@@ -344,9 +351,14 @@ function AdminBookingDetail() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         {s.status === "scheduled" ? (
-                          <DropdownMenuItem onClick={() => { setSwapSession(s); openModal("swap") }}>
-                            <ArrowLeftRight className="h-4 w-4" /> Alihkan Sesi Ini
-                          </DropdownMenuItem>
+                          <>
+                            <DropdownMenuItem onClick={() => { setSwapSession(s); openModal("swap") }}>
+                              <ArrowLeftRight className="h-4 w-4" /> Alihkan Sesi Ini
+                            </DropdownMenuItem>
+                            <DropdownMenuItem variant="destructive" onClick={() => { setCancelTarget(s); openModal("cancel") }}>
+                              <X className="h-4 w-4" /> Batalkan Sesi
+                            </DropdownMenuItem>
+                          </>
                         ) : s.status === "review" ? (
                           <>
                             <DropdownMenuItem onClick={() => { setApproveTarget(s); openModal("approve") }}>
@@ -389,6 +401,7 @@ function AdminBookingDetail() {
       {modal === "approve" && approveTarget && <ApproveEvidenceDialog session={evOf(approveTarget)} onClose={closeModal} />}
       {modal === "reject" && rejectTarget && <RejectEvidenceDialog session={evOf(rejectTarget)} onClose={closeModal} />}
       {modal === "fee" && feeTarget && <ToggleFeeDialog session={evOf(feeTarget)} onClose={closeModal} />}
+      {modal === "cancel" && cancelTarget && <CancelSessionDialog session={cancelTarget} onClose={closeModal} />}
     </main>
   )
 }

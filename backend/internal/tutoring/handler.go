@@ -279,9 +279,9 @@ func (h *Handler) UpdateSession(c *fiber.Ctx) error {
 	return c.JSON(session)
 }
 
-// CancelSession cancels a scheduled session (teacher only)
+// CancelSession cancels a scheduled session (teacher owner or admin)
 // @Summary      Cancel session
-// @Description  Guru membatalkan sesi yang tidak bisa dihadiri. Invoice tidak berubah.
+// @Description  Guru membatalkan sesi yang tidak bisa dihadiri, atau admin membatalkan sesi terjadwal. Invoice tidak berubah.
 // @Tags         Tutoring
 // @Accept       json
 // @Produce      json
@@ -299,7 +299,7 @@ func (h *Handler) CancelSession(c *fiber.Ctx) error {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
 	}
 	userID := c.Locals("user_id").(uint)
-	session, err := h.svc.CancelSession(uint(id), userID)
+	session, err := h.svc.CancelSession(uint(id), userID, hasRole(c, "admin"))
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
