@@ -72,6 +72,12 @@ export function BookingList() {
     return progressText(list, total)
   }
 
+  const groupPeriod = (group: TutoringListBookingsResponse[]) => {
+    const dates = group.flatMap((b) => sessionsFor(b.id!)).map((s) => s.date!).filter(Boolean).sort()
+    if (dates.length === 0) return group[0].date ?? "—"
+    return dates[0] === dates[dates.length - 1] ? dates[0] : `${dates[0]} – ${dates[dates.length - 1]}`
+  }
+
   return (
     <>
       {/* Desktop table */}
@@ -84,6 +90,7 @@ export function BookingList() {
                 <TableHead>Tipe</TableHead>
                 <TableHead>Tanggal</TableHead>
                 <TableHead>Jam</TableHead>
+                <TableHead>Periode</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="pr-6">Progres</TableHead>
               </TableRow>
@@ -96,13 +103,14 @@ export function BookingList() {
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell className="pr-6"><Skeleton className="h-4 w-16" /></TableCell>
                   </TableRow>
                 ))
               ) : groups.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={7}>
                     <Empty className="border-0 p-8">
                       <EmptyHeader>
                         <EmptyMedia variant="icon"><History /></EmptyMedia>
@@ -124,6 +132,7 @@ export function BookingList() {
                   <TableCell>{modeBadge(group[0].mode)}</TableCell>
                   <TableCell>{group[0].date}</TableCell>
                   <TableCell>{group[0].start_time} - {group[0].end_time}</TableCell>
+                  <TableCell className="tabular-nums">{groupPeriod(group)}</TableCell>
                   <TableCell>{statusBadge(group[0].status!)}</TableCell>
                   <TableCell className="pr-6 tabular-nums">
                     {(() => {
@@ -170,6 +179,7 @@ export function BookingList() {
                         {statusBadge(group[0].status!)}
                       </div>
                       <p className="mt-2 text-sm text-muted-foreground">{group[0].date} · {group[0].start_time} - {group[0].end_time}</p>
+                      <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">Periode {groupPeriod(group)}</p>
                       {(() => {
                         const label = groupProgress(group)
                         return label ? <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{label}</p> : null
