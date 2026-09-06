@@ -1158,6 +1158,7 @@ func (s *Service) AssignTeacher(id, teacherID uint) (*AssignTeacherResponse, err
 			if err := tx.Model(&models.Booking{}).Where("id = ?", b.ID).Update("status", "confirmed").Error; err != nil {
 				return err
 			}
+			b.TeacherID = &teacherID
 			if err := s.createSessionsAndInvoice(tx, b); err != nil {
 				return err
 			}
@@ -1173,6 +1174,235 @@ func (s *Service) AssignTeacher(id, teacherID uint) (*AssignTeacherResponse, err
 		return nil, err
 	}
 	r := newAssignTeacherResponse(*updated)
+	return &r, nil
+}
+
+// AdminReassignTeacher memindahkan sisa booking ke guru lain (mis. guru
+// berhalangan). Sesi terjadwal seluruh anggota grup ikut pindah; sesi selesai,
+// menunggu validasi & batal tetap milik guru lama (fee aman). Murid & kedua
+// guru diberi tahu.
+func (s *Service) AdminReassignTeacher(id, teacherID uint) (*ReassignTeacherResponse, error) {
+	booking, err := s.repo.GetBooking(id)
+	if err != nil {
+		return nil, errors.New("booking tidak ditemukan")
+	}
+	if booking.TeacherID == nil {
+		return nil, errors.New("booking belum punya guru, pakai assign guru")
+	}
+	if *booking.TeacherID == teacherID {
+		return nil, errors.New("sudah dipegang guru ini")
+	}
+	if booking.Status == "cancelled" || booking.Status == "rejected" {
+		return nil, errors.New("booking sudah selesai diproses")
+	}
+	oldTeacherID := *booking.TeacherID
+	if err := s.teacherTeachesSubject(teacherID, booking.SubjectID); err != nil {
+		return nil, err
+	}
+	targets := []models.Booking{*booking}
+	if booking.GroupToken != "" {
+		group, err := s.repo.ListBookingsByGroupToken(booking.GroupToken)
+		if err != nil {
+			return nil, err
+		}
+		targets = group
+	}
+	// kumpulkan sisa sesi terjadwal + validasi bentrok guru & murid baru.
+	type slot struct {
+		sessionID uint
+		bookingID uint
+		studentID uint
+		date      string
+		start     string
+		end       string
+	}
+	var remaining []slot
+	for _, t := range targets {
+		sessions, err := s.repo.ListSessionsByBooking(t.ID)
+		if err != nil {
+			return nil, err
+		}
+		for _, sess := range sessions {
+			if sess.Status != "scheduled" {
+				continue
+			}
+			if err := s.checkTeacherConflict(teacherID, sess.Date, sess.StartTime, sess.EndTime, ""); err != nil {
+				return nil, err
+			}
+			conflict, err := s.repo.SessionConflict(teacherID, sess.Date, sess.StartTime, sess.EndTime, sess.ID)
+			if err != nil {
+				return nil, err
+			}
+			if conflict {
+				return nil, errors.New("guru sudah memiliki sesi pada jam tersebut")
+			}
+			studentID := t.StudentID
+			if sess.Booking != nil {
+				studentID = sess.Booking.StudentID
+			}
+			if err := s.checkStudentConflict(studentID, sess.Date, sess.StartTime, sess.EndTime, 1, t.ID, sess.ID); err != nil {
+				return nil, err
+			}
+			remaining = append(remaining, slot{sessionID: sess.ID, bookingID: t.ID, studentID: studentID, date: sess.Date, start: sess.StartTime, end: sess.EndTime})
+		}
+	}
+	var newTeacher models.User
+	if err := s.db.First(&newTeacher, teacherID).Error; err != nil {
+		return nil, errors.New("guru tidak ditemukan")
+	}
+	if len(remaining) == 0 && booking.Status == "confirmed" {
+		return nil, errors.New("tidak ada sesi tersisa untuk dialihkan")
+	}
+	oldTeacherName := ""
+	if booking.Teacher != nil {
+		oldTeacherName = booking.Teacher.Name
+	}
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		for _, t := range targets {
+			if err := tx.Model(&models.Booking{}).Where("id = ?", t.ID).Update("teacher_id", teacherID).Error; err != nil {
+				return err
+			}
+		}
+		for _, r := range remaining {
+			if err := tx.Model(&models.TutoringSession{}).Where("id = ?", r.sessionID).Update("teacher_id", teacherID).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if s.notifSvc != nil {
+		s.notifSvc.Notify(oldTeacherID, "Booking dialihkan",
+			fmt.Sprintf("Booking %s %s-%s dialihkan ke guru lain", booking.Date, booking.StartTime, booking.EndTime),
+			"tutoring", "/dashboard/tutoring")
+		s.notifSvc.Notify(teacherID, "Kamu dapat alihan les",
+			fmt.Sprintf("Kamu dialihkan mengajar les mulai %s %s-%s", booking.Date, booking.StartTime, booking.EndTime),
+			"tutoring", "/dashboard/tutoring")
+		seen := map[uint]bool{}
+		for _, t := range targets {
+			if seen[t.StudentID] {
+				continue
+			}
+			seen[t.StudentID] = true
+			s.notifSvc.Notify(t.StudentID, "Guru les diganti",
+				fmt.Sprintf("Mulai %s gurumu digantikan %s (sebelumnya %s)", booking.Date, newTeacher.Name, oldTeacherName),
+				"tutoring", "/dashboard/tutoring")
+		}
+	}
+	updated, err := s.repo.GetBooking(id)
+	if err != nil {
+		return nil, err
+	}
+	r := newReassignTeacherResponse(*updated)
+	return &r, nil
+}
+
+// teacherTeachesSubject memastikan guru mengajar mapel tersebut.
+func (s *Service) teacherTeachesSubject(teacherID, subjectID uint) error {
+	teachers, err := s.repo.ListTeachersBySubject(subjectID)
+	if err != nil {
+		return err
+	}
+	for _, t := range teachers {
+		if t.ID == teacherID {
+			return nil
+		}
+	}
+	return errors.New("guru tidak mengajar mata pelajaran ini")
+}
+
+// AdminSwapSessionTeacher mengganti guru 1 sesi terjadwal (tukar jaga),
+// mis. guru berhalangan 1x lalu balik lagi. Booking tidak berubah.
+// Segrup diganti serentak (sesi se-token tanggal sama). Sesi selesai,
+// menunggu validasi & batal tidak bisa diganti.
+func (s *Service) AdminSwapSessionTeacher(sessionID, teacherID uint) (*UpdateSessionResponse, error) {
+	session, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, errors.New("sesi tidak ditemukan")
+	}
+	if session.Status != "scheduled" {
+		return nil, errors.New("hanya sesi terjadwal yang bisa diganti gurunya")
+	}
+	if session.Booking == nil {
+		return nil, errors.New("sesi tidak ditemukan")
+	}
+	curID := session.TeacherID
+	if curID == nil {
+		curID = session.Booking.TeacherID
+	}
+	if curID != nil && *curID == teacherID {
+		return nil, errors.New("sudah dipegang guru ini")
+	}
+	if err := s.teacherTeachesSubject(teacherID, session.Booking.SubjectID); err != nil {
+		return nil, err
+	}
+	if err := s.checkTeacherConflict(teacherID, session.Date, session.StartTime, session.EndTime, ""); err != nil {
+		return nil, err
+	}
+	conflict, err := s.repo.SessionConflict(teacherID, session.Date, session.StartTime, session.EndTime, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	if conflict {
+		return nil, errors.New("guru sudah memiliki sesi pada jam tersebut")
+	}
+	targets := []uint{sessionID}
+	students := []uint{session.Booking.StudentID}
+	if session.Booking.GroupToken != "" {
+		sibs, err := s.repo.ListScheduledGroupSessions(session.Booking.GroupToken, session.Date)
+		if err != nil {
+			return nil, err
+		}
+		targets = targets[:0]
+		students = students[:0]
+		seen := map[uint]bool{}
+		for _, sib := range sibs {
+			targets = append(targets, sib.ID)
+			sid := session.Booking.StudentID
+			if sib.Booking != nil {
+				sid = sib.Booking.StudentID
+			}
+			if !seen[sid] {
+				seen[sid] = true
+				students = append(students, sid)
+			}
+		}
+		if len(targets) == 0 {
+			return nil, errors.New("sesi tidak ditemukan")
+		}
+	}
+	var newTeacher models.User
+	if err := s.db.First(&newTeacher, teacherID).Error; err != nil {
+		return nil, errors.New("guru tidak ditemukan")
+	}
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		return tx.Model(&models.TutoringSession{}).Where("id IN ?", targets).Update("teacher_id", teacherID).Error
+	})
+	if err != nil {
+		return nil, err
+	}
+	if s.notifSvc != nil {
+		s.notifSvc.Notify(teacherID, "Kamu dapat ganti mengajar",
+			fmt.Sprintf("Kamu menggantikan mengajar sesi %s %s-%s", session.Date, session.StartTime, session.EndTime),
+			"tutoring", "/dashboard/tutoring")
+		for _, sid := range students {
+			s.notifSvc.Notify(sid, "Guru sesi diganti",
+				fmt.Sprintf("Sesi %s %s-%s diajar %s (pengganti)", session.Date, session.StartTime, session.EndTime, newTeacher.Name),
+				"tutoring", "/dashboard/tutoring")
+		}
+		if curID != nil {
+			s.notifSvc.Notify(*curID, "Sesi dialihkan",
+				fmt.Sprintf("Sesi %s %s-%s dialihkan ke %s", session.Date, session.StartTime, session.EndTime, newTeacher.Name),
+				"tutoring", "/dashboard/tutoring")
+		}
+	}
+	updated, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	r := newUpdateSessionResponse(*updated)
 	return &r, nil
 }
 
@@ -1253,6 +1483,7 @@ func (s *Service) createSessionsAndInvoice(db *gorm.DB, booking models.Booking) 
 			se := ss + sessionDurationMinutes
 			sessions = append(sessions, models.TutoringSession{
 				BookingID: booking.ID,
+				TeacherID: booking.TeacherID,
 				Date:      d.Format("2006-01-02"),
 				StartTime: minutesToHHMM(ss),
 				EndTime:   minutesToHHMM(se),
@@ -1319,14 +1550,22 @@ func (s *Service) ListMySessions(studentID uint) ([]ListSessionsResponse, error)
 
 const evidenceWindowDays = 7
 
-// getOwnedSession mengambil sesi milik guru dan memastikan guru pemilik booking-nya.
+// getOwnedSession mengambil sesi milik guru dan memastikan guru pemilik sesi ini.
+// Kepemilikan ikut teacher_id per sesi (fallback guru booking utk data lama).
 func (s *Service) getOwnedSession(sessionID, teacherID uint) (*models.TutoringSession, error) {
 	session, err := s.repo.GetSession(sessionID)
 	if err != nil {
 		return nil, errors.New("sesi tidak ditemukan")
 	}
-	if session.Booking == nil || session.Booking.TeacherID == nil || *session.Booking.TeacherID != teacherID {
+	ownerID := session.TeacherID
+	if ownerID == nil && session.Booking != nil {
+		ownerID = session.Booking.TeacherID
+	}
+	if ownerID == nil || *ownerID != teacherID {
 		return nil, errors.New("bukan guru pemilik sesi ini")
+	}
+	if session.Booking == nil {
+		return nil, errors.New("sesi tidak ditemukan")
 	}
 	return session, nil
 }

@@ -637,6 +637,7 @@ export type TutoringAdminListEvidenceResponse = {
     fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
+    is_substitute?: boolean;
     mode?: string;
     note?: string;
     overtime_charge?: number;
@@ -661,6 +662,7 @@ export type TutoringAdminListFeesResponse = {
     fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
+    is_substitute?: boolean;
     mode?: string;
     note?: string;
     overtime_charge?: number;
@@ -709,6 +711,7 @@ export type TutoringAdminReviewEvidenceResponse = {
     fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
+    is_substitute?: boolean;
     mode?: string;
     note?: string;
     overtime_charge?: number;
@@ -733,6 +736,7 @@ export type TutoringAdminToggleFeePaidResponse = {
     fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
+    is_substitute?: boolean;
     mode?: string;
     note?: string;
     overtime_charge?: number;
@@ -805,6 +809,7 @@ export type TutoringCancelSessionResponse = {
     fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
+    is_substitute?: boolean;
     mode?: string;
     note?: string;
     overtime_charge?: number;
@@ -910,6 +915,7 @@ export type TutoringListSessionsResponse = {
     fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
+    is_substitute?: boolean;
     mode?: string;
     note?: string;
     overtime_charge?: number;
@@ -951,6 +957,28 @@ export type TutoringMyEarningsResponse = {
     total_sessions?: number;
 };
 
+export type TutoringReassignTeacherResponse = {
+    class_id?: number;
+    created_at?: string;
+    date?: string;
+    end_time?: string;
+    group_token?: string;
+    id?: number;
+    invoice_status?: string;
+    is_organizer?: boolean;
+    mode?: string;
+    note?: string;
+    session_count?: number;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    subject_id?: number;
+    subject_name?: string;
+    teacher_id?: number;
+    teacher_name?: string;
+};
+
 export type TutoringRejectBookingResponse = {
     message?: string;
 };
@@ -974,6 +1002,7 @@ export type TutoringReportOvertimeResponse = {
     fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
+    is_substitute?: boolean;
     mode?: string;
     note?: string;
     overtime_charge?: number;
@@ -1046,6 +1075,7 @@ export type TutoringUpdateSessionResponse = {
     fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
+    is_substitute?: boolean;
     mode?: string;
     note?: string;
     overtime_charge?: number;
@@ -1070,6 +1100,7 @@ export type TutoringUploadSessionEvidenceResponse = {
     fee_taken?: boolean;
     id?: number;
     invoice_paid?: boolean;
+    is_substitute?: boolean;
     mode?: string;
     note?: string;
     overtime_charge?: number;
@@ -2936,6 +2967,39 @@ export type PatchAdminTutoringBookingsByIdAssignResponses = {
 
 export type PatchAdminTutoringBookingsByIdAssignResponse = PatchAdminTutoringBookingsByIdAssignResponses[keyof PatchAdminTutoringBookingsByIdAssignResponses];
 
+export type PatchAdminTutoringBookingsByIdReassignData = {
+    /**
+     * Guru baru
+     */
+    body: TutoringAssignTeacherRequest;
+    path: {
+        /**
+         * Booking ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/tutoring/bookings/{id}/reassign';
+};
+
+export type PatchAdminTutoringBookingsByIdReassignErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PatchAdminTutoringBookingsByIdReassignError = PatchAdminTutoringBookingsByIdReassignErrors[keyof PatchAdminTutoringBookingsByIdReassignErrors];
+
+export type PatchAdminTutoringBookingsByIdReassignResponses = {
+    /**
+     * OK
+     */
+    200: TutoringReassignTeacherResponse;
+};
+
+export type PatchAdminTutoringBookingsByIdReassignResponse = PatchAdminTutoringBookingsByIdReassignResponses[keyof PatchAdminTutoringBookingsByIdReassignResponses];
+
 export type PostAdminTutoringBookingsByIdRejectData = {
     body?: never;
     path: {
@@ -3118,6 +3182,39 @@ export type GetAdminTutoringReportResponses = {
 };
 
 export type GetAdminTutoringReportResponse = GetAdminTutoringReportResponses[keyof GetAdminTutoringReportResponses];
+
+export type PatchAdminTutoringSessionsByIdTeacherData = {
+    /**
+     * Guru baru
+     */
+    body: TutoringAssignTeacherRequest;
+    path: {
+        /**
+         * Session ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/tutoring/sessions/{id}/teacher';
+};
+
+export type PatchAdminTutoringSessionsByIdTeacherErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PatchAdminTutoringSessionsByIdTeacherError = PatchAdminTutoringSessionsByIdTeacherErrors[keyof PatchAdminTutoringSessionsByIdTeacherErrors];
+
+export type PatchAdminTutoringSessionsByIdTeacherResponses = {
+    /**
+     * OK
+     */
+    200: TutoringUpdateSessionResponse;
+};
+
+export type PatchAdminTutoringSessionsByIdTeacherResponse = PatchAdminTutoringSessionsByIdTeacherResponses[keyof PatchAdminTutoringSessionsByIdTeacherResponses];
 
 export type GetAdminUsersData = {
     body?: never;

@@ -9,6 +9,8 @@ type TutoringSession struct {
 	PublicID    string   `gorm:"size:36;uniqueIndex;not null" json:"public_id"`
 	BookingID  uint     `gorm:"not null;index" json:"booking_id"`
 	Booking    *Booking `gorm:"foreignKey:BookingID" json:"booking,omitempty"`
+	TeacherID  *uint    `gorm:"index" json:"teacher_id"` // guru pengajar sesi ini (bisa beda dgn guru booking bila dialihkan)
+	Teacher    *User    `gorm:"foreignKey:TeacherID" json:"teacher,omitempty"`
 	Date       string   `gorm:"size:10;not null" json:"date"`                    // "YYYY-MM-DD"
 	StartTime  string   `gorm:"size:5;not null" json:"start_time"`               // "HH:mm"
 	EndTime    string   `gorm:"size:5;not null" json:"end_time"`                 // "HH:mm"

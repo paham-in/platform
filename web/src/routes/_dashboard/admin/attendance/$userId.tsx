@@ -7,9 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { getAdminTutoringEvidenceOptions, getAdminUsersOptions, getAdminTutoringReportOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { Check, CheckCircle2, ClipboardCheck, MoreVertical, X, XCircle } from "lucide-react"
+import { Check, CheckCircle2, ClipboardCheck, MoreVertical, X, XCircle, UserCog } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { ApproveEvidenceDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
+import { ApproveEvidenceDialog, RejectEvidenceDialog, ToggleFeeDialog, SwapSessionTeacherDialog } from "@/components/admin/attendance"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import { usePageTitle } from "@/components/page-title"
 import { useState, useEffect } from "react"
@@ -50,11 +50,13 @@ function AttendanceDetail() {
   const [approveTarget, setApproveTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [rejectTarget, setRejectTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [feeTarget, setFeeTarget] = useState<TutoringListSessionsResponse | null>(null)
+  const [swapTarget, setSwapTarget] = useState<TutoringListSessionsResponse | null>(null)
 
   useEffect(() => {
     if (modal !== "approve") setApproveTarget(null)
     if (modal !== "reject") setRejectTarget(null)
     if (modal !== "fee") setFeeTarget(null)
+    if (modal !== "swap") setSwapTarget(null)
   }, [modal])
 
   const user = users.find((u) => u.id === Number(userId))
@@ -160,7 +162,12 @@ function AttendanceDetail() {
                 </TableRow>
               ) : studentSessions.map((s) => (
                 <TableRow key={s.id}>
-                  <TableCell className="pl-6 font-medium">{s.teacher_name ?? "—"}</TableCell>
+                  <TableCell className="pl-6">
+                    <span className="font-medium">{s.teacher_name ?? "—"}</span>
+                    {s.is_substitute ? (
+                      <span className="ml-1.5 rounded-full bg-cyan-100 px-2 py-0.5 text-[11px] font-medium text-cyan-700">Pengganti</span>
+                    ) : null}
+                  </TableCell>
                   <TableCell>{s.date}</TableCell>
                   <TableCell className="tabular-nums">
                     {s.start_time} – {s.end_time}
@@ -199,14 +206,18 @@ function AttendanceDetail() {
                           <Button
                             variant="outline"
                             size="icon"
-                            disabled={s.status !== "review" && !(s.status === "done" && s.invoice_paid)}
+                            disabled={s.status !== "review" && s.status !== "scheduled" && !(s.status === "done" && s.invoice_paid)}
                           />
                         }
                       >
                         <MoreVertical className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {s.status === "review" ? (
+                        {s.status === "scheduled" ? (
+                          <DropdownMenuItem onClick={() => { setSwapTarget(s); openModal("swap") }}>
+                            <UserCog className="h-4 w-4" /> Ganti Guru
+                          </DropdownMenuItem>
+                        ) : s.status === "review" ? (
                           <>
                             <DropdownMenuItem onClick={() => { setApproveTarget(s); openModal("approve") }}>
                               <Check className="h-4 w-4 text-green-600" /> Setujui
@@ -234,6 +245,7 @@ function AttendanceDetail() {
       {modal === "approve" && approveTarget && <ApproveEvidenceDialog session={approveTarget} onClose={closeModal} />}
       {modal === "reject" && rejectTarget && <RejectEvidenceDialog session={rejectTarget} onClose={closeModal} />}
       {modal === "fee" && feeTarget && <ToggleFeeDialog session={feeTarget} onClose={closeModal} />}
+      {modal === "swap" && swapTarget && <SwapSessionTeacherDialog session={swapTarget} onClose={closeModal} />}
     </main>
   )
 }

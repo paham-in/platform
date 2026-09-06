@@ -2622,6 +2622,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/tutoring/bookings/{id}/reassign": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin mengalihkan sisa sesi terjadwal ke guru lain. Sesi selesai/menunggu validasi/batal tetap milik guru lama.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "Reassign booking to another teacher",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Booking ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Guru baru",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.AssignTeacherRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ReassignTeacherResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/tutoring/bookings/{id}/reject": {
             "post": {
                 "security": [
@@ -2911,6 +2963,58 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/tutoring.AdminListReportResponse"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/tutoring/sessions/{id}/teacher": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Admin mengganti guru satu sesi terjadwal (tukar jaga). Segrup diganti serentak. Booking tidak berubah.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "Swap session teacher",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Guru baru",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.AssignTeacherRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.UpdateSessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
                         }
                     }
                 }
@@ -6981,6 +7085,9 @@ const docTemplate = `{
                 "invoice_paid": {
                     "type": "boolean"
                 },
+                "is_substitute": {
+                    "type": "boolean"
+                },
                 "mode": {
                     "type": "string"
                 },
@@ -7047,6 +7154,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "invoice_paid": {
+                    "type": "boolean"
+                },
+                "is_substitute": {
                     "type": "boolean"
                 },
                 "mode": {
@@ -7173,6 +7283,9 @@ const docTemplate = `{
                 "invoice_paid": {
                     "type": "boolean"
                 },
+                "is_substitute": {
+                    "type": "boolean"
+                },
                 "mode": {
                     "type": "string"
                 },
@@ -7239,6 +7352,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "invoice_paid": {
+                    "type": "boolean"
+                },
+                "is_substitute": {
                     "type": "boolean"
                 },
                 "mode": {
@@ -7439,6 +7555,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "invoice_paid": {
+                    "type": "boolean"
+                },
+                "is_substitute": {
                     "type": "boolean"
                 },
                 "mode": {
@@ -7695,6 +7814,9 @@ const docTemplate = `{
                 "invoice_paid": {
                     "type": "boolean"
                 },
+                "is_substitute": {
+                    "type": "boolean"
+                },
                 "mode": {
                     "type": "string"
                 },
@@ -7795,6 +7917,68 @@ const docTemplate = `{
                 }
             }
         },
+        "tutoring.ReassignTeacherResponse": {
+            "type": "object",
+            "properties": {
+                "class_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "group_token": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_status": {
+                    "type": "string"
+                },
+                "is_organizer": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "session_count": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_id": {
+                    "type": "integer"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "subject_id": {
+                    "type": "integer"
+                },
+                "subject_name": {
+                    "type": "string"
+                },
+                "teacher_id": {
+                    "type": "integer"
+                },
+                "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
         "tutoring.RejectBookingResponse": {
             "type": "object",
             "properties": {
@@ -7846,6 +8030,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "invoice_paid": {
+                    "type": "boolean"
+                },
+                "is_substitute": {
                     "type": "boolean"
                 },
                 "mode": {
@@ -8020,6 +8207,9 @@ const docTemplate = `{
                 "invoice_paid": {
                     "type": "boolean"
                 },
+                "is_substitute": {
+                    "type": "boolean"
+                },
                 "mode": {
                     "type": "string"
                 },
@@ -8086,6 +8276,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "invoice_paid": {
+                    "type": "boolean"
+                },
+                "is_substitute": {
                     "type": "boolean"
                 },
                 "mode": {

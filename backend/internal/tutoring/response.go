@@ -86,6 +86,13 @@ func buildBookingItem(b models.Booking) bookingItem {
 	}
 }
 
+// isSubstituteSession menandai sesi yang diajar guru pengganti: guru sesi
+// beda dengan guru booking saat ini. Dipakai badge "Pengganti" di layar.
+func isSubstituteSession(v models.TutoringSession) bool {
+	return v.TeacherID != nil && v.Booking != nil && v.Booking.TeacherID != nil &&
+		*v.TeacherID != *v.Booking.TeacherID
+}
+
 // sessionItem adalah bentuk internal hasil mapping models.TutoringSession.
 // Sama seperti bookingItem: dipakai konstruktor response per handler.
 type sessionItem struct {
@@ -104,6 +111,7 @@ type sessionItem struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	IsSubstitute bool `json:"is_substitute,omitempty"`
 	OvertimeFee float64 `json:"overtime_fee,omitempty"`
 	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
@@ -114,11 +122,15 @@ type sessionItem struct {
 
 func buildSessionItem(v models.TutoringSession) sessionItem {
 	teacherName := ""
+	// nama guru ikut teacher per sesi (fallback guru booking utk data lama).
+	if v.Teacher != nil {
+		teacherName = v.Teacher.Name
+	}
 	studentName := ""
 	mode := ""
 	note := ""
 	if v.Booking != nil {
-		if v.Booking.Teacher != nil {
+		if teacherName == "" && v.Booking.Teacher != nil {
 			teacherName = v.Booking.Teacher.Name
 		}
 		if v.Booking.Student != nil {
@@ -143,6 +155,7 @@ func buildSessionItem(v models.TutoringSession) sessionItem {
 		ActualEndTime: v.ActualEndTime,
 		OvertimeMinutes: v.OvertimeMinutes,
 		ExtraSessions: v.ExtraSessions,
+		IsSubstitute: isSubstituteSession(v),
 		FeePaid:     v.FeePaid,
 		FeeTaken:    v.FeeTaken,
 	}
@@ -353,6 +366,34 @@ func newAssignTeacherResponse(b models.Booking) AssignTeacherResponse {
 	return AssignTeacherResponse(buildBookingItem(b))
 }
 
+//, handler: AdminReassignTeacher (PATCH /admin/tutoring/bookings/:id/reassign)
+
+type ReassignTeacherResponse struct {
+	ID            uint   `json:"id"`
+	TeacherID     *uint  `json:"teacher_id,omitempty"`
+	Teacher       string `json:"teacher_name"`
+	StudentID     uint   `json:"student_id"`
+	Student       string `json:"student_name"`
+	SubjectID     uint   `json:"subject_id"`
+	Subject       string `json:"subject_name"`
+	Date          string `json:"date"`
+	StartTime     string `json:"start_time"`
+	EndTime       string `json:"end_time"`
+	Status        string `json:"status"`
+	Mode          string `json:"mode"`
+	SessionCount  int    `json:"session_count"`
+	GroupToken    string `json:"group_token"`
+	IsOrganizer   bool   `json:"is_organizer"`
+	Note          string `json:"note"`
+	ClassID       *uint  `json:"class_id,omitempty"`
+	CreatedAt     string `json:"created_at"`
+	InvoiceStatus string `json:"invoice_status,omitempty"`
+}
+
+func newReassignTeacherResponse(b models.Booking) ReassignTeacherResponse {
+	return ReassignTeacherResponse(buildBookingItem(b))
+}
+
 //, handler: ListSessions (GET /tutoring/sessions)
 
 type ListSessionsResponse struct {
@@ -371,6 +412,7 @@ type ListSessionsResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	IsSubstitute bool `json:"is_substitute,omitempty"`
 	OvertimeFee float64 `json:"overtime_fee,omitempty"`
 	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
@@ -401,6 +443,7 @@ type UpdateSessionResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	IsSubstitute bool `json:"is_substitute,omitempty"`
 	OvertimeFee float64 `json:"overtime_fee,omitempty"`
 	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
@@ -431,6 +474,7 @@ type CancelSessionResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	IsSubstitute bool `json:"is_substitute,omitempty"`
 	OvertimeFee float64 `json:"overtime_fee,omitempty"`
 	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
@@ -461,6 +505,7 @@ type UploadSessionEvidenceResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	IsSubstitute bool `json:"is_substitute,omitempty"`
 	OvertimeFee float64 `json:"overtime_fee,omitempty"`
 	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
@@ -491,6 +536,7 @@ type ReportOvertimeResponse struct {
 	ActualEndTime   string  `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int     `json:"overtime_minutes,omitempty"`
 	ExtraSessions   int     `json:"extra_sessions,omitempty"`
+	IsSubstitute    bool     `json:"is_substitute,omitempty"`
 	OvertimeFee     float64 `json:"overtime_fee,omitempty"`
 	OvertimeCharge  float64 `json:"overtime_charge,omitempty"`
 	FeePaid         bool    `json:"fee_paid,omitempty"`
@@ -521,6 +567,7 @@ type AdminListEvidenceResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	IsSubstitute bool `json:"is_substitute,omitempty"`
 	OvertimeFee float64 `json:"overtime_fee,omitempty"`
 	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
@@ -551,6 +598,7 @@ type AdminReviewEvidenceResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	IsSubstitute bool `json:"is_substitute,omitempty"`
 	OvertimeFee float64 `json:"overtime_fee,omitempty"`
 	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
@@ -744,6 +792,7 @@ type AdminListFeesResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	IsSubstitute bool `json:"is_substitute,omitempty"`
 	OvertimeFee float64 `json:"overtime_fee,omitempty"`
 	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`
@@ -774,6 +823,7 @@ type AdminToggleFeePaidResponse struct {
 	ActualEndTime string `json:"actual_end_time,omitempty"`
 	OvertimeMinutes int `json:"overtime_minutes,omitempty"`
 	ExtraSessions int `json:"extra_sessions,omitempty"`
+	IsSubstitute bool `json:"is_substitute,omitempty"`
 	OvertimeFee float64 `json:"overtime_fee,omitempty"`
 	OvertimeCharge float64 `json:"overtime_charge,omitempty"`
 	FeePaid     bool    `json:"fee_paid,omitempty"`

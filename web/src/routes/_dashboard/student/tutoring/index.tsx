@@ -322,7 +322,12 @@ function BookingDetailDialog({ booking, sessions, className, onClose }: {
                         {" · "}
                         {s.start_time} - {s.end_time}
                       </p>
-                      <div className="mt-1">{sessionStatusBadge(s.status)}</div>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        {sessionStatusBadge(s.status)}
+                        {s.is_substitute ? (
+                          <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[11px] font-medium text-cyan-700">Pengganti</span>
+                        ) : null}
+                      </div>
                       {(s.overtime_minutes ?? 0) > 0 && (
                         <p className="mt-1 text-xs font-medium text-amber-600">
                           +{s.overtime_minutes} mnt (s.d. {s.actual_end_time}) · +{s.extra_sessions ?? 0} sesi
@@ -548,7 +553,12 @@ function StudentTutoringIndex() {
                   </TableRow>
                 ) : upcomingSessions.map((s) => (
                   <TableRow key={s.id}>
-                    <TableCell className="pl-6 font-medium">{s.teacher_name}</TableCell>
+                    <TableCell className="pl-6">
+                      <span className="font-medium">{s.teacher_name}</span>
+                      {s.is_substitute ? (
+                        <span className="ml-1.5 rounded-full bg-cyan-100 px-2 py-0.5 text-[11px] font-medium text-cyan-700">Pengganti</span>
+                      ) : null}
+                    </TableCell>
                     <TableCell>{s.date}</TableCell>
                     <TableCell>{s.start_time} - {s.end_time}</TableCell>
                     <TableCell className="pr-6">
@@ -580,7 +590,12 @@ function StudentTutoringIndex() {
                 {upcomingSessions.map((s) => (
                   <div key={s.id} className="flex items-start justify-between gap-3 p-4">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium">{s.teacher_name}</p>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <p className="text-sm font-medium">{s.teacher_name}</p>
+                        {s.is_substitute ? (
+                          <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[11px] font-medium text-cyan-700">Pengganti</span>
+                        ) : null}
+                      </div>
                       <p className="mt-0.5 text-sm text-muted-foreground">{s.date} · {s.start_time} - {s.end_time}</p>
                     </div>
                     <span className="shrink-0 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Terjadwal</span>

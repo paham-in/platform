@@ -614,6 +614,62 @@ func (h *Handler) AdminRejectBooking(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
+// AdminReassignTeacher memindahkan sisa booking ke guru lain (admin)
+// @Summary      Reassign booking to another teacher
+// @Description  Admin mengalihkan sisa sesi terjadwal ke guru lain. Sesi selesai/menunggu validasi/batal tetap milik guru lama.
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Booking ID"
+// @Param        body body AssignTeacherRequest true "Guru baru"
+// @Success      200 {object} ReassignTeacherResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/tutoring/bookings/{id}/reassign [patch]
+func (h *Handler) AdminReassignTeacher(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input AssignTeacherRequest
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	booking, err := h.svc.AdminReassignTeacher(uint(id), input.TeacherID)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(booking)
+}
+
+// AdminSwapSessionTeacher mengganti guru 1 sesi terjadwal (admin)
+// @Summary      Swap session teacher
+// @Description  Admin mengganti guru satu sesi terjadwal (tukar jaga). Segrup diganti serentak. Booking tidak berubah.
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Session ID"
+// @Param        body body AssignTeacherRequest true "Guru baru"
+// @Success      200 {object} UpdateSessionResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/tutoring/sessions/{id}/teacher [patch]
+func (h *Handler) AdminSwapSessionTeacher(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input AssignTeacherRequest
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	session, err := h.svc.AdminSwapSessionTeacher(uint(id), input.TeacherID)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(session)
+}
+
 // MyEarnings returns teacher's done sessions + fee estimate (teacher)
 // @Summary      My earnings
 // @Description  Riwayat sesi selesai milik guru + estimasi fee (persen dari harga sesi).
@@ -742,6 +798,8 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage, 
 	admin.Patch("/tutoring/bookings/:id/schedule", h.AdminRescheduleBooking)
 	admin.Post("/tutoring/bookings/:id/reject", h.AdminRejectBooking)
 	admin.Patch("/tutoring/bookings/:id/assign", h.AssignTeacher)
+	admin.Patch("/tutoring/bookings/:id/reassign", h.AdminReassignTeacher)
+	admin.Patch("/tutoring/sessions/:id/teacher", h.AdminSwapSessionTeacher)
 	admin.Get("/tutoring/evidence", h.AdminListEvidence)
 	admin.Patch("/tutoring/evidence/:id", h.AdminReviewEvidence)
 	admin.Get("/tutoring/report", h.AdminListReport)

@@ -106,6 +106,7 @@ func (r *Repository) ListBusyTeacherIDs(date, startTime, endTime string) (map[ui
 	}
 
 	// sesi yang sudah di-expand (confirmed / admin) di tanggal persis.
+	// Guru ikut teacher_id per sesi.
 	type sessionRow struct {
 		TeacherID *uint
 		StartTime string
@@ -113,8 +114,7 @@ func (r *Repository) ListBusyTeacherIDs(date, startTime, endTime string) (map[ui
 	}
 	var rows []sessionRow
 	if err := r.db.Table("tutoring_sessions").
-		Select("bookings.teacher_id AS teacher_id, tutoring_sessions.start_time AS start_time, tutoring_sessions.end_time AS end_time").
-		Joins("JOIN bookings ON bookings.id = tutoring_sessions.booking_id").
+		Select("tutoring_sessions.teacher_id AS teacher_id, tutoring_sessions.start_time AS start_time, tutoring_sessions.end_time AS end_time").
 		Where("tutoring_sessions.date = ? AND tutoring_sessions.status <> ?", date, "cancelled").
 		Scan(&rows).Error; err != nil {
 		return nil, err
@@ -272,12 +272,14 @@ func (r *Repository) CreateSessions(sessions []models.TutoringSession) error {
 	return r.db.Create(&sessions).Error
 }
 
-// ListSessionsByTeacher mengembalikan semua sesi dari booking milik guru.
+// ListSessionsByTeacher mengembalikan semua sesi yang diajar guru tersebut
+// (ikut teacher_id per sesi, bukan per booking).
 func (r *Repository) ListSessionsByTeacher(teacherID uint) ([]models.TutoringSession, error) {
 	var sessions []models.TutoringSession
 	if err := r.db.
 		Joins("JOIN bookings ON bookings.id = tutoring_sessions.booking_id").
-		Where("bookings.teacher_id = ?", teacherID).
+		Where("tutoring_sessions.teacher_id = ?", teacherID).
+		Preload("Teacher").
 		Preload("Booking.Student").
 		Preload("Booking.Teacher").
 		Order("tutoring_sessions.date, tutoring_sessions.start_time").
@@ -294,6 +296,7 @@ func (r *Repository) ListSessionsByUser(studentID uint) ([]models.TutoringSessio
 	if err := r.db.
 		Joins("JOIN bookings ON bookings.id = tutoring_sessions.booking_id").
 		Where("bookings.student_id = ?", studentID).
+		Preload("Teacher").
 		Preload("Booking.Teacher").
 		Order("tutoring_sessions.date, tutoring_sessions.start_time").
 		Find(&sessions).Error; err != nil {
@@ -313,6 +316,7 @@ func (r *Repository) ListSessionsDone() ([]models.TutoringSession, error) {
 	var sessions []models.TutoringSession
 	if err := r.db.
 		Where("status = ?", "done").
+		Preload("Teacher").
 		Preload("Booking.Student").
 		Preload("Booking.Teacher").
 		Preload("Booking.Invoice").
@@ -330,7 +334,7 @@ func (r *Repository) ListAllBookingsWithSessions() ([]models.Booking, error) {
 	if err := r.db.
 		Preload("Teacher").
 		Preload("Student").
-		Preload("Sessions").
+		Preload("Sessions.Teacher").
 		Preload("Invoice").
 		Order("created_at desc").
 		Find(&bookings).Error; err != nil {
@@ -376,7 +380,7 @@ func (r *Repository) MarkSessionsTaken(teacherID uint, ids []uint, taken bool) e
 	}
 	return r.db.
 		Model(&models.TutoringSession{}).
-		Where("booking_id IN (SELECT id FROM bookings WHERE teacher_id = ?)", teacherID).
+		Where("tutoring_sessions.teacher_id = ?", teacherID).
 		Where("id IN ? AND status = ? AND fee_paid = ?", ids, "done", true).
 		Update("fee_taken", taken).Error
 }
@@ -386,7 +390,7 @@ func (r *Repository) MarkSessionsTaken(teacherID uint, ids []uint, taken bool) e
 // mencocokkan nama/email murid.
 func (r *Repository) ListSessionsWithEvidence(status, search string) ([]models.TutoringSession, error) {
 	var sessions []models.TutoringSession
-	q := r.db.Where("evidence_url <> ''").Preload("Booking.Student").Preload("Booking.Teacher").Preload("Booking.Invoice")
+	q := r.db.Where("evidence_url <> ''").Preload("Teacher").Preload("Booking.Student").Preload("Booking.Teacher").Preload("Booking.Invoice")
 	if status != "" {
 		q = q.Where("status = ?", status)
 	}
@@ -400,10 +404,38 @@ func (r *Repository) ListSessionsWithEvidence(status, search string) ([]models.T
 	return sessions, nil
 }
 
+// ListSessionsByBooking mengembalikan semua sesi satu booking + muridnya,
+// urut tanggal. Dipakai alihkan guru (sisa sesi terjadwal ikut pindah).
+func (r *Repository) ListSessionsByBooking(bookingID uint) ([]models.TutoringSession, error) {
+	var sessions []models.TutoringSession
+	if err := r.db.
+		Where("booking_id = ?", bookingID).
+		Preload("Booking").
+		Order("date, start_time").
+		Find(&sessions).Error; err != nil {
+		return nil, err
+	}
+	return sessions, nil
+}
+
+// ListScheduledGroupSessions mengembalikan sesi terjadwal se-grup (token sama)
+// pada tanggal tertentu + muridnya. Dipakai ganti guru 1 sesi segrup.
+func (r *Repository) ListScheduledGroupSessions(groupToken, date string) ([]models.TutoringSession, error) {
+	var sessions []models.TutoringSession
+	if err := r.db.
+		Joins("JOIN bookings ON bookings.id = tutoring_sessions.booking_id").
+		Where("bookings.group_token = ? AND tutoring_sessions.date = ? AND tutoring_sessions.status = ?", groupToken, date, "scheduled").
+		Preload("Booking").
+		Find(&sessions).Error; err != nil {
+		return nil, err
+	}
+	return sessions, nil
+}
+
 // GetSession mengambil satu sesi pertemuan beserta booking guru/murid.
 func (r *Repository) GetSession(id uint) (*models.TutoringSession, error) {
 	var s models.TutoringSession
-	if err := r.db.Preload("Booking.Teacher").Preload("Booking.Student").First(&s, id).Error; err != nil {
+	if err := r.db.Preload("Teacher").Preload("Booking.Teacher").Preload("Booking.Student").First(&s, id).Error; err != nil {
 		return nil, err
 	}
 	return &s, nil
@@ -411,11 +443,11 @@ func (r *Repository) GetSession(id uint) (*models.TutoringSession, error) {
 
 // SessionConflict memeriksa bentrok jam guru pada tanggal tertentu,
 // mengabaikan sesi yang sama (excludeSessionID) dan sesi yang dibatalkan.
+// Guru ikut teacher_id per sesi (bukan per booking).
 func (r *Repository) SessionConflict(teacherID uint, date, startTime, endTime string, excludeSessionID uint) (bool, error) {
 	var sessions []models.TutoringSession
 	if err := r.db.
-		Joins("JOIN bookings ON bookings.id = tutoring_sessions.booking_id").
-		Where("bookings.teacher_id = ? AND tutoring_sessions.date = ? AND tutoring_sessions.status <> ? AND tutoring_sessions.id <> ?",
+		Where("teacher_id = ? AND date = ? AND status <> ? AND id <> ?",
 			teacherID, date, "cancelled", excludeSessionID).
 		Find(&sessions).Error; err != nil {
 		return false, err
