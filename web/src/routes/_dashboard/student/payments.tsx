@@ -205,11 +205,6 @@ function StudentPayments() {
                             Pending
                           </span>
                         )}
-                        {(inv.refund_amount ?? 0) > 0 && (
-                          <p className="mt-1 text-xs font-medium text-amber-600">
-                            − refund Rp {(inv.refund_amount ?? 0).toLocaleString("id-ID")}
-                          </p>
-                        )}
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate text-muted-foreground">
                         {inv.note || "-"}

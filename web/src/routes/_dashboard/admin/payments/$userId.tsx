@@ -384,6 +384,7 @@ function PaymentsDetail() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{inv.created_at}</TableCell>
                     <TableCell className="pr-6 text-right">
+                      {inv.status === "paid" || inv.status === "pending" ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
                           <MoreVertical className="h-4 w-4" />
@@ -395,7 +396,7 @@ function PaymentsDetail() {
                               {inv.status === "paid" ? "Pending" : "Lunas"}
                             </DropdownMenuItem>
                           ) : null}
-                          {(inv.refund_amount ?? 0) > 0 ? (
+                          {(inv.refund_amount ?? 0) > 0 && inv.status === "paid" ? (
                             <DropdownMenuItem onClick={() => { setRefundTarget(inv); openModal("refund") }}>
                               <HandCoins className="h-4 w-4" />
                               {inv.refund_done ? "Batalkan Tanda Refund" : "Tandai Sudah Direfund"}
@@ -408,6 +409,7 @@ function PaymentsDetail() {
                           ) : null}
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      ) : null}
                     </TableCell>
                   </TableRow>
                 ))
@@ -489,6 +491,7 @@ function PaymentsDetail() {
                     <p className="mt-1 truncate text-sm text-muted-foreground">{inv.note || "—"}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">{inv.created_at}</p>
                   </div>
+                  {inv.status === "paid" || inv.status === "pending" ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="shrink-0" />}>
                       <MoreVertical className="h-4 w-4" />
@@ -500,7 +503,7 @@ function PaymentsDetail() {
                           {inv.status === "paid" ? "Pending" : "Lunas"}
                         </DropdownMenuItem>
                       ) : null}
-                      {(inv.refund_amount ?? 0) > 0 ? (
+                      {(inv.refund_amount ?? 0) > 0 && inv.status === "paid" ? (
                         <DropdownMenuItem onClick={() => { setRefundTarget(inv); openModal("refund") }}>
                           <HandCoins className="h-4 w-4" />
                           {inv.refund_done ? "Batalkan Tanda Refund" : "Tandai Sudah Direfund"}
@@ -513,6 +516,7 @@ function PaymentsDetail() {
                       ) : null}
                     </DropdownMenuContent>
                   </DropdownMenu>
+                  ) : null}
                 </div>
               ))}
             </div>
