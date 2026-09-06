@@ -6,7 +6,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox"
 import { Spinner } from "@/components/ui/spinner"
 import {
+  getAdminTutoringBookingsByIdSessionsQueryKey,
   getAdminTutoringBookingsQueryKey,
+  getAdminTutoringEvidenceQueryKey,
+  getAdminTutoringReportQueryKey,
   patchAdminTutoringBookingsByIdReassignMutation,
   getTutoringTeachersOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
@@ -32,6 +35,11 @@ export function ReassignTeacherDialog({ booking, onClose }: { booking: TutoringL
     onSuccess: () => {
       toast.success("Booking dialihkan ke guru baru")
       qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
+      qc.invalidateQueries({ queryKey: getAdminTutoringEvidenceQueryKey() })
+      qc.invalidateQueries({ queryKey: getAdminTutoringReportQueryKey() })
+      if (booking.id) {
+        qc.invalidateQueries({ queryKey: getAdminTutoringBookingsByIdSessionsQueryKey({ path: { id: booking.id } }) })
+      }
       onClose()
     },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal mengalihkan booking"),
@@ -57,7 +65,7 @@ export function ReassignTeacherDialog({ booking, onClose }: { booking: TutoringL
               items={teachers.filter((t) => t.id !== booking.teacher_id)}
               value={teacher}
               onValueChange={(v) => setTeacher(v ?? undefined)}
-              itemToStringLabel={(t) => (t ? t.name ?? "" : "")}
+              itemToStringLabel={(t) => (t?.email ? `${t.name} (${t.email})` : t?.name ?? "")}
             >
               <ComboboxInput placeholder={teachers.length ? "Cari guru..." : "Tidak ada guru"} />
               <ComboboxContent>

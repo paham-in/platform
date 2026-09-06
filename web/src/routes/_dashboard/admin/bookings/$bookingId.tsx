@@ -26,6 +26,7 @@ import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
 import { SwapSessionTeacherDialog } from "@/components/admin/attendance/swap-session-teacher-dialog"
 import { ApproveEvidenceDialog, CancelSessionDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
+import { ReassignTeacherDialog } from "@/components/admin/tutoring"
 import { InvoiceSection } from "@/components/admin/payments"
 
 const adminBookingDetailSearchSchema = z.object({
@@ -86,6 +87,7 @@ function AdminBookingDetail() {
   const [rejectTarget, setRejectTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [feeTarget, setFeeTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [cancelTarget, setCancelTarget] = useState<TutoringListSessionsResponse | null>(null)
+  const [reassignActive, setReassignActive] = useState(false)
 
   useEffect(() => {
     if (modal !== "swap") setSwapSession(null)
@@ -93,6 +95,7 @@ function AdminBookingDetail() {
     if (modal !== "reject") setRejectTarget(null)
     if (modal !== "fee") setFeeTarget(null)
     if (modal !== "cancel") setCancelTarget(null)
+    if (modal !== "reassign") setReassignActive(false)
   }, [modal])
 
   const evidenceById = new Map((evidence ?? []).map((s) => [s.id!, s]))
@@ -148,12 +151,12 @@ function AdminBookingDetail() {
 
   return (
     <main className="p-4 md:p-6">
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         {isLoading || !booking ? (
-          <>
+          <div>
             <Skeleton className="h-8 w-48" />
             <Skeleton className="mt-2 h-4 w-56" />
-          </>
+          </div>
         ) : (
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{booking.student_name}</h1>
@@ -166,6 +169,11 @@ function AdminBookingDetail() {
             </p>
             <p className="mt-1 text-sm text-muted-foreground">Guru: {booking.teacher_name ?? "—"}</p>
           </div>
+        )}
+        {!isLoading && booking?.status === "confirmed" && !sessions.some((s) => s.evidence_url) && (
+          <Button variant="outline" onClick={() => { setReassignActive(true); openModal("reassign") }}>
+            <ArrowLeftRight className="mr-1 h-4 w-4" /> Ganti Guru
+          </Button>
         )}
       </div>
 
@@ -402,6 +410,7 @@ function AdminBookingDetail() {
       {modal === "reject" && rejectTarget && <RejectEvidenceDialog session={evOf(rejectTarget)} onClose={closeModal} />}
       {modal === "fee" && feeTarget && <ToggleFeeDialog session={evOf(feeTarget)} onClose={closeModal} />}
       {modal === "cancel" && cancelTarget && <CancelSessionDialog session={cancelTarget} onClose={closeModal} />}
+      {modal === "reassign" && reassignActive && booking && <ReassignTeacherDialog booking={booking} onClose={closeModal} />}
     </main>
   )
 }

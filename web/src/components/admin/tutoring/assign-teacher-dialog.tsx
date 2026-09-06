@@ -57,7 +57,7 @@ export function AssignTeacherDialog({ booking, onClose }: { booking: TutoringLis
               items={teachers}
               value={teacher}
               onValueChange={(v) => setTeacher(v ?? undefined)}
-              itemToStringLabel={(t) => (t ? t.name ?? "" : "")}
+              itemToStringLabel={(t) => (t?.email ? `${t.name} (${t.email})` : t?.name ?? "")}
             >
               <ComboboxInput placeholder={teachers.length ? "Cari guru..." : "Tidak ada guru"} />
               <ComboboxContent>
