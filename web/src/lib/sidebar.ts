@@ -64,14 +64,7 @@ export const sidebarGroups: SidebarGroup[] = [
       },
       { label: "Kalender", icon: Calendar, to: "/teacher/calendar" },
       { label: "Forum", icon: MessageSquare, to: "/teacher/forum" },
-      {
-        label: "Les Privat",
-        icon: Calendar,
-        items: [
-          { label: "Booking Les", to: "/teacher/bookings" },
-          { label: "Pendapatan Les", to: "/teacher/earnings" },
-        ],
-      },
+      { label: "Booking Les", icon: Calendar, to: "/teacher/bookings" },
     ],
   },
   {

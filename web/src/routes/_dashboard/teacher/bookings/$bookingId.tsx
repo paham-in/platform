@@ -27,15 +27,18 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   getTutoringBookingsOptions,
+  getTutoringEarningsOptions,
+  getTutoringEarningsQueryKey,
   getTutoringSessionsOptions,
   getTutoringSessionsQueryKey,
+  patchTutoringEarningsTakenMutation,
   patchTutoringSessionsByIdMutation,
   patchTutoringSessionsByIdOvertimeMutation,
   postTutoringSessionsByIdCancelMutation,
   postTutoringSessionsByIdEvidenceMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
-import { CalendarX2, Users, UserRound, Upload, Timer, CalendarClock, XCircle, RefreshCw, MoreVertical } from "lucide-react"
+import { CalendarX2, Users, UserRound, Upload, Timer, CalendarClock, XCircle, RefreshCw, MoreVertical, CheckCheck, RotateCcw } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
@@ -73,6 +76,18 @@ function sessionStatusBadge(s?: string) {
   return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[s || ""] || ""}`}>{labels[s || ""] || s}</span>
 }
 
+const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
+
+function feeBadge(paid?: boolean) {
+  if (paid) return <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Sudah Dibayar</span>
+  return <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Belum Dibayar</span>
+}
+
+function takenBadge(taken?: boolean) {
+  if (taken) return <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Sudah Diambil</span>
+  return <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">Belum Diambil</span>
+}
+
 function TeacherBookingDetail() {
   const { bookingId } = Route.useParams()
   const { modal } = Route.useSearch()
@@ -80,7 +95,8 @@ function TeacherBookingDetail() {
   const qc = useQueryClient()
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getTutoringBookingsOptions())
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getTutoringSessionsOptions())
-  const isLoading = bookingsLoading || sessionsLoading
+  const { data: earnings, isLoading: earningsLoading } = useQuery(getTutoringEarningsOptions())
+  const isLoading = bookingsLoading || sessionsLoading || earningsLoading
 
   const [rescheduleSession, setRescheduleSession] = useState<TutoringListSessionsResponse | null>(null)
   const [reschedDate, setReschedDate] = useState("")
@@ -122,6 +138,11 @@ function TeacherBookingDetail() {
     onSuccess: () => { toast.success("Sesi dibatalkan"); invalidate() },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal membatalkan sesi"),
   })
+  const markTaken = useMutation({
+    ...patchTutoringEarningsTakenMutation(),
+    onSuccess: () => { toast.success("Status fee diperbarui"); qc.invalidateQueries({ queryKey: getTutoringEarningsQueryKey() }) },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal memperbarui status"),
+  })
 
   const booking = bookings.find((b) => b.id === Number(bookingId))
   usePageTitle(booking?.student_name ? `Les ${booking.student_name}` : "Detail Booking")
@@ -137,6 +158,16 @@ function TeacherBookingDetail() {
   }
 
   const bookingSessions = sessions.filter((s) => s.booking_id === Number(bookingId))
+
+  const earningById = new Map<number, TutoringListSessionsResponse>((earnings?.sessions ?? []).map((s) => [s.id!, s]))
+  const bookingEarnings = (earnings?.sessions ?? []).filter((s) => s.booking_id === Number(bookingId))
+  const earnTotal = bookingEarnings.reduce((sum, s) => sum + (s.fee_amount ?? 0), 0)
+  const earnPaid = bookingEarnings.filter((s) => s.fee_paid).reduce((sum, s) => sum + (s.fee_amount ?? 0), 0)
+  const earnTaken = bookingEarnings.filter((s) => s.fee_paid && s.fee_taken).reduce((sum, s) => sum + (s.fee_amount ?? 0), 0)
+  const earnAvailable = earnPaid - earnTaken
+
+  const hasActions = (s: TutoringListSessionsResponse) =>
+    s.status === "scheduled" || s.status === "review" || (s.status === "done" && !!earningById.get(s.id!)?.fee_paid)
 
   const sessionMenuItems = (s: TutoringListSessionsResponse) => (
     <>
@@ -169,6 +200,19 @@ function TeacherBookingDetail() {
           <XCircle className="h-4 w-4" /> Batalkan Sesi
         </DropdownMenuItem>
       ) : null}
+      {(() => {
+        const e = earningById.get(s.id!)
+        if (s.status !== "done" || !e?.fee_paid) return null
+        return e.fee_taken ? (
+          <DropdownMenuItem onClick={() => markTaken.mutate({ body: { session_ids: [s.id!], taken: false } })}>
+            <RotateCcw className="h-4 w-4" /> Batalkan Tandai
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onClick={() => markTaken.mutate({ body: { session_ids: [s.id!], taken: true } })}>
+            <CheckCheck className="h-4 w-4" /> Tandai Sudah Diambil
+          </DropdownMenuItem>
+        )
+      })()}
     </>
   )
 
@@ -194,6 +238,24 @@ function TeacherBookingDetail() {
         )}
       </div>
 
+      {!isLoading && booking && (
+        <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[
+            { label: "Total Fee", value: fmtRp(earnTotal), className: "text-foreground" },
+            { label: "Sudah Dibayar", value: fmtRp(earnPaid), className: "text-green-600" },
+            { label: "Saldo Tersedia", value: fmtRp(earnAvailable), className: "text-primary" },
+            { label: "Sudah Diambil", value: fmtRp(earnTaken), className: "text-muted-foreground" },
+          ].map((it) => (
+            <Card key={it.label}>
+              <CardContent className="flex flex-col gap-0.5 py-3">
+                <span className="text-xs text-muted-foreground">{it.label}</span>
+                <span className={`text-lg font-bold tabular-nums ${it.className}`}>{it.value}</span>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
       <h2 className="mb-2 text-lg font-semibold">Sesi Pertemuan</h2>
       <Card className="hidden gap-0 pt-0 pb-0 md:block">
         <CardContent className="p-0">
@@ -204,6 +266,7 @@ function TeacherBookingDetail() {
                 <TableHead>Jam</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Overtime</TableHead>
+                <TableHead>Fee</TableHead>
                 <TableHead>Bukti</TableHead>
                 <TableHead className="pr-6 text-right">Aksi</TableHead>
               </TableRow>
@@ -216,13 +279,14 @@ function TeacherBookingDetail() {
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-10 w-16" /></TableCell>
                     <TableCell className="pr-6"><Skeleton className="h-8 w-24" /></TableCell>
                   </TableRow>
                 ))
               ) : bookingSessions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={7}>
                     <Empty className="border-0 p-8">
                       <EmptyHeader>
                         <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
@@ -254,6 +318,19 @@ function TeacherBookingDetail() {
                       <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
+                  <TableCell className="tabular-nums">
+                    {(() => {
+                      const e = earningById.get(s.id!)
+                      if (!e) return <span className="text-muted-foreground">—</span>
+                      return (
+                        <div className="flex flex-col items-start gap-1">
+                          <span className="font-medium">{fmtRp(e.fee_amount)}</span>
+                          {feeBadge(e.fee_paid)}
+                          {e.fee_paid ? takenBadge(e.fee_taken) : null}
+                        </div>
+                      )
+                    })()}
+                  </TableCell>
                   <TableCell>
                     {s.evidence_url ? (
                       <a href={s.evidence_url} target="_blank" rel="noreferrer" className="inline-block overflow-hidden rounded-lg border">
@@ -265,7 +342,7 @@ function TeacherBookingDetail() {
                   </TableCell>
                   <TableCell className="pr-6">
                     <div className="flex items-center justify-end">
-                      {(s.status === "scheduled" || s.status === "review") && (
+                      {hasActions(s) && (
                       <DropdownMenu>
                         <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi sesi" />}>
                           <MoreVertical className="h-4 w-4" />
@@ -323,13 +400,24 @@ function TeacherBookingDetail() {
                         +{s.overtime_minutes} mnt · +{s.extra_sessions ?? 0} sesi
                       </p>
                     )}
+                    {(() => {
+                      const e = earningById.get(s.id!)
+                      if (!e) return null
+                      return (
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                          <span className="text-sm font-medium tabular-nums">{fmtRp(e.fee_amount)}</span>
+                          {feeBadge(e.fee_paid)}
+                          {e.fee_paid ? takenBadge(e.fee_taken) : null}
+                        </div>
+                      )
+                    })()}
                     {s.evidence_url && (
                       <a href={s.evidence_url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-primary hover:underline">
                         Lihat bukti
                       </a>
                     )}
                     </div>
-                    {(s.status === "scheduled" || s.status === "review") && (
+                    {hasActions(s) && (
                     <DropdownMenu>
                       <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi sesi" className="shrink-0" />}>
                         <MoreVertical className="h-4 w-4" />
