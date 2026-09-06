@@ -10,12 +10,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import {
   getAdminInvoicesOptions,
   getAdminTutoringBookingsOptions,
   getAdminTutoringBookingsByIdSessionsOptions,
-  getAdminTutoringBookingsByIdSessionsQueryKey,
   getAdminTutoringEvidenceOptions,
   getAdminTutoringReportOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
@@ -25,7 +24,6 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
-import { ReassignTeacherDialog } from "@/components/admin/tutoring"
 import { SwapSessionTeacherDialog } from "@/components/admin/attendance/swap-session-teacher-dialog"
 import { ApproveEvidenceDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
 
@@ -70,7 +68,6 @@ function AdminBookingDetail() {
   const { bookingId } = Route.useParams()
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
-  const qc = useQueryClient()
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getAdminTutoringBookingsOptions())
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getAdminTutoringBookingsByIdSessionsOptions({ path: { id: Number(bookingId) } }))
   const { data: evidence = [], isLoading: evidenceLoading } = useQuery(getAdminTutoringEvidenceOptions())
@@ -94,8 +91,6 @@ function AdminBookingDetail() {
     if (modal !== "reject") setRejectTarget(null)
     if (modal !== "fee") setFeeTarget(null)
   }, [modal])
-
-  const invalidateSessions = () => qc.invalidateQueries({ queryKey: getAdminTutoringBookingsByIdSessionsQueryKey({ path: { id: Number(bookingId) } }) })
 
   const evidenceById = new Map((evidence ?? []).map((s) => [s.id!, s]))
   const evOf = (s: TutoringListSessionsResponse) => evidenceById.get(s.id!) ?? s
@@ -147,11 +142,9 @@ function AdminBookingDetail() {
     { label: "Sesi Selesai", value: `${doneSessions}/${totalSessions}`, className: "text-foreground" },
   ]
 
-  const canReassignAll = !!booking?.teacher_id && booking?.status !== "cancelled" && booking?.status !== "rejected"
-
   return (
     <main className="p-4 md:p-6">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+      <div className="mb-4">
         {isLoading || !booking ? (
           <>
             <Skeleton className="h-8 w-48" />
@@ -169,11 +162,6 @@ function AdminBookingDetail() {
             </p>
             <p className="mt-1 text-sm text-muted-foreground">Guru: {booking.teacher_name ?? "—"}</p>
           </div>
-        )}
-        {!isLoading && canReassignAll && (
-          <Button variant="outline" onClick={() => openModal("reassign")}>
-            <ArrowLeftRight className="h-4 w-4" /> Alihkan Semua Sisa Sesi
-          </Button>
         )}
       </div>
 
@@ -389,9 +377,6 @@ function AdminBookingDetail() {
       {modal === "approve" && approveTarget && <ApproveEvidenceDialog session={evOf(approveTarget)} onClose={closeModal} />}
       {modal === "reject" && rejectTarget && <RejectEvidenceDialog session={evOf(rejectTarget)} onClose={closeModal} />}
       {modal === "fee" && feeTarget && <ToggleFeeDialog session={evOf(feeTarget)} onClose={closeModal} />}
-      {modal === "reassign" && booking && (
-        <ReassignTeacherDialog booking={booking} onClose={() => { invalidateSessions(); closeModal() }} />
-      )}
     </main>
   )
 }

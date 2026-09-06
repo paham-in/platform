@@ -28,17 +28,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   getTutoringBookingsOptions,
   getTutoringEarningsOptions,
-  getTutoringEarningsQueryKey,
   getTutoringSessionsOptions,
   getTutoringSessionsQueryKey,
-  patchTutoringEarningsTakenMutation,
   patchTutoringSessionsByIdMutation,
   patchTutoringSessionsByIdOvertimeMutation,
   postTutoringSessionsByIdCancelMutation,
   postTutoringSessionsByIdEvidenceMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
-import { CalendarX2, Users, UserRound, Upload, Timer, CalendarClock, XCircle, RefreshCw, MoreVertical, CheckCheck, RotateCcw } from "lucide-react"
+import { CalendarX2, Users, UserRound, Upload, Timer, CalendarClock, XCircle, RefreshCw, MoreVertical } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
@@ -81,11 +79,6 @@ const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
 function feeBadge(paid?: boolean) {
   if (paid) return <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Sudah Dibayar</span>
   return <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Belum Dibayar</span>
-}
-
-function takenBadge(taken?: boolean) {
-  if (taken) return <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Sudah Diambil</span>
-  return <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">Belum Diambil</span>
 }
 
 function TeacherBookingDetail() {
@@ -138,11 +131,6 @@ function TeacherBookingDetail() {
     onSuccess: () => { toast.success("Sesi dibatalkan"); invalidate() },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal membatalkan sesi"),
   })
-  const markTaken = useMutation({
-    ...patchTutoringEarningsTakenMutation(),
-    onSuccess: () => { toast.success("Status fee diperbarui"); qc.invalidateQueries({ queryKey: getTutoringEarningsQueryKey() }) },
-    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal memperbarui status"),
-  })
 
   const booking = bookings.find((b) => b.id === Number(bookingId))
   usePageTitle(booking?.student_name ? `Les ${booking.student_name}` : "Detail Booking")
@@ -163,11 +151,9 @@ function TeacherBookingDetail() {
   const bookingEarnings = (earnings?.sessions ?? []).filter((s) => s.booking_id === Number(bookingId))
   const earnTotal = bookingEarnings.reduce((sum, s) => sum + (s.fee_amount ?? 0), 0)
   const earnPaid = bookingEarnings.filter((s) => s.fee_paid).reduce((sum, s) => sum + (s.fee_amount ?? 0), 0)
-  const earnTaken = bookingEarnings.filter((s) => s.fee_paid && s.fee_taken).reduce((sum, s) => sum + (s.fee_amount ?? 0), 0)
-  const earnAvailable = earnPaid - earnTaken
 
   const hasActions = (s: TutoringListSessionsResponse) =>
-    s.status === "scheduled" || s.status === "review" || (s.status === "done" && !!earningById.get(s.id!)?.fee_paid)
+    s.status === "scheduled" || s.status === "review"
 
   const sessionMenuItems = (s: TutoringListSessionsResponse) => (
     <>
@@ -200,19 +186,6 @@ function TeacherBookingDetail() {
           <XCircle className="h-4 w-4" /> Batalkan Sesi
         </DropdownMenuItem>
       ) : null}
-      {(() => {
-        const e = earningById.get(s.id!)
-        if (s.status !== "done" || !e?.fee_paid) return null
-        return e.fee_taken ? (
-          <DropdownMenuItem onClick={() => markTaken.mutate({ body: { session_ids: [s.id!], taken: false } })}>
-            <RotateCcw className="h-4 w-4" /> Batalkan Tandai
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem onClick={() => markTaken.mutate({ body: { session_ids: [s.id!], taken: true } })}>
-            <CheckCheck className="h-4 w-4" /> Tandai Sudah Diambil
-          </DropdownMenuItem>
-        )
-      })()}
     </>
   )
 
@@ -239,12 +212,10 @@ function TeacherBookingDetail() {
       </div>
 
       {!isLoading && booking && (
-        <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mb-4 grid grid-cols-2 gap-3">
           {[
             { label: "Total Fee", value: fmtRp(earnTotal), className: "text-foreground" },
             { label: "Sudah Dibayar", value: fmtRp(earnPaid), className: "text-green-600" },
-            { label: "Saldo Tersedia", value: fmtRp(earnAvailable), className: "text-primary" },
-            { label: "Sudah Diambil", value: fmtRp(earnTaken), className: "text-muted-foreground" },
           ].map((it) => (
             <Card key={it.label}>
               <CardContent className="flex flex-col gap-0.5 py-3">
@@ -267,6 +238,7 @@ function TeacherBookingDetail() {
                 <TableHead>Status</TableHead>
                 <TableHead>Overtime</TableHead>
                 <TableHead>Fee</TableHead>
+                <TableHead>Status Fee</TableHead>
                 <TableHead>Bukti</TableHead>
                 <TableHead className="pr-6 text-right">Aksi</TableHead>
               </TableRow>
@@ -280,13 +252,14 @@ function TeacherBookingDetail() {
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-10 w-16" /></TableCell>
                     <TableCell className="pr-6"><Skeleton className="h-8 w-24" /></TableCell>
                   </TableRow>
                 ))
               ) : bookingSessions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7}>
+                  <TableCell colSpan={8}>
                     <Empty className="border-0 p-8">
                       <EmptyHeader>
                         <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
@@ -323,12 +296,15 @@ function TeacherBookingDetail() {
                       const e = earningById.get(s.id!)
                       if (!e) return <span className="text-muted-foreground">—</span>
                       return (
-                        <div className="flex flex-col items-start gap-1">
-                          <span className="font-medium">{fmtRp(e.fee_amount)}</span>
-                          {feeBadge(e.fee_paid)}
-                          {e.fee_paid ? takenBadge(e.fee_taken) : null}
-                        </div>
+                        <span className="font-medium">{fmtRp(e.fee_amount)}</span>
                       )
+                    })()}
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const e = earningById.get(s.id!)
+                      if (!e) return <span className="text-muted-foreground">—</span>
+                      return feeBadge(e.fee_paid)
                     })()}
                   </TableCell>
                   <TableCell>
@@ -407,7 +383,6 @@ function TeacherBookingDetail() {
                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
                           <span className="text-sm font-medium tabular-nums">{fmtRp(e.fee_amount)}</span>
                           {feeBadge(e.fee_paid)}
-                          {e.fee_paid ? takenBadge(e.fee_taken) : null}
                         </div>
                       )
                     })()}
