@@ -20,7 +20,7 @@ function TeacherBookingsPage() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/teacher/bookings")({
+export const Route = createFileRoute("/_dashboard/teacher/bookings/")({
   component: TeacherBookingsPage,
   validateSearch: teacherBookingsSearchSchema,
 })
