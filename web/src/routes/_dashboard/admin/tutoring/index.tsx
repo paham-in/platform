@@ -30,8 +30,9 @@ function AdminTutoring() {
   usePageTitle("Les Privat")
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam } = Route.useSearch()
-  const { data: bookings = [], isLoading } = useQuery(getAdminTutoringBookingsOptions())
-  const { data: users = [] } = useQuery(getAdminUsersOptions())
+  const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getAdminTutoringBookingsOptions())
+  const { data: users = [], isLoading: usersLoading } = useQuery(getAdminUsersOptions({ query: { role: "student" } }))
+  const isLoading = bookingsLoading || usersLoading
   const [searchInput, setSearchInput] = useState(searchParam ?? "")
 
   useEffect(() => { setSearchInput(searchParam ?? "") }, [searchParam])
@@ -69,18 +70,18 @@ function AdminTutoring() {
   }
 
   const q = (searchParam ?? "").toLowerCase()
-  const rows: StudentRow[] = [...agg.entries()]
-    .map(([id, a]) => {
-      const u = users.find((x) => x.id === id)
+  const rows: StudentRow[] = users
+    .map((u) => {
+      const a = agg.get(u.id!)
       return {
-        id,
-        name: u?.name ?? a.name,
-        email: u?.email ?? "",
-        avatar: u?.avatar_url,
-        pending: a.pending,
-        oldestPendingAt: a.oldestAt,
-        oldestPendingId: a.oldestId,
-        total: a.total,
+        id: u.id!,
+        name: u.name ?? a?.name ?? "—",
+        email: u.email ?? "",
+        avatar: u.avatar_url,
+        pending: a?.pending ?? 0,
+        oldestPendingAt: a?.oldestAt ?? "",
+        oldestPendingId: a?.oldestId ?? Number.MAX_SAFE_INTEGER,
+        total: a?.total ?? 0,
       }
     })
     .filter((r) => q === "" || r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q))
@@ -103,7 +104,7 @@ function AdminTutoring() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Les Privat</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Antrean booking les privat per murid, yang menunggu paling lama di atas.
+            Antrean booking les privat per murid, yang menunggu paling lama di atas. Klik murid untuk membuat booking manual.
           </p>
         </div>
       </div>
@@ -158,7 +159,7 @@ function AdminTutoring() {
                     <Empty className="border-0 p-8">
                       <EmptyHeader>
                         <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
-                        <EmptyTitle>{hasActiveFilter ? "Tidak ada murid yang cocok" : "Belum ada booking les privat"}</EmptyTitle>
+                        <EmptyTitle>{hasActiveFilter ? "Tidak ada murid yang cocok" : "Belum ada murid"}</EmptyTitle>
                       </EmptyHeader>
                     </Empty>
                   </TableCell>
@@ -211,7 +212,7 @@ function AdminTutoring() {
             <Empty className="p-8">
               <EmptyHeader>
                 <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
-                <EmptyTitle>{hasActiveFilter ? "Tidak ada murid yang cocok" : "Belum ada booking les privat"}</EmptyTitle>
+                        <EmptyTitle>{hasActiveFilter ? "Tidak ada murid yang cocok" : "Belum ada murid"}</EmptyTitle>
               </EmptyHeader>
             </Empty>
           ) : (
