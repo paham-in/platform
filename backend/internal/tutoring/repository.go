@@ -204,11 +204,13 @@ func (r *Repository) ListBookingsByTeacherAndDate(teacherID uint, date string, s
 
 // DeleteCancelledOlderThan menghapus permanen (hard delete) booking terminal
 // (cancelled/rejected) yang terakhir diubah sebelum cutoff, beserta sesi &
-// invoice terkait dalam satu transaksi. Mengembalikan jumlah booking yang dihapus.
+// invoice terkait dalam satu transaksi. Booking yang masih punya refund belum
+// settled (refund_amount > 0 dan refund_done = false) dilewati supaya jejak
+// utang tidak musnah. Mengembalikan jumlah booking yang dihapus.
 func (r *Repository) DeleteCancelledOlderThan(cutoff time.Time) (int64, error) {
 	var ids []uint
 	if err := r.db.Model(&models.Booking{}).
-		Where("status IN ? AND updated_at < ?", []string{"cancelled", "rejected"}, cutoff).
+		Where("status IN ? AND updated_at < ? AND NOT EXISTS (SELECT 1 FROM invoices WHERE invoices.booking_id = bookings.id AND invoices.refund_amount > 0 AND invoices.refund_done = ?)", []string{"cancelled", "rejected"}, cutoff, false).
 		Pluck("id", &ids).Error; err != nil {
 		return 0, err
 	}

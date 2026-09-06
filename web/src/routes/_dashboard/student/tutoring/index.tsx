@@ -213,7 +213,7 @@ function CancelBookingDialog({ booking, onClose }: { booking: TutoringListBookin
           <AlertDialogTitle>Batalkan Booking</AlertDialogTitle>
           <AlertDialogDescription>
             Yakin batalkan booking {booking.subject_name ?? "—"} · {booking.date} {booking.start_time}–{booking.end_time}?
-            Sesi terjadwal ikut dibatalkan dan invoice yang belum dibayar dihapus.
+            Booking masih menunggu guru, jadi belum ada sesi maupun tagihan yang terbentuk.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
