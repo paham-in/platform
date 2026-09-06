@@ -31,15 +31,15 @@ import { Route as DashboardTeacherDashboardRouteImport } from './routes/_dashboa
 import { Route as DashboardUserDashboardRouteImport } from './routes/_dashboard/user/dashboard'
 import { Route as DashboardUserMaterialsRouteImport } from './routes/_dashboard/user/materials'
 import { Route as DashboardUserSubscribeRouteImport } from './routes/_dashboard/user/subscribe'
+import { Route as DashboardAdminBookingsIndexRouteImport } from './routes/_dashboard/admin/bookings/index'
+import { Route as DashboardAdminBookingsBookingIdRouteImport } from './routes/_dashboard/admin/bookings/$bookingId'
+import { Route as DashboardAdminBookingsNewRouteImport } from './routes/_dashboard/admin/bookings/new'
 import { Route as DashboardAdminForumIndexRouteImport } from './routes/_dashboard/admin/forum/index'
 import { Route as DashboardAdminForumIdRouteImport } from './routes/_dashboard/admin/forum/$id'
 import { Route as DashboardAdminPaymentsIndexRouteImport } from './routes/_dashboard/admin/payments/index'
 import { Route as DashboardAdminPaymentsUserIdRouteImport } from './routes/_dashboard/admin/payments/$userId'
 import { Route as DashboardAdminSubscriptionsIndexRouteImport } from './routes/_dashboard/admin/subscriptions/index'
 import { Route as DashboardAdminSubscriptionsUserIdRouteImport } from './routes/_dashboard/admin/subscriptions/$userId'
-import { Route as DashboardAdminTutoringIndexRouteImport } from './routes/_dashboard/admin/tutoring/index'
-import { Route as DashboardAdminTutoringUserIdRouteImport } from './routes/_dashboard/admin/tutoring/$userId'
-import { Route as DashboardAdminTutoringNewRouteImport } from './routes/_dashboard/admin/tutoring/new'
 import { Route as DashboardStudentForumIndexRouteImport } from './routes/_dashboard/student/forum/index'
 import { Route as DashboardStudentForumIdRouteImport } from './routes/_dashboard/student/forum/$id'
 import { Route as DashboardStudentForumNewRouteImport } from './routes/_dashboard/student/forum/new'
@@ -54,7 +54,7 @@ import { Route as DashboardTeacherForumIndexRouteImport } from './routes/_dashbo
 import { Route as DashboardTeacherForumIdRouteImport } from './routes/_dashboard/teacher/forum/$id'
 import { Route as DashboardTeacherPacksIndexRouteImport } from './routes/_dashboard/teacher/packs/index'
 import { Route as DashboardUserMaterialsMaterialIdRouteImport } from './routes/_dashboard/user/materials/$materialId'
-import { Route as DashboardAdminTutoringBookingsBookingIdRouteImport } from './routes/_dashboard/admin/tutoring/bookings/$bookingId'
+import { Route as DashboardAdminBookingsStudentsUserIdRouteImport } from './routes/_dashboard/admin/bookings/students/$userId'
 import { Route as DashboardStudentForumIdIndexRouteImport } from './routes/_dashboard/student/forum/$id/index'
 import { Route as DashboardStudentForumIdEditRouteImport } from './routes/_dashboard/student/forum/$id/edit'
 import { Route as DashboardStudentMaterialsChaptersIdRouteImport } from './routes/_dashboard/student/materials/chapters/$id'
@@ -190,6 +190,24 @@ const DashboardUserSubscribeRoute = DashboardUserSubscribeRouteImport.update({
   path: '/user/subscribe',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAdminBookingsIndexRoute =
+  DashboardAdminBookingsIndexRouteImport.update({
+    id: '/admin/bookings/',
+    path: '/admin/bookings/',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAdminBookingsBookingIdRoute =
+  DashboardAdminBookingsBookingIdRouteImport.update({
+    id: '/admin/bookings/$bookingId',
+    path: '/admin/bookings/$bookingId',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAdminBookingsNewRoute =
+  DashboardAdminBookingsNewRouteImport.update({
+    id: '/admin/bookings/new',
+    path: '/admin/bookings/new',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardAdminForumIndexRoute =
   DashboardAdminForumIndexRouteImport.update({
     id: '/admin/forum/',
@@ -223,24 +241,6 @@ const DashboardAdminSubscriptionsUserIdRoute =
   DashboardAdminSubscriptionsUserIdRouteImport.update({
     id: '/admin/subscriptions/$userId',
     path: '/admin/subscriptions/$userId',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardAdminTutoringIndexRoute =
-  DashboardAdminTutoringIndexRouteImport.update({
-    id: '/admin/tutoring/',
-    path: '/admin/tutoring/',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardAdminTutoringUserIdRoute =
-  DashboardAdminTutoringUserIdRouteImport.update({
-    id: '/admin/tutoring/$userId',
-    path: '/admin/tutoring/$userId',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardAdminTutoringNewRoute =
-  DashboardAdminTutoringNewRouteImport.update({
-    id: '/admin/tutoring/new',
-    path: '/admin/tutoring/new',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardStudentForumIndexRoute =
@@ -325,10 +325,10 @@ const DashboardUserMaterialsMaterialIdRoute =
     path: '/$materialId',
     getParentRoute: () => DashboardUserMaterialsRoute,
   } as any)
-const DashboardAdminTutoringBookingsBookingIdRoute =
-  DashboardAdminTutoringBookingsBookingIdRouteImport.update({
-    id: '/admin/tutoring/bookings/$bookingId',
-    path: '/admin/tutoring/bookings/$bookingId',
+const DashboardAdminBookingsStudentsUserIdRoute =
+  DashboardAdminBookingsStudentsUserIdRouteImport.update({
+    id: '/admin/bookings/students/$userId',
+    path: '/admin/bookings/students/$userId',
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardStudentForumIdIndexRoute =
@@ -452,21 +452,21 @@ export interface FileRoutesByFullPath {
   '/user/dashboard': typeof DashboardUserDashboardRoute
   '/user/materials': typeof DashboardUserMaterialsRouteWithChildren
   '/user/subscribe': typeof DashboardUserSubscribeRoute
+  '/admin/bookings/$bookingId': typeof DashboardAdminBookingsBookingIdRoute
+  '/admin/bookings/new': typeof DashboardAdminBookingsNewRoute
   '/admin/forum/$id': typeof DashboardAdminForumIdRoute
   '/admin/payments/$userId': typeof DashboardAdminPaymentsUserIdRoute
   '/admin/subscriptions/$userId': typeof DashboardAdminSubscriptionsUserIdRoute
-  '/admin/tutoring/$userId': typeof DashboardAdminTutoringUserIdRoute
-  '/admin/tutoring/new': typeof DashboardAdminTutoringNewRoute
   '/student/forum/$id': typeof DashboardStudentForumIdRouteWithChildren
   '/student/forum/new': typeof DashboardStudentForumNewRoute
   '/student/tutoring/new': typeof DashboardStudentTutoringNewRoute
   '/teacher/bookings/$bookingId': typeof DashboardTeacherBookingsBookingIdRoute
   '/teacher/forum/$id': typeof DashboardTeacherForumIdRoute
   '/user/materials/$materialId': typeof DashboardUserMaterialsMaterialIdRoute
+  '/admin/bookings/': typeof DashboardAdminBookingsIndexRoute
   '/admin/forum/': typeof DashboardAdminForumIndexRoute
   '/admin/payments/': typeof DashboardAdminPaymentsIndexRoute
   '/admin/subscriptions/': typeof DashboardAdminSubscriptionsIndexRoute
-  '/admin/tutoring/': typeof DashboardAdminTutoringIndexRoute
   '/student/forum/': typeof DashboardStudentForumIndexRoute
   '/student/materials/': typeof DashboardStudentMaterialsIndexRoute
   '/student/packages/': typeof DashboardStudentPackagesIndexRoute
@@ -475,7 +475,7 @@ export interface FileRoutesByFullPath {
   '/teacher/chapters/': typeof DashboardTeacherChaptersIndexRoute
   '/teacher/forum/': typeof DashboardTeacherForumIndexRoute
   '/teacher/packs/': typeof DashboardTeacherPacksIndexRoute
-  '/admin/tutoring/bookings/$bookingId': typeof DashboardAdminTutoringBookingsBookingIdRoute
+  '/admin/bookings/students/$userId': typeof DashboardAdminBookingsStudentsUserIdRoute
   '/student/forum/$id/edit': typeof DashboardStudentForumIdEditRoute
   '/student/materials/chapters/$id': typeof DashboardStudentMaterialsChaptersIdRoute
   '/student/forum/$id/': typeof DashboardStudentForumIdIndexRoute
@@ -515,20 +515,20 @@ export interface FileRoutesByTo {
   '/user/dashboard': typeof DashboardUserDashboardRoute
   '/user/materials': typeof DashboardUserMaterialsRouteWithChildren
   '/user/subscribe': typeof DashboardUserSubscribeRoute
+  '/admin/bookings/$bookingId': typeof DashboardAdminBookingsBookingIdRoute
+  '/admin/bookings/new': typeof DashboardAdminBookingsNewRoute
   '/admin/forum/$id': typeof DashboardAdminForumIdRoute
   '/admin/payments/$userId': typeof DashboardAdminPaymentsUserIdRoute
   '/admin/subscriptions/$userId': typeof DashboardAdminSubscriptionsUserIdRoute
-  '/admin/tutoring/$userId': typeof DashboardAdminTutoringUserIdRoute
-  '/admin/tutoring/new': typeof DashboardAdminTutoringNewRoute
   '/student/forum/new': typeof DashboardStudentForumNewRoute
   '/student/tutoring/new': typeof DashboardStudentTutoringNewRoute
   '/teacher/bookings/$bookingId': typeof DashboardTeacherBookingsBookingIdRoute
   '/teacher/forum/$id': typeof DashboardTeacherForumIdRoute
   '/user/materials/$materialId': typeof DashboardUserMaterialsMaterialIdRoute
+  '/admin/bookings': typeof DashboardAdminBookingsIndexRoute
   '/admin/forum': typeof DashboardAdminForumIndexRoute
   '/admin/payments': typeof DashboardAdminPaymentsIndexRoute
   '/admin/subscriptions': typeof DashboardAdminSubscriptionsIndexRoute
-  '/admin/tutoring': typeof DashboardAdminTutoringIndexRoute
   '/student/forum': typeof DashboardStudentForumIndexRoute
   '/student/materials': typeof DashboardStudentMaterialsIndexRoute
   '/student/packages': typeof DashboardStudentPackagesIndexRoute
@@ -537,7 +537,7 @@ export interface FileRoutesByTo {
   '/teacher/chapters': typeof DashboardTeacherChaptersIndexRoute
   '/teacher/forum': typeof DashboardTeacherForumIndexRoute
   '/teacher/packs': typeof DashboardTeacherPacksIndexRoute
-  '/admin/tutoring/bookings/$bookingId': typeof DashboardAdminTutoringBookingsBookingIdRoute
+  '/admin/bookings/students/$userId': typeof DashboardAdminBookingsStudentsUserIdRoute
   '/student/forum/$id/edit': typeof DashboardStudentForumIdEditRoute
   '/student/materials/chapters/$id': typeof DashboardStudentMaterialsChaptersIdRoute
   '/student/forum/$id': typeof DashboardStudentForumIdIndexRoute
@@ -579,21 +579,21 @@ export interface FileRoutesById {
   '/_dashboard/user/dashboard': typeof DashboardUserDashboardRoute
   '/_dashboard/user/materials': typeof DashboardUserMaterialsRouteWithChildren
   '/_dashboard/user/subscribe': typeof DashboardUserSubscribeRoute
+  '/_dashboard/admin/bookings/$bookingId': typeof DashboardAdminBookingsBookingIdRoute
+  '/_dashboard/admin/bookings/new': typeof DashboardAdminBookingsNewRoute
   '/_dashboard/admin/forum/$id': typeof DashboardAdminForumIdRoute
   '/_dashboard/admin/payments/$userId': typeof DashboardAdminPaymentsUserIdRoute
   '/_dashboard/admin/subscriptions/$userId': typeof DashboardAdminSubscriptionsUserIdRoute
-  '/_dashboard/admin/tutoring/$userId': typeof DashboardAdminTutoringUserIdRoute
-  '/_dashboard/admin/tutoring/new': typeof DashboardAdminTutoringNewRoute
   '/_dashboard/student/forum/$id': typeof DashboardStudentForumIdRouteWithChildren
   '/_dashboard/student/forum/new': typeof DashboardStudentForumNewRoute
   '/_dashboard/student/tutoring/new': typeof DashboardStudentTutoringNewRoute
   '/_dashboard/teacher/bookings/$bookingId': typeof DashboardTeacherBookingsBookingIdRoute
   '/_dashboard/teacher/forum/$id': typeof DashboardTeacherForumIdRoute
   '/_dashboard/user/materials/$materialId': typeof DashboardUserMaterialsMaterialIdRoute
+  '/_dashboard/admin/bookings/': typeof DashboardAdminBookingsIndexRoute
   '/_dashboard/admin/forum/': typeof DashboardAdminForumIndexRoute
   '/_dashboard/admin/payments/': typeof DashboardAdminPaymentsIndexRoute
   '/_dashboard/admin/subscriptions/': typeof DashboardAdminSubscriptionsIndexRoute
-  '/_dashboard/admin/tutoring/': typeof DashboardAdminTutoringIndexRoute
   '/_dashboard/student/forum/': typeof DashboardStudentForumIndexRoute
   '/_dashboard/student/materials/': typeof DashboardStudentMaterialsIndexRoute
   '/_dashboard/student/packages/': typeof DashboardStudentPackagesIndexRoute
@@ -602,7 +602,7 @@ export interface FileRoutesById {
   '/_dashboard/teacher/chapters/': typeof DashboardTeacherChaptersIndexRoute
   '/_dashboard/teacher/forum/': typeof DashboardTeacherForumIndexRoute
   '/_dashboard/teacher/packs/': typeof DashboardTeacherPacksIndexRoute
-  '/_dashboard/admin/tutoring/bookings/$bookingId': typeof DashboardAdminTutoringBookingsBookingIdRoute
+  '/_dashboard/admin/bookings/students/$userId': typeof DashboardAdminBookingsStudentsUserIdRoute
   '/_dashboard/student/forum/$id/edit': typeof DashboardStudentForumIdEditRoute
   '/_dashboard/student/materials/chapters/$id': typeof DashboardStudentMaterialsChaptersIdRoute
   '/_dashboard/student/forum/$id/': typeof DashboardStudentForumIdIndexRoute
@@ -644,21 +644,21 @@ export interface FileRouteTypes {
     | '/user/dashboard'
     | '/user/materials'
     | '/user/subscribe'
+    | '/admin/bookings/$bookingId'
+    | '/admin/bookings/new'
     | '/admin/forum/$id'
     | '/admin/payments/$userId'
     | '/admin/subscriptions/$userId'
-    | '/admin/tutoring/$userId'
-    | '/admin/tutoring/new'
     | '/student/forum/$id'
     | '/student/forum/new'
     | '/student/tutoring/new'
     | '/teacher/bookings/$bookingId'
     | '/teacher/forum/$id'
     | '/user/materials/$materialId'
+    | '/admin/bookings/'
     | '/admin/forum/'
     | '/admin/payments/'
     | '/admin/subscriptions/'
-    | '/admin/tutoring/'
     | '/student/forum/'
     | '/student/materials/'
     | '/student/packages/'
@@ -667,7 +667,7 @@ export interface FileRouteTypes {
     | '/teacher/chapters/'
     | '/teacher/forum/'
     | '/teacher/packs/'
-    | '/admin/tutoring/bookings/$bookingId'
+    | '/admin/bookings/students/$userId'
     | '/student/forum/$id/edit'
     | '/student/materials/chapters/$id'
     | '/student/forum/$id/'
@@ -707,20 +707,20 @@ export interface FileRouteTypes {
     | '/user/dashboard'
     | '/user/materials'
     | '/user/subscribe'
+    | '/admin/bookings/$bookingId'
+    | '/admin/bookings/new'
     | '/admin/forum/$id'
     | '/admin/payments/$userId'
     | '/admin/subscriptions/$userId'
-    | '/admin/tutoring/$userId'
-    | '/admin/tutoring/new'
     | '/student/forum/new'
     | '/student/tutoring/new'
     | '/teacher/bookings/$bookingId'
     | '/teacher/forum/$id'
     | '/user/materials/$materialId'
+    | '/admin/bookings'
     | '/admin/forum'
     | '/admin/payments'
     | '/admin/subscriptions'
-    | '/admin/tutoring'
     | '/student/forum'
     | '/student/materials'
     | '/student/packages'
@@ -729,7 +729,7 @@ export interface FileRouteTypes {
     | '/teacher/chapters'
     | '/teacher/forum'
     | '/teacher/packs'
-    | '/admin/tutoring/bookings/$bookingId'
+    | '/admin/bookings/students/$userId'
     | '/student/forum/$id/edit'
     | '/student/materials/chapters/$id'
     | '/student/forum/$id'
@@ -770,21 +770,21 @@ export interface FileRouteTypes {
     | '/_dashboard/user/dashboard'
     | '/_dashboard/user/materials'
     | '/_dashboard/user/subscribe'
+    | '/_dashboard/admin/bookings/$bookingId'
+    | '/_dashboard/admin/bookings/new'
     | '/_dashboard/admin/forum/$id'
     | '/_dashboard/admin/payments/$userId'
     | '/_dashboard/admin/subscriptions/$userId'
-    | '/_dashboard/admin/tutoring/$userId'
-    | '/_dashboard/admin/tutoring/new'
     | '/_dashboard/student/forum/$id'
     | '/_dashboard/student/forum/new'
     | '/_dashboard/student/tutoring/new'
     | '/_dashboard/teacher/bookings/$bookingId'
     | '/_dashboard/teacher/forum/$id'
     | '/_dashboard/user/materials/$materialId'
+    | '/_dashboard/admin/bookings/'
     | '/_dashboard/admin/forum/'
     | '/_dashboard/admin/payments/'
     | '/_dashboard/admin/subscriptions/'
-    | '/_dashboard/admin/tutoring/'
     | '/_dashboard/student/forum/'
     | '/_dashboard/student/materials/'
     | '/_dashboard/student/packages/'
@@ -793,7 +793,7 @@ export interface FileRouteTypes {
     | '/_dashboard/teacher/chapters/'
     | '/_dashboard/teacher/forum/'
     | '/_dashboard/teacher/packs/'
-    | '/_dashboard/admin/tutoring/bookings/$bookingId'
+    | '/_dashboard/admin/bookings/students/$userId'
     | '/_dashboard/student/forum/$id/edit'
     | '/_dashboard/student/materials/chapters/$id'
     | '/_dashboard/student/forum/$id/'
@@ -975,6 +975,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardUserSubscribeRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/admin/bookings/': {
+      id: '/_dashboard/admin/bookings/'
+      path: '/admin/bookings'
+      fullPath: '/admin/bookings/'
+      preLoaderRoute: typeof DashboardAdminBookingsIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/bookings/$bookingId': {
+      id: '/_dashboard/admin/bookings/$bookingId'
+      path: '/admin/bookings/$bookingId'
+      fullPath: '/admin/bookings/$bookingId'
+      preLoaderRoute: typeof DashboardAdminBookingsBookingIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/admin/bookings/new': {
+      id: '/_dashboard/admin/bookings/new'
+      path: '/admin/bookings/new'
+      fullPath: '/admin/bookings/new'
+      preLoaderRoute: typeof DashboardAdminBookingsNewRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/admin/forum/': {
       id: '/_dashboard/admin/forum/'
       path: '/admin/forum'
@@ -1015,27 +1036,6 @@ declare module '@tanstack/react-router' {
       path: '/admin/subscriptions/$userId'
       fullPath: '/admin/subscriptions/$userId'
       preLoaderRoute: typeof DashboardAdminSubscriptionsUserIdRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/tutoring/': {
-      id: '/_dashboard/admin/tutoring/'
-      path: '/admin/tutoring'
-      fullPath: '/admin/tutoring/'
-      preLoaderRoute: typeof DashboardAdminTutoringIndexRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/tutoring/$userId': {
-      id: '/_dashboard/admin/tutoring/$userId'
-      path: '/admin/tutoring/$userId'
-      fullPath: '/admin/tutoring/$userId'
-      preLoaderRoute: typeof DashboardAdminTutoringUserIdRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/admin/tutoring/new': {
-      id: '/_dashboard/admin/tutoring/new'
-      path: '/admin/tutoring/new'
-      fullPath: '/admin/tutoring/new'
-      preLoaderRoute: typeof DashboardAdminTutoringNewRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/student/forum/': {
@@ -1136,11 +1136,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardUserMaterialsMaterialIdRouteImport
       parentRoute: typeof DashboardUserMaterialsRoute
     }
-    '/_dashboard/admin/tutoring/bookings/$bookingId': {
-      id: '/_dashboard/admin/tutoring/bookings/$bookingId'
-      path: '/admin/tutoring/bookings/$bookingId'
-      fullPath: '/admin/tutoring/bookings/$bookingId'
-      preLoaderRoute: typeof DashboardAdminTutoringBookingsBookingIdRouteImport
+    '/_dashboard/admin/bookings/students/$userId': {
+      id: '/_dashboard/admin/bookings/students/$userId'
+      path: '/admin/bookings/students/$userId'
+      fullPath: '/admin/bookings/students/$userId'
+      preLoaderRoute: typeof DashboardAdminBookingsStudentsUserIdRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/student/forum/$id/': {
@@ -1308,20 +1308,20 @@ interface DashboardRouteChildren {
   DashboardUserDashboardRoute: typeof DashboardUserDashboardRoute
   DashboardUserMaterialsRoute: typeof DashboardUserMaterialsRouteWithChildren
   DashboardUserSubscribeRoute: typeof DashboardUserSubscribeRoute
+  DashboardAdminBookingsBookingIdRoute: typeof DashboardAdminBookingsBookingIdRoute
+  DashboardAdminBookingsNewRoute: typeof DashboardAdminBookingsNewRoute
   DashboardAdminForumIdRoute: typeof DashboardAdminForumIdRoute
   DashboardAdminPaymentsUserIdRoute: typeof DashboardAdminPaymentsUserIdRoute
   DashboardAdminSubscriptionsUserIdRoute: typeof DashboardAdminSubscriptionsUserIdRoute
-  DashboardAdminTutoringUserIdRoute: typeof DashboardAdminTutoringUserIdRoute
-  DashboardAdminTutoringNewRoute: typeof DashboardAdminTutoringNewRoute
   DashboardStudentForumIdRoute: typeof DashboardStudentForumIdRouteWithChildren
   DashboardStudentForumNewRoute: typeof DashboardStudentForumNewRoute
   DashboardStudentTutoringNewRoute: typeof DashboardStudentTutoringNewRoute
   DashboardTeacherBookingsBookingIdRoute: typeof DashboardTeacherBookingsBookingIdRoute
   DashboardTeacherForumIdRoute: typeof DashboardTeacherForumIdRoute
+  DashboardAdminBookingsIndexRoute: typeof DashboardAdminBookingsIndexRoute
   DashboardAdminForumIndexRoute: typeof DashboardAdminForumIndexRoute
   DashboardAdminPaymentsIndexRoute: typeof DashboardAdminPaymentsIndexRoute
   DashboardAdminSubscriptionsIndexRoute: typeof DashboardAdminSubscriptionsIndexRoute
-  DashboardAdminTutoringIndexRoute: typeof DashboardAdminTutoringIndexRoute
   DashboardStudentForumIndexRoute: typeof DashboardStudentForumIndexRoute
   DashboardStudentMaterialsIndexRoute: typeof DashboardStudentMaterialsIndexRoute
   DashboardStudentPackagesIndexRoute: typeof DashboardStudentPackagesIndexRoute
@@ -1330,7 +1330,7 @@ interface DashboardRouteChildren {
   DashboardTeacherChaptersIndexRoute: typeof DashboardTeacherChaptersIndexRoute
   DashboardTeacherForumIndexRoute: typeof DashboardTeacherForumIndexRoute
   DashboardTeacherPacksIndexRoute: typeof DashboardTeacherPacksIndexRoute
-  DashboardAdminTutoringBookingsBookingIdRoute: typeof DashboardAdminTutoringBookingsBookingIdRoute
+  DashboardAdminBookingsStudentsUserIdRoute: typeof DashboardAdminBookingsStudentsUserIdRoute
   DashboardStudentMaterialsChaptersIdRoute: typeof DashboardStudentMaterialsChaptersIdRoute
   DashboardStudentPackagesCollectionIdIndexRoute: typeof DashboardStudentPackagesCollectionIdIndexRoute
   DashboardTeacherPacksCollectionIdIndexRoute: typeof DashboardTeacherPacksCollectionIdIndexRoute
@@ -1366,22 +1366,22 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardUserDashboardRoute: DashboardUserDashboardRoute,
   DashboardUserMaterialsRoute: DashboardUserMaterialsRouteWithChildren,
   DashboardUserSubscribeRoute: DashboardUserSubscribeRoute,
+  DashboardAdminBookingsBookingIdRoute: DashboardAdminBookingsBookingIdRoute,
+  DashboardAdminBookingsNewRoute: DashboardAdminBookingsNewRoute,
   DashboardAdminForumIdRoute: DashboardAdminForumIdRoute,
   DashboardAdminPaymentsUserIdRoute: DashboardAdminPaymentsUserIdRoute,
   DashboardAdminSubscriptionsUserIdRoute:
     DashboardAdminSubscriptionsUserIdRoute,
-  DashboardAdminTutoringUserIdRoute: DashboardAdminTutoringUserIdRoute,
-  DashboardAdminTutoringNewRoute: DashboardAdminTutoringNewRoute,
   DashboardStudentForumIdRoute: DashboardStudentForumIdRouteWithChildren,
   DashboardStudentForumNewRoute: DashboardStudentForumNewRoute,
   DashboardStudentTutoringNewRoute: DashboardStudentTutoringNewRoute,
   DashboardTeacherBookingsBookingIdRoute:
     DashboardTeacherBookingsBookingIdRoute,
   DashboardTeacherForumIdRoute: DashboardTeacherForumIdRoute,
+  DashboardAdminBookingsIndexRoute: DashboardAdminBookingsIndexRoute,
   DashboardAdminForumIndexRoute: DashboardAdminForumIndexRoute,
   DashboardAdminPaymentsIndexRoute: DashboardAdminPaymentsIndexRoute,
   DashboardAdminSubscriptionsIndexRoute: DashboardAdminSubscriptionsIndexRoute,
-  DashboardAdminTutoringIndexRoute: DashboardAdminTutoringIndexRoute,
   DashboardStudentForumIndexRoute: DashboardStudentForumIndexRoute,
   DashboardStudentMaterialsIndexRoute: DashboardStudentMaterialsIndexRoute,
   DashboardStudentPackagesIndexRoute: DashboardStudentPackagesIndexRoute,
@@ -1390,8 +1390,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardTeacherChaptersIndexRoute: DashboardTeacherChaptersIndexRoute,
   DashboardTeacherForumIndexRoute: DashboardTeacherForumIndexRoute,
   DashboardTeacherPacksIndexRoute: DashboardTeacherPacksIndexRoute,
-  DashboardAdminTutoringBookingsBookingIdRoute:
-    DashboardAdminTutoringBookingsBookingIdRoute,
+  DashboardAdminBookingsStudentsUserIdRoute:
+    DashboardAdminBookingsStudentsUserIdRoute,
   DashboardStudentMaterialsChaptersIdRoute:
     DashboardStudentMaterialsChaptersIdRoute,
   DashboardStudentPackagesCollectionIdIndexRoute:

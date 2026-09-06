@@ -97,7 +97,7 @@ export const sidebarGroups: SidebarGroup[] = [
           { label: "Mata Pelajaran Guru", to: "/admin/teacher-subjects" },
         ],
       },
-      { label: "Daftar Booking", icon: Calendar, to: "/admin/tutoring" },
+      { label: "Daftar Booking", icon: Calendar, to: "/admin/bookings" },
       { label: "Langganan Konten", icon: Sparkles, to: "/admin/subscriptions" },
       { label: "Forum", icon: MessageSquare, to: "/admin/forum" },
       { label: "Dev Tools", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },

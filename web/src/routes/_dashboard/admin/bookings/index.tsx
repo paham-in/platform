@@ -168,7 +168,7 @@ function AdminTutoring() {
                 <TableRow
                   key={r.id}
                   className="cursor-pointer"
-                  onClick={() => navigate({ to: "/admin/tutoring/$userId", params: { userId: String(r.id) } })}
+                  onClick={() => navigate({ to: "/admin/bookings/students/$userId", params: { userId: String(r.id) } })}
                 >
                   <TableCell className="pl-6">
                     <div className="flex items-center gap-3">
@@ -221,7 +221,7 @@ function AdminTutoring() {
                 <div
                   key={r.id}
                   className="cursor-pointer p-4"
-                  onClick={() => navigate({ to: "/admin/tutoring/$userId", params: { userId: String(r.id) } })}
+                  onClick={() => navigate({ to: "/admin/bookings/students/$userId", params: { userId: String(r.id) } })}
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium">{r.name}</p>
@@ -243,7 +243,7 @@ function AdminTutoring() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/admin/tutoring/")({
+export const Route = createFileRoute("/_dashboard/admin/bookings/")({
   component: AdminTutoring,
   validateSearch: adminTutoringSearchSchema,
 })

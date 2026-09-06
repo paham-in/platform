@@ -90,7 +90,7 @@ function AdminTutoringDetail() {
         </div>
         <Button
           className="hidden md:inline-flex"
-          onClick={() => navigate({ to: "/admin/tutoring/new", search: { student_id: Number(userId) } })}
+          onClick={() => navigate({ to: "/admin/bookings/new", search: { student_id: Number(userId) } })}
         >
           <Plus className="mr-1 h-4 w-4" /> Tambah Booking Manual
         </Button>
@@ -142,7 +142,7 @@ function AdminTutoringDetail() {
                 <TableRow
                   key={b.id}
                   className="cursor-pointer"
-                  onClick={() => navigate({ to: "/admin/tutoring/bookings/$bookingId", params: { bookingId: String(b.id) } })}
+                  onClick={() => navigate({ to: "/admin/bookings/$bookingId", params: { bookingId: String(b.id) } })}
                 >
                   <TableCell className="pl-6 font-medium">{b.subject_name ?? "—"}</TableCell>
                   <TableCell>{b.teacher_name ?? "—"}</TableCell>
@@ -223,7 +223,7 @@ function AdminTutoringDetail() {
                 <div
                   key={b.id}
                   className="flex cursor-pointer items-start justify-between gap-3 p-4"
-                  onClick={() => navigate({ to: "/admin/tutoring/bookings/$bookingId", params: { bookingId: String(b.id) } })}
+                  onClick={() => navigate({ to: "/admin/bookings/$bookingId", params: { bookingId: String(b.id) } })}
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium">{b.subject_name ?? "—"}</p>
@@ -277,7 +277,7 @@ function AdminTutoringDetail() {
       {modal === "reject" && rejectTarget && <RejectBookingDialog booking={rejectTarget} onClose={closeModal} />}
 
       <Button
-        onClick={() => navigate({ to: "/admin/tutoring/new", search: { student_id: Number(userId) } })}
+        onClick={() => navigate({ to: "/admin/bookings/new", search: { student_id: Number(userId) } })}
         size="icon"
         className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
         aria-label="Tambah Booking Manual"
@@ -288,7 +288,7 @@ function AdminTutoringDetail() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/admin/tutoring/$userId")({
+export const Route = createFileRoute("/_dashboard/admin/bookings/students/$userId")({
   component: AdminTutoringDetail,
   validateSearch: adminTutoringDetailSearchSchema,
 })

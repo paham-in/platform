@@ -381,7 +381,7 @@ function AdminBookingDetail() {
   )
 }
 
-export const Route = createFileRoute("/_dashboard/admin/tutoring/bookings/$bookingId")({
+export const Route = createFileRoute("/_dashboard/admin/bookings/$bookingId")({
   component: AdminBookingDetail,
   validateSearch: adminBookingDetailSearchSchema,
 })
