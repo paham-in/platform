@@ -138,11 +138,13 @@ function AdminTutoringDetail() {
                     </Empty>
                   </TableCell>
                 </TableRow>
-              ) : studentBookings.map((b) => (
+              ) : studentBookings.map((b) => {
+                const clickable = b.status !== "pending"
+                return (
                 <TableRow
                   key={b.id}
-                  className="cursor-pointer"
-                  onClick={() => navigate({ to: "/admin/bookings/$bookingId", params: { bookingId: String(b.id) } })}
+                  className={clickable ? "cursor-pointer" : undefined}
+                  onClick={clickable ? () => navigate({ to: "/admin/bookings/$bookingId", params: { bookingId: String(b.id) } }) : undefined}
                 >
                   <TableCell className="pl-6 font-medium">{b.subject_name ?? "—"}</TableCell>
                   <TableCell>{b.teacher_name ?? "—"}</TableCell>
@@ -189,7 +191,8 @@ function AdminTutoringDetail() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+                )
+              })}
             </TableBody>
           </Table>
         </CardContent>
@@ -219,11 +222,13 @@ function AdminTutoringDetail() {
             </Empty>
           ) : (
             <div className="divide-y">
-              {studentBookings.map((b) => (
+              {studentBookings.map((b) => {
+                const clickable = b.status !== "pending"
+                return (
                 <div
                   key={b.id}
-                  className="flex cursor-pointer items-start justify-between gap-3 p-4"
-                  onClick={() => navigate({ to: "/admin/bookings/$bookingId", params: { bookingId: String(b.id) } })}
+                  className={clickable ? "flex cursor-pointer items-start justify-between gap-3 p-4" : "flex items-start justify-between gap-3 p-4"}
+                  onClick={clickable ? () => navigate({ to: "/admin/bookings/$bookingId", params: { bookingId: String(b.id) } }) : undefined}
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium">{b.subject_name ?? "—"}</p>
@@ -266,7 +271,8 @@ function AdminTutoringDetail() {
                     ) : null}
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </CardContent>
