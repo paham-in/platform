@@ -3042,7 +3042,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Rekap jumlah pertemuan terlaksana/batal per booking + estimasi refund.",
+                "description": "Rekap jumlah pertemuan terlaksana/batal per booking + estimasi refund (hanya terisi bila invoice sudah lunas).",
                 "consumes": [
                     "application/json"
                 ],

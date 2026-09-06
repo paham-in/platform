@@ -4041,7 +4041,7 @@ paths:
       consumes:
       - application/json
       description: Rekap jumlah pertemuan terlaksana/batal per booking + estimasi
-        refund.
+        refund (hanya terisi bila invoice sudah lunas).
       produces:
       - application/json
       responses:
