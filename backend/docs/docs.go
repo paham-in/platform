@@ -455,7 +455,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Menghapus permanen booking cancelled/rejected yang lebih dari 7 hari beserta sesi \u0026 invoice terkait",
+                "description": "Menghapus permanen SEMUA booking cancelled/rejected beserta sesi \u0026 invoice terkait, tanpa masa tenggang 7 hari. Booking dengan refund belum settled tetap dilewati",
                 "consumes": [
                     "application/json"
                 ],

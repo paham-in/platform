@@ -211,6 +211,13 @@ func (r *Runner) CancelledBookingCleanup() (int64, error) {
 	return r.tutoringRepo.DeleteCancelledOlderThan(cutoff)
 }
 
+// CancelledBookingCleanupAll sama seperti CancelledBookingCleanup tapi tanpa
+// masa tenggang: semua booking cancelled/rejected langsung dihapus. Dipakai
+// trigger manual di dev. Guard refund belum settled tetap berlaku.
+func (r *Runner) CancelledBookingCleanupAll() (int64, error) {
+	return r.tutoringRepo.DeleteCancelledOlderThan(time.Now())
+}
+
 // StartCancelledBookingCleanup menjalankan cleanup riwayat booking batal tiap
 // hari pukul 00:00. Sengaja tanpa run-at-boot: penghapusan permanen hanya
 // berjalan sesuai jadwal. Panic di dalam job di-recover otomatis oleh

@@ -2390,8 +2390,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Menghapus permanen booking cancelled/rejected yang lebih dari 7
-        hari beserta sesi & invoice terkait
+      description: Menghapus permanen SEMUA booking cancelled/rejected beserta sesi
+        & invoice terkait, tanpa masa tenggang 7 hari. Booking dengan refund belum
+        settled tetap dilewati
       produces:
       - application/json
       responses:

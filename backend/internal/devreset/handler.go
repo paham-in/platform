@@ -323,7 +323,7 @@ func (h *Handler) RunNotificationCleanup(c *fiber.Ctx) error {
 
 // RunCancelledBookingCleanup menjalankan job hapus permanen riwayat booking batal secara manual
 // @Summary      Run cancelled booking cleanup job
-// @Description  Menghapus permanen booking cancelled/rejected yang lebih dari 7 hari beserta sesi & invoice terkait
+// @Description  Menghapus permanen SEMUA booking cancelled/rejected beserta sesi & invoice terkait, tanpa masa tenggang 7 hari. Booking dengan refund belum settled tetap dilewati
 // @Tags         Admin
 // @Accept       json
 // @Produce      json
@@ -332,7 +332,7 @@ func (h *Handler) RunNotificationCleanup(c *fiber.Ctx) error {
 // @Failure      500 {object} ErrorResponse
 // @Router       /admin/dev/cron/cancelled-booking-cleanup [post]
 func (h *Handler) RunCancelledBookingCleanup(c *fiber.Ctx) error {
-	deleted, err := h.jobs.CancelledBookingCleanup()
+	deleted, err := h.jobs.CancelledBookingCleanupAll()
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal bersihkan riwayat booking: " + err.Error()})
 	}
