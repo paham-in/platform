@@ -5373,7 +5373,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Guru membatalkan sesi yang tidak bisa dihadiri, atau admin membatalkan sesi terjadwal. Invoice tidak berubah.",
+                "description": "Guru membatalkan sesi yang tidak bisa dihadiri, atau admin membatalkan sesi terjadwal. Invoice pending dikoreksi nominalnya, invoice lunas dicatat refund.",
                 "consumes": [
                     "application/json"
                 ],
