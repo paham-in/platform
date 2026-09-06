@@ -11,7 +11,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
-import { getAdminTutoringBookingsOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { getAdminTutoringBookingsOptions, getAdminTutoringReportOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
 import { UserRound, Users, CalendarX2, CalendarClock, XCircle, MoreVertical, UserPlus, Plus, ArrowLeftRight } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -51,6 +51,8 @@ function AdminTutoringDetail() {
   const navigate = useNavigate()
   const { data: bookings = [], isLoading } = useQuery(getAdminTutoringBookingsOptions())
   const { data: users = [] } = useQuery(getAdminUsersOptions())
+  const { data: reports = [] } = useQuery(getAdminTutoringReportOptions())
+  const reportByBooking = new Map((reports ?? []).map((r) => [r.booking_id, r]))
   const [assignBooking, setAssignBooking] = useState<TutoringListBookingsResponse | null>(null)
   const [scheduleTarget, setScheduleTarget] = useState<TutoringListBookingsResponse | null>(null)
   const [rejectTarget, setRejectTarget] = useState<TutoringListBookingsResponse | null>(null)
@@ -67,6 +69,19 @@ function AdminTutoringDetail() {
   const user = users.find((u) => u.id === Number(userId))
   const studentName = user?.name ?? studentBookings[0]?.student_name ?? "—"
   usePageTitle(studentName)
+
+  const progressOf = (b: TutoringListBookingsResponse) => {
+    const r = reportByBooking.get(b.id!)
+    const total = r?.session_count ?? b.session_count ?? 0
+    if (!r || total <= 0) return null
+    return { done: r.done_count ?? 0, total, cancelled: r.cancelled_count ?? 0 }
+  }
+
+  const progressText = (b: TutoringListBookingsResponse) => {
+    const p = progressOf(b)
+    if (!p) return null
+    return `${p.done}/${p.total} selesai${p.cancelled > 0 ? ` · ${p.cancelled} batal` : ""}`
+  }
 
   return (
     <main className="p-4 md:p-6">
@@ -96,6 +111,7 @@ function AdminTutoringDetail() {
                 <TableHead>Tanggal</TableHead>
                 <TableHead>Jam</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Progres</TableHead>
                 <TableHead className="pr-6 text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -109,12 +125,13 @@ function AdminTutoringDetail() {
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell className="pr-6"><Skeleton className="h-4 w-24" /></TableCell>
                   </TableRow>
                 ))
               ) : studentBookings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8}>
+                  <TableCell colSpan={9}>
                     <Empty className="border-0 p-8">
                       <EmptyHeader>
                         <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
@@ -132,6 +149,12 @@ function AdminTutoringDetail() {
                   <TableCell>{b.date}</TableCell>
                   <TableCell>{b.start_time} - {b.end_time}</TableCell>
                   <TableCell>{statusBadge(b.status!)}</TableCell>
+                  <TableCell className="tabular-nums">
+                    {(() => {
+                      const label = progressText(b)
+                      return label ?? <span className="text-muted-foreground">—</span>
+                    })()}
+                  </TableCell>
                   <TableCell className="pr-6">
                     <div className="flex items-center justify-end">
                       {b.status === "pending" || b.teacher_id ? (
@@ -207,6 +230,10 @@ function AdminTutoringDetail() {
                     <p className="mt-1 text-xs text-muted-foreground">
                       {b.teacher_name ?? "—"} · {b.date} {b.start_time}–{b.end_time} · {b.session_count ?? 1}×
                     </p>
+                    {(() => {
+                      const label = progressText(b)
+                      return label ? <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{label}</p> : null
+                    })()}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     {b.status === "pending" || b.teacher_id ? (

@@ -167,6 +167,19 @@ export function BookingList() {
 
   const detailSessions = detailBooking ? sessionsFor(detailBooking.id!) : []
 
+  const progressText = (list: TutoringListSessionsResponse[], total: number) => {
+    if (list.length === 0 || total <= 0) return null
+    const done = list.filter((s) => s.status === "done").length
+    const cancelled = list.filter((s) => s.status === "cancelled").length
+    return `${done}/${total} selesai${cancelled > 0 ? ` · ${cancelled} batal` : ""}`
+  }
+
+  const groupProgress = (group: TutoringListBookingsResponse[]) => {
+    const list = group.flatMap((b) => sessionsFor(b.id!))
+    const total = group.reduce((sum, b) => sum + (b.session_count ?? 0), 0) || list.length
+    return progressText(list, total)
+  }
+
   return (
     <>
       {/* Desktop table */}
@@ -181,6 +194,7 @@ export function BookingList() {
                 <TableHead>Jam</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Overtime</TableHead>
+                <TableHead>Progres</TableHead>
                 <TableHead className="pr-6 text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -194,12 +208,13 @@ export function BookingList() {
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell className="pr-6"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : groups.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7}>
+                  <TableCell colSpan={8}>
                     <Empty className="border-0 p-8">
                       <EmptyHeader>
                         <EmptyMedia variant="icon"><History /></EmptyMedia>
@@ -224,6 +239,12 @@ export function BookingList() {
                       return label
                         ? <span className="font-medium tabular-nums text-amber-600">{label}</span>
                         : <span className="text-muted-foreground">—</span>
+                    })()}
+                  </TableCell>
+                  <TableCell className="tabular-nums">
+                    {(() => {
+                      const label = groupProgress(group)
+                      return label ?? <span className="text-muted-foreground">—</span>
                     })()}
                   </TableCell>
                   <TableCell className="pr-6">
@@ -322,6 +343,10 @@ export function BookingList() {
                         {statusBadge(group[0].status!)}
                       </div>
                       <p className="mt-2 text-sm text-muted-foreground">{group[0].date} · {group[0].start_time} - {group[0].end_time}</p>
+                      {(() => {
+                        const label = groupProgress(group)
+                        return label ? <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{label}</p> : null
+                      })()}
                       {(() => {
                         const label = overtimeSummary(group.flatMap((b) => sessionsFor(b.id!)))
                         return label ? <p className="mt-0.5 text-xs font-medium text-amber-600">Overtime {label}</p> : null
@@ -508,7 +533,18 @@ export function BookingList() {
                 {detailSessions.length === 0 ? (
                   <p className="text-muted-foreground">Belum ada sesi terjadwal.</p>
                 ) : (
-                  <div className="space-y-2">
+                  <>
+                    {(() => {
+                      const total = detailSessions.length
+                      const done = detailSessions.filter((s) => s.status === "done").length
+                      const cancelled = detailSessions.filter((s) => s.status === "cancelled").length
+                      return (
+                        <p className="mb-3 text-sm tabular-nums text-muted-foreground">
+                          {done} dari {total} sesi selesai{cancelled > 0 ? ` · ${cancelled} batal` : ""}
+                        </p>
+                      )
+                    })()}
+                    <div className="space-y-2">
                     {detailSessions.map((s) => (
                       <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
                         <div className="min-w-0">
@@ -532,6 +568,7 @@ export function BookingList() {
                       </div>
                     ))}
                   </div>
+                  </>
                 )}
               </div>
             </div>

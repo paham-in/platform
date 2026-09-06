@@ -366,6 +366,15 @@ function StudentTutoringIndex() {
 
   const upcomingSessions = sessions.filter((s) => s.status !== "cancelled")
 
+  const progressText = (b: TutoringListBookingsResponse) => {
+    const list = sessions.filter((s) => s.booking_id === b.id)
+    const total = b.session_count ?? list.length
+    if (list.length === 0 || total <= 0) return null
+    const done = list.filter((s) => s.status === "done").length
+    const cancelled = list.filter((s) => s.status === "cancelled").length
+    return `${done}/${total} selesai${cancelled > 0 ? ` · ${cancelled} batal` : ""}`
+  }
+
   return (
     <main className="p-4 md:p-6">
       <div className="mb-6">
@@ -390,13 +399,14 @@ function StudentTutoringIndex() {
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Jam</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Progres</TableHead>
                   <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {bookingsLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="p-4">
+                    <TableCell colSpan={9} className="p-4">
                       <div className="space-y-3">
                         {Array.from({ length: 3 }).map((_, i) => (
                           <Skeleton key={i} className="h-12 w-full" />
@@ -406,7 +416,7 @@ function StudentTutoringIndex() {
                   </TableRow>
                 ) : bookings.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8}>
+                    <TableCell colSpan={9}>
                       <Empty className="border-0 p-8">
                         <EmptyHeader>
                           <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
@@ -424,6 +434,12 @@ function StudentTutoringIndex() {
                     <TableCell>{b.date}</TableCell>
                     <TableCell>{b.start_time} - {b.end_time}</TableCell>
                     <TableCell>{statusBadge(b.status!)}</TableCell>
+                    <TableCell className="tabular-nums">
+                      {(() => {
+                        const label = progressText(b)
+                        return label ?? <span className="text-muted-foreground">—</span>
+                      })()}
+                    </TableCell>
                     <TableCell className="pr-6">
                       <div className="flex items-center justify-end">
                         <DropdownMenu>
@@ -480,6 +496,10 @@ function StudentTutoringIndex() {
                         <div className="mt-1">{modeBadge(b.mode)}</div>
                         <p className="mt-2 text-sm text-muted-foreground">{b.date} · {b.start_time} - {b.end_time}</p>
                         <p className="mt-0.5 text-xs text-muted-foreground">{b.session_count ?? 1}× pertemuan</p>
+                        {(() => {
+                          const label = progressText(b)
+                          return label ? <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{label}</p> : null
+                        })()}
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         {statusBadge(b.status!)}
