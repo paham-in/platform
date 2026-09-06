@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -29,7 +29,7 @@ import {
   getAdminUsersOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { StudentclassStudentClassEnrollmentResponse, UserAdminListUsersResponse } from "@/lib/api/types.gen"
-import { Plus, KeyRound, MoreVertical, Trash2, Gift, ArrowRight } from "lucide-react"
+import { Plus, KeyRound, MoreVertical, Trash2, Gift } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
 import { format, parseISO, differenceInCalendarDays } from "date-fns"
@@ -38,6 +38,7 @@ import { toast } from "sonner"
 import { Spinner } from "@/components/ui/spinner"
 import { GrantClassDialog } from "@/components/admin/student-class-enrollments"
 import { AddSubscriptionDialog } from "@/components/admin/subscriptions"
+import { InvoiceSection } from "@/components/admin/payments"
 import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
@@ -100,11 +101,10 @@ function AdminSubscriptionDetail() {
   const { userId } = Route.useParams()
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
-  const navigate = useNavigate({ from: Route.fullPath })
   const { data: items = [], isLoading } = useQuery(getAdminStudentClassEnrollmentsOptions({}))
   const { data: users = [] } = useQuery(getAdminUsersOptions())
-  const { data: invoices = [] } = useQuery(getAdminInvoicesOptions({
-    query: { user_id: Number(userId), status: "pending" },
+  const { data: invoices = [], isLoading: invoicesLoading } = useQuery(getAdminInvoicesOptions({
+    query: { user_id: Number(userId) },
   }))
   const [revokeTarget, setRevokeTarget] = useState<StudentclassStudentClassEnrollmentResponse | null>(null)
   const [subscribeUser, setSubscribeUser] = useState<UserAdminListUsersResponse | null>(null)
@@ -117,6 +117,7 @@ function AdminSubscriptionDetail() {
   const uid = Number(userId)
   const user = users.find((u) => u.id === uid)
   const mine = items.filter((sp) => (sp.user_id ?? sp.user?.id) === uid)
+  const subscriptionInvoices = invoices.filter((inv) => !inv.booking_id)
   const studentName = user?.name ?? mine[0]?.user?.name ?? "—"
   usePageTitle(studentName)
 
@@ -221,19 +222,6 @@ function AdminSubscriptionDetail() {
       </div>
 
       <div className="space-y-4 md:space-y-6">
-        {invoices.length > 0 && (
-          <Button
-            variant="outline"
-            className="flex w-full items-center justify-between gap-3 px-4 py-6"
-            onClick={() => navigate({ to: "/admin/payments/$userId", params: { userId: String(uid) } })}
-          >
-            <span className="text-sm">
-              <span className="font-medium text-amber-600">{invoices.length} tagihan menunggu</span>
-              <span className="text-muted-foreground"> · Rp {invoices.reduce((sum, inv) => sum + (inv.amount ?? 0), 0).toLocaleString("id-ID")}</span>
-            </span>
-            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-          </Button>
-        )}
         <div>
           <h2 className="mb-2 text-lg font-semibold">Aktif</h2>
           <Card className="hidden gap-0 pt-0 pb-0 md:block">
@@ -279,6 +267,15 @@ function AdminSubscriptionDetail() {
             </CardContent>
           </Card>
         </div>
+
+        <InvoiceSection
+          title="Tagihan Langganan"
+          invoices={subscriptionInvoices}
+          isLoading={invoicesLoading}
+          modal={modal}
+          openModal={openModal}
+          closeModal={closeModal}
+        />
 
         <div>
           <h2 className="mb-2 text-lg font-semibold">Riwayat</h2>

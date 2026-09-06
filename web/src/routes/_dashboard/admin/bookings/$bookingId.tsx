@@ -26,6 +26,7 @@ import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
 import { SwapSessionTeacherDialog } from "@/components/admin/attendance/swap-session-teacher-dialog"
 import { ApproveEvidenceDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
+import { InvoiceSection } from "@/components/admin/payments"
 
 const adminBookingDetailSearchSchema = z.object({
   modal: z.string().optional(),
@@ -75,7 +76,7 @@ function AdminBookingDetail() {
   const isLoading = bookingsLoading || sessionsLoading || evidenceLoading
 
   const booking = bookings.find((b) => b.id === Number(bookingId))
-  const { data: invoices = [] } = useQuery({
+  const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
     ...getAdminInvoicesOptions({ query: { user_id: booking?.student_id } }),
     enabled: booking?.student_id != null,
   })
@@ -128,7 +129,8 @@ function AdminBookingDetail() {
   }
 
   const report = reports.find((r) => r.booking_id === Number(bookingId))
-  const bookingInvoices = invoices.filter((i) => i.booking_id === Number(bookingId) && i.status !== "batal")
+  const bookingInvoiceList = invoices.filter((i) => i.booking_id === Number(bookingId))
+  const bookingInvoices = bookingInvoiceList.filter((i) => i.status !== "batal")
   const invoiceTotal = bookingInvoices.reduce((sum, i) => sum + (i.amount ?? 0), 0)
   const invoicePaid = bookingInvoices.filter((i) => i.status === "paid").reduce((sum, i) => sum + (i.amount ?? 0), 0)
   const doneSessions = sessions.filter((s) => s.status === "done").length
@@ -370,6 +372,16 @@ function AdminBookingDetail() {
           )}
         </CardContent>
       </Card>
+      <div className="mt-6">
+        <InvoiceSection
+          title="Tagihan"
+          invoices={bookingInvoiceList}
+          isLoading={isLoading || invoicesLoading}
+          modal={modal}
+          openModal={openModal}
+          closeModal={closeModal}
+        />
+      </div>
 
       {modal === "swap" && swapSession && (
         <SwapSessionTeacherDialog session={swapSession} onClose={closeModal} />

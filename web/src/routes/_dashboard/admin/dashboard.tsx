@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { usePageTitle } from "@/components/page-title"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions, getAdminMaterialsOptions, getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { Users, GraduationCap, BookOpen, FileText, BookMarked, ChevronRight, CreditCard } from "lucide-react"
+import { Users, GraduationCap, BookOpen, FileText, BookMarked, ChevronRight, Calendar } from "lucide-react"
 
 function AdminDashboard() {
   usePageTitle("Dashboard Admin")
@@ -63,7 +63,7 @@ function AdminDashboard() {
               {[
                 { icon: Users, label: "Kelola User", desc: "Tambah/edit murid & guru", to: "/admin/users" as const },
                 { icon: BookMarked, label: "Mata Pelajaran", desc: "Atur mata pelajaran", to: "/admin/subjects" as const },
-                { icon: CreditCard, label: "Pembayaran", desc: "Kelola invoice & status", to: "/admin/payments" as const },
+                { icon: Calendar, label: "Daftar Booking", desc: "Verifikasi sesi & tagihan", to: "/admin/bookings" as const },
               ].map((a) => (
                 <button key={a.label} type="button" onClick={() => navigate({ to: a.to })} className="flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-colors hover:bg-muted/50">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><a.icon className="h-5 w-5" /></div>

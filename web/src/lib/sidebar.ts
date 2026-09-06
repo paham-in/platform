@@ -80,14 +80,7 @@ export const sidebarGroups: SidebarGroup[] = [
           { label: "Hak Akses Guru", to: "/admin/teacher-permissions" },
         ],
       },
-      {
-        label: "Keuangan",
-        icon: CreditCard,
-        items: [
-          { label: "Tarif Produk", to: "/admin/tutoring-fees" },
-          { label: "Pembayaran Murid", to: "/admin/payments" },
-        ],
-      },
+      { label: "Tarif Produk", icon: CreditCard, to: "/admin/tutoring-fees" },
       {
         label: "Kurikulum",
         icon: BookMarked,
