@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import {
   patchAdminTutoringFeesByIdMutation,
+  getAdminTutoringBookingsByIdSessionsQueryKey,
   getAdminTutoringEvidenceQueryKey,
   getAdminTutoringReportQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
@@ -35,6 +36,9 @@ export function ToggleFeeDialog({ session, onClose }: ToggleFeeDialogProps) {
       toast.success("Status fee guru diperbarui")
       qc.invalidateQueries({ queryKey: getAdminTutoringEvidenceQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminTutoringReportQueryKey() })
+      if (session.booking_id) {
+        qc.invalidateQueries({ queryKey: getAdminTutoringBookingsByIdSessionsQueryKey({ path: { id: session.booking_id } }) })
+      }
       onClose()
     },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal mengubah status fee"),

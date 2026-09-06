@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import {
   patchAdminTutoringEvidenceByIdMutation,
+  getAdminTutoringBookingsByIdSessionsQueryKey,
   getAdminTutoringEvidenceQueryKey,
   getAdminTutoringReportQueryKey,
 } from "@/lib/api/@tanstack/react-query.gen"
@@ -34,6 +35,9 @@ export function ApproveEvidenceDialog({ session, onClose }: ApproveEvidenceDialo
       toast.success("Bukti disetujui, sesi selesai")
       qc.invalidateQueries({ queryKey: getAdminTutoringEvidenceQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminTutoringReportQueryKey() })
+      if (session.booking_id) {
+        qc.invalidateQueries({ queryKey: getAdminTutoringBookingsByIdSessionsQueryKey({ path: { id: session.booking_id } }) })
+      }
       onClose()
     },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal menyetujui bukti"),

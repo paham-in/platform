@@ -102,7 +102,6 @@ export const sidebarGroups: SidebarGroup[] = [
         icon: Calendar,
         items: [
           { label: "Daftar Booking", to: "/admin/tutoring" },
-          { label: "Validasi & Fee Guru", to: "/admin/attendance" },
         ],
       },
       { label: "Langganan Konten", icon: Sparkles, to: "/admin/subscriptions" },

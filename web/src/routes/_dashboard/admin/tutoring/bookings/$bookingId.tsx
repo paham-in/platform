@@ -12,18 +12,22 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
+  getAdminInvoicesOptions,
   getAdminTutoringBookingsOptions,
   getAdminTutoringBookingsByIdSessionsOptions,
   getAdminTutoringBookingsByIdSessionsQueryKey,
+  getAdminTutoringEvidenceOptions,
+  getAdminTutoringReportOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
-import { ArrowLeftRight, CalendarX2, Users, UserRound, MoreVertical } from "lucide-react"
+import { ArrowLeftRight, CalendarX2, Users, UserRound, MoreVertical, Check, X, CheckCircle2, XCircle } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
 import { ReassignTeacherDialog } from "@/components/admin/tutoring"
 import { SwapSessionTeacherDialog } from "@/components/admin/attendance/swap-session-teacher-dialog"
+import { ApproveEvidenceDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
 
 const adminBookingDetailSearchSchema = z.object({
   modal: z.string().optional(),
@@ -55,6 +59,13 @@ function sessionStatusBadge(s?: string) {
   return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[s || ""] || ""}`}>{labels[s || ""] || s}</span>
 }
 
+const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
+
+function feeBadge(paid?: boolean) {
+  if (paid) return <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Sudah Dibayar</span>
+  return <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Belum Dibayar</span>
+}
+
 function AdminBookingDetail() {
   const { bookingId } = Route.useParams()
   const { modal } = Route.useSearch()
@@ -62,17 +73,53 @@ function AdminBookingDetail() {
   const qc = useQueryClient()
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getAdminTutoringBookingsOptions())
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getAdminTutoringBookingsByIdSessionsOptions({ path: { id: Number(bookingId) } }))
-  const isLoading = bookingsLoading || sessionsLoading
+  const { data: evidence = [], isLoading: evidenceLoading } = useQuery(getAdminTutoringEvidenceOptions())
+  const { data: reports = [] } = useQuery(getAdminTutoringReportOptions())
+  const isLoading = bookingsLoading || sessionsLoading || evidenceLoading
+
+  const booking = bookings.find((b) => b.id === Number(bookingId))
+  const { data: invoices = [] } = useQuery({
+    ...getAdminInvoicesOptions({ query: { user_id: booking?.student_id } }),
+    enabled: booking?.student_id != null,
+  })
 
   const [swapSession, setSwapSession] = useState<TutoringListSessionsResponse | null>(null)
+  const [approveTarget, setApproveTarget] = useState<TutoringListSessionsResponse | null>(null)
+  const [rejectTarget, setRejectTarget] = useState<TutoringListSessionsResponse | null>(null)
+  const [feeTarget, setFeeTarget] = useState<TutoringListSessionsResponse | null>(null)
 
   useEffect(() => {
     if (modal !== "swap") setSwapSession(null)
+    if (modal !== "approve") setApproveTarget(null)
+    if (modal !== "reject") setRejectTarget(null)
+    if (modal !== "fee") setFeeTarget(null)
   }, [modal])
 
   const invalidateSessions = () => qc.invalidateQueries({ queryKey: getAdminTutoringBookingsByIdSessionsQueryKey({ path: { id: Number(bookingId) } }) })
 
-  const booking = bookings.find((b) => b.id === Number(bookingId))
+  const evidenceById = new Map((evidence ?? []).map((s) => [s.id!, s]))
+  const evOf = (s: TutoringListSessionsResponse) => evidenceById.get(s.id!) ?? s
+
+  const feeInfo = (s: TutoringListSessionsResponse) => {
+    const ev = evidenceById.get(s.id!)
+    if (s.status === "done" && ev?.invoice_paid) {
+      return (
+        <div className="space-y-1">
+          <div className="tabular-nums font-medium">{fmtRp(ev.fee_amount)}</div>
+          {feeBadge(ev.fee_paid)}
+        </div>
+      )
+    }
+    return (
+      <span className="text-xs text-muted-foreground">
+        {s.status === "done" ? "Tunggu invoice lunas" : s.status === "review" ? "Menunggu validasi" : "Belum terlaksana"}
+      </span>
+    )
+  }
+
+  const hasActions = (s: TutoringListSessionsResponse) =>
+    s.status === "scheduled" || s.status === "review" || (s.status === "done" && !!evidenceById.get(s.id!)?.invoice_paid)
+
   usePageTitle(booking?.student_name ? `Les ${booking.student_name}` : "Detail Booking")
 
   if (!isLoading && !booking) {
@@ -84,6 +131,21 @@ function AdminBookingDetail() {
       </main>
     )
   }
+
+  const report = reports.find((r) => r.booking_id === Number(bookingId))
+  const bookingInvoices = invoices.filter((i) => i.booking_id === Number(bookingId) && i.status !== "batal")
+  const invoiceTotal = bookingInvoices.reduce((sum, i) => sum + (i.amount ?? 0), 0)
+  const invoicePaid = bookingInvoices.filter((i) => i.status === "paid").reduce((sum, i) => sum + (i.amount ?? 0), 0)
+  const doneSessions = sessions.filter((s) => s.status === "done").length
+  const totalSessions = booking?.session_count ?? sessions.length
+
+  const summaryCards = [
+    { label: "Total Tagihan", value: fmtRp(invoiceTotal), className: "text-foreground" },
+    { label: "Sudah Dibayar", value: fmtRp(invoicePaid), className: "text-green-600" },
+    { label: "Estimasi Refund", value: fmtRp(report?.refund_amount), className: "text-red-600" },
+    { label: "Fee Belum Dibayar", value: fmtRp(report?.fee_unpaid_total), className: "text-amber-600" },
+    { label: "Sesi Selesai", value: `${doneSessions}/${totalSessions}`, className: "text-foreground" },
+  ]
 
   const canReassignAll = !!booking?.teacher_id && booking?.status !== "cancelled" && booking?.status !== "rejected"
 
@@ -115,6 +177,19 @@ function AdminBookingDetail() {
         )}
       </div>
 
+      {!isLoading && booking && (
+        <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
+          {summaryCards.map((s) => (
+            <Card key={s.label}>
+              <CardContent className="flex flex-col gap-0.5 py-3">
+                <span className="text-xs text-muted-foreground">{s.label}</span>
+                <span className={`text-lg font-bold tabular-nums ${s.className}`}>{s.value}</span>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
       <h2 className="mb-2 text-lg font-semibold">Daftar Sesi</h2>
       <Card className="hidden gap-0 pt-0 pb-0 md:block">
         <CardContent className="p-0">
@@ -126,6 +201,7 @@ function AdminBookingDetail() {
                 <TableHead>Status</TableHead>
                 <TableHead>Guru</TableHead>
                 <TableHead>Bukti</TableHead>
+                <TableHead>Fee Guru</TableHead>
                 <TableHead className="pr-6 text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -138,12 +214,13 @@ function AdminBookingDetail() {
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-10 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell className="pr-6"><Skeleton className="ml-auto h-8 w-8" /></TableCell>
                   </TableRow>
                 ))
               ) : sessions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={7}>
                     <Empty className="border-0 p-8">
                       <EmptyHeader>
                         <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
@@ -155,7 +232,14 @@ function AdminBookingDetail() {
               ) : sessions.map((s) => (
                 <TableRow key={s.id}>
                   <TableCell className="pl-6 tabular-nums">{s.date}</TableCell>
-                  <TableCell className="tabular-nums">{s.start_time} - {s.end_time}</TableCell>
+                  <TableCell className="tabular-nums">
+                    {s.start_time} - {s.end_time}
+                    {(s.overtime_minutes ?? 0) > 0 && (
+                      <span className="mt-0.5 block text-xs font-medium text-amber-600">
+                        +{s.overtime_minutes} mnt (s.d. {s.actual_end_time}) · +{s.extra_sessions ?? 0} sesi
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap items-center gap-1.5">
                       {sessionStatusBadge(s.status)}
@@ -174,17 +258,36 @@ function AdminBookingDetail() {
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </TableCell>
+                  <TableCell>
+                    {feeInfo(s)}
+                  </TableCell>
                   <TableCell className="pr-6">
                     <div className="flex items-center justify-end">
-                      {s.status === "scheduled" && (
+                      {hasActions(s) && (
                       <DropdownMenu>
                         <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi sesi" />}>
                           <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => { setSwapSession(s); openModal("swap") }}>
-                            <ArrowLeftRight className="h-4 w-4" /> Alihkan Sesi Ini
-                          </DropdownMenuItem>
+                          {s.status === "scheduled" ? (
+                            <DropdownMenuItem onClick={() => { setSwapSession(s); openModal("swap") }}>
+                              <ArrowLeftRight className="h-4 w-4" /> Alihkan Sesi Ini
+                            </DropdownMenuItem>
+                          ) : s.status === "review" ? (
+                            <>
+                              <DropdownMenuItem onClick={() => { setApproveTarget(s); openModal("approve") }}>
+                                <Check className="h-4 w-4 text-green-600" /> Setujui
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setRejectTarget(s); openModal("reject") }}>
+                                <X className="h-4 w-4 text-destructive" /> Tolak
+                              </DropdownMenuItem>
+                            </>
+                          ) : (
+                            <DropdownMenuItem onClick={() => { setFeeTarget(s); openModal("fee") }}>
+                              {evOf(s).fee_paid ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                              {evOf(s).fee_paid ? "Tandai Belum" : "Tandai Sudah"}
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                       )}
@@ -225,6 +328,11 @@ function AdminBookingDetail() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-medium tabular-nums">{s.date} · {s.start_time} - {s.end_time}</p>
+                      {(s.overtime_minutes ?? 0) > 0 && (
+                        <p className="mt-1 text-xs font-medium text-amber-600">
+                          +{s.overtime_minutes} mnt (s.d. {s.actual_end_time}) · +{s.extra_sessions ?? 0} sesi
+                        </p>
+                      )}
                       <div className="mt-1 flex flex-wrap items-center gap-1.5">
                         {sessionStatusBadge(s.status)}
                         {s.is_substitute ? (
@@ -237,16 +345,33 @@ function AdminBookingDetail() {
                           Lihat bukti
                         </a>
                       )}
+                      <div className="mt-1">{feeInfo(s)}</div>
                     </div>
-                    {s.status === "scheduled" && (
+                    {hasActions(s) && (
                     <DropdownMenu>
                       <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi sesi" className="shrink-0" />}>
                         <MoreVertical className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => { setSwapSession(s); openModal("swap") }}>
-                          <ArrowLeftRight className="h-4 w-4" /> Alihkan Sesi Ini
-                        </DropdownMenuItem>
+                        {s.status === "scheduled" ? (
+                          <DropdownMenuItem onClick={() => { setSwapSession(s); openModal("swap") }}>
+                            <ArrowLeftRight className="h-4 w-4" /> Alihkan Sesi Ini
+                          </DropdownMenuItem>
+                        ) : s.status === "review" ? (
+                          <>
+                            <DropdownMenuItem onClick={() => { setApproveTarget(s); openModal("approve") }}>
+                              <Check className="h-4 w-4 text-green-600" /> Setujui
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setRejectTarget(s); openModal("reject") }}>
+                              <X className="h-4 w-4 text-destructive" /> Tolak
+                            </DropdownMenuItem>
+                          </>
+                        ) : (
+                          <DropdownMenuItem onClick={() => { setFeeTarget(s); openModal("fee") }}>
+                            {evOf(s).fee_paid ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                            {evOf(s).fee_paid ? "Tandai Belum" : "Tandai Sudah"}
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                     )}
@@ -261,6 +386,9 @@ function AdminBookingDetail() {
       {modal === "swap" && swapSession && (
         <SwapSessionTeacherDialog session={swapSession} onClose={closeModal} />
       )}
+      {modal === "approve" && approveTarget && <ApproveEvidenceDialog session={evOf(approveTarget)} onClose={closeModal} />}
+      {modal === "reject" && rejectTarget && <RejectEvidenceDialog session={evOf(rejectTarget)} onClose={closeModal} />}
+      {modal === "fee" && feeTarget && <ToggleFeeDialog session={evOf(feeTarget)} onClose={closeModal} />}
       {modal === "reassign" && booking && (
         <ReassignTeacherDialog booking={booking} onClose={() => { invalidateSessions(); closeModal() }} />
       )}
