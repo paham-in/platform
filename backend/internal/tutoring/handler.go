@@ -755,7 +755,7 @@ func (h *Handler) MarkEarningsTaken(c *fiber.Ctx) error {
 
 // AdminListReport returns per-booking session summary + refund estimate (admin only)
 // @Summary      Tutoring session report
-// @Description  Rekap jumlah pertemuan terlaksana/batal per booking + estimasi refund.
+// @Description  Rekap jumlah pertemuan terlaksana/batal per booking + estimasi refund (hanya terisi bila invoice sudah lunas).
 // @Tags         Admin Tutoring
 // @Accept       json
 // @Produce      json

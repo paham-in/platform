@@ -770,7 +770,13 @@ func (s *Service) newAdminListReportResponse(b models.Booking) AdminListReportRe
 			rep.ScheduledCount++
 		}
 	}
-	rep.RefundAmount = float64(rep.CancelledCount) * perSession
+	rep.RefundAmount = 0
+	if b.Invoice != nil && b.Invoice.Status == "paid" {
+		// Uang sudah masuk → pembatalan berarti pengembalian dana.
+		// Invoice pending dikoreksi nominalnya langsung (bukan refund),
+		// jadi estimasinya nol agar tidak double-counting.
+		rep.RefundAmount = float64(rep.CancelledCount) * perSession
+	}
 	return rep
 }
 
