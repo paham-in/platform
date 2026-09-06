@@ -2364,7 +2364,7 @@ export const getTutoringBookingsOptions = (options?: Options<GetTutoringBookings
 /**
  * Create booking
  *
- * Murid booking jadwal guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).
+ * Murid mengajukan jadwal les. Guru ditentukan admin; murid tidak memilih guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).
  */
 export const postTutoringBookingsMutation = (options?: Partial<Options<PostTutoringBookingsData>>): UseMutationOptions<PostTutoringBookingsResponse, PostTutoringBookingsError, Options<PostTutoringBookingsData>> => {
     const mutationOptions: UseMutationOptions<PostTutoringBookingsResponse, PostTutoringBookingsError, Options<PostTutoringBookingsData>> = {
@@ -2383,7 +2383,7 @@ export const postTutoringBookingsMutation = (options?: Partial<Options<PostTutor
 /**
  * Cancel booking
  *
- * Murid membatalkan booking les privat miliknya sendiri. Bisa saat status pending (guru belum menyetujui) atau setelah disetujui selama invoice belum lunas.
+ * Murid membatalkan booking les privat miliknya sendiri. Hanya saat status pending (belum ada guru bertugas). Setelah guru di-assign (confirmed), pembatalan hanya lewat guru per sesi.
  */
 export const postTutoringBookingsByIdCancelMutation = (options?: Partial<Options<PostTutoringBookingsByIdCancelData>>): UseMutationOptions<PostTutoringBookingsByIdCancelResponse, PostTutoringBookingsByIdCancelError, Options<PostTutoringBookingsByIdCancelData>> => {
     const mutationOptions: UseMutationOptions<PostTutoringBookingsByIdCancelResponse, PostTutoringBookingsByIdCancelError, Options<PostTutoringBookingsByIdCancelData>> = {

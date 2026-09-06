@@ -98,7 +98,7 @@ func (h *Handler) ListBookings(c *fiber.Ctx) error {
 
 // CreateBooking creates a new booking request (student or free user)
 // @Summary      Create booking
-// @Description  Murid booking jadwal guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).
+// @Description  Murid mengajukan jadwal les. Guru ditentukan admin; murid tidak memilih guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).
 // @Tags         Tutoring
 // @Accept       json
 // @Produce      json

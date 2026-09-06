@@ -851,7 +851,7 @@ export type TutoringCreateBookingRequest = {
      */
     subject_id?: number;
     /**
-     * nil = belum ada guru, ditangani admin
+     * deprecated: guru ditentukan admin, diisi = 400
      */
     teacher_id?: number;
 };

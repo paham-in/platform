@@ -1454,7 +1454,7 @@ export const getTutoringBookings = <ThrowOnError extends boolean = false>(option
 /**
  * Create booking
  *
- * Murid booking jadwal guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).
+ * Murid mengajukan jadwal les. Guru ditentukan admin; murid tidak memilih guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).
  */
 export const postTutoringBookings = <ThrowOnError extends boolean = false>(options: Options<PostTutoringBookingsData, ThrowOnError>): RequestResult<PostTutoringBookingsResponses, PostTutoringBookingsErrors, ThrowOnError> => (options.client ?? client).post<PostTutoringBookingsResponses, PostTutoringBookingsErrors, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],
@@ -1469,7 +1469,7 @@ export const postTutoringBookings = <ThrowOnError extends boolean = false>(optio
 /**
  * Cancel booking
  *
- * Murid membatalkan booking les privat miliknya sendiri. Bisa saat status pending (guru belum menyetujui) atau setelah disetujui selama invoice belum lunas.
+ * Murid membatalkan booking les privat miliknya sendiri. Hanya saat status pending (belum ada guru bertugas). Setelah guru di-assign (confirmed), pembatalan hanya lewat guru per sesi.
  */
 export const postTutoringBookingsByIdCancel = <ThrowOnError extends boolean = false>(options: Options<PostTutoringBookingsByIdCancelData, ThrowOnError>): RequestResult<PostTutoringBookingsByIdCancelResponses, PostTutoringBookingsByIdCancelErrors, ThrowOnError> => (options.client ?? client).post<PostTutoringBookingsByIdCancelResponses, PostTutoringBookingsByIdCancelErrors, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],

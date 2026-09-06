@@ -1391,7 +1391,7 @@ definitions:
         description: mapel yang murid mau (wajib)
         type: integer
       teacher_id:
-        description: nil = belum ada guru, ditangani admin
+        description: 'deprecated: guru ditentukan admin, diisi = 400'
         type: integer
     type: object
   tutoring.CreateBookingResponse:
@@ -5334,8 +5334,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Murid booking jadwal guru. User gratis boleh join grup (role student
-        digrant otomatis saat invoice lunas).
+      description: Murid mengajukan jadwal les. Guru ditentukan admin; murid tidak
+        memilih guru. User gratis boleh join grup (role student digrant otomatis saat
+        invoice lunas).
       parameters:
       - description: Booking data
         in: body

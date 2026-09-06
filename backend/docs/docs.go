@@ -5071,7 +5071,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Murid booking jadwal guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).",
+                "description": "Murid mengajukan jadwal les. Guru ditentukan admin; murid tidak memilih guru. User gratis boleh join grup (role student digrant otomatis saat invoice lunas).",
                 "consumes": [
                     "application/json"
                 ],
@@ -7742,7 +7742,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "teacher_id": {
-                    "description": "nil = belum ada guru, ditangani admin",
+                    "description": "deprecated: guru ditentukan admin, diisi = 400",
                     "type": "integer"
                 }
             }

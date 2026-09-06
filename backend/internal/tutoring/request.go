@@ -12,7 +12,7 @@ type ListTeachersRequest struct {
 //, handler: CreateBooking (POST /tutoring/bookings)
 
 type CreateBookingRequest struct {
-	TeacherID    *uint    `json:"teacher_id"` // nil = belum ada guru, ditangani admin
+	TeacherID    *uint    `json:"teacher_id"` // deprecated: guru ditentukan admin, diisi = 400
 	SubjectID    uint     `json:"subject_id"` // mapel yang murid mau (wajib)
 	Date         string   `json:"date"`
 	StartTime    string   `json:"start_time"`

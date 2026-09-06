@@ -113,6 +113,12 @@ func (s *Service) ListMyBookings(studentID uint) ([]ListBookingsResponse, error)
 }
 
 func (s *Service) CreateBooking(studentID uint, input CreateBookingRequest) (*CreateBookingResponse, error) {
+	// murid tidak memilih guru: guru ditentukan admin. Tolak eksplisit supaya
+	// tidak ada booking pending-yang-sudah-punya-guru yang buntu (tak ada
+	// endpoint yang bisa meng-confirmed-kannya).
+	if input.TeacherID != nil {
+		return nil, errors.New("guru ditentukan oleh admin")
+	}
 	if input.Mode == "" {
 		input.Mode = "private"
 	}
