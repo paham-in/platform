@@ -3805,7 +3805,8 @@ paths:
       consumes:
       - application/json
       description: Admin mengalihkan sisa sesi terjadwal ke guru lain. Sesi selesai/menunggu
-        validasi/batal tetap milik guru lama.
+        validasi/batal tetap milik guru lama. Ditolak bila ada sesi yang sudah berjalan
+        (bukti kehadiran terupload).
       parameters:
       - description: Booking ID
         in: path

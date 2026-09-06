@@ -2678,7 +2678,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Admin mengalihkan sisa sesi terjadwal ke guru lain. Sesi selesai/menunggu validasi/batal tetap milik guru lama.",
+                "description": "Admin mengalihkan sisa sesi terjadwal ke guru lain. Sesi selesai/menunggu validasi/batal tetap milik guru lama. Ditolak bila ada sesi yang sudah berjalan (bukti kehadiran terupload).",
                 "consumes": [
                     "application/json"
                 ],
