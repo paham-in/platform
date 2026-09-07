@@ -230,7 +230,7 @@ func (s *Service) MergeDummyUser(dummyID, targetID uint) (*AdminMergeUserRespons
 		return nil, errors.New("akun yang dipilih sudah punya google_id")
 	}
 	if dummy.Password != nil {
-		return nil, errors.New("akun yang dipilih sudah punya password, bukan akun dummy")
+		return nil, errors.New("akun yang dipilih sudah punya password, bukan akun sementara")
 	}
 	if target.GoogleID == "" {
 		return nil, errors.New("target harus akun yang sudah login Google")
