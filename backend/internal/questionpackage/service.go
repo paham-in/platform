@@ -532,7 +532,16 @@ func (s *Service) GetProgressDetail(userID, packageID uint) (answers map[uint]ui
 	}
 	explMap := make(map[uint]string, len(questions))
 	correctMap := make(map[uint][]uint, len(questions))
+	completed := make(map[uint]bool, len(progress))
+	for _, p := range progress {
+		completed[p.QuestionID] = true
+	}
 	for _, q := range questions {
+		// kunci hanya untuk soal yang sudah dikerjakan; soal lain
+		// disaring agar tidak bocor lewat endpoint progress.
+		if !completed[q.ID] {
+			continue
+		}
 		explMap[q.ID] = s.storage.RewriteContentImages(q.Explanation)
 		for _, a := range q.Answers {
 			if a.IsCorrect {
