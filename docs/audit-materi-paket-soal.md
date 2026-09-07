@@ -119,7 +119,7 @@ Murid (grup `auth`, semua role login — gate murni langganan): `GET /question-p
 
 ### Tinggi
 
-- **M1 — Murid tanpa langganan melihat SEMUA chapter (fail-open).** `ListChapters` (`chapter/handler.go:211-221`) hanya menimpa `classIDs` bila role `student`; tanpa enrollment / DB error hasilnya tetap `nil`, dan `Service.ListFiltered` (`chapter/service.go:77-81`) mengartikan `nil` = staff/semua. List materi fail-closed, chapter tidak. Perbaikan: bedakan `nil` (staff) vs slice kosong (murid tanpa akses).
+- **M1 — Murid tanpa langganan melihat SEMUA chapter (fail-open).** ✅ **SUDAH DIPERBAIKI (2026-09-07).** `ListChapters` (`chapter/handler.go:211-221`) hanya menimpa `classIDs` bila role `student`; tanpa enrollment / DB error hasilnya tetap `nil`, dan `Service.ListFiltered` (`chapter/service.go:77-81`) mengartikan `nil` = staff/semua. List materi fail-closed, chapter tidak. Perbaikan: handler menormalkan `nil` → `[]uint{}` untuk role student (`handler.go`), sehingga jatuh ke query scoped (`class_id IN (kosong)` + chapter bermateri free) — fail-closed. `nil` tetap berarti staff.
 - **Q2 — Submit bisa brute-force.** Tiap submit langsung mengembalikan kunci + pembahasan (`service.go:489-511`) lalu progress di-overwrite (upsert, `repository.go:114-136`) — submit asal → dapat kunci → submit ulang benar, tanpa batas percobaan/timer/penguncian. Nilai `is_correct` tidak bermakna.
 
 ### Sedang
@@ -144,7 +144,7 @@ Murid (grup `auth`, semua role login — gate murni langganan): `GET /question-p
 ## 7. Rekomendasi (urut prioritas)
 
 1. ~~Filter `correctMap` ke soal selesai di `GetProgressDetail` (Q1 — satu baris, dampak terbesar).~~ ✅ Selesai 2026-09-07.
-2. Bedakan `nil` vs kosong di `ListChapters` / `AccessibleClassIDs` (M1).
+2. ~~Bedakan `nil` vs kosong di `ListChapters` / `AccessibleClassIDs` (M1).~~ ✅ Selesai 2026-09-07.
 3. Tambah batas percobaan atau kunci jawaban setelah submit pertama + jangan kembalikan `correct_answer_ids` saat salah (Q2).
 4. `material_count` hanya hitung `published` (M2); scope role `user` di `ListChapters` (M3).
 5. Hapus/isi `quiz_packages.is_free` ( sinkron dari koleksi atau hapus kolom) + validasi `answer_id` ∈ soal (Q3, Q4).

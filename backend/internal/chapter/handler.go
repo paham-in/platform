@@ -213,10 +213,15 @@ func (h *Handler) ListChapters(c *fiber.Ctx) error {
 	roles, ok := c.Locals("roles").([]string)
 	if ok {
 		for _, r := range roles {
-			if r == "student" {
-				classIDs = middleware.AccessibleClassIDs(c, h.db)
-				break
+		if r == "student" {
+			classIDs = middleware.AccessibleClassIDs(c, h.db)
+			// nil = staff (semua kelas) di service; murid tanpa langganan
+			// harus slice kosong (fail-closed), bukan nil (fail-open).
+			if classIDs == nil {
+				classIDs = []uint{}
 			}
+			break
+		}
 		}
 	}
 
