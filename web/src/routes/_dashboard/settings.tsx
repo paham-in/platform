@@ -1,8 +1,10 @@
-﻿import { useEffect, useState } from "react"
+﻿import { useEffect, useRef, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { useTheme } from "@/components/theme-provider"
 import {
@@ -38,8 +40,18 @@ function SettingsPage() {
 
   const buildTime = import.meta.env.VITE_BUILD_TIME as string | undefined
   const commitSha = import.meta.env.VITE_COMMIT_SHA as string | undefined
-  const [name, setName] = useState("")
-  const [initialized, setInitialized] = useState(false)
+  const form = useForm<{ name: string }>({
+    resolver: zodResolver(z.object({ name: z.string().trim().min(1, "Isi nama dulu") })),
+    mode: "onTouched",
+    defaultValues: { name: "" },
+  })
+  const initializedRef = useRef(false)
+  useEffect(() => {
+    if (user && !initializedRef.current) {
+      form.reset({ name: user.name ?? "" })
+      initializedRef.current = true
+    }
+  }, [user, form])
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">(
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
   )
@@ -106,11 +118,6 @@ function SettingsPage() {
     }
   }, [])
 
-  if (user && !initialized) {
-    setName(user.name ?? "")
-    setInitialized(true)
-  }
-
   const updateProfile = useMutation({
     ...patchMeMutation(),
     onSuccess: () => {
@@ -130,11 +137,12 @@ function SettingsPage() {
     )
   }
 
-  const handleSave = () => {
-    const body: Record<string, unknown> = {}
-    if (name !== user?.name) body.name = name
-    if (Object.keys(body).length === 0) return
-    updateProfile.mutate({ body })
+  const handleSave = (v: { name: string }) => {
+    if (v.name === user?.name) {
+      toast.info("Tidak ada perubahan")
+      return
+    }
+    updateProfile.mutate({ body: { name: v.name } })
   }
 
   const enableNotifications = async () => {
@@ -266,14 +274,21 @@ function SettingsPage() {
           <CardTitle>Profil</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nama</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off"/>
-          </div>
+          <Controller
+            name="name"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="name">Nama</FieldLabel>
+                <Input id="name" {...field} aria-invalid={fieldState.invalid} autoComplete="off"/>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
         </CardContent>
         <CardFooter className="justify-end">
           <Button
-            onClick={handleSave}
+            onClick={form.handleSubmit(handleSave)}
             disabled={updateProfile.isPending}
           >
             {updateProfile.isPending ? (

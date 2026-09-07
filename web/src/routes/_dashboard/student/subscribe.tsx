@@ -1,5 +1,7 @@
-﻿import { useEffect, useState } from "react"
+﻿import { useEffect } from "react"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { format, addDays, addMonths, parseISO, differenceInCalendarDays } from "date-fns"
@@ -8,7 +10,7 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import { usePageTitle } from "@/components/page-title"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
@@ -51,8 +53,17 @@ function StudentSubscribe() {
   const { data: classes = [], isLoading: classesLoading } = useQuery(getClassesOptions())
   const { data: myClasses = [] } = useQuery(getStudentClassEnrollmentsOptions())
 
-  const [classId, setClassId] = useState("")
-  const [duration, setDuration] = useState("1")
+  const form = useForm<{ class_id: string; duration: string }>({
+    resolver: zodResolver(z.object({
+      class_id: z.string().min(1, "Pilih kelas dulu"),
+      duration: z.string(),
+    })),
+    mode: "onTouched",
+    defaultValues: { class_id: "", duration: "1" },
+  })
+  const { setValue } = form
+  const classId = form.watch("class_id")
+  const duration = form.watch("duration")
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
 
@@ -62,8 +73,8 @@ function StudentSubscribe() {
     const preferred = myClasses
       .map((c) => String(c.class_id))
       .find((id) => classes.some((c) => String(c.id) === id))
-    setClassId(preferred ?? String(classes[0].id ?? ""))
-  }, [classId, classes, myClasses])
+    setValue("class_id", preferred ?? String(classes[0].id ?? ""))
+  }, [classId, classes, myClasses, setValue])
 
   const cls = classes.find((c) => String(c.id) === classId)
   const months = Number(duration)
@@ -128,23 +139,30 @@ function StudentSubscribe() {
         </Empty>
       ) : (
         <div className="flex max-w-3xl flex-col gap-4 md:gap-6">
-          <div className="space-y-1.5">
-            <Label htmlFor="subscribe-class">Kelas</Label>
-            <Select
-              items={classes.map((c) => ({ label: c.name, value: String(c.id) }))}
-              value={classId}
-              onValueChange={(v) => setClassId(v ?? "")}
-            >
-              <SelectTrigger id="subscribe-class" className="w-full">
-                <SelectValue placeholder="Pilih kelas" />
-              </SelectTrigger>
-              <SelectContent>
-                {classes.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Controller
+            name="class_id"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="subscribe-class">Kelas</FieldLabel>
+                <Select
+                  items={classes.map((c) => ({ label: c.name, value: String(c.id) }))}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger id="subscribe-class" className="w-full" aria-invalid={fieldState.invalid}>
+                    <SelectValue placeholder="Pilih kelas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {classes.map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Konten */}
@@ -160,19 +178,25 @@ function StudentSubscribe() {
                       <p className="text-3xl font-bold">{fmtRp(contentPrice)}</p>
                       <p className="text-sm text-muted-foreground">/ bulan</p>
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="subscribe-duration">Durasi</Label>
-                      <Select items={DURATIONS} value={duration} onValueChange={(v) => setDuration(v ?? "1")}>
-                        <SelectTrigger id="subscribe-duration" className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DURATIONS.map((d) => (
-                            <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <Controller
+                      name="duration"
+                      control={form.control}
+                      render={({ field }) => (
+                        <Field>
+                          <FieldLabel htmlFor="subscribe-duration">Durasi</FieldLabel>
+                          <Select items={DURATIONS} value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger id="subscribe-duration" className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {DURATIONS.map((d) => (
+                                <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      )}
+                    />
                     <p className="text-xs text-muted-foreground">
                       Akses berlaku s.d.{" "}
                       <span className="font-medium text-foreground">{format(parseISO(resultExpiry), "dd MMM yyyy")}</span>
