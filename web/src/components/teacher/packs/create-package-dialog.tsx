@@ -1,14 +1,24 @@
-import { useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Spinner } from "@/components/ui/spinner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getAdminQuestionPackagesQueryKey, getSubjectsOptions, postAdminQuestionPackagesMutation } from "@/lib/api/@tanstack/react-query.gen"
+
+const createPackageSchema = z.object({
+  name: z.string().trim().min(1, "Isi nama paket dulu"),
+  subject_id: z.string().min(1, "Pilih mata pelajaran dulu"),
+  description: z.string(),
+})
+
+type CreatePackageValues = z.infer<typeof createPackageSchema>
 
 interface CreatePackageDialogProps {
   onClose: () => void
@@ -19,9 +29,11 @@ interface CreatePackageDialogProps {
 export function CreatePackageDialog({ onClose, collectionId, collectionName }: CreatePackageDialogProps) {
   const qc = useQueryClient()
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
-  const [subjectId, setSubjectId] = useState("")
+  const form = useForm<CreatePackageValues>({
+    resolver: zodResolver(createPackageSchema),
+    mode: "onTouched",
+    defaultValues: { name: "", subject_id: "", description: "" },
+  })
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
 
@@ -35,10 +47,9 @@ export function CreatePackageDialog({ onClose, collectionId, collectionName }: C
     onError: (err: any) => toast.error(err?.error || "Gagal menambah paket"),
   })
 
-  const save = () => {
-    if (!name.trim() || !subjectId) return
+  const save = (v: CreatePackageValues) => {
     // paket baru dibuat draft dulu; dipublish dari daftar saat sudah siap
-    createPackage({ body: { name, description, subject_id: Number(subjectId), collection_id: collectionId, status: "draft" } })
+    createPackage({ body: { name: v.name, description: v.description, subject_id: Number(v.subject_id), collection_id: collectionId, status: "draft" } })
   }
 
   return (
@@ -50,46 +61,65 @@ export function CreatePackageDialog({ onClose, collectionId, collectionName }: C
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nama Paket</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nama paket soal"
-              autoFocus
-            autoComplete="off"/>
-          </div>
+          <Controller
+            name="name"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="name">Nama Paket</FieldLabel>
+                <Input
+                  id="name"
+                  {...field}
+                  placeholder="Nama paket soal"
+                  autoFocus
+                  aria-invalid={fieldState.invalid}
+                autoComplete="off"/>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="subject">Mata Pelajaran</Label>
-            <Select items={subjectOptions} value={subjectId} onValueChange={(v) => setSubjectId(v ?? "")}>
-              <SelectTrigger id="subject" className="w-full">
-                <SelectValue placeholder="Pilih mata pelajaran" />
-              </SelectTrigger>
-              <SelectContent>
-                {subjectOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Controller
+            name="subject_id"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="subject">Mata Pelajaran</FieldLabel>
+                <Select items={subjectOptions} value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger id="subject" className="w-full" aria-invalid={fieldState.invalid}>
+                    <SelectValue placeholder="Pilih mata pelajaran" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjectOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="desc">Deskripsi (opsional)</Label>
-            <Textarea
-              id="desc"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Deskripsi paket..."
-              className="min-h-[80px]"
-            autoComplete="off"/>
-          </div>
+          <Controller
+            name="description"
+            control={form.control}
+            render={({ field }) => (
+              <Field>
+                <FieldLabel htmlFor="desc">Deskripsi (opsional)</FieldLabel>
+                <Textarea
+                  id="desc"
+                  {...field}
+                  placeholder="Deskripsi paket..."
+                  className="min-h-[80px]"
+                autoComplete="off"/>
+              </Field>
+            )}
+          />
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
-          <Button onClick={save} disabled={!name.trim() || !subjectId || isPending}>
+          <Button onClick={form.handleSubmit(save)} disabled={isPending}>
             {isPending && <Spinner />}
             Simpan
           </Button>
