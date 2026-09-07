@@ -1,11 +1,15 @@
 ﻿import { addDays, addWeeks, format, isSameDay, parseISO, startOfWeek } from "date-fns"
 import { id } from "date-fns/locale"
 import { useEffect, useRef, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { Calendar as CalendarIcon, CalendarClock, ChevronLeft, ChevronRight, Clock, RotateCw, Upload, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
+import { Field, FieldError } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 
@@ -74,9 +78,19 @@ export function CalendarWeek({
   const [uploading, setUploading] = useState(false)
   const [rescheduleOpen, setRescheduleOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
-  const [reschedDate, setReschedDate] = useState("")
-  const [reschedStart, setReschedStart] = useState("")
-  const [reschedEnd, setReschedEnd] = useState("")
+  const reschedForm = useForm<{ date: string; start_time: string; end_time: string }>({
+    resolver: zodResolver(z.object({
+      date: z.string().min(1, "Pilih tanggal dulu"),
+      start_time: z.string().min(1, "Isi jam mulai dulu"),
+      end_time: z.string().min(1, "Isi jam selesai dulu"),
+    }).superRefine((v, ctx) => {
+      if (v.start_time && v.end_time && v.end_time <= v.start_time) {
+        ctx.addIssue({ code: "custom", path: ["end_time"], message: "Jam selesai harus setelah jam mulai" })
+      }
+    })),
+    mode: "onTouched",
+    defaultValues: { date: "", start_time: "", end_time: "" },
+  })
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isTeacher = !!onUploadEvidence || !!onReschedule || !!onCancelSession
@@ -261,9 +275,7 @@ export function CalendarWeek({
                   {canAct && (
                     <>
                       <Button size="sm" variant="outline" onClick={() => {
-                        setReschedDate(selected.date)
-                        setReschedStart(selected.start)
-                        setReschedEnd(selected.end)
+                        reschedForm.reset({ date: selected.date, start_time: selected.start, end_time: selected.end })
                         setRescheduleOpen(true)
                       }}>
                         <CalendarClock className="h-4 w-4" /> Reschedule
@@ -290,32 +302,52 @@ export function CalendarWeek({
             <DialogDescription>Pindahkan ke jadwal lain. Sampaikan perubahan ke murid via WhatsApp.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 text-sm">
-            <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Tanggal</label>
-              <Input type="date" value={reschedDate} min={format(new Date(), "yyyy-MM-dd")} onChange={(e) => setReschedDate(e.target.value)} autoComplete="off"/>
-            </div>
+            <Controller
+              name="date"
+              control={reschedForm.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <label className="text-xs font-medium text-muted-foreground">Tanggal</label>
+                  <Input type="date" {...field} min={format(new Date(), "yyyy-MM-dd")} aria-invalid={fieldState.invalid} autoComplete="off"/>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
             <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Mulai</label>
-                <Input type="time" value={reschedStart} onChange={(e) => setReschedStart(e.target.value)} autoComplete="off"/>
-              </div>
-              <div className="grid gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Selesai</label>
-                <Input type="time" value={reschedEnd} onChange={(e) => setReschedEnd(e.target.value)} autoComplete="off"/>
-              </div>
+              <Controller
+                name="start_time"
+                control={reschedForm.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <label className="text-xs font-medium text-muted-foreground">Mulai</label>
+                    <Input type="time" {...field} aria-invalid={fieldState.invalid} autoComplete="off"/>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="end_time"
+                control={reschedForm.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <label className="text-xs font-medium text-muted-foreground">Selesai</label>
+                    <Input type="time" {...field} aria-invalid={fieldState.invalid} autoComplete="off"/>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRescheduleOpen(false)}>Batal</Button>
             <Button
-              disabled={!reschedDate || !reschedStart || !reschedEnd}
-              onClick={() => {
+              onClick={reschedForm.handleSubmit((v) => {
                 if (selected) {
-                  onReschedule?.(selected.id, reschedDate, reschedStart, reschedEnd)
+                  onReschedule?.(selected.id, v.date, v.start_time, v.end_time)
                   setRescheduleOpen(false)
                   setSelected(null)
                 }
-              }}
+              })}
             >
               Simpan
             </Button>

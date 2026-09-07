@@ -41,13 +41,15 @@ import {
 import type { TutoringListBookingsResponse, TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { CalendarX2, Plus, UserRound, Users, CalendarDays, Eye, MoreVertical, XCircle, CalendarClock, CalendarIcon } from "lucide-react"
-import { Label } from "@/components/ui/label"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
 import { useState, useEffect, useMemo } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
@@ -109,8 +111,15 @@ function parseYMD(s: string): Date {
 function ScheduleBookingDialog({ booking, onClose }: { booking: TutoringListBookingsResponse; onClose: () => void }) {
   const qc = useQueryClient()
   const dur = toMinutes(booking.end_time!) - toMinutes(booking.start_time!)
-  const [date, setDate] = useState(booking.date ?? "")
-  const [start, setStart] = useState(booking.start_time ?? "")
+  const form = useForm<{ date: string; start_time: string }>({
+    resolver: zodResolver(z.object({
+      date: z.string().min(1, "Pilih tanggal dulu"),
+      start_time: z.string().min(1, "Pilih jam mulai dulu"),
+    })),
+    mode: "onTouched",
+    defaultValues: { date: booking.date ?? "", start_time: booking.start_time ?? "" },
+  })
+  const start = form.watch("start_time")
   const end = start ? minutesToHHMM(toMinutes(start) + dur) : ""
   const startOptions = TIME_OPTIONS.filter((t) => TIME_OPTIONS.includes(minutesToHHMM(toMinutes(t) + dur)))
 
@@ -133,56 +142,70 @@ function ScheduleBookingDialog({ booking, onClose }: { booking: TutoringListBook
           <DialogDescription>{booking.subject_name} — durasi tetap {dur} menit, status tetap menunggu guru.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label>Tanggal</Label>
-            <Popover>
-              <PopoverTrigger
-                render={
-                  <Button variant="outline" data-empty={!date} className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground" />
-                }
-              >
-                <CalendarIcon />
-                {date ? format(parseYMD(date), "EEE, dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  disabled={(d) => {
-                    const today = new Date(); today.setHours(0, 0, 0, 0)
-                    return d < today
-                  }}
-                  selected={date ? parseYMD(date) : undefined}
-                  onSelect={(d) => setDate(d ? format(d, "yyyy-MM-dd") : "")}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+          <Controller
+            name="date"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>Tanggal</FieldLabel>
+                <Popover>
+                  <PopoverTrigger
+                    render={
+                      <Button variant="outline" data-empty={!field.value} aria-invalid={fieldState.invalid} className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground" />
+                    }
+                  >
+                    <CalendarIcon />
+                    {field.value ? format(parseYMD(field.value), "EEE, dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      disabled={(d) => {
+                        const today = new Date(); today.setHours(0, 0, 0, 0)
+                        return d < today
+                      }}
+                      selected={field.value ? parseYMD(field.value) : undefined}
+                      onSelect={(d) => field.onChange(d ? format(d, "yyyy-MM-dd") : "")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
           <div className="grid gap-4 sm:grid-cols-2">
+            <Controller
+              name="start_time"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Jam Mulai</FieldLabel>
+                  <Select items={startOptions.map((t) => ({ label: t, value: t }))} value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Pilih jam" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {startOptions.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
             <div className="space-y-1.5">
-              <Label>Jam Mulai</Label>
-              <Select items={startOptions.map((t) => ({ label: t, value: t }))} value={start} onValueChange={(v) => setStart(v ?? "")}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih jam" />
-                </SelectTrigger>
-                <SelectContent>
-                  {startOptions.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Jam Selesai</Label>
+              <FieldLabel>Jam Selesai</FieldLabel>
               <p className="flex h-9 items-center rounded-md border border-input bg-muted/50 px-3 text-sm tabular-nums">{end || "—"}</p>
-              <p className="text-xs text-muted-foreground">Otomatis (durasi tetap).</p>
+              <FieldDescription>Otomatis (durasi tetap).</FieldDescription>
             </div>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
           <Button
-            disabled={!date || !start || isPending}
-            onClick={() => booking.id && reschedule({ path: { id: booking.id }, body: { date, start_time: start, end_time: end } })}
+            disabled={isPending}
+            onClick={form.handleSubmit((v) => booking.id && reschedule({ path: { id: booking.id }, body: { date: v.date, start_time: v.start_time, end_time: minutesToHHMM(toMinutes(v.start_time) + dur) } }))}
           >
             {isPending && <Spinner />} Simpan
           </Button>

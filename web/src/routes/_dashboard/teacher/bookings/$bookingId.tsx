@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Field, FieldDescription, FieldError } from "@/components/ui/field"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -74,6 +77,18 @@ function sessionStatusBadge(s?: string) {
   return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[s || ""] || ""}`}>{labels[s || ""] || s}</span>
 }
 
+const rescheduleSessionSchema = z.object({
+  date: z.string().min(1, "Pilih tanggal dulu"),
+  start_time: z.string().min(1, "Isi jam mulai dulu"),
+  end_time: z.string().min(1, "Isi jam selesai dulu"),
+}).superRefine((v, ctx) => {
+  if (v.start_time && v.end_time && v.end_time <= v.start_time) {
+    ctx.addIssue({ code: "custom", path: ["end_time"], message: "Jam selesai harus setelah jam mulai" })
+  }
+})
+
+type RescheduleSessionValues = z.infer<typeof rescheduleSessionSchema>
+
 const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
 
 function feeBadge(paid?: boolean) {
@@ -92,15 +107,21 @@ function TeacherBookingDetail() {
   const isLoading = bookingsLoading || sessionsLoading || earningsLoading
 
   const [rescheduleSession, setRescheduleSession] = useState<TutoringListSessionsResponse | null>(null)
-  const [reschedDate, setReschedDate] = useState("")
-  const [reschedStart, setReschedStart] = useState("")
-  const [reschedEnd, setReschedEnd] = useState("")
+  const reschedForm = useForm<RescheduleSessionValues>({
+    resolver: zodResolver(rescheduleSessionSchema),
+    mode: "onTouched",
+    defaultValues: { date: "", start_time: "", end_time: "" },
+  })
   const [cancelSession, setCancelSession] = useState<TutoringListSessionsResponse | null>(null)
   const [uploadSession, setUploadSession] = useState<TutoringListSessionsResponse | null>(null)
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [overtimeSession, setOvertimeSession] = useState<TutoringListSessionsResponse | null>(null)
-  const [overtimeEnd, setOvertimeEnd] = useState("")
-  const openOvertime = (s: TutoringListSessionsResponse) => { setOvertimeSession(s); setOvertimeEnd(s.actual_end_time ?? s.end_time ?? ""); openModal("overtime") }
+  const overtimeForm = useForm<{ actual_end_time: string }>({
+    resolver: zodResolver(z.object({ actual_end_time: z.string().min(1, "Isi jam selesai aktual dulu") })),
+    mode: "onTouched",
+    defaultValues: { actual_end_time: "" },
+  })
+  const openOvertime = (s: TutoringListSessionsResponse) => { setOvertimeSession(s); overtimeForm.reset({ actual_end_time: s.actual_end_time ?? s.end_time ?? "" }); openModal("overtime") }
 
   useEffect(() => {
     if (modal !== "reschedule") setRescheduleSession(null)
@@ -172,9 +193,7 @@ function TeacherBookingDetail() {
       </DropdownMenuItem>
       {s.status === "scheduled" ? (
         <DropdownMenuItem onClick={() => {
-          setReschedDate(s.date!)
-          setReschedStart(s.start_time!)
-          setReschedEnd(s.end_time!)
+          reschedForm.reset({ date: s.date!, start_time: s.start_time!, end_time: s.end_time! })
           setRescheduleSession(s)
           openModal("reschedule")
         }}>
@@ -453,23 +472,29 @@ function TeacherBookingDetail() {
               Sesi {overtimeSession?.date} · {overtimeSession?.start_time} - {overtimeSession?.end_time}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-1.5">
-            <Label htmlFor="overtime-end">Jam Selesai Aktual</Label>
-            <Input
-              id="overtime-end"
-              type="time"
-              value={overtimeEnd}
-              onChange={(e) => setOvertimeEnd(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Toleransi 15 menit, selebihnya dihitung tambahan sesi (90 menit) untuk fee & tagihan. Charge diterapkan saat admin approve.
-            </p>
-          </div>
+          <Controller
+            name="actual_end_time"
+            control={overtimeForm.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <Label htmlFor="overtime-end">Jam Selesai Aktual</Label>
+                <Input
+                  id="overtime-end"
+                  type="time"
+                  {...field}
+                />
+                <FieldDescription>
+                  Toleransi 15 menit, selebihnya dihitung tambahan sesi (90 menit) untuk fee & tagihan. Charge diterapkan saat admin approve.
+                </FieldDescription>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => closeModal()}>Batal</Button>
             <Button
-              disabled={!overtimeEnd || overtime.isPending}
-              onClick={() => overtimeSession?.id && overtime.mutate({ path: { id: overtimeSession.id }, body: { actual_end_time: overtimeEnd } })}
+              disabled={overtime.isPending}
+              onClick={overtimeForm.handleSubmit((v) => overtimeSession?.id && overtime.mutate({ path: { id: overtimeSession.id }, body: { actual_end_time: v.actual_end_time } }))}
             >
               {overtime.isPending && <Spinner />} Simpan
             </Button>
@@ -486,31 +511,52 @@ function TeacherBookingDetail() {
             <DialogDescription>Pindahkan ke jadwal lain. Sampaikan perubahan ke murid via WhatsApp.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 text-sm">
-            <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Tanggal</label>
-              <Input type="date" value={reschedDate} min={format(new Date(), "yyyy-MM-dd")} onChange={(e) => setReschedDate(e.target.value)} autoComplete="off"/>
-            </div>
+            <Controller
+              name="date"
+              control={reschedForm.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <label className="text-xs font-medium text-muted-foreground">Tanggal</label>
+                  <Input type="date" {...field} min={format(new Date(), "yyyy-MM-dd")} aria-invalid={fieldState.invalid} autoComplete="off"/>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
             <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Mulai</label>
-                <Input type="time" value={reschedStart} onChange={(e) => setReschedStart(e.target.value)} autoComplete="off"/>
-              </div>
-              <div className="grid gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Selesai</label>
-                <Input type="time" value={reschedEnd} onChange={(e) => setReschedEnd(e.target.value)} autoComplete="off"/>
-              </div>
+              <Controller
+                name="start_time"
+                control={reschedForm.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <label className="text-xs font-medium text-muted-foreground">Mulai</label>
+                    <Input type="time" {...field} aria-invalid={fieldState.invalid} autoComplete="off"/>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="end_time"
+                control={reschedForm.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <label className="text-xs font-medium text-muted-foreground">Selesai</label>
+                    <Input type="time" {...field} aria-invalid={fieldState.invalid} autoComplete="off"/>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => closeModal()}>Batal</Button>
             <Button
-              disabled={!reschedDate || !reschedStart || !reschedEnd}
-              onClick={() => {
+              disabled={reschedule.isPending}
+              onClick={reschedForm.handleSubmit((v) => {
                 if (rescheduleSession) {
-                  reschedule.mutate({ path: { id: rescheduleSession.id! }, body: { date: reschedDate, start_time: reschedStart, end_time: reschedEnd } })
+                  reschedule.mutate({ path: { id: rescheduleSession.id! }, body: { date: v.date, start_time: v.start_time, end_time: v.end_time } })
                   closeModal()
                 }
-              }}
+              })}
             >
               Simpan
             </Button>
