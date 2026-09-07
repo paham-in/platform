@@ -15,16 +15,9 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { usePageTitle } from "@/components/page-title";
 
 import { toast } from "sonner";
+import { isEmptyContent } from "@/lib/html";
 
 const OPTION_LABELS = ["A", "B", "C", "D", "E"]
-
-// isEmptyContent: opsi dianggap kosong kalau tidak ada teks DAN tidak ada
-// gambar/rumus (opsi berisi gambar doang tetap valid).
-function isEmptyContent(html: string): boolean {
-  const doc = new DOMParser().parseFromString(html, "text/html")
-  const text = (doc.body.textContent || "").trim()
-  return text === "" && !doc.body.querySelector("img, [data-type='inline-math'], [data-type='block-math']")
-}
 
 const questionFormSchema = z.object({
   question: z.string(),
