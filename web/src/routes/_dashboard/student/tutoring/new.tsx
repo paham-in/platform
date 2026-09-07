@@ -10,6 +10,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Skeleton } from "@/components/ui/skeleton"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   postTutoringBookingsMutation,
@@ -24,6 +25,8 @@ import { CalendarIcon, CheckCircle2, Search, Users, X } from "lucide-react"
 import { addWeeks, format } from "date-fns"
 import { id } from "date-fns/locale"
 import { useEffect, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
@@ -60,6 +63,26 @@ function perWeekFor(start: string, end: string): number | null {
   return dur / SESSION_MINUTES
 }
 
+const bookingFormSchema = z.object({
+  class_id: z.string().min(1, "Pilih kelas dulu"),
+  subject_id: z.string().min(1, "Pilih mata pelajaran dulu"),
+  date: z.string().min(1, "Pilih tanggal mulai"),
+  start_time: z.string().min(1, "Pilih jam mulai"),
+  end_time: z.string().min(1, "Pilih jam selesai"),
+  mode: z.enum(["private", "group"]),
+  session_count: z.coerce.number().min(1, "Minimal 1 pertemuan").max(12, "Maksimal 12 pertemuan"),
+  note: z.string().optional(),
+}).superRefine((v, ctx) => {
+  if (v.start_time && v.end_time) {
+    const dur = toMinutes(v.end_time) - toMinutes(v.start_time)
+    if (dur <= 0 || dur % SESSION_MINUTES !== 0) {
+      ctx.addIssue({ code: "custom", message: "Durasi harus kelipatan 90 menit", path: ["end_time"] })
+    }
+  }
+})
+
+type BookingFormValues = z.input<typeof bookingFormSchema>
+
 function NewBooking() {
   usePageTitle("Booking Baru")
   const qc = useQueryClient()
@@ -67,15 +90,28 @@ function NewBooking() {
   const { data: myClasses = [] } = useQuery(getStudentClassEnrollmentsOptions())
   const { data: classes = [] } = useQuery(getClassesOptions())
 
-  const [subjectId, setSubjectId] = useState("")
-  const [start, setStart] = useState("")
-  const [end, setEnd] = useState("")
-  const [mode, setMode] = useState<"private" | "group">("private")
-  const [sessionCount, setSessionCount] = useState("1")
-  const [classId, setClassId] = useState("")
-  const [date, setDate] = useState("")
+  const form = useForm<BookingFormValues>({
+    resolver: zodResolver(bookingFormSchema),
+    mode: "onTouched",
+    defaultValues: {
+      class_id: "",
+      subject_id: "",
+      date: "",
+      start_time: "",
+      end_time: "",
+      mode: "private",
+      session_count: 1,
+      note: "",
+    },
+  })
+  const classId = form.watch("class_id")
+  const subjectId = form.watch("subject_id")
+  const start = form.watch("start_time")
+  const end = form.watch("end_time")
+  const mode = form.watch("mode")
+  const sessionCount = form.watch("session_count")
+  const date = form.watch("date")
   const [dateOpen, setDateOpen] = useState(false)
-  const [note, setNote] = useState("")
   const [members, setMembers] = useState<UserAdminListUsersResponse[]>([])
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
@@ -114,7 +150,6 @@ function NewBooking() {
   )
 
   const hasSlot = start !== "" && end !== "" && date !== ""
-  const canSearch = subjectId !== "" && hasSlot
   const perWeek = hasSlot ? perWeekFor(start, end) : null
   // angka valid turunan (field boleh kosong sementara saat diketik)
   const sessions = Math.min(12, Math.max(1, Number(sessionCount) || 1))
@@ -128,27 +163,23 @@ function NewBooking() {
   })
 
   // auto-pilih kelas: preferensi kelas yang sudah diakses, else kelas pertama (hanya yang allow tutoring)
+  const { setValue } = form
   useEffect(() => {
     if (classId || bookableClasses.length === 0) return
     const preferred = myClasses
       .map((c) => String(c.class_id))
       .find((id) => bookableClasses.some((c) => String(c.id) === id))
-    setClassId(preferred ?? String(bookableClasses[0].id ?? ""))
-  }, [myClasses, bookableClasses, classId])
+    setValue("class_id", preferred ?? String(bookableClasses[0].id ?? ""))
+  }, [myClasses, bookableClasses, classId, setValue])
 
   // kelas berubah → reset subject kalau sudah tidak ada di kelas baru
   useEffect(() => {
     if (subjectId && subjects.length > 0 && !subjects.some((s) => String(s.id) === subjectId)) {
-      setSubjectId("")
+      setValue("subject_id", "")
     }
-  }, [subjects, subjectId])
+  }, [subjects, subjectId, setValue])
 
   const subjectOptions = subjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }))
-
-  const changeSubject = (v: string | null) => { setSubjectId(v ?? ""); setDate("") }
-  const changeStart = (v: string | null) => { setStart(v ?? ""); setEnd("") }
-  const changeEnd = (v: string | null) => { setEnd(v ?? "") }
-  const changeDate = (d: Date | undefined) => { setDate(d ? format(d, "yyyy-MM-dd") : "") }
 
   const { mutate: createBooking, isPending } = useMutation({
     ...postTutoringBookingsMutation(),
@@ -160,23 +191,22 @@ function NewBooking() {
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal booking"),
   })
 
-  const canSubmit =
-    canSearch && !!date && !!classId && !isPending &&
-    (mode === "private" || members.length > 0)
-
-  const handleBook = () => {
-    if (!canSearch || !date || !classId) return
+  const onSubmit = (v: BookingFormValues) => {
+    if (v.mode === "group" && members.length === 0) {
+      toast.error("Tambahkan minimal 1 teman untuk mode kelompok")
+      return
+    }
     createBooking({
       body: {
-        subject_id: Number(subjectId),
-        date,
-        start_time: start,
-        end_time: end,
-        mode,
-        session_count: sessions,
-        note,
-        class_id: Number(classId),
-        member_emails: mode === "group" ? members.map((m) => m.email).filter((e): e is string => !!e) : undefined,
+        subject_id: Number(v.subject_id),
+        date: v.date,
+        start_time: v.start_time,
+        end_time: v.end_time,
+        mode: v.mode,
+        session_count: Number(v.session_count),
+        note: v.note || undefined,
+        class_id: Number(v.class_id),
+        member_emails: v.mode === "group" ? members.map((m) => m.email).filter((e): e is string => !!e) : undefined,
       },
     })
   }
@@ -201,130 +231,172 @@ function NewBooking() {
       </div>
       <div className="flex max-w-lg flex-col gap-4 md:gap-6">
         <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="new-class">Kelas</Label>
-            {bookableClasses.length === 0 ? (
-              <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-                Belum ada kelas tersedia.
-              </p>
-            ) : (
-              <Select items={bookableClasses.map((c) => ({ label: c.name, value: String(c.id) }))} value={classId} onValueChange={(v) => setClassId(v ?? "")}>
-                <SelectTrigger id="new-class" className="w-full">
-                  <SelectValue placeholder="Pilih kelas" />
-                </SelectTrigger>
-                <SelectContent>
-                  {bookableClasses.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <Controller
+            name="class_id"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="new-class">Kelas</FieldLabel>
+                {bookableClasses.length === 0 ? (
+                  <p className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                    Belum ada kelas tersedia.
+                  </p>
+                ) : (
+                  <Select items={bookableClasses.map((c) => ({ label: c.name, value: String(c.id) }))} value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="new-class" className="w-full" aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Pilih kelas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {bookableClasses.map((c) => (
+                        <SelectItem key={c.id} value={String(c.id)}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                {myClasses.length === 0 && (
+                  <FieldDescription>
+                    Kamu belum punya akses kelas, akses diberikan otomatis setelah pembayaran booking diverifikasi admin.
+                  </FieldDescription>
+                )}
+              </Field>
             )}
-            {myClasses.length === 0 && (
-              <p className="text-xs text-muted-foreground">
-                Kamu belum punya akses kelas, akses diberikan otomatis setelah pembayaran booking diverifikasi admin.
-              </p>
+          />
+
+          <Controller
+            name="subject_id"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="new-subject">Mata Pelajaran</FieldLabel>
+                <Select items={subjectOptions} value={field.value} onValueChange={(v) => { field.onChange(v); setValue("date", "") }}>
+                  <SelectTrigger id="new-subject" className="w-full" aria-invalid={fieldState.invalid}>
+                    <SelectValue placeholder="Pilih mapel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjectOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
             )}
-          </div>
+          />
 
-          <div className="space-y-1.5">
-            <Label htmlFor="new-subject">Mata Pelajaran</Label>
-            <Select items={subjectOptions} value={subjectId} onValueChange={changeSubject}>
-              <SelectTrigger id="new-subject" className="w-full">
-                <SelectValue placeholder="Pilih mapel" />
-              </SelectTrigger>
-              <SelectContent>
-                {subjectOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="new-date">Tanggal Mulai</Label>
-            <Popover open={dateOpen} onOpenChange={setDateOpen}>
-              <PopoverTrigger
-                render={
-                  <Button
-                    id="new-date"
-                    variant="outline"
-                    data-empty={!date}
-                    className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
-                  />
-                }
-              >
-                <CalendarIcon />
-                {date ? format(new Date(date + "T00:00:00"), "EEE, dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  disabled={(d) => {
-                    const today = new Date(); today.setHours(0, 0, 0, 0)
-                    return d < today
-                  }}
-                  selected={date ? new Date(date + "T00:00:00") : undefined}
-                  onSelect={(d) => { changeDate(d); if (d) setDateOpen(false) }}
-                />
-              </PopoverContent>
-            </Popover>
-            <p className="text-xs text-muted-foreground">Pertemuan berikutnya berjalan mingguan di hari & jam yang sama.</p>
-          </div>
+          <Controller
+            name="date"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="new-date">Tanggal Mulai</FieldLabel>
+                <Popover open={dateOpen} onOpenChange={setDateOpen}>
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        id="new-date"
+                        variant="outline"
+                        data-empty={!field.value}
+                        aria-invalid={fieldState.invalid}
+                        className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
+                      />
+                    }
+                  >
+                    <CalendarIcon />
+                    {field.value ? format(new Date(field.value + "T00:00:00"), "EEE, dd MMM yyyy", { locale: id }) : <span>Pilih tanggal</span>}
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      disabled={(d) => {
+                        const today = new Date(); today.setHours(0, 0, 0, 0)
+                        return d < today
+                      }}
+                      selected={field.value ? new Date(field.value + "T00:00:00") : undefined}
+                      onSelect={(d) => { field.onChange(d ? format(d, "yyyy-MM-dd") : ""); if (d) setDateOpen(false) }}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FieldDescription>Pertemuan berikutnya berjalan mingguan di hari & jam yang sama.</FieldDescription>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="new-start">Jam Mulai</Label>
-              <Select items={startOptions.map((t) => ({ label: t, value: t }))} value={start} onValueChange={changeStart}>
-                <SelectTrigger id="new-start" className="w-full">
-                  <SelectValue placeholder="Pilih jam" />
-                </SelectTrigger>
-                <SelectContent>
-                  {startOptions.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">Durasi les kelipatan {SESSION_MINUTES} menit ({SESSION_MINUTES / 60} jam).</p>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-end">Jam Selesai</Label>
-              <Select items={endOptions.map((t) => ({ label: t, value: t }))} value={end} onValueChange={changeEnd}>
-                <SelectTrigger id="new-end" className="w-full">
-                  <SelectValue placeholder="Pilih jam" />
-                </SelectTrigger>
-                <SelectContent>
-                  {endOptions.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Controller
+              name="start_time"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="new-start">Jam Mulai</FieldLabel>
+                  <Select items={startOptions.map((t) => ({ label: t, value: t }))} value={field.value} onValueChange={(v) => { field.onChange(v); setValue("end_time", "") }}>
+                    <SelectTrigger id="new-start" className="w-full" aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Pilih jam" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {startOptions.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>Durasi les kelipatan {SESSION_MINUTES} menit ({SESSION_MINUTES / 60} jam).</FieldDescription>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+            <Controller
+              name="end_time"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="new-end">Jam Selesai</FieldLabel>
+                  <Select items={endOptions.map((t) => ({ label: t, value: t }))} value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="new-end" className="w-full" aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Pilih jam" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {endOptions.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
           </div>
         </div>
 
         <div className="space-y-4 border-t pt-6">
-          <div className="space-y-1.5">
-            <Label htmlFor="new-mode">Mode</Label>
-            <Select
-              items={modeOptions}
-              value={mode}
-              onValueChange={(v) => setMode(v === "group" ? "group" : "private")}
-            >
-              <SelectTrigger id="new-mode" className="w-full">
-                <SelectValue placeholder="Pilih mode" />
-              </SelectTrigger>
-              <SelectContent>
-                {modeOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {mode === "group" ? "Maksimal 5 siswa termasuk kamu." : "Les sendiri berdua dengan guru."}
-            </p>
-          </div>
+          <Controller
+            name="mode"
+            control={form.control}
+            render={({ field }) => (
+              <Field>
+                <FieldLabel htmlFor="new-mode">Mode</FieldLabel>
+                <Select
+                  items={modeOptions}
+                  value={field.value}
+                  onValueChange={(v) => field.onChange(v === "group" ? "group" : "private")}
+                >
+                  <SelectTrigger id="new-mode" className="w-full">
+                    <SelectValue placeholder="Pilih mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {modeOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldDescription>
+                  {field.value === "group" ? "Maksimal 5 siswa termasuk kamu." : "Les sendiri berdua dengan guru."}
+                </FieldDescription>
+              </Field>
+            )}
+          />
 
           {mode === "group" && (
             <div className="space-y-1.5">
@@ -352,35 +424,48 @@ function NewBooking() {
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <Label htmlFor="new-session-count">Jumlah Pertemuan</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="new-session-count"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={12}
-                value={sessionCount}
-                onChange={(e) => { if (/^\d{0,2}$/.test(e.target.value)) setSessionCount(e.target.value) }}
-                onBlur={() => setSessionCount(String(sessions))}
-                className="w-24 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              autoComplete="off"/>
-              <span className="text-sm text-muted-foreground">kali</span>
-            </div>
+          <Controller
+            name="session_count"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="new-session-count">Jumlah Pertemuan</FieldLabel>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="new-session-count"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={12}
+                    value={(field.value as number | string | undefined) ?? ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    aria-invalid={fieldState.invalid}
+                    className="w-24 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  autoComplete="off"/>
+                  <span className="text-sm text-muted-foreground">kali</span>
+                </div>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
             {startDate && (
               <p className="text-xs text-muted-foreground">
                 Sesi dijalankan setiap minggu mulai dari {format(startDate, "EEE, dd MMM yyyy", { locale: id })} sampai {format(endDate!, "EEE, dd MMM yyyy", { locale: id })} (estimasi).
               </p>
             )}
           </div>
-          </div>
 
         <div className="space-y-4 border-t pt-6">
-          <div className="space-y-1.5">
-            <Label htmlFor="new-note">Catatan (opsional)</Label>
-            <Input id="new-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Materi yang ingin dibahas..." autoComplete="off"/>
-          </div>
+          <Controller
+            name="note"
+            control={form.control}
+            render={({ field }) => (
+              <Field>
+                <FieldLabel htmlFor="new-note">Catatan (opsional)</FieldLabel>
+                <Input id="new-note" {...field} placeholder="Materi yang ingin dibahas..." autoComplete="off"/>
+              </Field>
+            )}
+          />
 
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-muted/50 px-4 py-3">
             <div className="text-sm">
@@ -397,7 +482,7 @@ function NewBooking() {
 
           <div className="flex flex-wrap justify-end gap-2">
             <Button variant="outline" onClick={() => navigate({ to: "/student/tutoring", replace: true })}>Batal</Button>
-            <Button onClick={handleBook} disabled={!canSubmit}>
+            <Button onClick={form.handleSubmit(onSubmit)} disabled={isPending}>
               {isPending && <Spinner />}
               Kirim Booking
             </Button>
