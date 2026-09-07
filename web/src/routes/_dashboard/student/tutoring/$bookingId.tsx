@@ -10,7 +10,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { ArrowLeft, CalendarX2, CalendarClock, XCircle } from "lucide-react"
+import { CalendarX2, CalendarClock, XCircle } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
@@ -85,9 +85,6 @@ function StudentBookingDetail() {
 
   return (
     <main className="p-4 md:p-6">
-      <Button variant="ghost" className="mb-4 -ml-2" onClick={() => navigate({ to: "/student/tutoring" })}>
-        <ArrowLeft className="h-4 w-4" /> Kembali
-      </Button>
       {bookingsLoading ? (
         <div className="space-y-3">
           <Skeleton className="h-8 w-48" />
