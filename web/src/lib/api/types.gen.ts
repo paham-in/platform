@@ -1169,6 +1169,7 @@ export type UserAdminListUsersResponse = {
     has_password?: boolean;
     id?: number;
     name?: string;
+    phone?: string;
     roles?: Array<string>;
     subjects?: Array<UserSubjectInfo>;
 };
@@ -1241,6 +1242,7 @@ export type UserMeResponse = {
     email?: string;
     id?: number;
     name?: string;
+    phone?: string;
     roles?: Array<string>;
     subjects?: Array<UserSubjectInfo>;
 };
@@ -1252,6 +1254,7 @@ export type UserSubjectInfo = {
 
 export type UserUpdateProfileRequest = {
     name?: string;
+    phone?: string;
 };
 
 export type UserUpdateProfileResponse = {
@@ -1261,6 +1264,7 @@ export type UserUpdateProfileResponse = {
     email?: string;
     id?: number;
     name?: string;
+    phone?: string;
     roles?: Array<string>;
     subjects?: Array<UserSubjectInfo>;
 };

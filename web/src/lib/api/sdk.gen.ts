@@ -152,7 +152,7 @@ export const patchAdminClassesById = <ThrowOnError extends boolean = false>(opti
 /**
  * Run cancelled booking cleanup job
  *
- * Menghapus permanen booking cancelled/rejected yang lebih dari 7 hari beserta sesi & invoice terkait
+ * Menghapus permanen SEMUA booking cancelled/rejected beserta sesi & invoice terkait, tanpa masa tenggang 7 hari. Booking dengan refund belum settled tetap dilewati
  */
 export const postAdminDevCronCancelledBookingCleanup = <ThrowOnError extends boolean = false>(options?: Options<PostAdminDevCronCancelledBookingCleanupData, ThrowOnError>): RequestResult<PostAdminDevCronCancelledBookingCleanupResponses, PostAdminDevCronCancelledBookingCleanupErrors, ThrowOnError> => (options?.client ?? client).post<PostAdminDevCronCancelledBookingCleanupResponses, PostAdminDevCronCancelledBookingCleanupErrors, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],
@@ -783,7 +783,7 @@ export const patchAdminTutoringBookingsByIdAssign = <ThrowOnError extends boolea
 /**
  * Reassign booking to another teacher
  *
- * Admin mengalihkan sisa sesi terjadwal ke guru lain. Sesi selesai/menunggu validasi/batal tetap milik guru lama.
+ * Admin mengalihkan sisa sesi terjadwal ke guru lain. Sesi selesai/menunggu validasi/batal tetap milik guru lama. Ditolak bila ada sesi yang sudah berjalan (bukti kehadiran terupload).
  */
 export const patchAdminTutoringBookingsByIdReassign = <ThrowOnError extends boolean = false>(options: Options<PatchAdminTutoringBookingsByIdReassignData, ThrowOnError>): RequestResult<PatchAdminTutoringBookingsByIdReassignResponses, PatchAdminTutoringBookingsByIdReassignErrors, ThrowOnError> => (options.client ?? client).patch<PatchAdminTutoringBookingsByIdReassignResponses, PatchAdminTutoringBookingsByIdReassignErrors, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],
@@ -883,7 +883,7 @@ export const patchAdminTutoringFeesById = <ThrowOnError extends boolean = false>
 /**
  * Tutoring session report
  *
- * Rekap jumlah pertemuan terlaksana/batal per booking + estimasi refund.
+ * Rekap jumlah pertemuan terlaksana/batal per booking + estimasi refund (hanya terisi bila invoice sudah lunas).
  */
 export const getAdminTutoringReport = <ThrowOnError extends boolean = false>(options?: Options<GetAdminTutoringReportData, ThrowOnError>): RequestResult<GetAdminTutoringReportResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAdminTutoringReportResponses, unknown, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],
@@ -1547,7 +1547,7 @@ export const patchTutoringSessionsById = <ThrowOnError extends boolean = false>(
 /**
  * Cancel session
  *
- * Guru membatalkan sesi yang tidak bisa dihadiri. Invoice tidak berubah.
+ * Guru membatalkan sesi yang tidak bisa dihadiri, atau admin membatalkan sesi terjadwal. Invoice pending dikoreksi nominalnya, invoice lunas dicatat refund.
  */
 export const postTutoringSessionsByIdCancel = <ThrowOnError extends boolean = false>(options: Options<PostTutoringSessionsByIdCancelData, ThrowOnError>): RequestResult<PostTutoringSessionsByIdCancelResponses, PostTutoringSessionsByIdCancelErrors, ThrowOnError> => (options.client ?? client).post<PostTutoringSessionsByIdCancelResponses, PostTutoringSessionsByIdCancelErrors, ThrowOnError>({
     security: [{ name: 'Authorization', type: 'apiKey' }],

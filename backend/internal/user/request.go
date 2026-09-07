@@ -36,5 +36,6 @@ type AdminUpdateTeacherPermissionsRequest struct {
 
 //, handler: UpdateProfile (PATCH /me)
 type UpdateProfileRequest struct {
-	Name *string `json:"name"`
+	Name  *string `json:"name"`
+	Phone *string `json:"phone"`
 }

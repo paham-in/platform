@@ -226,6 +226,7 @@ function AdminUsers() {
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-6">Nama</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Nomor WA</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Tanggal Daftar</TableHead>
                   <TableHead className="pr-6 text-right">Aksi</TableHead>
@@ -240,6 +241,7 @@ function AdminUsers() {
                         <Skeleton className="h-4 w-24" />
                       </div></TableCell>
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                       <TableCell className="pr-6 text-right"><Skeleton className="h-8 w-8 rounded ml-auto" /></TableCell>
@@ -256,6 +258,7 @@ function AdminUsers() {
                       <span className="font-medium">{u.name}</span>
                     </div></TableCell>
                     <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                    <TableCell className="text-muted-foreground">{u.phone || "—"}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap items-center gap-1">
                         {u.has_google ? (
@@ -292,7 +295,7 @@ function AdminUsers() {
                 ))}
                 {!isLoading && paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={6}>
                       <Empty className="border-0 p-8">
                         <EmptyHeader>
                           <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <UserX />}</EmptyMedia>
@@ -377,6 +380,7 @@ function AdminUsers() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{u.name}</p>
                       <p className="mt-0.5 truncate text-sm text-muted-foreground">{u.email}</p>
+                      {u.phone && <p className="mt-0.5 truncate text-sm text-muted-foreground">{u.phone}</p>}
                       <div className="mt-1 flex flex-wrap items-center gap-1">
                         {u.has_google ? (
                           <Badge variant="secondary" className="bg-slate-100 text-slate-600">Google</Badge>

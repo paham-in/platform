@@ -235,7 +235,7 @@ export const patchAdminClassesByIdMutation = (options?: Partial<Options<PatchAdm
 /**
  * Run cancelled booking cleanup job
  *
- * Menghapus permanen booking cancelled/rejected yang lebih dari 7 hari beserta sesi & invoice terkait
+ * Menghapus permanen SEMUA booking cancelled/rejected beserta sesi & invoice terkait, tanpa masa tenggang 7 hari. Booking dengan refund belum settled tetap dilewati
  */
 export const postAdminDevCronCancelledBookingCleanupMutation = (options?: Partial<Options<PostAdminDevCronCancelledBookingCleanupData>>): UseMutationOptions<PostAdminDevCronCancelledBookingCleanupResponse, PostAdminDevCronCancelledBookingCleanupError, Options<PostAdminDevCronCancelledBookingCleanupData>> => {
     const mutationOptions: UseMutationOptions<PostAdminDevCronCancelledBookingCleanupResponse, PostAdminDevCronCancelledBookingCleanupError, Options<PostAdminDevCronCancelledBookingCleanupData>> = {
@@ -1213,7 +1213,7 @@ export const patchAdminTutoringBookingsByIdAssignMutation = (options?: Partial<O
 /**
  * Reassign booking to another teacher
  *
- * Admin mengalihkan sisa sesi terjadwal ke guru lain. Sesi selesai/menunggu validasi/batal tetap milik guru lama.
+ * Admin mengalihkan sisa sesi terjadwal ke guru lain. Sesi selesai/menunggu validasi/batal tetap milik guru lama. Ditolak bila ada sesi yang sudah berjalan (bukti kehadiran terupload).
  */
 export const patchAdminTutoringBookingsByIdReassignMutation = (options?: Partial<Options<PatchAdminTutoringBookingsByIdReassignData>>): UseMutationOptions<PatchAdminTutoringBookingsByIdReassignResponse, PatchAdminTutoringBookingsByIdReassignError, Options<PatchAdminTutoringBookingsByIdReassignData>> => {
     const mutationOptions: UseMutationOptions<PatchAdminTutoringBookingsByIdReassignResponse, PatchAdminTutoringBookingsByIdReassignError, Options<PatchAdminTutoringBookingsByIdReassignData>> = {
@@ -1370,7 +1370,7 @@ export const getAdminTutoringReportQueryKey = (options?: Options<GetAdminTutorin
 /**
  * Tutoring session report
  *
- * Rekap jumlah pertemuan terlaksana/batal per booking + estimasi refund.
+ * Rekap jumlah pertemuan terlaksana/batal per booking + estimasi refund (hanya terisi bila invoice sudah lunas).
  */
 export const getAdminTutoringReportOptions = (options?: Options<GetAdminTutoringReportData>) => queryOptions<GetAdminTutoringReportResponse, DefaultError, GetAdminTutoringReportResponse, ReturnType<typeof getAdminTutoringReportQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
@@ -2499,7 +2499,7 @@ export const patchTutoringSessionsByIdMutation = (options?: Partial<Options<Patc
 /**
  * Cancel session
  *
- * Guru membatalkan sesi yang tidak bisa dihadiri. Invoice tidak berubah.
+ * Guru membatalkan sesi yang tidak bisa dihadiri, atau admin membatalkan sesi terjadwal. Invoice pending dikoreksi nominalnya, invoice lunas dicatat refund.
  */
 export const postTutoringSessionsByIdCancelMutation = (options?: Partial<Options<PostTutoringSessionsByIdCancelData>>): UseMutationOptions<PostTutoringSessionsByIdCancelResponse, PostTutoringSessionsByIdCancelError, Options<PostTutoringSessionsByIdCancelData>> => {
     const mutationOptions: UseMutationOptions<PostTutoringSessionsByIdCancelResponse, PostTutoringSessionsByIdCancelError, Options<PostTutoringSessionsByIdCancelData>> = {

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group"
 import { Switch } from "@/components/ui/switch"
 import { useTheme } from "@/components/theme-provider"
 import {
@@ -30,6 +31,15 @@ const settingsSearchSchema = z.object({
   modal: z.string().optional(),
 })
 
+// Form hanya menyimpan angka lokal (tanpa prefix); prefix +62 tetap di addon.
+const toRest = (phone?: string) => {
+  const t = (phone ?? "").trim()
+  if (t.startsWith("+62")) return t.slice(3)
+  if (t.startsWith("62")) return t.slice(2)
+  if (t.startsWith("0")) return t.slice(1)
+  return t
+}
+
 function SettingsPage() {
   const qc = useQueryClient()
   const { data: user, isLoading: userLoading } = useQuery(getMeOptions())
@@ -38,15 +48,22 @@ function SettingsPage() {
 
   const buildTime = import.meta.env.VITE_BUILD_TIME as string | undefined
   const commitSha = import.meta.env.VITE_COMMIT_SHA as string | undefined
-  const form = useForm<{ name: string }>({
-    resolver: zodResolver(z.object({ name: z.string().trim().min(1, "Isi nama dulu") })),
+  const form = useForm<{ name: string; phone: string }>({
+    resolver: zodResolver(z.object({
+      name: z.string().trim().min(1, "Isi nama dulu"),
+      phone: z.string().refine((v) => {
+        const t = v.trim()
+        if (t === "") return true
+        return /^8\d{6,12}$/.test(t)
+      }, "Nomor tidak valid (cth: 812...)"),
+    })),
     mode: "onTouched",
-    defaultValues: { name: "" },
+    defaultValues: { name: "", phone: "" },
   })
   const initializedRef = useRef(false)
   useEffect(() => {
     if (user && !initializedRef.current) {
-      form.reset({ name: user.name ?? "" })
+      form.reset({ name: user.name ?? "", phone: toRest(user.phone) })
       initializedRef.current = true
     }
   }, [user, form])
@@ -135,12 +152,16 @@ function SettingsPage() {
     )
   }
 
-  const handleSave = (v: { name: string }) => {
-    if (v.name === user?.name) {
+  const handleSave = (v: { name: string; phone: string }) => {
+    const rest = v.phone.trim()
+    const body: { name?: string; phone?: string } = {}
+    if (v.name !== user?.name) body.name = v.name
+    if (rest !== toRest(user?.phone)) body.phone = rest === "" ? "" : `+62${rest}`
+    if (Object.keys(body).length === 0) {
       toast.info("Tidak ada perubahan")
       return
     }
-    updateProfile.mutate({ body: { name: v.name } })
+    updateProfile.mutate({ body })
   }
 
   const enableNotifications = async () => {
@@ -279,6 +300,22 @@ function SettingsPage() {
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="name">Nama</FieldLabel>
                 <Input id="name" {...field} aria-invalid={fieldState.invalid} autoComplete="off"/>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+          <Controller
+            name="phone"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="phone">Nomor WhatsApp</FieldLabel>
+                <InputGroup>
+                  <InputGroupAddon align="inline-start">
+                    <InputGroupText>+62</InputGroupText>
+                  </InputGroupAddon>
+                  <InputGroupInput id="phone" {...field} inputMode="tel" placeholder="812..." aria-invalid={fieldState.invalid} autoComplete="tel" />
+                </InputGroup>
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
             )}

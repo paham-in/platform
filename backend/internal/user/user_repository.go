@@ -278,6 +278,10 @@ func (r *UserRepository) UpdateName(id uint, name string) error {
 	return r.db.Model(&models.User{}).Where("id = ?", id).Update("name", name).Error
 }
 
+func (r *UserRepository) UpdatePhone(id uint, phone string) error {
+	return r.db.Model(&models.User{}).Where("id = ?", id).Update("phone", phone).Error
+}
+
 // UpdatePermissions mengubah izin kelola konten (materi / paket soal) guru.
 // Upsert ke tabel teacher_permissions.
 func (r *UserRepository) UpdatePermissions(id uint, updates map[string]any) error {

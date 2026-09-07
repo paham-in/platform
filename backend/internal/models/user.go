@@ -10,6 +10,7 @@ type User struct {
 	GoogleID     string    `gorm:"size:100;uniqueIndex" json:"-"`
 	AvatarURL    string    `gorm:"size:500" json:"avatar_url"`
 	Password     *string   `gorm:"size:255" json:"-"`
+	Phone        string    `gorm:"size:20" json:"phone"`
 	Roles        []Role    `gorm:"many2many:user_roles;" json:"roles"`
 	Subjects     []Subject `gorm:"many2many:teacher_subjects;" json:"subjects"`
 	TeacherPermission *TeacherPermission `gorm:"foreignKey:UserID" json:"-"`

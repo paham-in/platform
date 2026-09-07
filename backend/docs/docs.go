@@ -8554,6 +8554,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "phone": {
+                    "type": "string"
+                },
                 "roles": {
                     "type": "array",
                     "items": {
@@ -8759,6 +8762,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "phone": {
+                    "type": "string"
+                },
                 "roles": {
                     "type": "array",
                     "items": {
@@ -8789,6 +8795,9 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
+                },
+                "phone": {
+                    "type": "string"
                 }
             }
         },
@@ -8811,6 +8820,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 },
                 "roles": {

@@ -8551,6 +8551,9 @@
                 "name": {
                     "type": "string"
                 },
+                "phone": {
+                    "type": "string"
+                },
                 "roles": {
                     "type": "array",
                     "items": {
@@ -8756,6 +8759,9 @@
                 "name": {
                     "type": "string"
                 },
+                "phone": {
+                    "type": "string"
+                },
                 "roles": {
                     "type": "array",
                     "items": {
@@ -8786,6 +8792,9 @@
             "properties": {
                 "name": {
                     "type": "string"
+                },
+                "phone": {
+                    "type": "string"
                 }
             }
         },
@@ -8808,6 +8817,9 @@
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 },
                 "roles": {

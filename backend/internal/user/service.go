@@ -322,6 +322,15 @@ func (s *Service) UpdateProfile(id uint, input UpdateProfileRequest) (*UpdatePro
 			return nil, errInternal
 		}
 	}
+	if input.Phone != nil {
+		phone := strings.TrimSpace(*input.Phone)
+		if phone != "" && !validPhone(phone) {
+			return nil, errors.New("nomor telepon tidak valid (cth: 0812...)")
+		}
+		if err := s.userRepo.UpdatePhone(id, phone); err != nil {
+			return nil, errInternal
+		}
+	}
 
 	user, err := s.userRepo.Get(id)
 	if err != nil {
@@ -329,6 +338,24 @@ func (s *Service) UpdateProfile(id uint, input UpdateProfileRequest) (*UpdatePro
 	}
 	resp := newUpdateProfileResponse(*user)
 	return &resp, nil
+}
+
+// validPhone menerima nomor WA Indonesia: digit dengan awalan 08, 62,
+// atau +62, total 9-15 digit (tanpa +).
+func validPhone(phone string) bool {
+	digits := strings.TrimPrefix(phone, "+")
+	if digits == "" {
+		return false
+	}
+	for _, r := range digits {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	if len(digits) < 9 || len(digits) > 15 {
+		return false
+	}
+	return strings.HasPrefix(digits, "08") || strings.HasPrefix(digits, "62")
 }
 
 func (s *Service) DeleteUser(id uint) error {

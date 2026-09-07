@@ -79,6 +79,7 @@ type MeResponse struct {
 	ID                        uint          `json:"id"`
 	Name                      string        `json:"name"`
 	Email                     string        `json:"email"`
+	Phone                     string        `json:"phone"`
 	Roles                     []string      `json:"roles"`
 	AvatarURL                 string        `json:"avatar_url"`
 	Subjects                  []SubjectInfo `json:"subjects"`
@@ -91,6 +92,7 @@ func newMeResponse(u models.User) MeResponse {
 		ID:                        u.ID,
 		Name:                      u.Name,
 		Email:                     u.Email,
+		Phone:                     u.Phone,
 		Roles:                     roleNames(u),
 		AvatarURL:                 u.AvatarURL,
 		Subjects:                  subjectInfos(u.Subjects),
@@ -105,6 +107,7 @@ type UpdateProfileResponse struct {
 	ID                        uint          `json:"id"`
 	Name                      string        `json:"name"`
 	Email                     string        `json:"email"`
+	Phone                     string        `json:"phone"`
 	Roles                     []string      `json:"roles"`
 	AvatarURL                 string        `json:"avatar_url"`
 	Subjects                  []SubjectInfo `json:"subjects"`
@@ -117,6 +120,7 @@ func newUpdateProfileResponse(u models.User) UpdateProfileResponse {
 		ID:                        u.ID,
 		Name:                      u.Name,
 		Email:                     u.Email,
+		Phone:                     u.Phone,
 		Roles:                     roleNames(u),
 		AvatarURL:                 u.AvatarURL,
 		Subjects:                  subjectInfos(u.Subjects),
@@ -131,6 +135,7 @@ type AdminListUsersResponse struct {
 	ID                        uint          `json:"id"`
 	Name                      string        `json:"name"`
 	Email                     string        `json:"email"`
+	Phone                     string        `json:"phone"`
 	Roles                     []string      `json:"roles"`
 	AvatarURL                 string        `json:"avatar_url"`
 	HasGoogle                 bool          `json:"has_google"`
@@ -146,6 +151,7 @@ func newAdminListUsersResponse(u models.User) AdminListUsersResponse {
 		ID:                        u.ID,
 		Name:                      u.Name,
 		Email:                     u.Email,
+		Phone:                     u.Phone,
 		Roles:                     roleNames(u),
 		AvatarURL:                 u.AvatarURL,
 		HasGoogle:                 u.GoogleID != "",
