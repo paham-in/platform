@@ -2,6 +2,12 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
 import {
@@ -10,8 +16,16 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { CalendarX2, Plus, UserRound, Users, CalendarDays } from "lucide-react"
+import { CalendarX2, Plus, UserRound, Users, CalendarDays, MoreVertical, XCircle, CalendarClock } from "lucide-react"
+import { useState, useEffect } from "react"
 import { usePageTitle } from "@/components/page-title"
+import { useDialogBack } from "@/lib/hooks/use-dialog-back"
+import { CancelBookingDialog, ScheduleBookingDialog } from "@/components/student/tutoring"
+import { z } from "zod"
+
+const tutoringSearchSchema = z.object({
+  modal: z.string().optional(),
+})
 
 function statusBadge(s: string) {
   const styles: Record<string, string> = {
@@ -31,11 +45,37 @@ function modeBadge(mode?: string) {
   return <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
 }
 
+// canCancel: murid hanya bisa batal saat pending (guru belum di-assign admin).
+// Setelah confirmed, pembatalan lewat admin.
+function canCancel(b: TutoringListBookingsResponse) {
+  return b.status === "pending"
+}
+
+// canReschedule: booking pending milik sendiri; grup hanya oleh pembuatnya.
+function canReschedule(b: TutoringListBookingsResponse) {
+  return b.status === "pending" && (b.mode !== "group" || b.is_organizer)
+}
+
+// hasActions: dropdown hanya ditampilkan bila ada aksi selain Lihat Detail
+// (row/kartu sudah bisa diklik ke halaman detail).
+function hasActions(b: TutoringListBookingsResponse) {
+  return canReschedule(b) || canCancel(b)
+}
+
 function StudentTutoringIndex() {
   usePageTitle("Les Privat")
   const navigate = useNavigate()
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getTutoringBookingsOptions())
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getTutoringSessionsOptions())
+  const [cancelTarget, setCancelTarget] = useState<TutoringListBookingsResponse | null>(null)
+  const [scheduleTarget, setScheduleTarget] = useState<TutoringListBookingsResponse | null>(null)
+  const { modal } = Route.useSearch()
+  const { openModal, closeModal } = useDialogBack()
+
+  useEffect(() => {
+    if (modal !== "cancel") setCancelTarget(null)
+    if (modal !== "schedule") setScheduleTarget(null)
+  }, [modal])
 
   const goDetail = (id?: number) => {
     if (id) navigate({ to: "/student/tutoring/$bookingId", params: { bookingId: String(id) } })
@@ -51,6 +91,21 @@ function StudentTutoringIndex() {
     const cancelled = list.filter((s) => s.status === "cancelled").length
     return `${done}/${total} selesai${cancelled > 0 ? ` · ${cancelled} batal` : ""}`
   }
+
+  const actionMenu = (b: TutoringListBookingsResponse) => (
+    <DropdownMenuContent>
+      {canReschedule(b) && (
+        <DropdownMenuItem onClick={() => { setScheduleTarget(b); openModal("schedule") }}>
+          <CalendarClock className="h-4 w-4" /> Ubah Jadwal
+        </DropdownMenuItem>
+      )}
+      {canCancel(b) && (
+        <DropdownMenuItem variant="destructive" onClick={() => { setCancelTarget(b); openModal("cancel") }}>
+          <XCircle className="h-4 w-4" /> Batalkan Booking
+        </DropdownMenuItem>
+      )}
+    </DropdownMenuContent>
+  )
 
   return (
     <main className="p-4 md:p-6">
@@ -77,12 +132,13 @@ function StudentTutoringIndex() {
                   <TableHead>Jam</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Progres</TableHead>
+                  <TableHead className="pr-6 text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {bookingsLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="p-4">
+                    <TableCell colSpan={9} className="p-4">
                       <div className="space-y-3">
                         {Array.from({ length: 3 }).map((_, i) => (
                           <Skeleton key={i} className="h-12 w-full" />
@@ -92,7 +148,7 @@ function StudentTutoringIndex() {
                   </TableRow>
                 ) : bookings.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8}>
+                    <TableCell colSpan={9}>
                       <Empty className="border-0 p-8">
                         <EmptyHeader>
                           <EmptyMedia variant="icon"><CalendarX2 /></EmptyMedia>
@@ -115,6 +171,18 @@ function StudentTutoringIndex() {
                         const label = progressText(b)
                         return label ?? <span className="text-muted-foreground">—</span>
                       })()}
+                    </TableCell>
+                    <TableCell className="pr-6">
+                      {hasActions(b) && (
+                        <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi booking" />}>
+                              <MoreVertical className="h-4 w-4" />
+                            </DropdownMenuTrigger>
+                            {actionMenu(b)}
+                          </DropdownMenu>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -153,8 +221,18 @@ function StudentTutoringIndex() {
                           return label ? <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{label}</p> : null
                         })()}
                       </div>
-                      <div className="shrink-0">
+                      <div className="flex shrink-0 items-center gap-2">
                         {statusBadge(b.status!)}
+                        {hasActions(b) && (
+                          <span onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi booking" className="shrink-0" />}>
+                                <MoreVertical className="h-4 w-4" />
+                              </DropdownMenuTrigger>
+                              {actionMenu(b)}
+                            </DropdownMenu>
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -258,6 +336,9 @@ function StudentTutoringIndex() {
           </CardContent>
         </Card>
       </div>
+
+      {modal === "cancel" && cancelTarget && <CancelBookingDialog booking={cancelTarget} onClose={closeModal} />}
+      {modal === "schedule" && scheduleTarget && <ScheduleBookingDialog booking={scheduleTarget} onClose={closeModal} />}
       </div>
 
       <Button
@@ -274,4 +355,5 @@ function StudentTutoringIndex() {
 
 export const Route = createFileRoute("/_dashboard/student/tutoring/")({
   component: StudentTutoringIndex,
+  validateSearch: tutoringSearchSchema,
 })
