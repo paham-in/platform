@@ -1,10 +1,12 @@
-import { useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import {
   postAdminClassesMutation,
@@ -24,8 +26,12 @@ interface ClassFormDialogProps {
 
 export function ClassFormDialog({ class: cls, programId, onClose }: ClassFormDialogProps) {
   const qc = useQueryClient()
-  const [name, setName] = useState(cls?.name ?? "")
   const isEditing = Boolean(cls)
+  const form = useForm<{ name: string }>({
+    resolver: zodResolver(z.object({ name: z.string().trim().min(1, "Isi nama kelas dulu") })),
+    mode: "onTouched",
+    defaultValues: { name: cls?.name ?? "" },
+  })
 
   const { mutate: assign, isPending: assigning } = useMutation({
     ...postAdminProgramsByIdClassesMutation(),
@@ -64,12 +70,11 @@ export function ClassFormDialog({ class: cls, programId, onClose }: ClassFormDia
 
   const isPending = creating || updating || assigning
 
-  const save = () => {
-    if (!name.trim()) return
+  const save = (v: { name: string }) => {
     if (isEditing && cls) {
-      updateClass({ path: { id: cls.id! }, body: { name: name.trim() } })
+      updateClass({ path: { id: cls.id! }, body: { name: v.name } })
     } else {
-      createClass({ body: { name: name.trim() } })
+      createClass({ body: { name: v.name } })
     }
   }
 
@@ -80,21 +85,28 @@ export function ClassFormDialog({ class: cls, programId, onClose }: ClassFormDia
           <DialogTitle>{isEditing ? "Edit Kelas" : "Tambah Kelas"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nama</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nama kelas (cth: Kelas 10 IPA)"
-            autoComplete="off"/>
-            <p className="text-xs text-muted-foreground">
-              Harga kelas diatur di Pengaturan → Harga per Kelas.
-            </p>
-          </div>
+          <Controller
+            name="name"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="name">Nama</FieldLabel>
+                <Input
+                  id="name"
+                  {...field}
+                  placeholder="Nama kelas (cth: Kelas 10 IPA)"
+                  aria-invalid={fieldState.invalid}
+                autoComplete="off"/>
+                <FieldDescription>
+                  Harga kelas diatur di Pengaturan → Harga per Kelas.
+                </FieldDescription>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
           <DialogFooter>
             <Button variant="outline" onClick={onClose}>Batal</Button>
-            <Button onClick={save} disabled={isPending || !name.trim()}>
+            <Button onClick={form.handleSubmit(save)} disabled={isPending}>
               {isPending && <Spinner />}
               {isEditing ? "Simpan" : "Tambah"}
             </Button>

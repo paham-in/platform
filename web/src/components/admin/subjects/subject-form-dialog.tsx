@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
@@ -34,13 +38,27 @@ interface SubjectFormDialogProps {
   onClose: () => void
 }
 
+const subjectFormSchema = z.object({
+  name: z.string().trim().min(1, "Isi nama mata pelajaran dulu"),
+  program_id: z.string().min(1, "Pilih program dulu"),
+})
+
+type SubjectFormValues = z.infer<typeof subjectFormSchema>
+
 export function SubjectFormDialog({ subject, onClose }: SubjectFormDialogProps) {
   const qc = useQueryClient()
   const comboboxAnchor = useComboboxAnchor()
   const { data: programs = [] } = useQuery(getAdminProgramsOptions())
   const isEditing = Boolean(subject)
-  const [name, setName] = useState(subject?.name ?? "")
-  const [programId, setProgramId] = useState<number | undefined>(subject?.program_id)
+  const form = useForm<SubjectFormValues>({
+    resolver: zodResolver(subjectFormSchema),
+    mode: "onTouched",
+    defaultValues: {
+      name: subject?.name ?? "",
+      program_id: subject?.program_id ? String(subject.program_id) : "",
+    },
+  })
+  const programId = Number(form.watch("program_id")) || undefined
   const program = programs.find((p) => p.id === programId)
   const classOptions: ClassOption[] = (program?.classes ?? []).map((c) => ({ id: c.id!, name: c.name ?? "" }))
   const [selected, setSelected] = useState<ClassOption[]>([])
@@ -83,21 +101,15 @@ export function SubjectFormDialog({ subject, onClose }: SubjectFormDialogProps) 
   const isPending = creating || updating
   const programOptions = programs.map((p) => ({ label: p.name ?? "", value: String(p.id) }))
 
-  const changeProgram = (v: number | undefined) => {
-    setProgramId(v)
-    setSelected([])
-  }
-
-  const save = () => {
-    if (!programId) return
+  const save = (v: SubjectFormValues) => {
     const classIds = selected.map((c) => c.id!).filter((id) => id !== undefined)
     if (isEditing && subject) {
       updateSubject({
         path: { id: subject.id! },
-        body: { name: name || undefined, program_id: programId, class_ids: classIds },
+        body: { name: v.name || undefined, program_id: Number(v.program_id), class_ids: classIds },
       })
     } else {
-      createSubject({ body: { name: name.trim() || undefined, program_id: programId, class_ids: classIds } })
+      createSubject({ body: { name: v.name || undefined, program_id: Number(v.program_id), class_ids: classIds } })
     }
   }
 
@@ -108,28 +120,42 @@ export function SubjectFormDialog({ subject, onClose }: SubjectFormDialogProps) 
           <DialogTitle>{isEditing ? "Edit Mata Pelajaran" : "Tambah Mata Pelajaran"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nama</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nama mata pelajaran"
-            autoComplete="off"/>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="subject-program">Program</Label>
-            <Select items={programOptions} value={programId} onValueChange={(v) => changeProgram(Number(v))}>
-              <SelectTrigger id="subject-program" className="w-full">
-                <SelectValue placeholder={programs.length ? "Pilih program..." : "Tidak ada program"} />
-              </SelectTrigger>
-              <SelectContent>
-                {programOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Controller
+            name="name"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="name">Nama</FieldLabel>
+                <Input
+                  id="name"
+                  {...field}
+                  placeholder="Nama mata pelajaran"
+                  aria-invalid={fieldState.invalid}
+                autoComplete="off"/>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+          <Controller
+            name="program_id"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="subject-program">Program</FieldLabel>
+                <Select items={programOptions} value={field.value} onValueChange={(v) => { field.onChange(v ?? ""); setSelected([]) }}>
+                  <SelectTrigger id="subject-program" className="w-full" aria-invalid={fieldState.invalid}>
+                    <SelectValue placeholder={programs.length ? "Pilih program..." : "Tidak ada program"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {programOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
           <div className="space-y-2">
             <Label>Kelas</Label>
             <Combobox
@@ -172,7 +198,7 @@ export function SubjectFormDialog({ subject, onClose }: SubjectFormDialogProps) 
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={onClose}>Batal</Button>
-            <Button onClick={save} disabled={isPending || !name.trim() || !programId}>
+            <Button onClick={form.handleSubmit(save)} disabled={isPending}>
               {isPending && <Spinner />}
               {isEditing ? "Simpan" : "Tambah"}
             </Button>

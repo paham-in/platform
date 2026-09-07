@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+﻿import { Controller, useForm } from "react-hook-form"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -18,8 +18,12 @@ interface TeacherPermissionsDialogProps {
 
 export function TeacherPermissionsDialog({ user, onClose }: TeacherPermissionsDialogProps) {
   const qc = useQueryClient()
-  const [canManageMaterials, setCanManageMaterials] = useState(!!user.can_manage_materials)
-  const [canManageQuestionPackages, setCanManageQuestionPackages] = useState(!!user.can_manage_question_packages)
+  const form = useForm<{ can_manage_materials: boolean; can_manage_question_packages: boolean }>({
+    defaultValues: {
+      can_manage_materials: !!user.can_manage_materials,
+      can_manage_question_packages: !!user.can_manage_question_packages,
+    },
+  })
 
   const { mutate: savePermissions, isPending } = useMutation({
     ...patchAdminUsersByIdPermissionsMutation(),
@@ -43,42 +47,54 @@ export function TeacherPermissionsDialog({ user, onClose }: TeacherPermissionsDi
           </p>
         </div>
         <div className="space-y-3">
-          <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3 hover:bg-muted/50">
-            <Checkbox
-              checked={canManageMaterials}
-              onCheckedChange={() => setCanManageMaterials((v) => !v)}
-              aria-label="Kelola materi"
-            />
-            <span className="text-sm">
-              <span className="font-medium">Kelola Materi</span>
-              <span className="block text-xs text-muted-foreground">
-                Boleh membuat, mengubah, dan menghapus materi & bab.
-              </span>
-            </span>
-          </label>
-          <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3 hover:bg-muted/50">
-            <Checkbox
-              checked={canManageQuestionPackages}
-              onCheckedChange={() => setCanManageQuestionPackages((v) => !v)}
-              aria-label="Kelola paket soal"
-            />
-            <span className="text-sm">
-              <span className="font-medium">Kelola Paket Soal</span>
-              <span className="block text-xs text-muted-foreground">
-                Boleh membuat, mengubah, dan menghapus paket soal & soal di dalamnya.
-              </span>
-            </span>
-          </label>
+          <Controller
+            name="can_manage_materials"
+            control={form.control}
+            render={({ field }) => (
+              <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3 hover:bg-muted/50">
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  aria-label="Kelola materi"
+                />
+                <span className="text-sm">
+                  <span className="font-medium">Kelola Materi</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Boleh membuat, mengubah, dan menghapus materi & bab.
+                  </span>
+                </span>
+              </label>
+            )}
+          />
+          <Controller
+            name="can_manage_question_packages"
+            control={form.control}
+            render={({ field }) => (
+              <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3 hover:bg-muted/50">
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  aria-label="Kelola paket soal"
+                />
+                <span className="text-sm">
+                  <span className="font-medium">Kelola Paket Soal</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Boleh membuat, mengubah, dan menghapus paket soal & soal di dalamnya.
+                  </span>
+                </span>
+              </label>
+            )}
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
           <Button
-            onClick={() =>
+            onClick={form.handleSubmit((v) =>
               savePermissions({
                 path: { id: user.id! },
-                body: { can_manage_materials: canManageMaterials, can_manage_question_packages: canManageQuestionPackages },
+                body: { can_manage_materials: v.can_manage_materials, can_manage_question_packages: v.can_manage_question_packages },
               })
-            }
+            )}
             disabled={isPending}
           >
             {isPending && <Spinner />}
