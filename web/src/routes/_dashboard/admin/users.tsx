@@ -27,6 +27,7 @@ import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 const usersSearchSchema = z.object({
   role: z.enum(["student", "teacher", "admin"]).optional(),
+  account: z.enum(["google", "dummy"]).optional(),
   search: z.string().optional(),
   modal: z.string().optional(),
 })
@@ -38,22 +39,39 @@ const roleOptions = [
   { label: "Admin", value: "admin" },
 ]
 
-function RoleFilterMenu({
+const accountOptions = [
+  { label: "Semua Akun", value: "all" },
+  { label: "Google", value: "google" },
+  { label: "Sementara", value: "dummy" },
+]
+
+// selaras badge di tabel: google = login Google, sementara = sisanya
+function matchAccount(u: UserAdminListUsersResponse, account?: "google" | "dummy") {
+  if (!account) return true
+  if (account === "google") return !!u.has_google
+  return !u.has_google
+}
+
+function UserFilterMenu({
   compact,
-  value,
-  onValueChange,
+  roleValue,
+  onRoleChange,
+  accountValue,
+  onAccountChange,
   activeCount,
 }: {
   compact?: boolean;
-  value: string;
-  onValueChange: (v: string) => void;
+  roleValue: string;
+  onRoleChange: (v: string) => void;
+  accountValue: string;
+  onAccountChange: (v: string) => void;
   activeCount: number;
 }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={compact ? <Button variant="outline" size="icon-lg" className="relative" /> : <Button variant="outline" />}
-        aria-label="Filter role"
+        aria-label="Filter user"
       >
         <Funnel className="h-4 w-4" />
         {compact ? (
@@ -74,9 +92,15 @@ function RoleFilterMenu({
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-52">
-        <DropdownMenuRadioGroup value={value} onValueChange={(v) => { if (v) onValueChange(v); }}>
+        <DropdownMenuRadioGroup value={roleValue} onValueChange={(v) => { if (v) onRoleChange(v); }}>
           <DropdownMenuLabel>Role</DropdownMenuLabel>
           {roleOptions.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+        <DropdownMenuRadioGroup value={accountValue} onValueChange={(v) => { if (v) onAccountChange(v); }}>
+          <DropdownMenuLabel>Jenis Akun</DropdownMenuLabel>
+          {accountOptions.map((opt) => (
             <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
@@ -88,7 +112,7 @@ function RoleFilterMenu({
 function AdminUsers() {
   usePageTitle("Kelola User")
   const navigate = useNavigate({ from: Route.fullPath })
-  const { role: roleFilter, search, modal } = Route.useSearch()
+  const { role: roleFilter, account: accountFilter, search, modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
   const [searchInput, setSearchInput] = useState(search ?? "")
 
@@ -107,8 +131,9 @@ function AdminUsers() {
     query: { search, role: roleFilter },
   }))
 
-  const activeFilterCount = roleFilter ? 1 : 0
-  const hasActiveFilter = !!search || !!roleFilter
+  const filtered = users.filter((u) => matchAccount(u, accountFilter))
+  const activeFilterCount = (roleFilter ? 1 : 0) + (accountFilter ? 1 : 0)
+  const hasActiveFilter = !!search || !!roleFilter || !!accountFilter
   const [editing, setEditing] = useState<UserAdminListUsersResponse | null>(null)
   const [page, setPage] = useState(1)
   const perPage = 5
@@ -127,22 +152,30 @@ function AdminUsers() {
     setPage(1)
   }
 
+  const setAccount = (v: string) => {
+    navigate({ search: (prev) => ({ ...prev, account: v === "all" ? undefined : (v as "google" | "dummy") }), replace: true })
+    setPage(1)
+  }
+
   const roleFilterValue = roleFilter ?? "all"
+  const accountFilterValue = accountFilter ?? "all"
   const headerFilter = useMemo(
     () => (
-      <RoleFilterMenu
+      <UserFilterMenu
         compact
-        value={roleFilterValue}
-        onValueChange={setRole}
+        roleValue={roleFilterValue}
+        onRoleChange={setRole}
+        accountValue={accountFilterValue}
+        onAccountChange={setAccount}
         activeCount={activeFilterCount}
       />
     ),
-    [roleFilterValue, activeFilterCount]
+    [roleFilterValue, accountFilterValue, activeFilterCount]
   )
   usePageHeaderAction(headerFilter)
 
-  const totalPages = Math.ceil(users.length / perPage)
-  const paged = users.slice((page - 1) * perPage, page * perPage)
+  const totalPages = Math.ceil(filtered.length / perPage)
+  const paged = filtered.slice((page - 1) * perPage, page * perPage)
 
   return (
     <>
@@ -176,9 +209,11 @@ function AdminUsers() {
             )}
           </div>
           <div className="hidden md:inline-flex">
-            <RoleFilterMenu
-              value={roleFilterValue}
-              onValueChange={setRole}
+            <UserFilterMenu
+              roleValue={roleFilterValue}
+              onRoleChange={setRole}
+              accountValue={accountFilterValue}
+              onAccountChange={setAccount}
               activeCount={activeFilterCount}
             />
           </div>
@@ -226,10 +261,8 @@ function AdminUsers() {
                       <div className="flex flex-wrap items-center gap-1">
                         {u.has_google ? (
                           <Badge variant="secondary" className="bg-slate-100 text-slate-600">Google</Badge>
-                        ) : u.has_password ? (
-                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">Password</Badge>
                         ) : (
-                          <Badge variant="secondary" className="bg-amber-100 text-amber-700">Dummy</Badge>
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-700">Sementara</Badge>
                         )}
                         {(u.roles ?? []).length === 0 && <span className="text-muted-foreground">-</span>}
                         {(u.roles ?? []).map((r) => <RoleBadge key={r} role={r} />)}
@@ -348,10 +381,8 @@ function AdminUsers() {
                       <div className="mt-1 flex flex-wrap items-center gap-1">
                         {u.has_google ? (
                           <Badge variant="secondary" className="bg-slate-100 text-slate-600">Google</Badge>
-                        ) : u.has_password ? (
-                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">Password</Badge>
                         ) : (
-                          <Badge variant="secondary" className="bg-amber-100 text-amber-700">Dummy</Badge>
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-700">Sementara</Badge>
                         )}
                         {(u.roles ?? []).map((r) => <RoleBadge key={r} role={r} />)}
                         {(u.roles ?? []).length === 0 && <span className="text-xs text-muted-foreground">-</span>}

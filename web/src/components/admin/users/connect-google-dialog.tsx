@@ -31,7 +31,7 @@ export function ConnectGoogleDialog({ user, onClose }: ConnectGoogleDialogProps)
   const qc = useQueryClient()
   const { data: users = [] } = useQuery(getAdminUsersOptions())
 
-  // kandidat target: akun Google ber-role student, bukan dummy itu sendiri
+  // kandidat target: akun Google ber-role student, bukan sementara itu sendiri
   const candidates = users.filter(
     (u) => u.id !== user.id && u.has_google && (u.roles ?? []).includes("student"),
   )
@@ -55,12 +55,12 @@ export function ConnectGoogleDialog({ user, onClose }: ConnectGoogleDialogProps)
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
-          <DialogTitle>Hubungkan Akun Dummy ke Akun Google</DialogTitle>
+          <DialogTitle>Hubungkan Akun Sementara ke Akun Google</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="rounded-lg bg-muted/50 px-3 py-2 text-sm">
             <p className="font-medium">{user.name}</p>
-            <p className="text-xs text-muted-foreground">Akun dummy: {user.email}</p>
+            <p className="text-xs text-muted-foreground">Akun sementara: {user.email}</p>
           </div>
 
           <Controller
@@ -101,6 +101,10 @@ export function ConnectGoogleDialog({ user, onClose }: ConnectGoogleDialogProps)
               </Field>
             )}
           />
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+            Booking, kelas, akses & invoice milik <strong>{user.name}</strong> dipindah ke akun Google
+            tujuan. Akun sementara <strong>dihapus permanen</strong>.
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Batal</Button>
@@ -110,7 +114,7 @@ export function ConnectGoogleDialog({ user, onClose }: ConnectGoogleDialogProps)
             disabled={isPending}
           >
             {isPending && <Spinner />}
-            Hubungkan & Hapus Dummy
+            Hubungkan & Hapus Sementara
           </Button>
         </DialogFooter>
       </DialogContent>

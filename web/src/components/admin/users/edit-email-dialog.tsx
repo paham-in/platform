@@ -64,7 +64,7 @@ export function EditEmailDialog({ user, onClose }: EditEmailDialogProps) {
             )}
           />
           <FieldDescription>
-            Set email dummy = email Google murid supaya login berikutnya otomatis ter-link. Kalau murid sudah punya akun Google di sistem, gunakan "Hubungkan ke Akun Google" di menu aksi.
+            Set email sementara = email Google murid supaya login berikutnya otomatis ter-link. Kalau murid sudah punya akun Google di sistem, gunakan "Hubungkan ke Akun Google" di menu aksi.
           </FieldDescription>
         </div>
         <DialogFooter>
