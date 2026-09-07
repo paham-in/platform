@@ -49,7 +49,6 @@ import {
   AssignOrphanDialog,
 } from "@/components/admin/programs";
 import { ClassFormDialog, DeleteClassDialog } from "@/components/admin/classes";
-import { usePageTitle } from "@/components/page-title";
 import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 
 const programsSearchSchema = z.object({
@@ -57,7 +56,6 @@ const programsSearchSchema = z.object({
 })
 
 function AdminPrograms() {
-  usePageTitle("Program");
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
   const { data: programs = [], isLoading } = useQuery(getAdminProgramsOptions());

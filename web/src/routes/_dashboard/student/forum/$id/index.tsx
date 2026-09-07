@@ -28,7 +28,6 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import type { AnswerAnswerResponse } from "@/lib/api/types.gen"
 import { z } from "zod"
@@ -51,7 +50,6 @@ function ForumDetail() {
     getQuestionsByQuestionIdAnswersOptions({ path: { question_id: questionId } })
   )
 
-  usePageTitle(question?.plain_content ?? "Forum")
 
   const { mutate: deleteAnswer } = useMutation({
     ...deleteQuestionsByQuestionIdAnswersByIdMutation(),

@@ -12,7 +12,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAdminQuestionPackagesByIdQuestionsOptions, getAdminQuestionPackagesQueryKey, patchAdminQuestionPackagesByIdQuestionsByQidMutation } from "@/lib/api/@tanstack/react-query.gen";
 import type { QuestionbankQuestionResponse } from "@/lib/api/types.gen";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
-import { usePageTitle } from "@/components/page-title";
 
 import { toast } from "sonner";
 import { isEmptyContent } from "@/lib/html";
@@ -175,7 +174,6 @@ function EditQuestionForm({ question, packageId, collectionId }: { question: Que
 }
 
 function EditQuestion() {
-  usePageTitle("Edit Soal")
   const { collectionId, packageId, questionId } = useParams({ from: "/_dashboard/teacher/packs/$collectionId/$packageId/questions/$questionId/edit" })
   const { data: questions = [], isLoading } = useQuery(getAdminQuestionPackagesByIdQuestionsOptions({ path: { id: Number(packageId) } }))
 

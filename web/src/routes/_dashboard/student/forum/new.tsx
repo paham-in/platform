@@ -9,7 +9,6 @@ import { Spinner } from "@/components/ui/spinner"
 import { TiptapEditor } from "@/components/ui/tiptap-editor"
 import { isEmptyContent } from "@/lib/html"
 import { useCanPostForum } from "@/hooks/use-can-post-forum"
-import { usePageTitle } from "@/components/page-title"
 import {
   Select,
   SelectContent,
@@ -28,7 +27,6 @@ import { toast } from "sonner"
 import { Sparkles } from "lucide-react"
 
 function NewQuestion() {
-  usePageTitle("Pertanyaan Baru")
   const qc = useQueryClient()
   const navigate = useNavigate()
   const canPost = useCanPostForum()

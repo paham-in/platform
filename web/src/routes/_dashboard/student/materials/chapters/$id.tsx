@@ -10,7 +10,6 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { FileText } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { usePageTitle } from "@/components/page-title"
 
 function ChapterDetail() {
   const navigate = useNavigate()
@@ -25,7 +24,6 @@ function ChapterDetail() {
   const sub = subjects.find((s) => s.id === chapter?.subject_id)
   const cls = classes.find((c) => c.id === chapter?.class_id)
 
-  usePageTitle(chapter?.title ?? "Materi")
 
   return (
     <main className="p-4 md:p-6">

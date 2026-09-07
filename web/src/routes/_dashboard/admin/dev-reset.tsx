@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
@@ -38,7 +37,6 @@ const devResetSearchSchema = z.object({
 })
 
 function DevReset() {
-  usePageTitle("Dev Tools")
   const qc = useQueryClient()
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()

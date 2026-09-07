@@ -28,7 +28,6 @@ import { useEffect, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { z } from "zod"
 
@@ -84,7 +83,6 @@ const bookingFormSchema = z.object({
 type BookingFormValues = z.input<typeof bookingFormSchema>
 
 function NewBooking() {
-  usePageTitle("Booking Baru")
   const qc = useQueryClient()
   const navigate = useNavigate()
   const { data: myClasses = [] } = useQuery(getStudentClassEnrollmentsOptions())

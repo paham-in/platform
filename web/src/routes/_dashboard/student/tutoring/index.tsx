@@ -18,7 +18,6 @@ import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { CalendarX2, Plus, UserRound, Users, CalendarDays, MoreVertical, XCircle, CalendarClock } from "lucide-react"
 import { useState, useEffect } from "react"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { CancelBookingDialog, ScheduleBookingDialog } from "@/components/student/tutoring"
 import { z } from "zod"
@@ -63,7 +62,6 @@ function hasActions(b: TutoringListBookingsResponse) {
 }
 
 function StudentTutoringIndex() {
-  usePageTitle("Les Privat")
   const navigate = useNavigate()
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getTutoringBookingsOptions())
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery(getTutoringSessionsOptions())

@@ -5,7 +5,6 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-import { usePageTitle } from "@/components/page-title"
 import { format, addDays, addMonths } from "date-fns"
 import { postSubscribeMutation } from "@/lib/api/@tanstack/react-query.gen"
 import { Check, Sparkles } from "lucide-react"
@@ -16,7 +15,6 @@ const PLANS = [
 ]
 
 function UserSubscribe() {
-  usePageTitle("Berlangganan")
   const [plan, setPlan] = useState("monthly")
 
   const { mutate: subscribe, isPending } = useMutation({

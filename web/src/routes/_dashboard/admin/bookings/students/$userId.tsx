@@ -16,7 +16,6 @@ import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
 import { UserRound, Users, CalendarX2, CalendarClock, XCircle, MoreVertical, UserPlus, Plus } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { AssignTeacherDialog, ScheduleBookingDialog, RejectBookingDialog } from "@/components/admin/tutoring"
 
@@ -66,7 +65,6 @@ function AdminTutoringDetail() {
   const studentBookings = bookings.filter((b) => b.student_id === Number(userId))
   const user = users.find((u) => u.id === Number(userId))
   const studentName = user?.name ?? studentBookings[0]?.student_name ?? "—"
-  usePageTitle(studentName)
 
   const progressOf = (b: TutoringListBookingsResponse) => {
     const r = reportByBooking.get(b.id!)

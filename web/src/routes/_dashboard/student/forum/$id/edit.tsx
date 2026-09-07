@@ -24,7 +24,6 @@ import type { ForumQuestionResponse } from "@/lib/api/types.gen"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { usePageTitle } from "@/components/page-title"
 
 const forumQuestionSchema = z.object({
   content: z.string().refine((v) => !isEmptyContent(v), "Isi pertanyaan dulu"),
@@ -122,7 +121,6 @@ function EditQuestionForm({ question, id }: { question: ForumQuestionResponse; i
 }
 
 function EditQuestion() {
-  usePageTitle("Edit Pertanyaan")
   const { id } = useParams({ from: "/_dashboard/student/forum/$id/edit" })
   const questionId = id
 

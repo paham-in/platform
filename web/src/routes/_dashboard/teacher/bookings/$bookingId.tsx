@@ -41,7 +41,6 @@ import {
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import { CalendarX2, Users, UserRound, Upload, Timer, CalendarClock, XCircle, RefreshCw, MoreVertical } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -154,7 +153,6 @@ function TeacherBookingDetail() {
   })
 
   const booking = bookings.find((b) => b.id === Number(bookingId))
-  usePageTitle(booking?.student_name ? `Les ${booking.student_name}` : "Detail Booking")
 
   if (!isLoading && !booking) {
     return (

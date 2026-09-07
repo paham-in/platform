@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { DocxImportDialog } from "@/components/ui/docx-import-dialog";
-import { usePageTitle } from "@/components/page-title";
 import {
   getAdminMaterialsByIdOptions,
   getAdminMaterialsQueryKey,
@@ -75,7 +74,6 @@ function EditMaterial() {
   const { modal } = Route.useSearch();
   const { openModal, closeModal } = useDialogBack();
   const { data: material, isLoading, isError } = useQuery(getAdminMaterialsByIdOptions({ path: { id: Number(materialId) } }))
-  usePageTitle(material?.title ?? "Edit Materi");
 
   const { draft, hasDraft, restored, debouncedSave, clear, restore, discard } = useDraft(materialId);
 

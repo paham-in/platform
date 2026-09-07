@@ -4,7 +4,6 @@ import { ArrowLeft, Pencil } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { RichContent } from "@/components/ui/rich-content";
-import { usePageTitle } from "@/components/page-title";
 import {
   getAdminMaterialsByIdOptions,
   getAdminChaptersOptions,
@@ -22,7 +21,6 @@ function MaterialDetail() {
   const { data: chapters = [] } = useQuery(getAdminChaptersOptions());
   const chapter = chapters.find((c) => c.id === Number(chapterId));
 
-  usePageTitle(material?.title ?? "Detail Materi");
 
   if (isLoading) {
     return (

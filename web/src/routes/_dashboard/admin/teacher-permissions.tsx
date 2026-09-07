@@ -18,7 +18,6 @@ import { Badge } from "@/components/ui/badge"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { TeacherPermissionsDialog } from "@/components/admin/users"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 const teacherPermissionsSearchSchema = z.object({
@@ -32,7 +31,6 @@ function PermBadge({ granted, label }: { granted: boolean; label: string }) {
 }
 
 function AdminTeacherPermissions() {
-  usePageTitle("Hak Akses Guru")
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
   const { data: teachers = [], isLoading } = useQuery(

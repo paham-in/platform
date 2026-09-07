@@ -13,7 +13,6 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import { ArrowLeft, CalendarX2, CalendarClock, XCircle } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { CancelBookingDialog, ScheduleBookingDialog } from "@/components/student/tutoring"
 import { z } from "zod"
@@ -58,7 +57,6 @@ function canReschedule(b: TutoringListBookingsResponse) {
 }
 
 function StudentBookingDetail() {
-  usePageTitle("Detail Booking")
   const navigate = useNavigate()
   const { bookingId } = Route.useParams()
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getTutoringBookingsOptions())

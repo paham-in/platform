@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { BookingList } from "@/components/teacher/tutoring/booking-list"
-import { usePageTitle } from "@/components/page-title"
 import { z } from "zod"
 
 const teacherBookingsSearchSchema = z.object({
@@ -8,7 +7,6 @@ const teacherBookingsSearchSchema = z.object({
 })
 
 function TeacherBookingsPage() {
-  usePageTitle("Booking Les")
   return (
     <main className="p-4 md:p-6">
       <div className="mb-6">

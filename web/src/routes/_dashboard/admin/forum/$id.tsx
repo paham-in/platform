@@ -17,7 +17,6 @@ import { Trash2, MessageCircle } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { AnswerForm } from "@/components/forum"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import {
   AlertDialog,
@@ -52,7 +51,6 @@ function ForumDetail() {
     if (modal !== "delete") setDeleteTarget(null)
   }, [modal])
 
-  usePageTitle(question?.plain_content ?? "Forum")
 
   const { mutate: deleteAnswer } = useMutation({
     ...deleteQuestionsByQuestionIdAnswersByIdMutation(),

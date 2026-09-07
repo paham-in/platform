@@ -17,7 +17,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { usePageTitle } from "@/components/page-title"
 import {
   getAdminSettingsOptions,
   getAdminSettingsQueryKey,
@@ -50,7 +49,6 @@ const feeSchema = z.object({
 })
 
 function AdminSettings() {
-  usePageTitle("Tarif Produk")
   const qc = useQueryClient()
   const { data: settings, isLoading: settingsLoading } = useQuery(getAdminSettingsOptions())
   const { data: classes = [], isLoading: classesLoading } = useQuery(getAdminClassesOptions())

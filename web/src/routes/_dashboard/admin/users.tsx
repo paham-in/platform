@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RoleBadge, CreateUserDialog, EditRoleDialog, DeleteUserDialog, ConnectGoogleDialog } from "@/components/admin/users"
-import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
+import { usePageHeaderAction } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 const usersSearchSchema = z.object({
@@ -110,7 +110,6 @@ function UserFilterMenu({
 }
 
 function AdminUsers() {
-  usePageTitle("Kelola User")
   const navigate = useNavigate({ from: Route.fullPath })
   const { role: roleFilter, account: accountFilter, search, modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()

@@ -44,7 +44,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { SubjectFormDialog, DeleteSubjectDialog } from "@/components/admin/subjects";
-import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
+import { usePageHeaderAction } from "@/components/page-title";
 import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 const subjectsSearchSchema = z.object({
   search: z.string().optional(),
@@ -102,7 +102,6 @@ function ClassFilterMenu({
 }
 
 function AdminSubjects() {
-  usePageTitle("Mata Pelajaran");
   const navigate = useNavigate({ from: Route.fullPath });
   const { search: searchParam, class: classParam, modal } = Route.useSearch();
   const { openModal, closeModal } = useDialogBack();

@@ -8,7 +8,6 @@ import {
 import { createFileRoute, useParams } from "@tanstack/react-router"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RichContent } from "@/components/ui/rich-content"
-import { usePageTitle } from "@/components/page-title"
 
 function extractYoutubeId(url: string): string {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
@@ -22,7 +21,6 @@ function MaterialDetail() {
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const { data: classes = [] } = useQuery(getClassesOptions())
 
-  usePageTitle(material?.title ?? "Materi")
 
   const chapter = allChapters.find((c) => c.id === Number(chapterId))
   const sub = subjects.find((s) => s.id === chapter?.subject_id)

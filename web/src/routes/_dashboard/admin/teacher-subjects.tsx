@@ -18,7 +18,6 @@ import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/comp
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { TeacherSubjectsDialog } from "@/components/admin/users"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 const teacherSubjectsSearchSchema = z.object({
@@ -27,7 +26,6 @@ const teacherSubjectsSearchSchema = z.object({
 })
 
 function AdminTeacherSubjects() {
-  usePageTitle("Mata Pelajaran Guru")
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam, modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()

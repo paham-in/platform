@@ -84,7 +84,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { Spinner } from "@/components/ui/spinner";
-import { usePageHeaderAction, usePageTitle } from "@/components/page-title";
+import { usePageHeaderAction } from "@/components/page-title";
 import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 
 const COVER_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -156,7 +156,6 @@ function ClassFilterMenu({
 }
 
 function AdminChapters() {
-  usePageTitle("BAB");
   const qc = useQueryClient();
   const navigate = useNavigate({ from: Route.fullPath });
   const { search, classId, modal } = Route.useSearch();

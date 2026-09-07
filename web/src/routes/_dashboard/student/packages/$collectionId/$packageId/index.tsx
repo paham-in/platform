@@ -7,7 +7,6 @@ import { RichContent } from "@/components/ui/rich-content"
 import { getQuestionPackagesByIdOptions, getQuestionPackagesByIdWorkProgressOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { FileQuestion, Layers, PlayCircle } from "lucide-react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { usePageTitle } from "@/components/page-title"
 
 function PackageDetail() {
   const navigate = useNavigate()
@@ -19,7 +18,6 @@ function PackageDetail() {
     getQuestionPackagesByIdWorkProgressOptions({ path: { id: packageId } })
   )
 
-  usePageTitle(pkg?.name ?? "Paket Soal")
 
   if (isLoading) {
     return (

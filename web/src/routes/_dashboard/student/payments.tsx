@@ -27,7 +27,6 @@ import type { InvoiceInvoiceResponse } from "@/lib/api/types.gen"
 import { CreditCard, CheckCircle2, Clock, ReceiptText, MoreVertical, XCircle } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -84,7 +83,6 @@ function CancelInvoiceDialog({ invoice, onClose }: { invoice: InvoiceInvoiceResp
 }
 
 function StudentPayments() {
-  usePageTitle("Riwayat Pembayaran")
   const { data: invoices = [], isLoading } = useQuery(getInvoicesOptions())
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()

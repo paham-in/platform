@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import { startOfWeek, parseISO, isValid, format } from "date-fns"
 import { CalendarWeek } from "@/components/tutoring/calendar-week"
-import { usePageTitle } from "@/components/page-title"
 import { getTutoringSessionsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { Skeleton } from "@/components/ui/skeleton"
 import { z } from "zod"
@@ -19,7 +18,6 @@ function parseWeekStart(param?: string): Date {
 }
 
 function StudentCalendarPage() {
-  usePageTitle("Kalender")
   const navigate = useNavigate({ from: Route.fullPath })
   const { week } = Route.useSearch()
   const { data: sessions = [], isLoading } = useQuery(getTutoringSessionsOptions())

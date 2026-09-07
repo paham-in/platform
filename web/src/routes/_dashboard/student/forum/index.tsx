@@ -22,7 +22,7 @@ import { z } from "zod"
 import { Plus, Search, SearchX, Funnel, X, MessageSquare, Sparkles } from "lucide-react"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useCanPostForum } from "@/hooks/use-can-post-forum"
-import { usePageHeaderAction, usePageTitle } from "@/components/page-title"
+import { usePageHeaderAction } from "@/components/page-title"
 
 const forumSearchSchema = z.object({
   search: z.string().optional(),
@@ -127,7 +127,6 @@ function NewQuestionAction({ locked, size }: { locked: boolean; size?: "default"
 }
 
 function ForumPage() {
-  usePageTitle("Forum")
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam, subject: subjectParam, mine: mineParam } = Route.useSearch()
   const canPost = useCanPostForum()

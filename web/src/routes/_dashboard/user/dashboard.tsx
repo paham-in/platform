@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { usePageTitle } from "@/components/page-title"
 import { useQuery } from "@tanstack/react-query"
 import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { BookOpen, CreditCard, Sparkles } from "lucide-react"
@@ -9,7 +8,6 @@ import { BookOpen, CreditCard, Sparkles } from "lucide-react"
 function UserDashboard() {
   const navigate = useNavigate()
   const { data: user } = useQuery(getMeOptions())
-  usePageTitle("Dashboard")
 
   return (
     <main className="p-4 md:p-6">

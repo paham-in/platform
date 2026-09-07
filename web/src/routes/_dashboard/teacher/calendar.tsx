@@ -2,7 +2,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { startOfWeek, parseISO, isValid, format } from "date-fns"
 import { CalendarWeek } from "@/components/tutoring/calendar-week"
-import { usePageTitle } from "@/components/page-title"
 import { getTutoringSessionsOptions, getTutoringSessionsQueryKey, patchTutoringSessionsByIdMutation, postTutoringSessionsByIdCancelMutation, postTutoringSessionsByIdEvidenceMutation } from "@/lib/api/@tanstack/react-query.gen"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
@@ -20,7 +19,6 @@ function parseWeekStart(param?: string): Date {
 }
 
 function TeacherCalendarPage() {
-  usePageTitle("Kalender")
   const navigate = useNavigate({ from: Route.fullPath })
   const qc = useQueryClient()
   const { week } = Route.useSearch()

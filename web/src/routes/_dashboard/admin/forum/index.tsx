@@ -19,7 +19,6 @@ import { useState, useEffect } from "react"
 import { Search, SearchX, MoreVertical, Trash2, ChevronLeft, ChevronRight, Eye, X, MessageSquare } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { DeleteQuestionDialog } from "@/components/admin/forum"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 const adminForumSearchSchema = z.object({
@@ -28,7 +27,6 @@ const adminForumSearchSchema = z.object({
 })
 
 function AdminForum() {
-  usePageTitle("Forum")
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam, modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()

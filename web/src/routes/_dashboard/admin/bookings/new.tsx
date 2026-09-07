@@ -35,7 +35,6 @@ import {
   getAdminClassesOptions,
   getSubjectsOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
-import { usePageTitle } from "@/components/page-title"
 import { z } from "zod"
 
 const adminTutoringNewSearchSchema = z.object({
@@ -95,7 +94,6 @@ const adminBookingFormSchema = z.object({
 type AdminBookingFormValues = z.input<typeof adminBookingFormSchema>
 
 function AdminTutoringNew() {
-  usePageTitle("Tambah Booking Manual")
   const qc = useQueryClient()
   const navigate = useNavigate({ from: Route.fullPath })
   const { student_id: presetStudentId } = Route.useSearch()

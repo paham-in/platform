@@ -11,7 +11,6 @@ import { getAdminQuestionPackageCollectionsOptions, getMeOptions } from "@/lib/a
 import { MoreVertical, Pencil, Plus, Trash2, FolderOpen } from "lucide-react";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { CreateCollectionDialog, DeleteCollectionDialog, EditCollectionDialog } from "@/components/teacher/pack-collections";
-import { usePageTitle } from "@/components/page-title";
 import type { QuestionpackageCollectionResponse } from "@/lib/api/types.gen";
 import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 
@@ -25,7 +24,6 @@ const collectionsSearchSchema = z.object({
 });
 
 function CollectionsPage() {
-  usePageTitle("Koleksi Paket Soal");
   const navigate = useNavigate();
   const { modal } = Route.useSearch();
   const { openModal, closeModal } = useDialogBack();

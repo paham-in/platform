@@ -21,7 +21,6 @@ import {
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import { ArrowLeftRight, CalendarX2, Users, UserRound, MoreVertical, Check, X, CheckCircle2, XCircle } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
 import { SwapSessionTeacherDialog } from "@/components/admin/attendance/swap-session-teacher-dialog"
@@ -121,7 +120,6 @@ function AdminBookingDetail() {
   const hasActions = (s: TutoringListSessionsResponse) =>
     s.status === "scheduled" || s.status === "review" || (s.status === "done" && !!evidenceById.get(s.id!)?.invoice_paid)
 
-  usePageTitle(booking?.student_name ? `Les ${booking.student_name}` : "Detail Booking")
 
   if (!isLoading && !booking) {
     return (

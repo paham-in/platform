@@ -9,7 +9,6 @@ import { getAdminTutoringBookingsOptions, getAdminUsersOptions } from "@/lib/api
 import { CalendarX2, Search, X } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
-import { usePageTitle } from "@/components/page-title"
 
 const adminTutoringSearchSchema = z.object({
   search: z.string().optional(),
@@ -27,7 +26,6 @@ type StudentRow = {
 }
 
 function AdminTutoring() {
-  usePageTitle("Les Privat")
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam } = Route.useSearch()
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery(getAdminTutoringBookingsOptions())

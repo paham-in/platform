@@ -10,7 +10,6 @@ import { getAdminStudentClassEnrollmentsOptions, getAdminUsersOptions } from "@/
 import { Search, X, KeyRound } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
-import { usePageTitle } from "@/components/page-title"
 
 const subscriptionsSearchSchema = z.object({
   search: z.string().optional(),
@@ -22,7 +21,6 @@ function todayStr(): string {
 }
 
 function AdminSubscriptions() {
-  usePageTitle("Langganan Konten")
   const navigate = useNavigate({ from: Route.fullPath })
   const { search: searchParam } = Route.useSearch()
   const { data: items = [], isLoading: itemsLoading } = useQuery(getAdminStudentClassEnrollmentsOptions({}))

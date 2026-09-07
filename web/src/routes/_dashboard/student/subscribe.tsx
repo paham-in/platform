@@ -7,7 +7,6 @@ import { toast } from "sonner"
 import { format, addDays, addMonths, parseISO, differenceInCalendarDays } from "date-fns"
 import { BookMarked, GraduationCap, School } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { usePageTitle } from "@/components/page-title"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
@@ -47,7 +46,6 @@ const DURATIONS = [
 const fmtRp = (n: number) => `Rp ${n.toLocaleString("id-ID")}`
 
 function StudentSubscribe() {
-  usePageTitle("Langganan")
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { data: classes = [], isLoading: classesLoading } = useQuery(getClassesOptions())

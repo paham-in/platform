@@ -39,7 +39,6 @@ import { Spinner } from "@/components/ui/spinner"
 import { GrantClassDialog } from "@/components/admin/student-class-enrollments"
 import { AddSubscriptionDialog } from "@/components/admin/subscriptions"
 import { InvoiceSection } from "@/components/admin/payments"
-import { usePageTitle } from "@/components/page-title"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 const subscriptionDetailSearchSchema = z.object({
@@ -119,7 +118,6 @@ function AdminSubscriptionDetail() {
   const mine = items.filter((sp) => (sp.user_id ?? sp.user?.id) === uid)
   const subscriptionInvoices = invoices.filter((inv) => !inv.booking_id)
   const studentName = user?.name ?? mine[0]?.user?.name ?? "—"
-  usePageTitle(studentName)
 
   const today = todayStr()
   const active = mine.filter((sp) => sp.expiry && sp.expiry >= today).sort((a, b) => (a.expiry ?? "") < (b.expiry ?? "") ? -1 : 1)
