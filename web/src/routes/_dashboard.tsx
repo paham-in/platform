@@ -384,7 +384,7 @@ function DashboardLayout() {
         logoutPending={logout.isPending}
         onLogoutClick={() => openModal("logout")}
       />
-      <SidebarInset className="overflow-x-clip">
+      <SidebarInset className="min-w-0 overflow-x-clip">
         <PageTitleProvider>
           <header className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-[linear-gradient(to_bottom,var(--background),transparent)] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] md:hidden">
             <div className="flex items-center rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5">
