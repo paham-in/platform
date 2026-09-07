@@ -82,7 +82,7 @@ function AdminTutoringNew() {
   const [student, setStudent] = useState<UserAdminListUsersResponse>()
   const [subjectId, setSubjectId] = useState("")
   const [teacher, setTeacher] = useState<TutoringListTeachersResponse | undefined>()
-  const [sessionCount, setSessionCount] = useState(1)
+  const [sessionCount, setSessionCount] = useState("1")
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
   const [date, setDate] = useState("")
@@ -140,7 +140,9 @@ function AdminTutoringNew() {
 
   const timesValid = startTime !== "" && endTime !== "" && startTime < endTime
   const perWeek = timesValid ? perWeekFor(startTime, endTime) : null
-  const totalSessions = perWeek ? sessionCount * perWeek : 0
+  // angka valid turunan (field boleh kosong sementara saat diketik)
+  const sessions = Math.min(12, Math.max(1, Number(sessionCount) || 1))
+  const totalSessions = perWeek ? sessions * perWeek : 0
   // jam mulai yang masih punya pilihan jam selesai valid (kelipatan 90 menit)
   const startOptions = TIME_OPTIONS.filter((t) =>
     TIME_OPTIONS.some((e) => {
@@ -183,7 +185,7 @@ function AdminTutoringNew() {
           start_time: startTime,
           end_time: endTime,
           mode,
-          session_count: sessionCount,
+          session_count: sessions,
           note,
           class_id: Number(classId),
           member_emails: memberEmails,
@@ -548,8 +550,8 @@ navigate({ to: "/admin/bookings", replace: true })
                     min={1}
                     max={12}
                     value={sessionCount}
-                    onChange={(e) => setSessionCount(Math.max(1, Number(e.target.value) || 1))}
-                    onBlur={() => setSessionCount(Math.min(12, Math.max(1, sessionCount)))}
+                    onChange={(e) => { if (/^\d{0,2}$/.test(e.target.value)) setSessionCount(e.target.value) }}
+                    onBlur={() => setSessionCount(String(sessions))}
                     className="w-24 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   autoComplete="off"/>
                   <span className="text-sm text-muted-foreground">kali</span>
@@ -563,7 +565,7 @@ navigate({ to: "/admin/bookings", replace: true })
 
               <div className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3">
                 <div className="text-sm">
-                  <p className="font-medium">Total ({sessionCount}× pertemuan{perWeek ? ` · ${totalSessions} sesi` : ""})</p>
+                  <p className="font-medium">Total ({sessions}× pertemuan{perWeek ? ` · ${totalSessions} sesi` : ""})</p>
                   <p className="text-xs text-muted-foreground">
                     {mode === "group" ? `${fmtRp(myClass?.group_price)} / sesi` : `${fmtRp(myClass?.price_per_session)} / sesi`} (90 menit)
                     {myClass && (mode === "group" ? !myClass.group_price : !myClass.price_per_session) && (

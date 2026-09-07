@@ -71,7 +71,7 @@ function NewBooking() {
   const [start, setStart] = useState("")
   const [end, setEnd] = useState("")
   const [mode, setMode] = useState<"private" | "group">("private")
-  const [sessionCount, setSessionCount] = useState(1)
+  const [sessionCount, setSessionCount] = useState("1")
   const [classId, setClassId] = useState("")
   const [date, setDate] = useState("")
   const [dateOpen, setDateOpen] = useState(false)
@@ -116,9 +116,11 @@ function NewBooking() {
   const hasSlot = start !== "" && end !== "" && date !== ""
   const canSearch = subjectId !== "" && hasSlot
   const perWeek = hasSlot ? perWeekFor(start, end) : null
-  const totalSessions = perWeek ? sessionCount * perWeek : 0
+  // angka valid turunan (field boleh kosong sementara saat diketik)
+  const sessions = Math.min(12, Math.max(1, Number(sessionCount) || 1))
+  const totalSessions = perWeek ? sessions * perWeek : 0
   const startDate = date ? new Date(date + "T00:00:00") : null
-  const endDate = startDate ? addWeeks(startDate, sessionCount - 1) : null
+  const endDate = startDate ? addWeeks(startDate, sessions - 1) : null
 
   const { data: searchResults = [], isLoading: searchLoading } = useQuery({
     ...getUsersSearchOptions({ query: searchTerm ? { q: searchTerm } : undefined }),
@@ -171,7 +173,7 @@ function NewBooking() {
         start_time: start,
         end_time: end,
         mode,
-        session_count: sessionCount,
+        session_count: sessions,
         note,
         class_id: Number(classId),
         member_emails: mode === "group" ? members.map((m) => m.email).filter((e): e is string => !!e) : undefined,
@@ -360,8 +362,8 @@ function NewBooking() {
                 min={1}
                 max={12}
                 value={sessionCount}
-                onChange={(e) => setSessionCount(Math.max(1, Number(e.target.value) || 1))}
-                onBlur={() => setSessionCount(Math.min(12, Math.max(1, sessionCount)))}
+                onChange={(e) => { if (/^\d{0,2}$/.test(e.target.value)) setSessionCount(e.target.value) }}
+                onBlur={() => setSessionCount(String(sessions))}
                 className="w-24 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               autoComplete="off"/>
               <span className="text-sm text-muted-foreground">kali</span>
@@ -382,7 +384,7 @@ function NewBooking() {
 
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-muted/50 px-4 py-3">
             <div className="text-sm">
-              <p className="font-medium">Total ({sessionCount}× pertemuan{perWeek ? ` · ${totalSessions} sesi` : ""})</p>
+              <p className="font-medium">Total ({sessions}× pertemuan{perWeek ? ` · ${totalSessions} sesi` : ""})</p>
               <p className="text-xs text-muted-foreground">
                 {fmtRp(pricePerSession)} / sesi ({SESSION_MINUTES} menit)
                 {selectedClass && (mode === "group" ? !selectedClass.group_price : !selectedClass.price_per_session) && (
