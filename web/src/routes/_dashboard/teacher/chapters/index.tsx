@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -70,6 +71,8 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { useEffect, useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -92,6 +95,16 @@ const chaptersSearchSchema = z.object({
   classId: z.string().optional(),
   modal: z.string().optional(),
 });
+
+const chapterFormSchema = z.object({
+  title: z.string().trim().min(1, "Isi judul dulu"),
+  description: z.string(),
+  order: z.coerce.number(),
+  class_id: z.string().min(1, "Pilih kelas dulu"),
+  subject_id: z.string().min(1, "Pilih mata pelajaran dulu"),
+});
+
+type ChapterFormValues = z.input<typeof chapterFormSchema>;
 
 function ClassFilterMenu({
   compact,
@@ -166,13 +179,13 @@ function AdminChapters() {
   const [editing, setEditing] = useState<ChapterChapterResponse | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<ChapterChapterResponse | null>(null);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    order: 0,
-    class_id: "",
-    subject_id: "",
+  const form = useForm<ChapterFormValues>({
+    resolver: zodResolver(chapterFormSchema),
+    mode: "onTouched",
+    defaultValues: { title: "", description: "", order: 0, class_id: "", subject_id: "" },
   });
+  const { setValue } = form;
+  const formClassId = form.watch("class_id");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState("");
   const [coverError, setCoverError] = useState("");
@@ -237,8 +250,8 @@ function AdminChapters() {
   });
 
   // subjects filtered by form.class_id
-  const availableSubjects = form.class_id
-    ? subjects.filter((s) => (s.class_ids ?? []).includes(Number(form.class_id)))
+  const availableSubjects = formClassId
+    ? subjects.filter((s) => (s.class_ids ?? []).includes(Number(formClassId)))
     : [];
   const subjectOptions = availableSubjects.map((s) => ({ label: s.name ?? "", value: String(s.id) }));
 
@@ -250,7 +263,7 @@ function AdminChapters() {
 
   const openAdd = () => {
     setEditing(null);
-    setForm({ title: "", description: "", order: 0, class_id: "", subject_id: "" });
+    form.reset({ title: "", description: "", order: 0, class_id: "", subject_id: "" });
     setCoverFile(null);
     setCoverPreview("");
     setCoverError("");
@@ -258,7 +271,7 @@ function AdminChapters() {
   };
   const openEdit = (c: ChapterChapterResponse) => {
     setEditing(c);
-    setForm({
+    form.reset({
       title: c.title ?? "",
       description: c.description ?? "",
       order: c.order ?? 0,
@@ -303,19 +316,19 @@ function AdminChapters() {
       setUploadingCover(false);
     }
   };
-  const save = async () => {
-    if (coverError || !form.title || !form.class_id || !form.subject_id) return;
+  const save = async (v: ChapterFormValues) => {
+    if (coverError) return;
     setSaving(true);
     try {
       if (editing) {
         await updateChapter({
           path: { id: editing.id! },
           body: {
-            title: form.title,
-            description: form.description,
-            order: form.order,
-            class_id: Number(form.class_id),
-            subject_id: Number(form.subject_id),
+            title: v.title,
+            description: v.description,
+            order: Number(v.order),
+            class_id: Number(v.class_id),
+            subject_id: Number(v.subject_id),
           },
         });
         if (coverFile && !(await uploadCover(editing.id!))) {
@@ -327,11 +340,11 @@ function AdminChapters() {
       } else {
         const data = await createChapter({
           body: {
-            title: form.title,
-            description: form.description,
-            order: form.order,
-            class_id: Number(form.class_id),
-            subject_id: Number(form.subject_id),
+            title: v.title,
+            description: v.description,
+            order: Number(v.order),
+            class_id: Number(v.class_id),
+            subject_id: Number(v.subject_id),
           },
         });
         if (coverFile && data?.id && !(await uploadCover(data.id))) {
@@ -431,15 +444,22 @@ function AdminChapters() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Judul</Label>
-                  <Input
-                    id="title"
-                    value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    placeholder="Judul bab"
-                  autoComplete="off"/>
-                </div>
+                <Controller
+                  name="title"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="title">Judul</FieldLabel>
+                      <Input
+                        id="title"
+                        {...field}
+                        placeholder="Judul bab"
+                        aria-invalid={fieldState.invalid}
+                      autoComplete="off"/>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
                 <div className="space-y-2">
                   <Label htmlFor="cover">Sampul (opsional)</Label>
                   <div className="flex items-center gap-3">
@@ -466,79 +486,104 @@ function AdminChapters() {
                     <p className="text-xs text-muted-foreground">JPG, PNG, GIF, WebP. Maks 5MB.</p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="class">Kelas</Label>
-                  <Select
-                    id="class"
-                    items={formClassOptions}
-                    value={form.class_id}
-                    onValueChange={(v) => setForm({ ...form, class_id: v ?? "", subject_id: "" })}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Pilih kelas">
-                        {classes.find((c) => String(c.id) === form.class_id)?.name}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {formClassOptions.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Mata Pelajaran</Label>
-                  <Select
-                    key={`subject-${form.class_id}`}
-                    id="subject"
-                    items={subjectOptions}
-                    value={form.subject_id}
-                    onValueChange={(v) => setForm({ ...form, subject_id: v ?? "" })}
-                    disabled={!form.class_id}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={form.class_id ? "Pilih mata pelajaran" : "Pilih kelas dulu"}>
-                        {availableSubjects.find((s) => String(s.id) === form.subject_id)?.name}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subjectOptions.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="desc">Deskripsi</Label>
-                  <Textarea
-                    id="desc"
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    placeholder="Deskripsi singkat"
-                    rows={2}
-                  autoComplete="off"/>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="order">Urutan</Label>
-                  <Input
-                    id="order"
-                    type="number"
-                    min={0}
-                    value={form.order}
-                    onChange={(e) => setForm({ ...form, order: Number(e.target.value) })}
-                  autoComplete="off"/>
-                </div>
+                <Controller
+                  name="class_id"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="class">Kelas</FieldLabel>
+                      <Select
+                        id="class"
+                        items={formClassOptions}
+                        value={field.value}
+                        onValueChange={(v) => { field.onChange(v ?? ""); setValue("subject_id", ""); }}
+                      >
+                        <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
+                          <SelectValue placeholder="Pilih kelas">
+                            {classes.find((c) => String(c.id) === field.value)?.name}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {formClassOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+                <Controller
+                  name="subject_id"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="subject">Mata Pelajaran</FieldLabel>
+                      <Select
+                        key={`subject-${formClassId}`}
+                        id="subject"
+                        items={subjectOptions}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={!formClassId}
+                      >
+                        <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
+                          <SelectValue placeholder={formClassId ? "Pilih mata pelajaran" : "Pilih kelas dulu"}>
+                            {availableSubjects.find((s) => String(s.id) === field.value)?.name}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {subjectOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+                <Controller
+                  name="description"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Field>
+                      <FieldLabel htmlFor="desc">Deskripsi</FieldLabel>
+                      <Textarea
+                        id="desc"
+                        {...field}
+                        placeholder="Deskripsi singkat"
+                        rows={2}
+                      autoComplete="off"/>
+                    </Field>
+                  )}
+                />
+                <Controller
+                  name="order"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Field>
+                      <FieldLabel htmlFor="order">Urutan</FieldLabel>
+                      <Input
+                        id="order"
+                        type="number"
+                        min={0}
+                        value={(field.value as number | string | undefined) ?? ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      autoComplete="off"/>
+                    </Field>
+                  )}
+                />
                 <DialogFooter>
                   <Button variant="outline" onClick={closeModal} disabled={saving}>
                     Batal
                   </Button>
                   <Button
-                    onClick={save}
-                    disabled={!form.title || !form.class_id || !form.subject_id || saving || !!coverError}
+                    onClick={form.handleSubmit(save)}
+                    disabled={saving}
                   >
                     {saving && <Spinner />}
                     {saving
