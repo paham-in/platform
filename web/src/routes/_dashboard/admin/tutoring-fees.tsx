@@ -1,12 +1,17 @@
 ﻿import { useEffect, useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Controller, useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
 import { toast } from "sonner"
 import { School } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Field, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
@@ -37,14 +42,25 @@ const priceNorm = (s: string) => (priceNum(s) === 0 ? "" : s)
 
 type TutoringPrices = Record<number, { private: string; group: string }>
 
+const feeSchema = z.object({
+  teacher_fee_percent: z.string().refine((v) => {
+    const n = Number(v)
+    return v.trim() !== "" && Number.isFinite(n) && n >= 0 && n <= 100
+  }, "Masukkan angka 0–100."),
+})
+
 function AdminSettings() {
   usePageTitle("Tarif Produk")
   const qc = useQueryClient()
   const { data: settings, isLoading: settingsLoading } = useQuery(getAdminSettingsOptions())
   const { data: classes = [], isLoading: classesLoading } = useQuery(getAdminClassesOptions())
 
-  const [fee, setFee] = useState("")
-  const [settingsInitialized, setSettingsInitialized] = useState(false)
+  const [feeInitialized, setFeeInitialized] = useState(false)
+  const feeForm = useForm<{ teacher_fee_percent: string }>({
+    resolver: zodResolver(feeSchema),
+    mode: "onTouched",
+    defaultValues: { teacher_fee_percent: "" },
+  })
   // harga les privat per kelas, keyed by class id
   const [tutoringPrices, setTutoringPrices] = useState<TutoringPrices>({})
   // harga konten per kelas, keyed by class id
@@ -53,11 +69,11 @@ function AdminSettings() {
   const [allowTutoring, setAllowTutoring] = useState<Record<number, boolean>>({})
 
   useEffect(() => {
-    if (settings && !settingsInitialized) {
-      setFee(settings.teacher_fee_percent ?? "")
-      setSettingsInitialized(true)
+    if (settings && !feeInitialized) {
+      feeForm.reset({ teacher_fee_percent: settings.teacher_fee_percent ?? "" })
+      setFeeInitialized(true)
     }
-  }, [settings, settingsInitialized])
+  }, [settings, feeInitialized, feeForm])
 
   useEffect(() => {
     if (classes.length === 0) return
@@ -206,8 +222,9 @@ function AdminSettings() {
 
   const isLoading = settingsLoading
 
-  const feeNum = Number(fee)
-  const feeInvalid = fee.trim() === "" || !Number.isFinite(feeNum) || feeNum < 0 || feeNum > 100
+  // angka fee live dari form (untuk preview fee guru di tabel les).
+  const feeValue = feeForm.watch("teacher_fee_percent")
+  const feeNum = Number(feeValue)
 
   // fee guru utk 1 pertemuan: harga × persentase fee. Live dari state input
   // harga & persentase, jadi admin lihat preview sebelum simpan.
@@ -248,30 +265,45 @@ function AdminSettings() {
             {isLoading ? (
               <Skeleton className="h-9 w-32" />
             ) : (
-              <div className="max-w-xs space-y-2">
-                <Label htmlFor="fee">Persentase fee guru per sesi</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="fee"
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={fee}
-                    onChange={(e) => setFee(e.target.value)}
-                    className="w-28"
-                    aria-invalid={feeInvalid}
-                  autoComplete="off"/>
-                  <span className="text-sm text-muted-foreground">%</span>
-                </div>
-                {feeInvalid && <p className="text-xs text-destructive">Masukkan angka 0–100.</p>}
+              <div className="space-y-2">
+                <Controller
+                  name="teacher_fee_percent"
+                  control={feeForm.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <Label htmlFor="fee">Persentase fee guru per sesi</Label>
+                      <InputGroup>
+                        <InputGroupInput
+                          id="fee"
+                          type="number"
+                          min="0"
+                          max="100"
+                          aria-invalid={fieldState.invalid}
+                          autoComplete="off"
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
+                        <InputGroupAddon align="inline-end">
+                          <InputGroupText>%</InputGroupText>
+                        </InputGroupAddon>
+                      </InputGroup>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
               </div>
             )}
           </CardContent>
           <CardFooter>
             <div className="flex w-full items-center justify-end">
               <Button
-                onClick={() => saveSettings.mutate({ body: { teacher_fee_percent: fee } })}
-                disabled={feeInvalid || saveSettings.isPending}
+                className="w-full md:w-auto"
+                disabled={saveSettings.isPending}
+                onClick={feeForm.handleSubmit(
+                  (v) => saveSettings.mutate({ body: { teacher_fee_percent: v.teacher_fee_percent } }),
+                  (errs) => toast.error(errs.teacher_fee_percent?.message || "Masukkan angka 0–100."),
+                )}
               >
                 {saveSettings.isPending && <Spinner />}
                 Simpan Fee
