@@ -265,9 +265,10 @@ function SettingsPage() {
 
   return (
     <main className="p-4 md:p-6">
+      <div className="mx-auto w-full max-w-3xl">
       <h1 className="mb-6 text-2xl font-bold tracking-tight">Pengaturan</h1>
 
-      <div className="flex max-w-lg flex-col gap-4">
+      <div className="flex flex-col gap-4">
       <section className="md:hidden">
         <h2 className="mb-1.5 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Tampilan
@@ -479,6 +480,7 @@ function SettingsPage() {
           </DialogContent>
         </Dialog>
       )}
+      </div>
     </main>
   )
 }

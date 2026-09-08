@@ -112,6 +112,7 @@ function DevReset() {
 
   return (
     <main className="flex flex-col gap-4 p-4 md:p-6">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dev Tools</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -120,7 +121,7 @@ function DevReset() {
       </div>
 
       {!isLoading && !enabled && (
-        <Card className="max-w-3xl border-destructive/50">
+        <Card className="border-destructive/50">
           <CardContent className="py-6 text-sm text-muted-foreground">
             Fitur reset data sedang nonaktif di server. Set <code>DEV_RESET_ENABLED=true</code> di{" "}
             <code>backend/.env</code> lalu restart backend untuk mengaktifkannya.
@@ -129,7 +130,7 @@ function DevReset() {
       )}
 
       {enabled && (
-      <Card className="max-w-3xl">
+      <Card>
         <CardHeader>
           <CardTitle>Cron / Pekerjaan Background</CardTitle>
         </CardHeader>
@@ -226,7 +227,7 @@ function DevReset() {
       )}
 
       {enabled && (
-      <Card className="max-w-3xl">
+      <Card>
         <CardHeader>
           <CardTitle>Daftar Tabel</CardTitle>
         </CardHeader>
@@ -280,6 +281,7 @@ function DevReset() {
         </CardContent>
       </Card>
       )}
+      </div>
 
       {modal === "reset" && confirmTable && (
       <AlertDialog open onOpenChange={(o) => !o && closeModal()}>
