@@ -994,6 +994,17 @@ func (s *Service) CancelBooking(id, studentID uint) (*CancelBookingResponse, err
 		return nil, err
 	}
 	r := newCancelBookingResponse(*updated)
+	if s.notifSvc != nil {
+		if admins, err := s.repo.ListAdminIDs(); err == nil && len(admins) > 0 {
+			studentName := ""
+			if updated.Student != nil {
+				studentName = updated.Student.Name
+			}
+			s.notifSvc.NotifyBatch(admins, "Booking dibatalkan murid",
+				fmt.Sprintf("%s membatalkan booking %s pada %s %s-%s", studentName, updated.Mode, updated.Date, updated.StartTime, updated.EndTime),
+				"tutoring", "/dashboard/admin/tutoring")
+		}
+	}
 	return &r, nil
 }
 
@@ -1220,6 +1231,19 @@ func (s *Service) AssignTeacher(id, teacherID uint) (*AssignTeacherResponse, err
 		return nil, err
 	}
 	r := newAssignTeacherResponse(*updated)
+	if s.notifSvc != nil {
+		studentName := ""
+		subjectName := ""
+		if updated.Student != nil {
+			studentName = updated.Student.Name
+		}
+		if updated.Subject != nil {
+			subjectName = updated.Subject.Name
+		}
+		s.notifSvc.Notify(teacherID, "Booking les baru",
+			fmt.Sprintf("%s booking %s pada %s %s-%s, silakan cek jadwal mengajar", studentName, subjectName, updated.Date, updated.StartTime, updated.EndTime),
+			"tutoring", "/dashboard/tutoring")
+	}
 	return &r, nil
 }
 
@@ -2218,6 +2242,17 @@ func (s *Service) UploadEvidence(sessionID, teacherID uint, objectName string) (
 		return nil, "", err
 	}
 	r := newUploadSessionEvidenceResponse(*updated)
+	if s.notifSvc != nil {
+		if admins, err := s.repo.ListAdminIDs(); err == nil && len(admins) > 0 {
+			studentName := ""
+			if updated.Booking != nil && updated.Booking.Student != nil {
+				studentName = updated.Booking.Student.Name
+			}
+			s.notifSvc.NotifyBatch(admins, "Bukti sesi menunggu review",
+				fmt.Sprintf("%s mengunggah bukti sesi %s %s-%s", studentName, updated.Date, updated.StartTime, updated.EndTime),
+				"tutoring", "/dashboard/admin/tutoring")
+		}
+	}
 	return &r, oldObject, nil
 }
 
@@ -2313,6 +2348,11 @@ func (s *Service) ApproveEvidence(sessionID uint) (*AdminReviewEvidenceResponse,
 		return nil, err
 	}
 	r := newAdminReviewEvidenceResponse(*updated)
+	if s.notifSvc != nil && updated.Teacher != nil {
+		s.notifSvc.Notify(updated.Teacher.ID, "Bukti sesi disetujui",
+			fmt.Sprintf("Bukti sesi %s %s-%s telah disetujui admin", updated.Date, updated.StartTime, updated.EndTime),
+			"tutoring", "/dashboard/tutoring")
+	}
 	return &r, nil
 }
 
@@ -2388,6 +2428,11 @@ func (s *Service) RejectEvidence(sessionID uint) (*AdminReviewEvidenceResponse, 
 		return nil, "", err
 	}
 	r := newAdminReviewEvidenceResponse(*updated)
+	if s.notifSvc != nil && updated.Teacher != nil {
+		s.notifSvc.Notify(updated.Teacher.ID, "Bukti sesi ditolak",
+			fmt.Sprintf("Bukti sesi %s %s-%s ditolak admin, silakan unggah ulang", updated.Date, updated.StartTime, updated.EndTime),
+			"tutoring", "/dashboard/tutoring")
+	}
 	return &r, oldObject, nil
 }
 
