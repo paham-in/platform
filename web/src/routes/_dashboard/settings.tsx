@@ -74,7 +74,7 @@ function SettingsPage() {
   const [pushStatus, setPushStatus] = useState<"checking" | "subscribed" | "not-subscribed" | "unsupported">("checking")
   const [subLabel, setSubLabel] = useState("")
   const { canInstall, installed, install, iOS } = usePwaInstall()
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, dynamicThemeColor, setDynamicThemeColor } = useTheme()
 
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -269,7 +269,7 @@ function SettingsPage() {
       <h1 className="mb-6 text-2xl font-bold tracking-tight">Pengaturan</h1>
 
       <div className="flex flex-col gap-4">
-      <section className="md:hidden">
+      <section>
         <h2 className="mb-1.5 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Tampilan
         </h2>
@@ -293,6 +293,26 @@ function SettingsPage() {
               </div>
               <span onClick={(e) => e.stopPropagation()}>
                 <Switch checked={theme === "dark"} onCheckedChange={(c) => setTheme(c ? "dark" : "light")} aria-label="Mode gelap" />
+              </span>
+            </div>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setDynamicThemeColor(!dynamicThemeColor)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  setDynamicThemeColor(!dynamicThemeColor)
+                }
+              }}
+              className="flex cursor-pointer items-center justify-between gap-3 border-t px-4 py-3"
+            >
+              <div>
+                <p className="text-sm font-medium">Warna tema dinamis</p>
+                <p className="text-xs text-muted-foreground">Ikuti warna latar aplikasi. Matikan untuk memakai warna bawaan (#0c0c09).</p>
+              </div>
+              <span onClick={(e) => e.stopPropagation()}>
+                <Switch checked={dynamicThemeColor} onCheckedChange={setDynamicThemeColor} aria-label="Warna tema dinamis" />
               </span>
             </div>
           </CardContent>

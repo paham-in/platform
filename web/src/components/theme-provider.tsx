@@ -11,11 +11,15 @@ type ThemeProviderProps = {
 type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  dynamicThemeColor: boolean;
+  setDynamicThemeColor: (v: boolean) => void;
 };
 
 const initialState: ThemeProviderState = {
   theme: "system",
   setTheme: () => null,
+  dynamicThemeColor: true,
+  setDynamicThemeColor: () => null,
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
@@ -28,6 +32,12 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
+  );
+  // Warna tema dinamis: meta theme-color mengikuti --background aplikasi.
+  // Mati = jangan suntik meta apa pun (browser pakai theme_color manifest).
+  // Default nyala untuk mempertahankan perilaku lama.
+  const [dynamicThemeColor, setDynamicThemeColorState] = useState<boolean>(
+    () => localStorage.getItem("vite-ui-theme-color-dynamic") !== "0",
   );
 
   useEffect(() => {
@@ -46,17 +56,23 @@ export function ThemeProvider({
     // --background yang sudah beda per mode). Dinamis di tab browser; PWA
     // standalone baca dari manifest (statis).
     document.querySelectorAll('meta[name="theme-color"]').forEach((el) => el.remove());
+    if (!dynamicThemeColor) return;
     const meta = document.createElement("meta");
     meta.name = "theme-color";
     meta.content = getComputedStyle(root).getPropertyValue("--background").trim() || (resolved === "dark" ? "#0c0c09" : "#ffffff");
     document.head.appendChild(meta);
-  }, [theme]);
+  }, [theme, dynamicThemeColor]);
 
   const value = {
     theme,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
+    },
+    dynamicThemeColor,
+    setDynamicThemeColor: (v: boolean) => {
+      localStorage.setItem("vite-ui-theme-color-dynamic", v ? "1" : "0");
+      setDynamicThemeColorState(v);
     },
   };
 

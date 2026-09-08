@@ -31,8 +31,11 @@ export default defineConfig({
         orientation: "portrait",
         start_url: "/login",
         scope: "/",
-        // background_color = primary shadcn (light/dark).
-        background_color: "#1d1d16",
+        // theme_color + background_color = background dark shadcn (#0c0c09).
+        // Dipakai splash screen, status bar, dan task switcher PWA standalone.
+        // (Tab browser memakai meta theme-color dinamis dari theme-provider.)
+        theme_color: "#0c0c09",
+        background_color: "#0c0c09",
         icons: [
           {
             src: "/favicon.ico",
