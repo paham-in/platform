@@ -62,6 +62,12 @@ type AssignTeacherRequest struct {
 	TeacherID uint `json:"teacher_id"`
 }
 
+//, handler: AdminExtendBooking (POST /admin/tutoring/bookings/:id/extend)
+
+type ExtendBookingRequest struct {
+	AdditionalSessions int `json:"additional_sessions"` // sesi tambahan, wajib kelipatan sesi/minggu
+}
+
 //, handler: UpdateSession (PATCH /tutoring/sessions/:id)
 
 type UpdateSessionRequest struct {

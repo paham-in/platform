@@ -1,4 +1,5 @@
 export * from "./assign-teacher-dialog"
+export * from "./extend-booking-dialog"
 export * from "./schedule-booking-dialog"
 export * from "./reject-booking-dialog"
 export * from "./reassign-teacher-dialog"

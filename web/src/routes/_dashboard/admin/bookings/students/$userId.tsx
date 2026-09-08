@@ -17,7 +17,7 @@ import { UserRound, Users, CalendarX2, CalendarClock, XCircle, MoreVertical, Use
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
-import { AssignTeacherDialog, ScheduleBookingDialog, RejectBookingDialog } from "@/components/admin/tutoring"
+import { AssignTeacherDialog, ExtendBookingDialog, ScheduleBookingDialog, RejectBookingDialog } from "@/components/admin/tutoring"
 
 const adminTutoringDetailSearchSchema = z.object({
   modal: z.string().optional(),
@@ -53,11 +53,13 @@ function AdminTutoringDetail() {
   const { data: reports = [] } = useQuery(getAdminTutoringReportOptions())
   const reportByBooking = new Map((reports ?? []).map((r) => [r.booking_id, r]))
   const [assignBooking, setAssignBooking] = useState<TutoringListBookingsResponse | null>(null)
+  const [extendTarget, setExtendTarget] = useState<TutoringListBookingsResponse | null>(null)
   const [scheduleTarget, setScheduleTarget] = useState<TutoringListBookingsResponse | null>(null)
   const [rejectTarget, setRejectTarget] = useState<TutoringListBookingsResponse | null>(null)
 
   useEffect(() => {
     if (modal !== "assign") setAssignBooking(null)
+    if (modal !== "extend") setExtendTarget(null)
     if (modal !== "schedule") setScheduleTarget(null)
     if (modal !== "reject") setRejectTarget(null)
   }, [modal])
@@ -159,7 +161,7 @@ function AdminTutoringDetail() {
                   </TableCell>
                   <TableCell className="pr-6">
                     <div className="flex items-center justify-end">
-                      {b.status === "pending" ? (
+                      {(b.status === "pending" || b.status === "confirmed") ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             render={<Button variant="outline" size="icon" aria-label="Aksi booking" />}
@@ -171,6 +173,11 @@ function AdminTutoringDetail() {
                             {b.status === "pending" && !b.teacher_id ? (
                               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setAssignBooking(b); openModal("assign") }}>
                                 <UserPlus className="h-4 w-4" /> Assign Guru
+                              </DropdownMenuItem>
+                            ) : null}
+                            {b.status === "confirmed" ? (
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setExtendTarget(b); openModal("extend") }}>
+                                <Plus className="h-4 w-4" /> Tambah Sesi
                               </DropdownMenuItem>
                             ) : null}
                             {b.status === "pending" ? (
@@ -243,7 +250,7 @@ function AdminTutoringDetail() {
                     })()}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    {b.status === "pending" ? (
+                    {(b.status === "pending" || b.status === "confirmed") ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="Aksi booking" className="shrink-0" />} onClick={(e) => e.stopPropagation()}>
                           <MoreVertical className="h-4 w-4" />
@@ -252,6 +259,11 @@ function AdminTutoringDetail() {
                           {b.status === "pending" && !b.teacher_id ? (
                             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setAssignBooking(b); openModal("assign") }}>
                               <UserPlus className="h-4 w-4" /> Assign Guru
+                            </DropdownMenuItem>
+                          ) : null}
+                          {b.status === "confirmed" ? (
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setExtendTarget(b); openModal("extend") }}>
+                              <Plus className="h-4 w-4" /> Tambah Sesi
                             </DropdownMenuItem>
                           ) : null}
                           {b.status === "pending" ? (
@@ -277,6 +289,7 @@ function AdminTutoringDetail() {
       </Card>
 
       {modal === "assign" && assignBooking && <AssignTeacherDialog booking={assignBooking} onClose={closeModal} />}
+      {modal === "extend" && extendTarget && <ExtendBookingDialog booking={extendTarget} onClose={closeModal} />}
       {modal === "schedule" && scheduleTarget && <ScheduleBookingDialog booking={scheduleTarget} onClose={closeModal} />}
       {modal === "reject" && rejectTarget && <RejectBookingDialog booking={rejectTarget} onClose={closeModal} />}
 

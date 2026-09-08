@@ -19,13 +19,13 @@ import {
   getAdminTutoringReportOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
-import { ArrowLeftRight, CalendarX2, Users, UserRound, MoreVertical, Check, X, CheckCircle2, XCircle } from "lucide-react"
+import { ArrowLeftRight, CalendarX2, Users, UserRound, MoreVertical, Check, X, CheckCircle2, XCircle, Plus } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
 import { SwapSessionTeacherDialog } from "@/components/admin/attendance/swap-session-teacher-dialog"
 import { ApproveEvidenceDialog, CancelSessionDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
-import { ReassignTeacherDialog } from "@/components/admin/tutoring"
+import { ReassignTeacherDialog, ExtendBookingDialog } from "@/components/admin/tutoring"
 import { InvoiceSection } from "@/components/admin/payments"
 
 const adminBookingDetailSearchSchema = z.object({
@@ -87,6 +87,7 @@ function AdminBookingDetail() {
   const [feeTarget, setFeeTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [cancelTarget, setCancelTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [reassignActive, setReassignActive] = useState(false)
+  const [extendActive, setExtendActive] = useState(false)
 
   useEffect(() => {
     if (modal !== "swap") setSwapSession(null)
@@ -95,6 +96,7 @@ function AdminBookingDetail() {
     if (modal !== "fee") setFeeTarget(null)
     if (modal !== "cancel") setCancelTarget(null)
     if (modal !== "reassign") setReassignActive(false)
+    if (modal !== "extend") setExtendActive(false)
   }, [modal])
 
   const evidenceById = new Map((evidence ?? []).map((s) => [s.id!, s]))
@@ -188,7 +190,14 @@ function AdminBookingDetail() {
         </div>
       )}
 
-      <h2 className="mb-2 text-lg font-semibold">Daftar Sesi</h2>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold">Daftar Sesi</h2>
+        {!isLoading && booking?.status === "confirmed" && (
+          <Button variant="outline" size="sm" onClick={() => { setExtendActive(true); openModal("extend") }}>
+            <Plus className="mr-1 h-4 w-4" /> Tambah Sesi
+          </Button>
+        )}
+      </div>
       <Card className="hidden gap-0 pt-0 pb-0 md:block">
         <CardContent className="p-0">
           <Table>
@@ -409,6 +418,7 @@ function AdminBookingDetail() {
       {modal === "fee" && feeTarget && <ToggleFeeDialog session={evOf(feeTarget)} onClose={closeModal} />}
       {modal === "cancel" && cancelTarget && <CancelSessionDialog session={cancelTarget} onClose={closeModal} />}
       {modal === "reassign" && reassignActive && booking && <ReassignTeacherDialog booking={booking} onClose={closeModal} />}
+      {modal === "extend" && extendActive && booking && <ExtendBookingDialog booking={booking} onClose={closeModal} />}
     </main>
   )
 }

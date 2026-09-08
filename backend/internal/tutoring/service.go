@@ -1223,6 +1223,182 @@ func (s *Service) AssignTeacher(id, teacherID uint) (*AssignTeacherResponse, err
 	return &r, nil
 }
 
+// ExtendBooking menambah sesi ke booking confirmed (admin only). Sesi tambahan
+// ditempel di minggu-minggu setelah sesi terakhir, pola jam sama. Grup
+// di-extend serentak se-token. Invoice: yang masih pending → amount ditambah;
+// yang sudah lunas → dibuatkan invoice baru utk sesi tambahan.
+func (s *Service) ExtendBooking(id uint, additional int) (*ExtendBookingResponse, error) {
+	booking, err := s.repo.GetBooking(id)
+	if err != nil {
+		return nil, errors.New("booking tidak ditemukan")
+	}
+	if booking.Status != "confirmed" {
+		return nil, errors.New("hanya booking confirmed yang bisa ditambah sesinya")
+	}
+	if booking.TeacherID == nil {
+		return nil, errors.New("booking belum punya guru")
+	}
+	if additional < 1 {
+		return nil, errors.New("jumlah sesi tambahan minimal 1")
+	}
+	perWeek, err := sessionsPerWeekFor(booking.StartTime, booking.EndTime)
+	if err != nil {
+		return nil, err
+	}
+	if additional%perWeek != 0 {
+		return nil, fmt.Errorf("sesi tambahan harus kelipatan %d sesi/minggu", perWeek)
+	}
+	targets := []models.Booking{*booking}
+	if booking.GroupToken != "" {
+		group, err := s.repo.ListBookingsByGroupToken(booking.GroupToken)
+		if err != nil {
+			return nil, err
+		}
+		targets = group
+	}
+	newWeeks := additional / perWeek
+	startMin, _ := timeToMinutes(booking.StartTime)
+	type addedSession struct {
+		date      string
+		startTime string
+		endTime   string
+	}
+	// sesi tambahan per target: seminggu setelah sesi terakhirnya, per minggu
+	// berulang dengan pola jam yang sama.
+	added := map[uint][]addedSession{}
+	for _, t := range targets {
+		if t.Status != "confirmed" {
+			continue
+		}
+		if t.TeacherID == nil {
+			return nil, errors.New("booking belum punya guru")
+		}
+		var lastDate string
+		if err := s.db.Model(&models.TutoringSession{}).
+			Where("booking_id = ?", t.ID).
+			Order("date desc, start_time desc").
+			Limit(1).Pluck("date", &lastDate).Error; err != nil {
+			return nil, err
+		}
+		if lastDate == "" {
+			return nil, errors.New("booking tidak punya sesi")
+		}
+		base, err := time.Parse("2006-01-02", lastDate)
+		if err != nil {
+			return nil, errors.New("tanggal sesi tidak valid")
+		}
+		dates := make([]addedSession, 0, additional)
+		for w := 0; w < newWeeks; w++ {
+			d := base.AddDate(0, 0, 7*(w+1))
+			for j := 0; j < perWeek; j++ {
+				ss := startMin + j*sessionDurationMinutes
+				se := ss + sessionDurationMinutes
+				dates = append(dates, addedSession{
+					date:      d.Format("2006-01-02"),
+					startTime: minutesToHHMM(ss),
+					endTime:   minutesToHHMM(se),
+				})
+			}
+		}
+		// rangkaian minggu baru tidak boleh bentrok (guru & murid).
+		for _, ns := range dates {
+			if err := s.checkBookingConflict(*t.TeacherID, ns.date, ns.startTime, ns.endTime); err != nil {
+				return nil, err
+			}
+		}
+		if err := s.checkStudentConflict(t.StudentID, dates[0].date, booking.StartTime, booking.EndTime, newWeeks, t.ID, 0); err != nil {
+			return nil, err
+		}
+		added[t.ID] = dates
+	}
+	if len(added) == 0 {
+		return nil, errors.New("tidak ada booking confirmed yang bisa ditambah")
+	}
+	modeLabel := "private"
+	if booking.Mode == "group" {
+		modeLabel = "kelompok"
+	}
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		for _, t := range targets {
+			dates, ok := added[t.ID]
+			if !ok {
+				continue
+			}
+			perSession := s.perSessionPrice(t.ClassID, t.Mode)
+			charge := perSession * float64(len(dates))
+			rows := make([]models.TutoringSession, 0, len(dates))
+			for _, ns := range dates {
+				rows = append(rows, models.TutoringSession{
+					BookingID: t.ID,
+					TeacherID: t.TeacherID,
+					Date:      ns.date,
+					StartTime: ns.startTime,
+					EndTime:   ns.endTime,
+					Status:    "scheduled",
+				})
+			}
+			if err := tx.Create(&rows).Error; err != nil {
+				return err
+			}
+			newTotal := t.SessionCount + len(dates)
+			if err := tx.Model(&models.Booking{}).Where("id = ?", t.ID).
+				Update("session_count", newTotal).Error; err != nil {
+				return err
+			}
+			lastEnd, _ := time.Parse("2006-01-02", dates[len(dates)-1].date)
+			newEndDate := lastEnd.AddDate(0, 0, 7).Format("2006-01-02")
+			var inv models.Invoice
+			if err := tx.Where("booking_id = ? AND status = ?", t.ID, "pending").First(&inv).Error; err != nil {
+				if !errors.Is(err, gorm.ErrRecordNotFound) {
+					return err
+				}
+				// semua invoice lunas → sesi tambahan ditagih lewat invoice baru.
+				newInv := models.Invoice{
+					UserID:    t.StudentID,
+					Amount:    charge,
+					StartDate: dates[0].date,
+					EndDate:   newEndDate,
+					Status:    "pending",
+					Note:      fmt.Sprintf("Tambahan %d sesi les %s", len(dates), modeLabel),
+					BookingID: &t.ID,
+					ClassID:   t.ClassID,
+				}
+				if err := tx.Create(&newInv).Error; err != nil {
+					return err
+				}
+			} else {
+				if err := tx.Model(&models.Invoice{}).Where("id = ?", inv.ID).Updates(map[string]interface{}{
+					"amount":   inv.Amount + charge,
+					"end_date": newEndDate,
+					"note":     fmt.Sprintf("Les %s, %d sesi", modeLabel, newTotal),
+				}).Error; err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	updated, err := s.repo.GetBooking(id)
+	if err != nil {
+		return nil, err
+	}
+	r := newExtendBookingResponse(*updated, additional, s.perSessionPrice(booking.ClassID, booking.Mode)*float64(additional))
+	if s.notifSvc != nil {
+		for _, t := range targets {
+			if _, ok := added[t.ID]; !ok {
+				continue
+			}
+			s.notifSvc.Notify(t.StudentID, "Les ditambah admin",
+				fmt.Sprintf("Booking les kamu ditambah %d sesi oleh admin", additional),
+				"tutoring", "/dashboard/tutoring")
+		}
+	}
+	return &r, nil
+}
+
 // AdminReassignTeacher memindahkan sisa booking ke guru lain (mis. guru
 // berhalangan). Sesi terjadwal seluruh anggota grup ikut pindah; sesi selesai,
 // menunggu validasi & batal tetap milik guru lama (fee aman). Murid & kedua

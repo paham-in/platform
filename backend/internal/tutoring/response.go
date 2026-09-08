@@ -865,3 +865,56 @@ type AdminToggleFeePaidResponse struct {
 func newAdminToggleFeePaidResponse(v models.TutoringSession) AdminToggleFeePaidResponse {
 	return AdminToggleFeePaidResponse(buildSessionItem(v))
 }
+
+//, handler: AdminExtendBooking (POST /admin/tutoring/bookings/:id/extend)
+
+type ExtendBookingResponse struct {
+	ID                 uint    `json:"id"`
+	TeacherID          *uint   `json:"teacher_id,omitempty"`
+	Teacher            string  `json:"teacher_name"`
+	StudentID          uint    `json:"student_id"`
+	Student            string  `json:"student_name"`
+	SubjectID          uint    `json:"subject_id"`
+	Subject            string  `json:"subject_name"`
+	Date               string  `json:"date"`
+	StartTime          string  `json:"start_time"`
+	EndTime            string  `json:"end_time"`
+	Status             string  `json:"status"`
+	Mode               string  `json:"mode"`
+	SessionCount       int     `json:"session_count"`
+	GroupToken         string  `json:"group_token"`
+	IsOrganizer        bool    `json:"is_organizer"`
+	Note               string  `json:"note"`
+	ClassID            *uint   `json:"class_id,omitempty"`
+	CreatedAt          string  `json:"created_at"`
+	InvoiceStatus      string  `json:"invoice_status,omitempty"`
+	AdditionalSessions int     `json:"additional_sessions"`
+	AddedAmount        float64 `json:"added_amount"`
+}
+
+func newExtendBookingResponse(b models.Booking, additional int, added float64) ExtendBookingResponse {
+	item := buildBookingItem(b)
+	return ExtendBookingResponse{
+		ID:                 item.ID,
+		TeacherID:          item.TeacherID,
+		Teacher:            item.Teacher,
+		StudentID:          item.StudentID,
+		Student:            item.Student,
+		SubjectID:          item.SubjectID,
+		Subject:            item.Subject,
+		Date:               item.Date,
+		StartTime:          item.StartTime,
+		EndTime:            item.EndTime,
+		Status:             item.Status,
+		Mode:               item.Mode,
+		SessionCount:       item.SessionCount,
+		GroupToken:         item.GroupToken,
+		IsOrganizer:        item.IsOrganizer,
+		Note:               item.Note,
+		ClassID:            item.ClassID,
+		CreatedAt:          item.CreatedAt,
+		InvoiceStatus:      item.InvoiceStatus,
+		AdditionalSessions: additional,
+		AddedAmount:        added,
+	}
+}

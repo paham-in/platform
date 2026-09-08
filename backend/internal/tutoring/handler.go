@@ -202,6 +202,34 @@ func (h *Handler) AssignTeacher(c *fiber.Ctx) error {
 	return c.JSON(booking)
 }
 
+// AdminExtendBooking menambah sesi ke booking confirmed (admin only)
+// @Summary      Extend booking sessions
+// @Description  Admin menambah sesi les ke booking confirmed. Sesi tambahan ditempel di minggu-minggu setelah sesi terakhir. Invoice pending ditambah, invoice lunas dibuatkan invoice baru.
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path int true "Booking ID"
+// @Param        body body ExtendBookingRequest true "Jumlah sesi tambahan"
+// @Success      200 {object} ExtendBookingResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/tutoring/bookings/{id}/extend [post]
+func (h *Handler) AdminExtendBooking(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input ExtendBookingRequest
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	booking, err := h.svc.ExtendBooking(uint(id), input.AdditionalSessions)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(booking)
+}
+
 // ListSessions returns meeting sessions (teacher: all own sessions, student: paid sessions)
 // @Summary      My sessions
 // @Description  Jadwal pertemuan. Guru: semua sesi dari booking-nya. Murid: sesi setelah invoice lunas.
@@ -829,6 +857,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage, 
 	admin.Patch("/tutoring/bookings/:id/schedule", h.AdminRescheduleBooking)
 	admin.Post("/tutoring/bookings/:id/reject", h.AdminRejectBooking)
 	admin.Patch("/tutoring/bookings/:id/assign", h.AssignTeacher)
+	admin.Post("/tutoring/bookings/:id/extend", h.AdminExtendBooking)
 	admin.Patch("/tutoring/bookings/:id/reassign", h.AdminReassignTeacher)
 	admin.Get("/tutoring/bookings/:id/sessions", h.AdminBookingSessions)
 	admin.Patch("/tutoring/sessions/:id/teacher", h.AdminSwapSessionTeacher)

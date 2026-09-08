@@ -892,6 +892,37 @@ export type TutoringErrorResponse = {
     error?: string;
 };
 
+export type TutoringExtendBookingRequest = {
+    /**
+     * sesi tambahan, wajib kelipatan sesi/minggu
+     */
+    additional_sessions?: number;
+};
+
+export type TutoringExtendBookingResponse = {
+    added_amount?: number;
+    additional_sessions?: number;
+    class_id?: number;
+    created_at?: string;
+    date?: string;
+    end_time?: string;
+    group_token?: string;
+    id?: number;
+    invoice_status?: string;
+    is_organizer?: boolean;
+    mode?: string;
+    note?: string;
+    session_count?: number;
+    start_time?: string;
+    status?: string;
+    student_id?: number;
+    student_name?: string;
+    subject_id?: number;
+    subject_name?: string;
+    teacher_id?: number;
+    teacher_name?: string;
+};
+
 export type TutoringListBookingsResponse = {
     class_id?: number;
     created_at?: string;
@@ -3014,6 +3045,39 @@ export type PatchAdminTutoringBookingsByIdAssignResponses = {
 };
 
 export type PatchAdminTutoringBookingsByIdAssignResponse = PatchAdminTutoringBookingsByIdAssignResponses[keyof PatchAdminTutoringBookingsByIdAssignResponses];
+
+export type PostAdminTutoringBookingsByIdExtendData = {
+    /**
+     * Jumlah sesi tambahan
+     */
+    body: TutoringExtendBookingRequest;
+    path: {
+        /**
+         * Booking ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/admin/tutoring/bookings/{id}/extend';
+};
+
+export type PostAdminTutoringBookingsByIdExtendErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PostAdminTutoringBookingsByIdExtendError = PostAdminTutoringBookingsByIdExtendErrors[keyof PostAdminTutoringBookingsByIdExtendErrors];
+
+export type PostAdminTutoringBookingsByIdExtendResponses = {
+    /**
+     * OK
+     */
+    200: TutoringExtendBookingResponse;
+};
+
+export type PostAdminTutoringBookingsByIdExtendResponse = PostAdminTutoringBookingsByIdExtendResponses[keyof PostAdminTutoringBookingsByIdExtendResponses];
 
 export type PatchAdminTutoringBookingsByIdReassignData = {
     /**
