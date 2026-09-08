@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { Link, useRouterState } from "@tanstack/react-router"
+import { useNavigate, useRouterState } from "@tanstack/react-router"
 import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { useIsStandalone } from "@/lib/hooks/use-standalone"
 import { mobileTabs } from "@/lib/sidebar"
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 // Desktop tidak tersentuh; drawer sidebar tetap jadi jalan cadangan.
 export function MobileBottomNav() {
   const { data: user } = useQuery(getMeOptions())
+  const navigate = useNavigate()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   // PWA terpasang (tanpa Back browser): pindah tab menimpa riwayat supaya
   // Back tidak berputar antar tab. Browser biasa: push normal agar Back
@@ -32,20 +33,19 @@ export function MobileBottomNav() {
       >
       <div className="grid grid-cols-4 gap-1 rounded-full bg-card p-1.5 shadow-lg ring-1 ring-foreground/10">
         {tabs.map((tab) => (
-          <Link
+          <button
             key={tab.to}
-            to={tab.to as never}
-            replace={standalone}
-            activeProps={{ className: "text-primary" }}
-            inactiveProps={{ className: "text-muted-foreground" }}
+            type="button"
+            onClick={() => navigate({ to: tab.to as never, replace: standalone })}
             className={cn(
               "flex flex-col items-center gap-1.5 rounded-full px-1 py-2 text-[10px] font-medium transition-colors",
-              "hover:bg-muted/60"
+              "hover:bg-muted/60",
+              tab.to === path ? "text-primary" : "text-muted-foreground"
             )}
           >
             <tab.icon className="h-5 w-5" />
             <span className="leading-none">{tab.label}</span>
-          </Link>
+          </button>
         ))}
       </div>
       </nav>

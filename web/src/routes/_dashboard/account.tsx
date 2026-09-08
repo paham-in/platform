@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { ChevronRight, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,7 @@ import { mobileTabs, sidebarGroups } from "@/lib/sidebar"
 // sehingga bisa dipicu dari sini via ?modal=logout.
 function AccountPage() {
   const { data: user } = useQuery(getMeOptions())
+  const navigate = useNavigate()
   const { openModal } = useDialogBack()
   const userRoles = (user?.roles as string[]) ?? []
   const isAdmin = userRoles.includes("admin")
@@ -74,26 +75,28 @@ function AccountPage() {
               {group.items.flatMap((item) =>
                 item.items?.length
                   ? item.items.map((sub) => (
-                      <Link
+                      <button
                         key={sub.label}
-                        to={sub.to as never}
-                        className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
+                        type="button"
+                        onClick={() => navigate({ to: sub.to as never })}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
                       >
                         <item.icon className="h-5 w-5 shrink-0 text-muted-foreground" />
                         <span className="flex-1 text-sm font-medium">{sub.label}</span>
                         <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      </Link>
+                      </button>
                     ))
                   : [
-                      <Link
+                      <button
                         key={item.label}
-                        to={item.to as never}
-                        className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
+                        type="button"
+                        onClick={() => navigate({ to: item.to as never })}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
                       >
                         <item.icon className="h-5 w-5 shrink-0 text-muted-foreground" />
                         <span className="flex-1 text-sm font-medium">{item.label}</span>
                         <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      </Link>,
+                      </button>,
                     ]
               )}
             </CardContent>
