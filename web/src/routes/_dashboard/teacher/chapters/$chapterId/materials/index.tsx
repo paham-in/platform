@@ -417,7 +417,11 @@ function ChapterMaterials() {
               </TableHeader>
               <TableBody>
                 {materials.map((m) => (
-                  <TableRow key={m.id}>
+                  <TableRow
+                    key={m.id}
+                    className="cursor-pointer"
+                    onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/$materialId", params: { chapterId, materialId: String(m.id!) } })}
+                  >
                     <TableCell className="max-w-xs truncate pl-6 font-medium" title={m.title}>{m.title}</TableCell>
                     <TableCell>
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${typeStyles[m.type ?? "text"]}`}>
@@ -436,20 +440,17 @@ function ChapterMaterials() {
                       </span>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          render={
-                            <Button variant="outline" size="icon" aria-label={`Menu aksi untuk ${m.title}`} />
-                          }
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/$materialId", params: { chapterId, materialId: String(m.id!) } })}>
-                            <Eye className="h-4 w-4" /> Lihat
-                          </DropdownMenuItem>
-                          {canManage && canEdit(m) && (
-                            <>
+                      {canManage && canEdit(m) && (
+                        <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={
+                                <Button variant="outline" size="icon" aria-label={`Menu aksi untuk ${m.title}`} />
+                              }
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
                               <DropdownMenuItem onClick={() => {
                                 setPendingStatus({ id: m.id!, status: m.status === "published" ? "draft" : "published", name: m.title! });
                                 openModal("status");
@@ -462,10 +463,10 @@ function ChapterMaterials() {
                               <DropdownMenuItem onClick={() => { setDeleteConfirm({ id: m.id!, name: m.title! }); openModal("delete") }}>
                                 <Trash2 className="h-4 w-4" /> Hapus
                               </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -549,7 +550,11 @@ function ChapterMaterials() {
             ) : (
               <div className="divide-y">
                 {materials.map((m) => (
-                  <div key={m.id} className="flex items-start justify-between gap-3 p-4">
+                  <div
+                    key={m.id}
+                    className="flex cursor-pointer items-start justify-between gap-3 p-4"
+                    onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/$materialId", params: { chapterId, materialId: String(m.id!) } })}
+                  >
                     <div className="min-w-0">
                       <p className="truncate font-medium" title={m.title}>{m.title}</p>
                       <div className="mt-1 flex flex-wrap items-center gap-1">
@@ -565,18 +570,15 @@ function ChapterMaterials() {
                         </span>
                       </div>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={<Button variant="outline" size="icon" className="shrink-0" aria-label={`Menu aksi untuk ${m.title}`} />}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/$materialId", params: { chapterId, materialId: String(m.id!) } })}>
-                          <Eye className="h-4 w-4" /> Lihat
-                        </DropdownMenuItem>
-                        {canManage && canEdit(m) && (
-                          <>
+                    {canManage && canEdit(m) && (
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={<Button variant="outline" size="icon" className="shrink-0" aria-label={`Menu aksi untuk ${m.title}`} />}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
                             <DropdownMenuItem onClick={() => {
                               setPendingStatus({ id: m.id!, status: m.status === "published" ? "draft" : "published", name: m.title! });
                               openModal("status");
@@ -589,10 +591,10 @@ function ChapterMaterials() {
                             <DropdownMenuItem onClick={() => { setDeleteConfirm({ id: m.id!, name: m.title! }); openModal("delete") }}>
                               <Trash2 className="h-4 w-4" /> Hapus
                             </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

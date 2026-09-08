@@ -617,13 +617,17 @@ function AdminChapters() {
               </TableHeader>
               <TableBody>
                 {chapters.map((c) => (
-                  <TableRow key={c.id}>
+                  <TableRow
+                    key={c.id}
+                    className="cursor-pointer"
+                    onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId: String(c.id!) } })}
+                  >
                     <TableCell className="pl-6">
                       {c.cover_url ? (
                         <button
                           type="button"
                           aria-label={`Lihat sampul ${c.title}`}
-                          onClick={() => { setCoverView(c); openModal("cover") }}
+                          onClick={(e) => { e.stopPropagation(); setCoverView(c); openModal("cover") }}
                           className="block cursor-pointer"
                         >
                           <img
@@ -639,13 +643,7 @@ function AdminChapters() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <button
-                        type="button"
-                        onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId: String(c.id!) } })}
-                        className="font-medium hover:underline"
-                      >
-                        {c.title}
-                      </button>
+                      <span className="font-medium">{c.title}</span>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{c.class_name}</TableCell>
                     <TableCell className="text-muted-foreground">{c.subject_name}</TableCell>
@@ -653,32 +651,27 @@ function AdminChapters() {
                     <TableCell className="text-muted-foreground">{c.order}</TableCell>
                     <TableCell>{c.material_count}</TableCell>
                     <TableCell className="pr-6">
-                      <div className="flex items-center justify-end">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            render={
-                              <Button variant="outline" size="icon" aria-label={`Menu aksi untuk ${c.title}`} />
-                            }
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId: String(c.id!) } })}>
-                              <BookOpen className="h-4 w-4" /> Materi
-                            </DropdownMenuItem>
-                            {canManage && (
-                              <>
-                                <DropdownMenuItem onClick={() => openEdit(c)}>
-                                  <Pencil className="h-4 w-4" /> Ubah
-                                </DropdownMenuItem>
-                                <DropdownMenuItem variant="destructive" onClick={() => { setDeleteConfirm(c); openModal("delete") }}>
-                                  <Trash2 className="h-4 w-4" /> Hapus
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                      {canManage && (
+                        <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              render={
+                                <Button variant="outline" size="icon" aria-label={`Menu aksi untuk ${c.title}`} />
+                              }
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => openEdit(c)}>
+                                <Pencil className="h-4 w-4" /> Ubah
+                              </DropdownMenuItem>
+                              <DropdownMenuItem variant="destructive" onClick={() => { setDeleteConfirm(c); openModal("delete") }}>
+                                <Trash2 className="h-4 w-4" /> Hapus
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -736,12 +729,16 @@ function AdminChapters() {
             ) : (
               <div className="divide-y">
                 {chapters.map((c) => (
-                  <div key={c.id} className="flex items-start gap-3 p-4">
+                  <div
+                    key={c.id}
+                    className="flex cursor-pointer items-start gap-3 p-4"
+                    onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId: String(c.id!) } })}
+                  >
                     {c.cover_url ? (
                       <button
                         type="button"
                         aria-label={`Lihat sampul ${c.title}`}
-                        onClick={() => { setCoverView(c); openModal("cover") }}
+                        onClick={(e) => { e.stopPropagation(); setCoverView(c); openModal("cover") }}
                         className="shrink-0 cursor-pointer"
                       >
                         <img
@@ -756,37 +753,28 @@ function AdminChapters() {
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <button
-                        type="button"
-                        onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId: String(c.id!) } })}
-                        className="truncate font-medium hover:underline"
-                      >
-                        {c.title}
-                      </button>
+                      <p className="truncate font-medium">{c.title}</p>
                       <p className="mt-0.5 text-sm text-muted-foreground">{c.class_name} · {c.subject_name}</p>
                       {c.description && <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{c.description}</p>}
                       <p className="mt-1 text-xs text-muted-foreground">Urutan {c.order} · {c.material_count} materi</p>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label={`Menu aksi untuk ${c.title}`} className="shrink-0" />}>
-                        <MoreVertical className="h-4 w-4" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId: String(c.id!) } })}>
-                          <BookOpen className="h-4 w-4" /> Materi
-                        </DropdownMenuItem>
-                        {canManage && (
-                          <>
+                    {canManage && (
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label={`Menu aksi untuk ${c.title}`} className="shrink-0" />}>
+                            <MoreVertical className="h-4 w-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
                             <DropdownMenuItem onClick={() => openEdit(c)}>
                               <Pencil className="h-4 w-4" /> Ubah
                             </DropdownMenuItem>
                             <DropdownMenuItem variant="destructive" onClick={() => { setDeleteConfirm(c); openModal("delete") }}>
                               <Trash2 className="h-4 w-4" /> Hapus
                             </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
