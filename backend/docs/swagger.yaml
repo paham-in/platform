@@ -5726,6 +5726,34 @@ paths:
       summary: Report session overtime
       tags:
       - Tutoring
+  /tutoring/sessions/{id}/restore:
+    post:
+      consumes:
+      - application/json
+      description: Mengembalikan sesi yang dibatalkan menjadi terjadwal (mis. murid
+        berubah pikiran). Invoice pending ditambah kembali, refund dihitung ulang.
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.CancelSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restore cancelled session
+      tags:
+      - Tutoring
   /tutoring/teachers:
     get:
       consumes:

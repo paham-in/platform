@@ -37,9 +37,10 @@ import {
   patchTutoringSessionsByIdOvertimeMutation,
   postTutoringSessionsByIdCancelMutation,
   postTutoringSessionsByIdEvidenceMutation,
+  postTutoringSessionsByIdRestoreMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
-import { CalendarX2, Users, UserRound, Upload, Timer, CalendarClock, XCircle, RefreshCw, MoreVertical } from "lucide-react"
+import { CalendarX2, Users, UserRound, Upload, Timer, CalendarClock, XCircle, RefreshCw, MoreVertical, History } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
@@ -112,6 +113,7 @@ function TeacherBookingDetail() {
     defaultValues: { date: "", start_time: "", end_time: "" },
   })
   const [cancelSession, setCancelSession] = useState<TutoringListSessionsResponse | null>(null)
+  const [restoreSession, setRestoreSession] = useState<TutoringListSessionsResponse | null>(null)
   const [uploadSession, setUploadSession] = useState<TutoringListSessionsResponse | null>(null)
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [overtimeSession, setOvertimeSession] = useState<TutoringListSessionsResponse | null>(null)
@@ -125,6 +127,7 @@ function TeacherBookingDetail() {
   useEffect(() => {
     if (modal !== "reschedule") setRescheduleSession(null)
     if (modal !== "cancel") setCancelSession(null)
+    if (modal !== "restore") setRestoreSession(null)
     if (modal !== "overtime") setOvertimeSession(null)
     if (modal !== "upload") { setUploadSession(null); setUploadFile(null) }
   }, [modal])
@@ -151,6 +154,11 @@ function TeacherBookingDetail() {
     onSuccess: () => { toast.success("Sesi dibatalkan"); invalidate() },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal membatalkan sesi"),
   })
+  const restore = useMutation({
+    ...postTutoringSessionsByIdRestoreMutation(),
+    onSuccess: () => { toast.success("Sesi dikembalikan menjadi terjadwal"); invalidate() },
+    onError: (err: any) => toast.error(err?.error || err?.message || "Gagal mengembalikan sesi"),
+  })
 
   const booking = bookings.find((b) => b.id === Number(bookingId))
 
@@ -172,7 +180,7 @@ function TeacherBookingDetail() {
   const earnPaid = bookingEarnings.filter((s) => s.fee_paid).reduce((sum, s) => sum + (s.fee_amount ?? 0), 0)
 
   const hasActions = (s: TutoringListSessionsResponse) =>
-    s.status === "scheduled" || s.status === "review"
+    s.status === "scheduled" || s.status === "review" || s.status === "cancelled"
 
   const sessionMenuItems = (s: TutoringListSessionsResponse) => (
     <>
@@ -201,6 +209,11 @@ function TeacherBookingDetail() {
       {s.status === "scheduled" ? (
         <DropdownMenuItem variant="destructive" onClick={() => { setCancelSession(s); openModal("cancel") }}>
           <XCircle className="h-4 w-4" /> Batalkan Sesi
+        </DropdownMenuItem>
+      ) : null}
+      {s.status === "cancelled" ? (
+        <DropdownMenuItem onClick={() => { setRestoreSession(s); openModal("restore") }}>
+          <History className="h-4 w-4" /> Kembalikan Sesi
         </DropdownMenuItem>
       ) : null}
     </>
@@ -584,6 +597,32 @@ function TeacherBookingDetail() {
               }}
             >
               Ya, batalkan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      )}
+
+      {modal === "restore" && restoreSession && (
+      <AlertDialog open onOpenChange={(o) => { if (!o) closeModal() }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Kembalikan sesi ini?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sesi {restoreSession?.date} {restoreSession?.start_time} – {restoreSession?.end_time} akan diadakan kembali. Tagihan disesuaikan otomatis.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (restoreSession) {
+                  restore.mutate({ path: { id: restoreSession.id! } })
+                  closeModal()
+                }
+              }}
+            >
+              Ya, kembalikan
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

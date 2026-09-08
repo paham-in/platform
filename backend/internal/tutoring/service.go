@@ -1996,6 +1996,142 @@ func (s *Service) CancelSession(sessionID, teacherID uint, isAdmin bool) (*Cance
 	return &r, nil
 }
 
+// RestoreSession menghidupkan kembali sesi cancelled (→ scheduled) oleh guru
+// pemilik atau admin, mis. murid berubah pikiran setelah minta batal. Efek
+// kebalikan CancelSession: invoice pending ditambah kembali, refund dihitung
+// ulang, booking yang ikut auto-cancel dihidupkan lagi (khusus admin; guru
+// hanya bila booking masih confirmed).
+func (s *Service) RestoreSession(sessionID, teacherID uint, isAdmin bool) (*CancelSessionResponse, error) {
+	var session *models.TutoringSession
+	var err error
+	if isAdmin {
+		session, err = s.repo.GetSession(sessionID)
+		if err != nil || session.Booking == nil {
+			return nil, errors.New("sesi tidak ditemukan")
+		}
+	} else {
+		session, err = s.getOwnedSession(sessionID, teacherID)
+		if err != nil {
+			return nil, err
+		}
+		if session.Booking == nil {
+			return nil, errors.New("sesi tidak ditemukan")
+		}
+	}
+	if session.Status != "cancelled" {
+		return nil, errors.New("hanya sesi yang dibatalkan yang bisa dikembalikan")
+	}
+	if session.Date < time.Now().Format("2006-01-02") {
+		return nil, errors.New("tanggal sesi sudah lewat, tambah sesi baru saja")
+	}
+	booking := session.Booking
+	if booking.Status != "confirmed" && !isAdmin {
+		return nil, errors.New("booking sudah tidak aktif, hubungi admin")
+	}
+	ownerID := session.TeacherID
+	if ownerID == nil {
+		ownerID = booking.TeacherID
+	}
+	if ownerID == nil {
+		return nil, errors.New("sesi belum punya guru")
+	}
+	// slot bisa sudah terisi sejak dibatalkan. Cek sesi lain (bukan pola
+	// mingguan booking sendiri — slot ini memang milik booking ini).
+	conflict, err := s.repo.SessionConflict(*ownerID, session.Date, session.StartTime, session.EndTime, session.ID)
+	if err != nil {
+		return nil, err
+	}
+	if conflict {
+		return nil, errors.New("guru sudah memiliki sesi pada tanggal & jam tersebut")
+	}
+	if err := s.checkStudentConflict(booking.StudentID, session.Date, session.StartTime, session.EndTime, 1, booking.ID, session.ID); err != nil {
+		return nil, err
+	}
+	var moneyChanged bool
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&models.TutoringSession{}).Where("id = ?", sessionID).Update("status", "scheduled").Error; err != nil {
+			return err
+		}
+		if booking.Status != "confirmed" {
+			// admin menghidupkan booking yang ikut auto-cancel saat sesi habis.
+			if err := tx.Model(&models.Booking{}).Where("id = ?", booking.ID).Update("status", "confirmed").Error; err != nil {
+				return err
+			}
+		}
+		var inv models.Invoice
+		if err := tx.Where("booking_id = ?", booking.ID).Order("id asc").First(&inv).Error; err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+			return nil // tidak ada invoice → tidak ada uang yang dikembalikan
+		}
+		if inv.RefundDone {
+			return errors.New("refund invoice sudah ditransfer, tambah sesi baru saja")
+		}
+		perSession := s.perSessionPrice(booking.ClassID, booking.Mode)
+		updates := map[string]interface{}{}
+		switch inv.Status {
+		case "pending", "batal":
+			// kebalikan potongan saat cancel: nominal ditambah kembali +
+			// invoice yang di-void dihidupkan lagi. Jejak dicatat di note.
+			updates["amount"] = inv.Amount + perSession
+			updates["status"] = "pending"
+			note := inv.Note + " + pulih 1 sesi"
+			if len(note) > 450 {
+				note = inv.Note
+			}
+			updates["note"] = note
+		case "paid":
+			// refund absolut dihitung ulang dari sisa sesi batal (idempotent,
+			// mengikuti gaya reconcileBookingInvoice).
+			var cancelled int64
+			if err := tx.Model(&models.TutoringSession{}).
+				Where("booking_id = ? AND status = ?", booking.ID, "cancelled").
+				Count(&cancelled).Error; err != nil {
+				return err
+			}
+			if refund := perSession * float64(cancelled); refund != inv.RefundAmount {
+				updates["refund_amount"] = refund
+			}
+		}
+		if len(updates) == 0 {
+			return nil
+		}
+		if err := tx.Model(&models.Invoice{}).Where("id = ?", inv.ID).Updates(updates).Error; err != nil {
+			return err
+		}
+		moneyChanged = true
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	updated, err := s.repo.GetSession(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	r := newCancelSessionResponse(*updated)
+
+	if s.notifSvc != nil && session.Booking != nil {
+		actor := "guru"
+		if isAdmin {
+			actor = "admin"
+		}
+		s.notifSvc.Notify(session.Booking.StudentID, "Sesi les diadakan kembali",
+			fmt.Sprintf("Sesi tanggal %s %s jadi diadakan (dikembalikan oleh %s)", session.Date, session.StartTime, actor),
+			"tutoring", "/dashboard/tutoring")
+		if moneyChanged {
+			if admins, err := s.repo.ListAdminIDs(); err == nil && len(admins) > 0 {
+				s.notifSvc.NotifyBatch(admins, "Tagihan berubah",
+					fmt.Sprintf("Sesi %s %s dikembalikan, invoice booking disesuaikan", session.Date, session.StartTime),
+					"tutoring", "/dashboard/admin/tutoring")
+			}
+		}
+	}
+
+	return &r, nil
+}
+
 // checkEvidenceEligible memvalidasi sesi milik guru, berstatus scheduled, dan
 // masih dalam jendela upload. Mengembalikan session kalau valid.
 func (s *Service) checkEvidenceEligible(sessionID, teacherID uint) (*models.TutoringSession, error) {

@@ -4897,6 +4897,36 @@ export type PatchTutoringSessionsByIdOvertimeResponses = {
 
 export type PatchTutoringSessionsByIdOvertimeResponse = PatchTutoringSessionsByIdOvertimeResponses[keyof PatchTutoringSessionsByIdOvertimeResponses];
 
+export type PostTutoringSessionsByIdRestoreData = {
+    body?: never;
+    path: {
+        /**
+         * Session ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/tutoring/sessions/{id}/restore';
+};
+
+export type PostTutoringSessionsByIdRestoreErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PostTutoringSessionsByIdRestoreError = PostTutoringSessionsByIdRestoreErrors[keyof PostTutoringSessionsByIdRestoreErrors];
+
+export type PostTutoringSessionsByIdRestoreResponses = {
+    /**
+     * OK
+     */
+    200: TutoringCancelSessionResponse;
+};
+
+export type PostTutoringSessionsByIdRestoreResponse = PostTutoringSessionsByIdRestoreResponses[keyof PostTutoringSessionsByIdRestoreResponses];
+
 export type GetTutoringTeachersData = {
     body?: never;
     path?: never;

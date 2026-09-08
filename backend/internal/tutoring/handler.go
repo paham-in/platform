@@ -334,6 +334,33 @@ func (h *Handler) CancelSession(c *fiber.Ctx) error {
 	return c.JSON(session)
 }
 
+// RestoreSession menghidupkan kembali sesi cancelled (guru pemilik atau admin)
+// @Summary      Restore cancelled session
+// @Description  Mengembalikan sesi yang dibatalkan menjadi terjadwal (mis. murid berubah pikiran). Invoice pending ditambah kembali, refund dihitung ulang.
+// @Tags         Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Session ID"
+// @Success      200 {object} CancelSessionResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /tutoring/sessions/{id}/restore [post]
+func (h *Handler) RestoreSession(c *fiber.Ctx) error {
+	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
+		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
+	}
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	userID := c.Locals("user_id").(uint)
+	session, err := h.svc.RestoreSession(uint(id), userID, hasRole(c, "admin"))
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(session)
+}
+
 // UploadSessionEvidence uploads attendance photo (teacher only)
 // @Summary      Upload attendance evidence
 // @Description  Guru mengunggah foto bukti kehadiran sesi. Berhasil → sesi otomatis Selesai. Batas H+7 setelah sesi berakhir.
@@ -885,5 +912,6 @@ func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settin
 	auth.Patch("/tutoring/sessions/:id", h.UpdateSession)
 	auth.Patch("/tutoring/sessions/:id/overtime", h.ReportOvertime)
 	auth.Post("/tutoring/sessions/:id/cancel", h.CancelSession)
+	auth.Post("/tutoring/sessions/:id/restore", h.RestoreSession)
 	auth.Post("/tutoring/sessions/:id/evidence", h.UploadSessionEvidence)
 }

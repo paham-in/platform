@@ -19,12 +19,12 @@ import {
   getAdminTutoringReportOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
-import { ArrowLeftRight, CalendarX2, Users, UserRound, MoreVertical, Check, X, CheckCircle2, XCircle, Plus } from "lucide-react"
+import { ArrowLeftRight, CalendarX2, Users, UserRound, MoreVertical, Check, X, CheckCircle2, XCircle, Plus, History } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
 import { SwapSessionTeacherDialog } from "@/components/admin/attendance/swap-session-teacher-dialog"
-import { ApproveEvidenceDialog, CancelSessionDialog, RejectEvidenceDialog, ToggleFeeDialog } from "@/components/admin/attendance"
+import { ApproveEvidenceDialog, CancelSessionDialog, RejectEvidenceDialog, RestoreSessionDialog, ToggleFeeDialog } from "@/components/admin/attendance"
 import { ReassignTeacherDialog, ExtendBookingDialog } from "@/components/admin/tutoring"
 import { InvoiceSection } from "@/components/admin/payments"
 
@@ -86,6 +86,7 @@ function AdminBookingDetail() {
   const [rejectTarget, setRejectTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [feeTarget, setFeeTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [cancelTarget, setCancelTarget] = useState<TutoringListSessionsResponse | null>(null)
+  const [restoreTarget, setRestoreTarget] = useState<TutoringListSessionsResponse | null>(null)
   const [reassignActive, setReassignActive] = useState(false)
   const [extendActive, setExtendActive] = useState(false)
 
@@ -95,6 +96,7 @@ function AdminBookingDetail() {
     if (modal !== "reject") setRejectTarget(null)
     if (modal !== "fee") setFeeTarget(null)
     if (modal !== "cancel") setCancelTarget(null)
+    if (modal !== "restore") setRestoreTarget(null)
     if (modal !== "reassign") setReassignActive(false)
     if (modal !== "extend") setExtendActive(false)
   }, [modal])
@@ -120,7 +122,7 @@ function AdminBookingDetail() {
   }
 
   const hasActions = (s: TutoringListSessionsResponse) =>
-    s.status === "scheduled" || s.status === "review" || (s.status === "done" && !!evidenceById.get(s.id!)?.invoice_paid)
+    s.status === "scheduled" || s.status === "review" || s.status === "cancelled" || (s.status === "done" && !!evidenceById.get(s.id!)?.invoice_paid)
 
 
   if (!isLoading && !booking) {
@@ -294,6 +296,10 @@ function AdminBookingDetail() {
                                 <X className="h-4 w-4 text-destructive" /> Tolak
                               </DropdownMenuItem>
                             </>
+                          ) : s.status === "cancelled" ? (
+                            <DropdownMenuItem onClick={() => { setRestoreTarget(s); openModal("restore") }}>
+                              <History className="h-4 w-4" /> Kembalikan Sesi
+                            </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem onClick={() => { setFeeTarget(s); openModal("fee") }}>
                               {evOf(s).fee_paid ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
@@ -383,6 +389,10 @@ function AdminBookingDetail() {
                               <X className="h-4 w-4 text-destructive" /> Tolak
                             </DropdownMenuItem>
                           </>
+                        ) : s.status === "cancelled" ? (
+                          <DropdownMenuItem onClick={() => { setRestoreTarget(s); openModal("restore") }}>
+                            <History className="h-4 w-4" /> Kembalikan Sesi
+                          </DropdownMenuItem>
                         ) : (
                           <DropdownMenuItem onClick={() => { setFeeTarget(s); openModal("fee") }}>
                             {evOf(s).fee_paid ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
@@ -417,6 +427,7 @@ function AdminBookingDetail() {
       {modal === "reject" && rejectTarget && <RejectEvidenceDialog session={evOf(rejectTarget)} onClose={closeModal} />}
       {modal === "fee" && feeTarget && <ToggleFeeDialog session={evOf(feeTarget)} onClose={closeModal} />}
       {modal === "cancel" && cancelTarget && <CancelSessionDialog session={cancelTarget} onClose={closeModal} />}
+      {modal === "restore" && restoreTarget && <RestoreSessionDialog session={restoreTarget} onClose={closeModal} />}
       {modal === "reassign" && reassignActive && booking && <ReassignTeacherDialog booking={booking} onClose={closeModal} />}
       {modal === "extend" && extendActive && booking && <ExtendBookingDialog booking={booking} onClose={closeModal} />}
     </main>
