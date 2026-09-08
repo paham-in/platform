@@ -368,7 +368,7 @@ function ForumPage() {
       <Button
         onClick={() => navigate({ to: locked ? "/student/subscribe" : "/student/forum/new" })}
         size="icon"
-        className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
+        className="fixed bottom-24 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:hidden"
         aria-label={locked ? "Berlangganan untuk Bertanya" : "Tambah Pertanyaan Baru"}
       >
         {locked ? <Sparkles className="size-6" /> : <Plus className="size-6" />}

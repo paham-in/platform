@@ -2,6 +2,7 @@ import {
   BookMarked,
   BookOpen,
   Calendar,
+  CircleUserRound,
   CreditCard,
   DatabaseZap,
   LayoutDashboard,
@@ -97,3 +98,32 @@ export const sidebarGroups: SidebarGroup[] = [
     ],
   },
 ]
+
+// mobileTabs: 4 tab bottom-nav mobile per role (tab ke-4 selalu Akun).
+// Halaman yang jadi tab disembunyikan dari daftar menu di halaman Akun.
+export type MobileTab = {
+  label: string
+  icon: LucideIcon
+  to: string
+}
+
+export const mobileTabs: Record<string, MobileTab[]> = {
+  student: [
+    { label: "Dashboard", icon: LayoutDashboard, to: "/student/dashboard" },
+    { label: "Materi", icon: BookMarked, to: "/student/materials" },
+    { label: "Forum", icon: MessageSquare, to: "/student/forum" },
+    { label: "Akun", icon: CircleUserRound, to: "/account" },
+  ],
+  teacher: [
+    { label: "Dashboard", icon: LayoutDashboard, to: "/teacher/dashboard" },
+    { label: "Booking", icon: Calendar, to: "/teacher/bookings" },
+    { label: "Forum", icon: MessageSquare, to: "/teacher/forum" },
+    { label: "Akun", icon: CircleUserRound, to: "/account" },
+  ],
+  admin: [
+    { label: "Dashboard", icon: LayoutDashboard, to: "/admin/dashboard" },
+    { label: "Booking", icon: Calendar, to: "/admin/bookings" },
+    { label: "Langganan", icon: Sparkles, to: "/admin/subscriptions" },
+    { label: "Akun", icon: CircleUserRound, to: "/account" },
+  ],
+}

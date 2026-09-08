@@ -14,18 +14,18 @@ import {
   ArrowLeft,
   ChevronRight,
   LogOut,
-  Menu,
   Search,
   Shield,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PageTitleProvider, usePageHeaderActionValue } from "@/components/page-title";
-import { sidebarGroups, type SidebarGroup as SidebarGroupData } from "@/lib/sidebar";
+import { sidebarGroups, mobileTabs, type SidebarGroup as SidebarGroupData } from "@/lib/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CommandMenu } from "@/components/command-menu";
 import { getNavStack, resetNavStack, RouteTransition, setResetInProgress } from "@/components/route-transition";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notification-bell";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { useDialogBack } from "@/lib/hooks/use-dialog-back";
 import { useAutoSubscribeNotifications } from "@/lib/hooks/use-auto-subscribe";
 import { homeForRoles, requiredRoleForPath, roleLabel } from "@/lib/role";
@@ -261,9 +261,19 @@ const MAIN_PATHS = [
   "/user/subscribe",
 ];
 
+// TAB_PATHS: path utama versi bottom-nav (4 tab per role). Hanya di sinilah
+// header mobile tidak menampilkan tombol Back. MAIN_PATHS di atas tetap
+// dipakai sectionHomeFor sebagai fallback tujuan Back saat deep-link.
+const TAB_PATHS = [
+  ...Object.values(mobileTabs).flatMap((tabs) => tabs.map((t) => t.to)),
+  "/user/dashboard",
+  "/user/materials",
+  "/user/subscribe",
+];
+
 function isMainPath(pathname: string): boolean {
   const p = pathname.replace(/\/+$/, "");
-  return MAIN_PATHS.includes(p);
+  return TAB_PATHS.includes(p);
 }
 
 function sectionHomeFor(pathname: string): string | undefined {
@@ -277,7 +287,7 @@ function sectionHomeFor(pathname: string): string | undefined {
 }
 
 function HeaderNav() {
-  const { isMobile, toggleSidebar } = useSidebar();
+  const { isMobile } = useSidebar();
   const router = useRouter();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -299,12 +309,10 @@ function HeaderNav() {
       </Button>
     );
   }
+  // Mobile tidak pakai drawer lagi (navigasi = bottom nav + halaman Akun),
+  // jadi di path utama tidak ada tombol kiri; pil-nya collapse via empty:hidden.
   if (isMobile) {
-    return (
-      <Button variant="ghost" size="icon-lg" aria-label="Buka menu" onClick={toggleSidebar}>
-        <Menu className="h-5 w-5" />
-      </Button>
-    );
+    return null;
   }
   return <SidebarTrigger className="-ml-1" />;
 }
@@ -387,10 +395,10 @@ function DashboardLayout() {
       <SidebarInset className="min-w-0 overflow-x-clip">
         <PageTitleProvider>
           <header className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-[linear-gradient(to_bottom,var(--background),transparent)] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] md:hidden">
-            <div className="flex items-center rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5">
+            <div className="flex items-center rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5 empty:hidden">
               <HeaderNav />
             </div>
-            <div className="flex items-center gap-0.5 rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5">
+            <div className="ml-auto flex items-center gap-0.5 rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5">
               <Button
                 variant="ghost"
                 size="icon-lg"
@@ -427,6 +435,7 @@ function DashboardLayout() {
               </div>
             ) : denied ? <AccessDenied requiredRole={requiredRole!} userRoles={userRoles} /> : <Outlet />}
           </RouteTransition>
+          <MobileBottomNav />
         </PageTitleProvider>
       </SidebarInset>
 
