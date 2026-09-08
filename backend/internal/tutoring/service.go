@@ -1223,11 +1223,12 @@ func (s *Service) AssignTeacher(id, teacherID uint) (*AssignTeacherResponse, err
 	return &r, nil
 }
 
-// ExtendBooking menambah sesi ke booking confirmed (admin only). Sesi tambahan
+// ExtendBooking menambah sesi ke booking confirmed. Admin bebas; guru hanya
+// untuk booking miliknya (booking.TeacherID == requester). Sesi tambahan
 // ditempel di minggu-minggu setelah sesi terakhir, pola jam sama. Grup
 // di-extend serentak se-token. Invoice: yang masih pending → amount ditambah;
 // yang sudah lunas → dibuatkan invoice baru utk sesi tambahan.
-func (s *Service) ExtendBooking(id uint, additional int) (*ExtendBookingResponse, error) {
+func (s *Service) ExtendBooking(id uint, additional int, requesterID uint, isAdmin bool) (*ExtendBookingResponse, error) {
 	booking, err := s.repo.GetBooking(id)
 	if err != nil {
 		return nil, errors.New("booking tidak ditemukan")
@@ -1237,6 +1238,9 @@ func (s *Service) ExtendBooking(id uint, additional int) (*ExtendBookingResponse
 	}
 	if booking.TeacherID == nil {
 		return nil, errors.New("booking belum punya guru")
+	}
+	if !isAdmin && *booking.TeacherID != requesterID {
+		return nil, errors.New("bukan booking kamu")
 	}
 	if additional < 1 {
 		return nil, errors.New("jumlah sesi tambahan minimal 1")
@@ -1272,6 +1276,9 @@ func (s *Service) ExtendBooking(id uint, additional int) (*ExtendBookingResponse
 		}
 		if t.TeacherID == nil {
 			return nil, errors.New("booking belum punya guru")
+		}
+		if !isAdmin && *t.TeacherID != requesterID {
+			return nil, errors.New("bukan booking kamu")
 		}
 		var lastDate string
 		if err := s.db.Model(&models.TutoringSession{}).
@@ -1387,12 +1394,30 @@ func (s *Service) ExtendBooking(id uint, additional int) (*ExtendBookingResponse
 	}
 	r := newExtendBookingResponse(*updated, additional, s.perSessionPrice(booking.ClassID, booking.Mode)*float64(additional))
 	if s.notifSvc != nil {
+		actor := "admin"
+		if !isAdmin {
+			actor = "guru"
+			teacherName := "guru"
+			var teacher models.User
+			if err := s.db.Select("name").First(&teacher, requesterID).Error; err == nil && teacher.Name != "" {
+				teacherName = teacher.Name
+			}
+			if admins, err := s.repo.ListAdminIDs(); err == nil && len(admins) > 0 {
+				studentName := ""
+				if updated.Student != nil {
+					studentName = updated.Student.Name
+				}
+				s.notifSvc.NotifyBatch(admins, "Booking ditambah guru",
+					fmt.Sprintf("%s menambah %d sesi ke booking %s (total %d sesi)", teacherName, additional, studentName, updated.SessionCount),
+					"tutoring", "/dashboard/admin/tutoring")
+			}
+		}
 		for _, t := range targets {
 			if _, ok := added[t.ID]; !ok {
 				continue
 			}
-			s.notifSvc.Notify(t.StudentID, "Les ditambah admin",
-				fmt.Sprintf("Booking les kamu ditambah %d sesi oleh admin", additional),
+			s.notifSvc.Notify(t.StudentID, "Les ditambah "+actor,
+				fmt.Sprintf("Booking les kamu ditambah %d sesi oleh %s", additional, actor),
 				"tutoring", "/dashboard/tutoring")
 		}
 	}

@@ -4669,6 +4669,39 @@ export type PostTutoringBookingsByIdCancelResponses = {
 
 export type PostTutoringBookingsByIdCancelResponse = PostTutoringBookingsByIdCancelResponses[keyof PostTutoringBookingsByIdCancelResponses];
 
+export type PostTutoringBookingsByIdExtendData = {
+    /**
+     * Jumlah sesi tambahan
+     */
+    body: TutoringExtendBookingRequest;
+    path: {
+        /**
+         * Booking ID
+         */
+        id: number;
+    };
+    query?: never;
+    url: '/tutoring/bookings/{id}/extend';
+};
+
+export type PostTutoringBookingsByIdExtendErrors = {
+    /**
+     * Bad Request
+     */
+    400: TutoringErrorResponse;
+};
+
+export type PostTutoringBookingsByIdExtendError = PostTutoringBookingsByIdExtendErrors[keyof PostTutoringBookingsByIdExtendErrors];
+
+export type PostTutoringBookingsByIdExtendResponses = {
+    /**
+     * OK
+     */
+    200: TutoringExtendBookingResponse;
+};
+
+export type PostTutoringBookingsByIdExtendResponse = PostTutoringBookingsByIdExtendResponses[keyof PostTutoringBookingsByIdExtendResponses];
+
 export type PatchTutoringBookingsByIdScheduleData = {
     /**
      * Jadwal baru

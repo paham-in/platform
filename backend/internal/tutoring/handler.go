@@ -223,7 +223,39 @@ func (h *Handler) AdminExtendBooking(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
-	booking, err := h.svc.ExtendBooking(uint(id), input.AdditionalSessions)
+	booking, err := h.svc.ExtendBooking(uint(id), input.AdditionalSessions, 0, true)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
+	}
+	return c.JSON(booking)
+}
+
+// ExtendBooking menambah sesi ke booking confirmed milik guru (teacher)
+// @Summary      Extend own booking sessions
+// @Description  Guru menambah sesi ke booking confirmed miliknya. Aturan sama dengan extend admin; admin diberi tahu otomatis.
+// @Tags         Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path int true "Booking ID"
+// @Param        body body ExtendBookingRequest true "Jumlah sesi tambahan"
+// @Success      200 {object} ExtendBookingResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /tutoring/bookings/{id}/extend [post]
+func (h *Handler) ExtendBooking(c *fiber.Ctx) error {
+	if !hasRole(c, "teacher") && !hasRole(c, "admin") {
+		return c.Status(403).JSON(ErrorResponse{Error: "hanya untuk guru"})
+	}
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	var input ExtendBookingRequest
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
+	}
+	userID := c.Locals("user_id").(uint)
+	booking, err := h.svc.ExtendBooking(uint(id), input.AdditionalSessions, userID, hasRole(c, "admin"))
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
@@ -904,6 +936,7 @@ func Routes(auth fiber.Router, db *gorm.DB, store *storage.ObjectStorage, settin
 	auth.Get("/tutoring/teachers", h.ListTeachers)
 	auth.Get("/tutoring/bookings", h.ListBookings)
 	auth.Post("/tutoring/bookings", h.CreateBooking)
+	auth.Post("/tutoring/bookings/:id/extend", h.ExtendBooking)
 	auth.Post("/tutoring/bookings/:id/cancel", h.CancelBooking)
 	auth.Patch("/tutoring/bookings/:id/schedule", h.RescheduleBooking)
 	auth.Get("/tutoring/sessions", h.ListSessions)

@@ -5490,6 +5490,40 @@ paths:
       summary: Cancel booking
       tags:
       - Tutoring
+  /tutoring/bookings/{id}/extend:
+    post:
+      consumes:
+      - application/json
+      description: Guru menambah sesi ke booking confirmed miliknya. Aturan sama dengan
+        extend admin; admin diberi tahu otomatis.
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Jumlah sesi tambahan
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/tutoring.ExtendBookingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.ExtendBookingResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Extend own booking sessions
+      tags:
+      - Tutoring
   /tutoring/bookings/{id}/schedule:
     patch:
       consumes:

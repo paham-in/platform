@@ -40,9 +40,10 @@ import {
   postTutoringSessionsByIdRestoreMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
-import { CalendarX2, Users, UserRound, Upload, Timer, CalendarClock, XCircle, RefreshCw, MoreVertical, History } from "lucide-react"
+import { CalendarX2, Users, UserRound, Upload, Timer, CalendarClock, XCircle, RefreshCw, MoreVertical, History, Plus } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
+import { ExtendBookingDialog } from "@/components/admin/tutoring"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { format } from "date-fns"
@@ -114,6 +115,7 @@ function TeacherBookingDetail() {
   })
   const [cancelSession, setCancelSession] = useState<TutoringListSessionsResponse | null>(null)
   const [restoreSession, setRestoreSession] = useState<TutoringListSessionsResponse | null>(null)
+  const [extendActive, setExtendActive] = useState(false)
   const [uploadSession, setUploadSession] = useState<TutoringListSessionsResponse | null>(null)
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [overtimeSession, setOvertimeSession] = useState<TutoringListSessionsResponse | null>(null)
@@ -128,6 +130,7 @@ function TeacherBookingDetail() {
     if (modal !== "reschedule") setRescheduleSession(null)
     if (modal !== "cancel") setCancelSession(null)
     if (modal !== "restore") setRestoreSession(null)
+    if (modal !== "extend") setExtendActive(false)
     if (modal !== "overtime") setOvertimeSession(null)
     if (modal !== "upload") { setUploadSession(null); setUploadFile(null) }
   }, [modal])
@@ -257,7 +260,14 @@ function TeacherBookingDetail() {
         </div>
       )}
 
-      <h2 className="mb-2 text-lg font-semibold">Sesi Pertemuan</h2>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold">Sesi Pertemuan</h2>
+        {!isLoading && booking?.status === "confirmed" && (
+          <Button variant="outline" size="sm" onClick={() => { setExtendActive(true); openModal("extend") }}>
+            <Plus className="mr-1 h-4 w-4" /> Tambah Sesi
+          </Button>
+        )}
+      </div>
       <Card className="hidden gap-0 pt-0 pb-0 md:block">
         <CardContent className="p-0">
           <Table>
@@ -628,6 +638,8 @@ function TeacherBookingDetail() {
         </AlertDialogContent>
       </AlertDialog>
       )}
+
+      {modal === "extend" && extendActive && booking && <ExtendBookingDialog booking={booking} onClose={closeModal} />}
     </main>
   )
 }

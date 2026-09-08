@@ -9,11 +9,14 @@ import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import {
-  getAdminClassesOptions,
+  getClassesOptions,
   getAdminTutoringBookingsByIdSessionsQueryKey,
   getAdminTutoringBookingsQueryKey,
   getAdminTutoringReportQueryKey,
-  postAdminTutoringBookingsByIdExtendMutation,
+  getTutoringBookingsQueryKey,
+  getTutoringEarningsQueryKey,
+  getTutoringSessionsQueryKey,
+  postTutoringBookingsByIdExtendMutation,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
 
@@ -53,18 +56,23 @@ export function ExtendBookingDialog({ booking, onClose }: { booking: TutoringLis
     defaultValues: { additional_sessions: perWeek },
   })
   const additional = Number(form.watch("additional_sessions")) || 0
-  const { data: classes = [] } = useQuery(getAdminClassesOptions())
+  const { data: classes = [] } = useQuery(getClassesOptions())
   const myClass = classes.find((c) => c.id === booking.class_id)
   const pricePerSession = booking.mode === "group" ? (myClass?.group_price ?? 0) : (myClass?.price_per_session ?? 0)
   const current = booking.session_count ?? 0
 
   const { mutate: extend, isPending } = useMutation({
-    ...postAdminTutoringBookingsByIdExtendMutation(),
+    // endpoint guru (/tutoring/...) juga melayani admin (isAdmin diteruskan),
+    // jadi satu dialog untuk dua role.
+    ...postTutoringBookingsByIdExtendMutation(),
     onSuccess: (data) => {
       toast.success(`${data.additional_sessions ?? additional} sesi ditambahkan (total ${data.session_count ?? current + additional} sesi)`)
       qc.invalidateQueries({ queryKey: getAdminTutoringBookingsQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminTutoringReportQueryKey() })
       qc.invalidateQueries({ queryKey: getAdminTutoringBookingsByIdSessionsQueryKey({ path: { id: booking.id! } }) })
+      qc.invalidateQueries({ queryKey: getTutoringBookingsQueryKey() })
+      qc.invalidateQueries({ queryKey: getTutoringSessionsQueryKey() })
+      qc.invalidateQueries({ queryKey: getTutoringEarningsQueryKey() })
       onClose()
     },
     onError: (err: any) => toast.error(err?.error || err?.message || "Gagal menambah sesi"),
