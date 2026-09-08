@@ -629,6 +629,11 @@ export type TutoringAdminListBookingsResponse = {
     subject_name?: string;
     teacher_id?: number;
     teacher_name?: string;
+    /**
+     * UnpaidInvoices = jumlah invoice pending (les + langganan) milik murid,
+     * untuk badge tunggakan di tabel admin. Diisi manual di ListAllBookings.
+     */
+    unpaid_invoices?: number;
 };
 
 export type TutoringAdminListEvidenceResponse = {

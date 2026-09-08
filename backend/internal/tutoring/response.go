@@ -259,10 +259,34 @@ type AdminListBookingsResponse struct {
 	ClassID       *uint  `json:"class_id,omitempty"`
 	CreatedAt     string `json:"created_at"`
 	InvoiceStatus string `json:"invoice_status,omitempty"`
+	// UnpaidInvoices = jumlah invoice pending (les + langganan) milik murid,
+	// untuk badge tunggakan di tabel admin. Diisi manual di ListAllBookings.
+	UnpaidInvoices int `json:"unpaid_invoices,omitempty"`
 }
 
 func newAdminListBookingsResponse(b models.Booking) AdminListBookingsResponse {
-	return AdminListBookingsResponse(buildBookingItem(b))
+	item := buildBookingItem(b)
+	return AdminListBookingsResponse{
+		ID:            item.ID,
+		TeacherID:     item.TeacherID,
+		Teacher:       item.Teacher,
+		StudentID:     item.StudentID,
+		Student:       item.Student,
+		SubjectID:     item.SubjectID,
+		Subject:       item.Subject,
+		Date:          item.Date,
+		StartTime:     item.StartTime,
+		EndTime:       item.EndTime,
+		Status:        item.Status,
+		Mode:          item.Mode,
+		SessionCount:  item.SessionCount,
+		GroupToken:    item.GroupToken,
+		IsOrganizer:   item.IsOrganizer,
+		Note:          item.Note,
+		ClassID:       item.ClassID,
+		CreatedAt:     item.CreatedAt,
+		InvoiceStatus: item.InvoiceStatus,
+	}
 }
 
 //, handler: AdminCreateBooking (POST /admin/tutoring/bookings)

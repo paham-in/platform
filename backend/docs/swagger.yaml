@@ -1004,6 +1004,11 @@ definitions:
         type: integer
       teacher_name:
         type: string
+      unpaid_invoices:
+        description: |-
+          UnpaidInvoices = jumlah invoice pending (les + langganan) milik murid,
+          untuk badge tunggakan di tabel admin. Diisi manual di ListAllBookings.
+        type: integer
     type: object
   tutoring.AdminListEvidenceResponse:
     properties:

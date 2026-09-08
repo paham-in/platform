@@ -7158,6 +7158,10 @@ const docTemplate = `{
                 },
                 "teacher_name": {
                     "type": "string"
+                },
+                "unpaid_invoices": {
+                    "description": "UnpaidInvoices = jumlah invoice pending (les + langganan) milik murid,\nuntuk badge tunggakan di tabel admin. Diisi manual di ListAllBookings.",
+                    "type": "integer"
                 }
             }
         },

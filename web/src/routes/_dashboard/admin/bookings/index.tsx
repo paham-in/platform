@@ -23,6 +23,7 @@ type StudentRow = {
   oldestPendingAt: string
   oldestPendingId: number
   total: number
+  unpaid: number
 }
 
 function AdminTutoring() {
@@ -44,7 +45,7 @@ function AdminTutoring() {
 
   // agregasi booking per murid ala antrean: yang ada menunggu di atas,
   // diurutkan dari pengajuan pending terlama (created_at, id).
-  const agg = new Map<number, { name: string; pending: number; oldestAt: string; oldestId: number; total: number }>()
+  const agg = new Map<number, { name: string; pending: number; oldestAt: string; oldestId: number; total: number; unpaid: number }>()
   for (const b of bookings) {
     if (b.student_id == null) continue
     const cur = agg.get(b.student_id) ?? {
@@ -53,9 +54,12 @@ function AdminTutoring() {
       oldestAt: "",
       oldestId: Number.MAX_SAFE_INTEGER,
       total: 0,
+      unpaid: 0,
     }
     cur.total++
     if (b.student_name) cur.name = b.student_name
+    // unpaid_invoices sama di semua baris milik murid yang sama; ambil max.
+    if ((b.unpaid_invoices ?? 0) > cur.unpaid) cur.unpaid = b.unpaid_invoices ?? 0
     if (b.status === "pending") {
       cur.pending++
       const created = b.created_at ?? ""
@@ -80,6 +84,7 @@ function AdminTutoring() {
         oldestPendingAt: a?.oldestAt ?? "",
         oldestPendingId: a?.oldestId ?? Number.MAX_SAFE_INTEGER,
         total: a?.total ?? 0,
+        unpaid: a?.unpaid ?? 0,
       }
     })
     .filter((r) => q === "" || r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q))
@@ -176,6 +181,11 @@ function AdminTutoring() {
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{r.name[0]}</div>
                       )}
                       <span className="font-medium">{r.name}</span>
+                      {r.unpaid > 0 && (
+                        <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap text-red-700">
+                          {r.unpaid} tagihan belum lunas
+                        </span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">{r.email || "—"}</TableCell>
@@ -224,6 +234,13 @@ function AdminTutoring() {
                   <div className="min-w-0">
                     <p className="truncate font-medium">{r.name}</p>
                     <p className="mt-0.5 truncate text-sm text-muted-foreground">{r.email || "—"}</p>
+                    {r.unpaid > 0 && (
+                      <p className="mt-1">
+                        <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+                          {r.unpaid} tagihan belum lunas
+                        </span>
+                      </p>
+                    )}
                     <p className="mt-1 text-xs text-muted-foreground">
                       {r.pending > 0
                         ? <span className="font-medium text-amber-600">{r.pending} menunggu</span>

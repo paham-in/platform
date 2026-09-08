@@ -81,9 +81,36 @@ func (s *Service) ListAllBookings() ([]AdminListBookingsResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	// hitung invoice pending (les + langganan) per murid dalam satu query,
+	// untuk badge tunggakan di tabel admin.
+	unpaid := map[uint]int{}
+	if len(bookings) > 0 {
+		ids := make([]uint, 0, len(bookings))
+		seen := map[uint]bool{}
+		for _, b := range bookings {
+			if !seen[b.StudentID] {
+				seen[b.StudentID] = true
+				ids = append(ids, b.StudentID)
+			}
+		}
+		var rows []struct {
+			UserID uint
+			N      int
+		}
+		if err := s.db.Model(&models.Invoice{}).
+			Select("user_id, COUNT(*) AS n").
+			Where("user_id IN ? AND status = ?", ids, "pending").
+			Group("user_id").Scan(&rows).Error; err != nil {
+			return nil, err
+		}
+		for _, r := range rows {
+			unpaid[r.UserID] = r.N
+		}
+	}
 	res := make([]AdminListBookingsResponse, len(bookings))
 	for i, b := range bookings {
 		res[i] = newAdminListBookingsResponse(b)
+		res[i].UnpaidInvoices = unpaid[b.StudentID]
 	}
 	return res, nil
 }
@@ -113,6 +140,18 @@ func (s *Service) ListMyBookings(studentID uint) ([]ListBookingsResponse, error)
 }
 
 func (s *Service) CreateBooking(studentID uint, input CreateBookingRequest) (*CreateBookingResponse, error) {
+	// murid wajib punya nomor WA (kolom users.phone) supaya bisa dihubungi &
+	// mempersulit akun palsu. Booking manual admin (AdminCreateBooking) bebas
+	// dari gate ini karena admin sudah verifikasi manual.
+	var phoneHolder struct {
+		Phone string
+	}
+	if err := s.db.Model(&models.User{}).Select("phone").First(&phoneHolder, studentID).Error; err != nil {
+		return nil, errors.New("akun tidak ditemukan")
+	}
+	if strings.TrimSpace(phoneHolder.Phone) == "" {
+		return nil, errors.New("isi nomor WhatsApp dulu di Pengaturan sebelum booking")
+	}
 	// murid tidak memilih guru: guru ditentukan admin. Tolak eksplisit supaya
 	// tidak ada booking pending-yang-sudah-punya-guru yang buntu (tak ada
 	// endpoint yang bisa meng-confirmed-kannya).
