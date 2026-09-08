@@ -27,6 +27,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notification-bell";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { useDialogBack } from "@/lib/hooks/use-dialog-back";
+import { useIsStandalone } from "@/lib/hooks/use-standalone";
 import { useAutoSubscribeNotifications } from "@/lib/hooks/use-auto-subscribe";
 import { homeForRoles, requiredRoleForPath, roleLabel } from "@/lib/role";
 import {
@@ -102,6 +103,10 @@ function AppSidebar({
   const { pathname } = useRouterState().location;
   const { setOpenMobile } = useSidebar();
   const router = useRouter();
+  // PWA terpasang (tanpa Back browser): pindah seksi mereset riwayat +
+  // replace supaya Back tidak berputar antar seksi. Browser biasa: push
+  // normal agar Back browser bisa kembali ke seksi sebelumnya.
+  const standalone = useIsStandalone();
   const isActive = (to?: string) => !!to && (pathname === to || pathname.startsWith(to + "/"));
   const closeMobile = () => setOpenMobile(false);
 
@@ -113,6 +118,10 @@ function AppSidebar({
   const goSection = (to: string) => {
     closeMobile();
     if (pathname === to) return;
+    if (!standalone) {
+      router.history.push(to);
+      return;
+    }
     const stack = getNavStack();
     const dIdx = dashboardTo ? stack.indexOf(dashboardTo) : -1;
     const steps = dIdx >= 0 ? stack.length - 1 - dIdx : -1;
@@ -288,6 +297,7 @@ function sectionHomeFor(pathname: string): string | undefined {
 
 function HeaderNav() {
   const { isMobile } = useSidebar();
+  const standalone = useIsStandalone();
   const router = useRouter();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -302,7 +312,9 @@ function HeaderNav() {
     }
   };
 
-  if (isMobile && !isMainPath(pathname)) {
+  // Back in-app hanya untuk PWA terpasang (tanpa Back browser/sistem),
+  // dan hanya di halaman non-utama. Browser biasa mengandalkan Back bawaan.
+  if (standalone && !isMainPath(pathname)) {
     return (
       <Button variant="ghost" size="icon-lg" aria-label="Kembali" onClick={goBack}>
         <ArrowLeft className="h-5 w-5" />
@@ -314,6 +326,7 @@ function HeaderNav() {
   if (isMobile) {
     return null;
   }
+  // Desktop browser biasa → SidebarTrigger seperti semula.
   return <SidebarTrigger className="-ml-1" />;
 }
 

@@ -25,9 +25,9 @@ function AuthCallback() {
 
   useEffect(() => {
     if (!token) {
-      navigate({ to: "/login" })
+      navigate({ to: "/login", replace: true })
     } else if (user) {
-      navigate({ to: homeForRoles(user.roles as string[]) })
+      navigate({ to: homeForRoles(user.roles as string[]), replace: true })
     }
   }, [token, user, navigate])
 

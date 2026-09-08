@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { Link, useRouterState } from "@tanstack/react-router"
 import { getMeOptions } from "@/lib/api/@tanstack/react-query.gen"
+import { useIsStandalone } from "@/lib/hooks/use-standalone"
 import { mobileTabs } from "@/lib/sidebar"
 import { cn } from "@/lib/utils"
 
@@ -10,6 +11,10 @@ import { cn } from "@/lib/utils"
 export function MobileBottomNav() {
   const { data: user } = useQuery(getMeOptions())
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  // PWA terpasang (tanpa Back browser): pindah tab menimpa riwayat supaya
+  // Back tidak berputar antar tab. Browser biasa: push normal agar Back
+  // browser bisa kembali ke tab sebelumnya.
+  const standalone = useIsStandalone()
   const userRoles = (user?.roles as string[]) ?? []
   const role = ["admin", "teacher", "student"].find((r) => userRoles.includes(r))
   const tabs = (role ? mobileTabs[role] : undefined) ?? mobileTabs.student
@@ -30,7 +35,7 @@ export function MobileBottomNav() {
           <Link
             key={tab.to}
             to={tab.to as never}
-            replace
+            replace={standalone}
             activeProps={{ className: "text-primary" }}
             inactiveProps={{ className: "text-muted-foreground" }}
             className={cn(
