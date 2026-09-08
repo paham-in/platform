@@ -29,7 +29,7 @@ export function MobileBottomNav() {
       <div aria-hidden className="h-24 shrink-0 md:hidden" />
       <nav
         aria-label="Navigasi utama"
-        className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-40 md:hidden"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-1/2 z-40 w-max -translate-x-1/2 md:hidden"
       >
       <div className="grid grid-cols-4 gap-1 rounded-full bg-card p-1.5 shadow-lg ring-1 ring-foreground/10">
         {tabs.map((tab) => (
@@ -38,7 +38,7 @@ export function MobileBottomNav() {
             type="button"
             onClick={() => navigate({ to: tab.to as never, replace: standalone })}
             className={cn(
-              "flex flex-col items-center gap-1.5 rounded-full px-1 py-2 text-[10px] font-medium transition-colors",
+              "flex flex-col items-center gap-1.5 rounded-full px-3 py-2 text-[10px] font-medium transition-colors",
               "hover:bg-muted/60",
               tab.to === path ? "text-primary" : "text-muted-foreground"
             )}
