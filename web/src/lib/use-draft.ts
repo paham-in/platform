@@ -46,8 +46,11 @@ export function useDraft(id?: string) {
     (data: DraftData) => {
       clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => {
+        // Tulis storage saja TANPA setHasDraft(true): hasDraft hanya untuk
+        // draft yang sudah ada saat halaman dibuka (pemicu dialog "Draft
+        // ditemukan"). Kalau save ikut menyalakan hasDraft, setiap jeda
+        // mengetik malah membuka dialog (loop).
         saveDraft(key, data)
-        setHasDraft(true)
       }, 800)
     },
     [key]
