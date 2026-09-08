@@ -71,8 +71,10 @@ func (r *Repository) GetByPublicID(publicID string) (*models.ForumAnswer, error)
 }
 
 // DeleteWithAssets menghapus jawaban beserta aset content-nya dalam satu
-// transaksi. Mengembalikan object name aset supaya caller bisa membersihkan
-// object storage setelah commit.
+// transaksi (HARD delete, konsisten dengan hapus pertanyaan: row jawaban yang
+// soft-delete pun tidak pernah dibaca/dipulihkan, dan gambarnya sudah
+// dimusnahkan sehingga arsipnya tidak utuh). Mengembalikan object name aset
+// supaya caller bisa membersihkan object storage setelah commit.
 func (r *Repository) DeleteWithAssets(answerID uint) ([]string, error) {
 	var objectNames []string
 	err := r.db.Transaction(func(tx *gorm.DB) error {
@@ -84,7 +86,7 @@ func (r *Repository) DeleteWithAssets(answerID uint) ([]string, error) {
 		if err := tx.Unscoped().Where("answer_id = ?", answerID).Delete(&models.ForumAnswerAsset{}).Error; err != nil {
 			return err
 		}
-		return tx.Delete(&models.ForumAnswer{}, answerID).Error
+		return tx.Unscoped().Delete(&models.ForumAnswer{}, answerID).Error
 	})
 	if err != nil {
 		return nil, err
