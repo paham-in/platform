@@ -2,7 +2,7 @@
 import { RichContent } from "@/components/ui/rich-content"
 import { YoutubeEmbed } from "@/components/ui/youtube-embed"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState, useEffect } from "react"
+import { useMemo, useState, useEffect } from "react"
 import "katex/dist/katex.min.css"
 import {
   getQuestionsByIdOptions,
@@ -14,7 +14,14 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { toast } from "sonner"
-import { Trash2, MessageCircle, Pencil } from "lucide-react"
+import { Trash2, MessageCircle, Pencil, MoreVertical } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { usePageHeaderAction } from "@/components/page-title"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { AnswerForm } from "@/components/forum"
@@ -78,6 +85,28 @@ function ForumDetail() {
     if (modal !== "delete") setDeleteTarget(null)
   }, [modal])
 
+  const isOwner = question?.is_owner
+  const headerAction = useMemo(
+    () => (
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-lg" aria-label="Aksi pertanyaan" />}>
+          <MoreVertical className="h-4 w-4" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => navigate({ to: "/student/forum/$id/edit", params: { id } })}>
+            <Pencil className="h-4 w-4" /> Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem variant="destructive" onClick={() => openModal("delete-question")}>
+            <Trash2 className="h-4 w-4" /> Hapus
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [id, question?.id]
+  )
+  usePageHeaderAction(isOwner ? headerAction : null)
+
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -94,8 +123,6 @@ function ForumDetail() {
     )
   }
 
-  const isOwner = question.is_owner
-
   return (
     <main className="mx-auto w-full max-w-3xl p-4 md:p-6">
       <div className="mb-2 flex items-center gap-2">
@@ -105,7 +132,7 @@ function ForumDetail() {
           </span>
         )}
         {isOwner && (
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="ml-auto hidden items-center gap-1.5 md:flex">
             <button
               type="button"
               onClick={() => navigate({ to: "/student/forum/$id/edit", params: { id } })}
