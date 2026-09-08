@@ -312,11 +312,22 @@ function HeaderNav() {
 
   // Back in-app hanya untuk PWA terpasang (tanpa Back browser/sistem),
   // dan hanya di halaman non-utama. Browser biasa mengandalkan Back bawaan.
+  // Desktop: Back tampil di samping SidebarTrigger (toggle tetap ada).
   if (standalone && !isMainPath(pathname)) {
+    if (isMobile) {
+      return (
+        <Button variant="ghost" size="icon-lg" aria-label="Kembali" onClick={goBack}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+      );
+    }
     return (
-      <Button variant="ghost" size="icon-lg" aria-label="Kembali" onClick={goBack}>
-        <ArrowLeft className="h-5 w-5" />
-      </Button>
+      <>
+        <Button variant="ghost" size="icon" aria-label="Kembali" onClick={goBack}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <SidebarTrigger className="-ml-1" />
+      </>
     );
   }
   // Mobile tidak pakai drawer lagi (navigasi = bottom nav + halaman Akun),
