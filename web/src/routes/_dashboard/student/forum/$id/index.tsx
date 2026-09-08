@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { usePageHeaderAction } from "@/components/page-title"
 import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { AnswerForm } from "@/components/forum"
 import {
   AlertDialog,
@@ -179,6 +179,9 @@ function ForumDetail() {
             <EmptyHeader>
               <EmptyMedia variant="icon"><MessageCircle /></EmptyMedia>
               <EmptyTitle className="text-sm">Belum ada jawaban</EmptyTitle>
+              <EmptyDescription>
+                Jawaban dari guru akan muncul di sini setelah pertanyaanmu dijawab.
+              </EmptyDescription>
             </EmptyHeader>
           </Empty>
         )}
