@@ -2,7 +2,7 @@
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group"
@@ -19,7 +19,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { postPushSubscribe } from "@/lib/api/sdk.gen"
 import { isPushSupported, subscribeNotifications } from "@/lib/subscribe-notification"
-import { Save, Bell, BellOff, Download, Moon, Sun } from "lucide-react"
+import { Save } from "lucide-react"
 import { toast } from "sonner"
 import { usePwaInstall } from "@/lib/hooks/use-pwa-install"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
@@ -268,141 +268,140 @@ function SettingsPage() {
       <h1 className="mb-6 text-2xl font-bold tracking-tight">Pengaturan</h1>
 
       <div className="flex max-w-lg flex-col gap-4">
-      <Card className="md:hidden">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Moon className="h-5 w-5" /> Tampilan
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between rounded-lg border p-3">
-            <div className="flex items-center gap-3">
-              <Sun className="h-5 w-5 text-muted-foreground" />
+      <section className="md:hidden">
+        <h2 className="mb-1.5 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Tampilan
+        </h2>
+        <Card className="gap-0 py-0">
+          <CardContent className="p-0">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  setTheme(theme === "dark" ? "light" : "dark")
+                }
+              }}
+              className="flex cursor-pointer items-center justify-between gap-3 px-4 py-3"
+            >
               <div>
                 <p className="text-sm font-medium">Mode Gelap</p>
                 <p className="text-xs text-muted-foreground">Gunakan tema gelap pada perangkat ini.</p>
               </div>
+              <span onClick={(e) => e.stopPropagation()}>
+                <Switch checked={theme === "dark"} onCheckedChange={(c) => setTheme(c ? "dark" : "light")} aria-label="Mode gelap" />
+              </span>
             </div>
-            <Switch checked={theme === "dark"} onCheckedChange={(c) => setTheme(c ? "dark" : "light")} aria-label="Mode gelap" />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Profil</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Controller
-            name="name"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="name">Nama</FieldLabel>
-                <Input id="name" {...field} aria-invalid={fieldState.invalid} autoComplete="off"/>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-          <Controller
-            name="phone"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="phone">Nomor WhatsApp</FieldLabel>
-                <InputGroup>
-                  <InputGroupAddon align="inline-start">
-                    <InputGroupText>+62</InputGroupText>
-                  </InputGroupAddon>
-                  <InputGroupInput id="phone" {...field} inputMode="tel" placeholder="812..." aria-invalid={fieldState.invalid} autoComplete="tel" />
-                </InputGroup>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-        </CardContent>
-        <CardFooter className="justify-end">
-          <Button
-            onClick={form.handleSubmit(handleSave)}
-            disabled={updateProfile.isPending}
-          >
-            {updateProfile.isPending ? (
-              <Spinner />
-            ) : (
-              <Save />
-            )}
-            Simpan
-          </Button>
-        </CardFooter>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" /> Notifikasi
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Aktifkan notifikasi untuk mendapat pemberitahuan saat pertanyaanmu dijawab.
-          </p>
-          <div className="flex items-center justify-between rounded-lg border p-3">
-            <div className="flex items-center gap-3">
-              {notifSubscribing || pushStatus === "checking" ? (
-                <Spinner />
-              ) : notifPermission === "granted" && pushStatus === "subscribed" ? (
-                <Bell className="h-5 w-5 text-green-600" />
-              ) : (
-                <BellOff className="h-5 w-5 text-muted-foreground" />
+      <section>
+        <h2 className="mb-1.5 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Profil
+        </h2>
+        <Card className="gap-0 py-0">
+          <CardContent className="space-y-4 p-4">
+            <Controller
+              name="name"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="name">Nama</FieldLabel>
+                  <Input id="name" {...field} aria-invalid={fieldState.invalid} autoComplete="off"/>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
               )}
-              <div>
-                {(() => {
-                  if (notifPermission === "unsupported" || pushStatus === "unsupported") {
-                    return <p className="text-sm font-medium">Browser tidak mendukung notifikasi push</p>
-                  }
-                  if (notifPermission === "denied") {
-                    return (
-                      <>
-                        <p className="text-sm font-medium">Izin ditolak</p>
-                        <p className="text-xs text-muted-foreground">Ubah di pengaturan browser untuk mengaktifkan.</p>
-                      </>
-                    )
-                  }
-                  if (notifPermission !== "granted") {
-                    return (
-                      <>
-                        <p className="text-sm font-medium">Notifikasi nonaktif</p>
-                        <p className="text-xs text-muted-foreground">Belum diaktifkan.</p>
-                      </>
-                    )
-                  }
-                  if (pushStatus === "checking") {
-                    return (
-                      <>
-                        <p className="text-sm font-medium">Memeriksa status…</p>
-                      </>
-                    )
-                  }
-                  if (pushStatus === "subscribed") {
-                    return (
-                      <>
-                        <p className="text-sm font-medium text-green-600">Terhubung</p>
-                        {subLabel && <p className="text-xs text-muted-foreground">Subscribe: {subLabel}</p>}
-                      </>
-                    )
-                  }
+            />
+            <Controller
+              name="phone"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="phone">Nomor WhatsApp</FieldLabel>
+                  <InputGroup>
+                    <InputGroupAddon align="inline-start">
+                      <InputGroupText>+62</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput id="phone" {...field} inputMode="tel" placeholder="812..." aria-invalid={fieldState.invalid} autoComplete="tel" />
+                  </InputGroup>
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+            <Button
+              onClick={form.handleSubmit(handleSave)}
+              disabled={updateProfile.isPending}
+              className="w-full"
+            >
+              {updateProfile.isPending ? (
+                <Spinner />
+              ) : (
+                <Save />
+              )}
+              Simpan
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section>
+        <h2 className="mb-1.5 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Lainnya
+        </h2>
+        <div className="space-y-4">
+        <Card className="gap-0 py-0">
+          <CardContent className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              {(() => {
+                if (notifPermission === "unsupported" || pushStatus === "unsupported") {
+                  return <p className="text-sm font-medium">Browser tidak mendukung notifikasi push</p>
+                }
+                if (notifPermission === "denied") {
                   return (
                     <>
-                      <p className="text-sm font-medium text-amber-600">Belum terdaftar di server push</p>
-                      <p className="text-xs text-muted-foreground">Klik Aktifkan untuk mendaftarkan perangkat ini.</p>
+                      <p className="text-sm font-medium">Izin ditolak</p>
+                      <p className="text-xs text-muted-foreground">Ubah di pengaturan browser untuk mengaktifkan.</p>
                     </>
                   )
-                })()}
-              </div>
+                }
+                if (notifPermission !== "granted") {
+                  return (
+                    <>
+                      <p className="text-sm font-medium">Notifikasi nonaktif</p>
+                      <p className="text-xs text-muted-foreground">Belum diaktifkan.</p>
+                    </>
+                  )
+                }
+                if (pushStatus === "checking") {
+                  return (
+                    <>
+                      <p className="text-sm font-medium">Memeriksa status…</p>
+                    </>
+                  )
+                }
+                if (pushStatus === "subscribed") {
+                  return (
+                    <>
+                      <p className="text-sm font-medium text-green-600">Terhubung</p>
+                      {subLabel && <p className="text-xs text-muted-foreground">Subscribe: {subLabel}</p>}
+                    </>
+                  )
+                }
+                return (
+                  <>
+                    <p className="text-sm font-medium">Notifikasi nonaktif</p>
+                    <p className="text-xs text-muted-foreground">Belum diaktifkan.</p>
+                  </>
+                )
+              })()}
             </div>
             {notifPermission !== "unsupported" && pushStatus !== "unsupported" && (
               <Button
-                variant={notifPermission === "granted" && pushStatus === "subscribed" ? "outline" : "default"}
+                variant={notifPermission === "granted" && pushStatus === "subscribed" ? "outline" : "secondary"}
                 size="sm"
                 onClick={notifPermission === "denied" ? openBrowserSettings : enableNotifications}
                 disabled={notifSubscribing || pushStatus === "checking"}
@@ -419,50 +418,46 @@ function SettingsPage() {
               </Button>
             )}
           </div>
-        </CardContent>
-      </Card>
-
-      {!installed && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Download className="h-5 w-5" /> Instal Aplikasi
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Instal Pahamin ke perangkatmu untuk membuka aplikasi lebih cepat, lengkap dengan ikon di layar utama.
-            </p>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div className="flex items-center gap-3">
-                <Download className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Belum terpasang</p>
-                  <p className="text-xs text-muted-foreground">
-                    {iOS
-                      ? "Ketuk ikon Bagikan di Safari, lalu pilih 'Tambah ke Layar Utama'."
-                      : "Pasang aplikasi agar bisa diakses seperti aplikasi native."}
-                  </p>
-                </div>
-              </div>
-              {!iOS && (
-                <Button size="sm" onClick={install} disabled={!canInstall}>
-                  Pasang
-                </Button>
-              )}
-            </div>
           </CardContent>
         </Card>
-      )}
+
+        {!installed && (
+          <Card className="gap-0 py-0">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">Instal aplikasi Pahamin</p>
+                  <p className="text-xs text-muted-foreground">
+                    {iOS
+                      ? "Ketuk Bagikan di Safari, lalu Tambah ke Layar Utama."
+                      : "Buka lebih cepat langsung dari layar utama HP."}
+                  </p>
+                </div>
+                {!iOS && (
+                  <Button size="sm" variant="secondary" onClick={install} disabled={!canInstall}>
+                    Pasang
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        </div>
+      </section>
       </div>
 
-      <p className="mt-4 text-xs text-muted-foreground">
-        {buildTime
-          ? `Versi build: ${format(parseISO(buildTime), "d MMM yyyy, HH:mm", { locale: id })}`
-          : "Development Mode"}
-        {buildTime && commitSha && " · "}
-        {commitSha && `Commit: ${commitSha.slice(0, 7)}`}
-      </p>
+      <Card className="mt-4 gap-0 py-0">
+        <CardContent className="p-4">
+          <p className="text-sm font-medium">Versi aplikasi</p>
+          <p className="text-xs text-muted-foreground">
+            {buildTime
+              ? `Build ${format(parseISO(buildTime), "d MMM yyyy, HH:mm", { locale: id })}`
+              : "Development Mode"}
+            {buildTime && commitSha && " · "}
+            {commitSha && `Commit ${commitSha.slice(0, 7)}`}
+          </p>
+        </CardContent>
+      </Card>
 
       {modal === "notif-help" && (
         <Dialog open onOpenChange={(o) => !o && closeModal()}>

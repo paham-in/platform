@@ -67,7 +67,7 @@ function AccountPage() {
 
       {groups.map((group) => (
         <section key={group.label}>
-          <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 className="mb-1.5 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {group.label}
           </h2>
           <Card className="gap-0 py-0">
