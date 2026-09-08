@@ -10,7 +10,6 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldError } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -38,6 +37,38 @@ const priceNum = (s: string): number | null => {
 }
 // 0 (atau kosong) = belum ditentukan → kanonik "". Buat "0" setara server 0.
 const priceNorm = (s: string) => (priceNum(s) === 0 ? "" : s)
+
+// Tampilan ribuan id-ID ("50000" → "50.000"); state tetap digit mentah.
+const formatPriceInput = (v: string) => {
+  const digits = v.replace(/\D/g, "")
+  if (digits === "") return ""
+  return Number(digits).toLocaleString("id-ID")
+}
+
+// Input harga dengan prefix Rp + formatting ribuan otomatis saat diketik.
+function PriceInput({ value, onChange, className, ...rest }: {
+  value: string
+  onChange: (v: string) => void
+  className?: string
+  "aria-label"?: string
+  "aria-invalid"?: boolean
+}) {
+  return (
+    <InputGroup className={className}>
+      <InputGroupAddon align="inline-start">
+        <InputGroupText>Rp</InputGroupText>
+      </InputGroupAddon>
+      <InputGroupInput
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        value={formatPriceInput(value)}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+        {...rest}
+      />
+    </InputGroup>
+  )
+}
 
 type TutoringPrices = Record<number, { private: string; group: string }>
 
@@ -247,12 +278,13 @@ function AdminSettings() {
 
   return (
     <main className="p-4 md:p-6">
+      <div className="mx-auto w-full max-w-3xl">
       <h1 className="mb-1 text-2xl font-bold tracking-tight">Tarif Produk</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Konfigurasi harga per kelas untuk les privat dan konten (materi + paket soal + forum).
       </p>
 
-      <div className="flex max-w-2xl flex-col gap-4 md:gap-6">
+      <div className="flex flex-col gap-4 md:gap-6">
         {/* Fee Guru */}
         <Card>
           <CardHeader>
@@ -322,8 +354,8 @@ function AdminSettings() {
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-(--card-spacing)">Kelas</TableHead>
                   <TableHead className="w-20">Les</TableHead>
-                  <TableHead>Private (Rp)</TableHead>
-                  <TableHead className="pr-(--card-spacing)">Kelompok (Rp)</TableHead>
+                  <TableHead>Private</TableHead>
+                  <TableHead className="pr-(--card-spacing)">Kelompok</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -361,20 +393,18 @@ function AdminSettings() {
                           <>
                             <TableCell>
                               <div className="space-y-1">
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  className="h-8 w-32"
+                                <PriceInput
+                                  className="h-8 w-full"
                                   value={pv}
                                   aria-label={`Harga les privat ${cls.name}`}
                                   aria-invalid={!pvValid}
-                                  onChange={(e) =>
+                                  onChange={(v) =>
                                     setTutoringPrices((prev) => ({
                                       ...prev,
-                                      [cls.id!]: { private: e.target.value, group: prev[cls.id!]?.group ?? "" },
+                                      [cls.id!]: { private: v, group: prev[cls.id!]?.group ?? "" },
                                     }))
                                   }
-                                autoComplete="off"/>
+                                />
                                 {pvValid && Number(pv) > 0 && (
                                   <p className="text-xs text-muted-foreground">
                                     Fee guru: {fmtRp(teacherFee(pv))}
@@ -384,20 +414,18 @@ function AdminSettings() {
                             </TableCell>
                             <TableCell>
                               <div className="space-y-1">
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  className="h-8 w-32"
+                                <PriceInput
+                                  className="h-8 w-full"
                                   value={gv}
                                   aria-label={`Harga kelompok ${cls.name}`}
                                   aria-invalid={!gvValid}
-                                  onChange={(e) =>
+                                  onChange={(v) =>
                                     setTutoringPrices((prev) => ({
                                       ...prev,
-                                      [cls.id!]: { private: prev[cls.id!]?.private ?? "", group: e.target.value },
+                                      [cls.id!]: { private: prev[cls.id!]?.private ?? "", group: v },
                                     }))
                                   }
-                                autoComplete="off"/>
+                                />
                                 {gvValid && Number(gv) > 0 && (
                                   <p className="text-xs text-muted-foreground">
                                     Fee guru: {fmtRp(teacherFee(gv))}
@@ -460,21 +488,19 @@ function AdminSettings() {
                       {allowed ? (
                         <div className="space-y-2">
                           <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Private (Rp)</Label>
-                            <Input
-                              type="number"
-                              min="0"
+                            <Label className="text-xs text-muted-foreground">Private</Label>
+                            <PriceInput
                               className="h-8"
                               value={pv}
                               aria-label={`Harga les privat ${cls.name}`}
                               aria-invalid={!pvValid}
-                              onChange={(e) =>
+                              onChange={(v) =>
                                 setTutoringPrices((prev) => ({
                                   ...prev,
-                                  [cls.id!]: { private: e.target.value, group: prev[cls.id!]?.group ?? "" },
+                                  [cls.id!]: { private: v, group: prev[cls.id!]?.group ?? "" },
                                 }))
                               }
-                            autoComplete="off"/>
+                            />
                             {pvValid && Number(pv) > 0 && (
                               <p className="text-xs text-muted-foreground">
                                 Fee guru: {fmtRp(teacherFee(pv))}
@@ -482,21 +508,19 @@ function AdminSettings() {
                             )}
                           </div>
                           <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Kelompok (Rp)</Label>
-                            <Input
-                              type="number"
-                              min="0"
+                            <Label className="text-xs text-muted-foreground">Kelompok</Label>
+                            <PriceInput
                               className="h-8"
                               value={gv}
                               aria-label={`Harga kelompok ${cls.name}`}
                               aria-invalid={!gvValid}
-                              onChange={(e) =>
+                              onChange={(v) =>
                                 setTutoringPrices((prev) => ({
                                   ...prev,
-                                  [cls.id!]: { private: prev[cls.id!]?.private ?? "", group: e.target.value },
+                                  [cls.id!]: { private: prev[cls.id!]?.private ?? "", group: v },
                                 }))
                               }
-                            autoComplete="off"/>
+                            />
                             {gvValid && Number(gv) > 0 && (
                               <p className="text-xs text-muted-foreground">
                                 Fee guru: {fmtRp(teacherFee(gv))}
@@ -542,7 +566,7 @@ function AdminSettings() {
               <TableHeader>
                 <TableRow className="bg-muted/30">
                   <TableHead className="pl-(--card-spacing)">Kelas</TableHead>
-                  <TableHead className="pr-(--card-spacing)">Konten (Rp)</TableHead>
+                  <TableHead className="pr-(--card-spacing)">Konten</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -563,17 +587,15 @@ function AdminSettings() {
                       <TableRow key={cls.id}>
                         <TableCell className="font-medium pl-(--card-spacing)">{cls.name}</TableCell>
                         <TableCell className="pr-(--card-spacing)">
-                          <Input
-                            type="number"
-                            min="0"
-                            className="h-8 w-32"
+                          <PriceInput
+                            className="h-8 w-full"
                             value={v}
                             aria-label={`Harga konten ${cls.name}`}
                             aria-invalid={!valid}
-                            onChange={(e) =>
-                              setContentPrices((prev) => ({ ...prev, [cls.id!]: e.target.value }))
+                            onChange={(v) =>
+                              setContentPrices((prev) => ({ ...prev, [cls.id!]: v }))
                             }
-                          autoComplete="off"/>
+                          />
                         </TableCell>
                       </TableRow>
                     )
@@ -605,18 +627,16 @@ function AdminSettings() {
                     <div key={cls.id} className="rounded-lg border p-3">
                       <p className="mb-2 font-medium">{cls.name}</p>
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Konten (Rp)</Label>
-                        <Input
-                          type="number"
-                          min="0"
+                        <Label className="text-xs text-muted-foreground">Konten</Label>
+                        <PriceInput
                           className="h-8"
                           value={v}
                           aria-label={`Harga konten ${cls.name}`}
                           aria-invalid={!valid}
-                          onChange={(e) =>
-                            setContentPrices((prev) => ({ ...prev, [cls.id!]: e.target.value }))
+                          onChange={(v) =>
+                            setContentPrices((prev) => ({ ...prev, [cls.id!]: v }))
                           }
-                        autoComplete="off"/>
+                        />
                       </div>
                     </div>
                   )
@@ -639,6 +659,7 @@ function AdminSettings() {
             </div>
           </CardFooter>
         </Card>
+      </div>
       </div>
     </main>
   )
