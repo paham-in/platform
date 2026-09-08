@@ -14,14 +14,12 @@ import {
   ArrowLeft,
   ChevronRight,
   LogOut,
-  Search,
   Shield,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { PageTitleProvider, usePageHeaderActionValue } from "@/components/page-title";
 import { sidebarGroups, mobileTabs, type SidebarGroup as SidebarGroupData } from "@/lib/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CommandMenu } from "@/components/command-menu";
 import { getNavStack, resetNavStack, RouteTransition, setResetInProgress } from "@/components/route-transition";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notification-bell";
@@ -337,7 +335,6 @@ function DashboardLayout() {
   const routerState = useRouterState();
   const { modal } = Route.useSearch();
   const { openModal, closeModal } = useDialogBack();
-  const [commandOpen, setCommandOpen] = useState(false);
 
   useAutoSubscribeNotifications(user?.id as number | undefined);
 
@@ -412,14 +409,6 @@ function DashboardLayout() {
               <HeaderNav />
             </div>
             <div className="ml-auto flex items-center gap-0.5 rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5">
-              <Button
-                variant="ghost"
-                size="icon-lg"
-                onClick={() => setCommandOpen(true)}
-                aria-label="Cari menu atau halaman"
-              >
-                <Search />
-              </Button>
               <NotificationBell size="icon-lg" />
               <MobileHeaderAction />
             </div>
@@ -427,14 +416,6 @@ function DashboardLayout() {
           <header className="sticky top-0 z-10 hidden h-14 shrink-0 items-center gap-2 border-b bg-background px-4 md:flex">
             <HeaderNav />
             <div className="flex-1" />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCommandOpen(true)}
-              aria-label="Cari menu atau halaman"
-            >
-              <Search />
-            </Button>
             <NotificationBell />
             <ThemeToggle compact />
             <MobileHeaderAction />
@@ -469,11 +450,6 @@ function DashboardLayout() {
       </AlertDialog>
       )}
 
-      <CommandMenu
-        groups={filteredGroups}
-        open={commandOpen}
-        onOpenChange={setCommandOpen}
-      />
     </SidebarProvider>
   );
 }
