@@ -1,9 +1,17 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { MoreVertical, Pencil } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { RichContent } from "@/components/ui/rich-content";
+import { usePageHeaderAction } from "@/components/page-title";
 import {
   getAdminMaterialsByIdOptions,
   getAdminChaptersOptions,
@@ -20,6 +28,25 @@ function MaterialDetail() {
   const { data: material, isLoading } = useQuery(getAdminMaterialsByIdOptions({ path: { id: Number(materialId) } }));
   const { data: chapters = [] } = useQuery(getAdminChaptersOptions());
   const chapter = chapters.find((c) => c.id === Number(chapterId));
+
+  const goEdit = () => navigate({ to: "/teacher/chapters/$chapterId/materials/$materialId/edit", params: { chapterId, materialId } });
+  const headerAction = useMemo(
+    () => (
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-lg" aria-label="Aksi materi" />}>
+          <MoreVertical className="h-4 w-4" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={goEdit}>
+            <Pencil className="h-4 w-4" /> Edit
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [chapterId, materialId]
+  );
+  usePageHeaderAction(headerAction);
 
 
   if (isLoading) {
@@ -38,24 +65,18 @@ function MaterialDetail() {
     )
   }
 
-  const back = () => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId }, replace: true });
-
   return (
-    <main className="w-full max-w-3xl p-4 md:p-6">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <Button variant="ghost" size="sm" onClick={back}>
-          <ArrowLeft className="mr-1 h-4 w-4" /> Kembali
+    <main className="mx-auto w-full max-w-3xl p-4 md:p-6">
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-3xl font-bold tracking-tight">{material.title}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {chapter?.class_name ?? "-"} • {chapter?.subject_name ?? "-"} • {chapter?.title ?? "-"}
+          </p>
+        </div>
+        <Button variant="outline" size="icon" aria-label="Edit materi" onClick={goEdit} className="hidden shrink-0 md:inline-flex">
+          <Pencil className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="sm" onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials/$materialId/edit", params: { chapterId, materialId } })}>
-          <Pencil className="mr-1 h-4 w-4" /> Edit
-        </Button>
-      </div>
-
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">{material.title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {chapter?.class_name ?? "-"} • {chapter?.subject_name ?? "-"} • {chapter?.title ?? "-"}
-        </p>
       </div>
 
       {material.type === "video" && material.video_url ? (
