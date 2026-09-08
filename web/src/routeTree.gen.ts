@@ -41,7 +41,6 @@ import { Route as DashboardAdminProgramsProgramIdRouteImport } from './routes/_d
 import { Route as DashboardAdminSubscriptionsIndexRouteImport } from './routes/_dashboard/admin/subscriptions/index'
 import { Route as DashboardAdminSubscriptionsUserIdRouteImport } from './routes/_dashboard/admin/subscriptions/$userId'
 import { Route as DashboardStudentForumIndexRouteImport } from './routes/_dashboard/student/forum/index'
-import { Route as DashboardStudentForumIdRouteImport } from './routes/_dashboard/student/forum/$id'
 import { Route as DashboardStudentForumNewRouteImport } from './routes/_dashboard/student/forum/new'
 import { Route as DashboardStudentMaterialsIndexRouteImport } from './routes/_dashboard/student/materials/index'
 import { Route as DashboardStudentPackagesIndexRouteImport } from './routes/_dashboard/student/packages/index'
@@ -250,11 +249,6 @@ const DashboardStudentForumIndexRoute =
     path: '/student/forum/',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardStudentForumIdRoute = DashboardStudentForumIdRouteImport.update({
-  id: '/student/forum/$id',
-  path: '/student/forum/$id',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const DashboardStudentForumNewRoute =
   DashboardStudentForumNewRouteImport.update({
     id: '/student/forum/new',
@@ -340,15 +334,15 @@ const DashboardAdminBookingsStudentsUserIdRoute =
   } as any)
 const DashboardStudentForumIdIndexRoute =
   DashboardStudentForumIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => DashboardStudentForumIdRoute,
+    id: '/student/forum/$id/',
+    path: '/student/forum/$id/',
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardStudentForumIdEditRoute =
   DashboardStudentForumIdEditRouteImport.update({
-    id: '/edit',
-    path: '/edit',
-    getParentRoute: () => DashboardStudentForumIdRoute,
+    id: '/student/forum/$id/edit',
+    path: '/student/forum/$id/edit',
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardStudentMaterialsChaptersIdRoute =
   DashboardStudentMaterialsChaptersIdRouteImport.update({
@@ -464,7 +458,6 @@ export interface FileRoutesByFullPath {
   '/admin/forum/$id': typeof DashboardAdminForumIdRoute
   '/admin/programs/$programId': typeof DashboardAdminProgramsProgramIdRoute
   '/admin/subscriptions/$userId': typeof DashboardAdminSubscriptionsUserIdRoute
-  '/student/forum/$id': typeof DashboardStudentForumIdRouteWithChildren
   '/student/forum/new': typeof DashboardStudentForumNewRoute
   '/student/tutoring/$bookingId': typeof DashboardStudentTutoringBookingIdRoute
   '/student/tutoring/new': typeof DashboardStudentTutoringNewRoute
@@ -593,7 +586,6 @@ export interface FileRoutesById {
   '/_dashboard/admin/forum/$id': typeof DashboardAdminForumIdRoute
   '/_dashboard/admin/programs/$programId': typeof DashboardAdminProgramsProgramIdRoute
   '/_dashboard/admin/subscriptions/$userId': typeof DashboardAdminSubscriptionsUserIdRoute
-  '/_dashboard/student/forum/$id': typeof DashboardStudentForumIdRouteWithChildren
   '/_dashboard/student/forum/new': typeof DashboardStudentForumNewRoute
   '/_dashboard/student/tutoring/$bookingId': typeof DashboardStudentTutoringBookingIdRoute
   '/_dashboard/student/tutoring/new': typeof DashboardStudentTutoringNewRoute
@@ -659,7 +651,6 @@ export interface FileRouteTypes {
     | '/admin/forum/$id'
     | '/admin/programs/$programId'
     | '/admin/subscriptions/$userId'
-    | '/student/forum/$id'
     | '/student/forum/new'
     | '/student/tutoring/$bookingId'
     | '/student/tutoring/new'
@@ -787,7 +778,6 @@ export interface FileRouteTypes {
     | '/_dashboard/admin/forum/$id'
     | '/_dashboard/admin/programs/$programId'
     | '/_dashboard/admin/subscriptions/$userId'
-    | '/_dashboard/student/forum/$id'
     | '/_dashboard/student/forum/new'
     | '/_dashboard/student/tutoring/$bookingId'
     | '/_dashboard/student/tutoring/new'
@@ -1058,13 +1048,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentForumIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/student/forum/$id': {
-      id: '/_dashboard/student/forum/$id'
-      path: '/student/forum/$id'
-      fullPath: '/student/forum/$id'
-      preLoaderRoute: typeof DashboardStudentForumIdRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/_dashboard/student/forum/new': {
       id: '/_dashboard/student/forum/new'
       path: '/student/forum/new'
@@ -1165,17 +1148,17 @@ declare module '@tanstack/react-router' {
     }
     '/_dashboard/student/forum/$id/': {
       id: '/_dashboard/student/forum/$id/'
-      path: '/'
+      path: '/student/forum/$id'
       fullPath: '/student/forum/$id/'
       preLoaderRoute: typeof DashboardStudentForumIdIndexRouteImport
-      parentRoute: typeof DashboardStudentForumIdRoute
+      parentRoute: typeof DashboardRoute
     }
     '/_dashboard/student/forum/$id/edit': {
       id: '/_dashboard/student/forum/$id/edit'
-      path: '/edit'
+      path: '/student/forum/$id/edit'
       fullPath: '/student/forum/$id/edit'
       preLoaderRoute: typeof DashboardStudentForumIdEditRouteImport
-      parentRoute: typeof DashboardStudentForumIdRoute
+      parentRoute: typeof DashboardRoute
     }
     '/_dashboard/student/materials/chapters/$id': {
       id: '/_dashboard/student/materials/chapters/$id'
@@ -1293,22 +1276,6 @@ const DashboardUserMaterialsRouteWithChildren =
     DashboardUserMaterialsRouteChildren,
   )
 
-interface DashboardStudentForumIdRouteChildren {
-  DashboardStudentForumIdEditRoute: typeof DashboardStudentForumIdEditRoute
-  DashboardStudentForumIdIndexRoute: typeof DashboardStudentForumIdIndexRoute
-}
-
-const DashboardStudentForumIdRouteChildren: DashboardStudentForumIdRouteChildren =
-  {
-    DashboardStudentForumIdEditRoute: DashboardStudentForumIdEditRoute,
-    DashboardStudentForumIdIndexRoute: DashboardStudentForumIdIndexRoute,
-  }
-
-const DashboardStudentForumIdRouteWithChildren =
-  DashboardStudentForumIdRoute._addFileChildren(
-    DashboardStudentForumIdRouteChildren,
-  )
-
 interface DashboardRouteChildren {
   DashboardAccountRoute: typeof DashboardAccountRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
@@ -1333,7 +1300,6 @@ interface DashboardRouteChildren {
   DashboardAdminForumIdRoute: typeof DashboardAdminForumIdRoute
   DashboardAdminProgramsProgramIdRoute: typeof DashboardAdminProgramsProgramIdRoute
   DashboardAdminSubscriptionsUserIdRoute: typeof DashboardAdminSubscriptionsUserIdRoute
-  DashboardStudentForumIdRoute: typeof DashboardStudentForumIdRouteWithChildren
   DashboardStudentForumNewRoute: typeof DashboardStudentForumNewRoute
   DashboardStudentTutoringBookingIdRoute: typeof DashboardStudentTutoringBookingIdRoute
   DashboardStudentTutoringNewRoute: typeof DashboardStudentTutoringNewRoute
@@ -1352,7 +1318,9 @@ interface DashboardRouteChildren {
   DashboardTeacherForumIndexRoute: typeof DashboardTeacherForumIndexRoute
   DashboardTeacherPacksIndexRoute: typeof DashboardTeacherPacksIndexRoute
   DashboardAdminBookingsStudentsUserIdRoute: typeof DashboardAdminBookingsStudentsUserIdRoute
+  DashboardStudentForumIdEditRoute: typeof DashboardStudentForumIdEditRoute
   DashboardStudentMaterialsChaptersIdRoute: typeof DashboardStudentMaterialsChaptersIdRoute
+  DashboardStudentForumIdIndexRoute: typeof DashboardStudentForumIdIndexRoute
   DashboardStudentPackagesCollectionIdIndexRoute: typeof DashboardStudentPackagesCollectionIdIndexRoute
   DashboardTeacherPacksCollectionIdIndexRoute: typeof DashboardTeacherPacksCollectionIdIndexRoute
   DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute: typeof DashboardStudentMaterialsChaptersChapterIdMaterialIdRoute
@@ -1393,7 +1361,6 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminProgramsProgramIdRoute: DashboardAdminProgramsProgramIdRoute,
   DashboardAdminSubscriptionsUserIdRoute:
     DashboardAdminSubscriptionsUserIdRoute,
-  DashboardStudentForumIdRoute: DashboardStudentForumIdRouteWithChildren,
   DashboardStudentForumNewRoute: DashboardStudentForumNewRoute,
   DashboardStudentTutoringBookingIdRoute:
     DashboardStudentTutoringBookingIdRoute,
@@ -1415,8 +1382,10 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardTeacherPacksIndexRoute: DashboardTeacherPacksIndexRoute,
   DashboardAdminBookingsStudentsUserIdRoute:
     DashboardAdminBookingsStudentsUserIdRoute,
+  DashboardStudentForumIdEditRoute: DashboardStudentForumIdEditRoute,
   DashboardStudentMaterialsChaptersIdRoute:
     DashboardStudentMaterialsChaptersIdRoute,
+  DashboardStudentForumIdIndexRoute: DashboardStudentForumIdIndexRoute,
   DashboardStudentPackagesCollectionIdIndexRoute:
     DashboardStudentPackagesCollectionIdIndexRoute,
   DashboardTeacherPacksCollectionIdIndexRoute:

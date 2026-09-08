@@ -46,7 +46,7 @@ const forumDetailSearchSchema = z.object({
 function ForumDetail() {
   const qc = useQueryClient()
   const navigate = useNavigate()
-  const { id } = useParams({ from: "/_dashboard/student/forum/$id" })
+  const { id } = useParams({ from: "/_dashboard/student/forum/$id/" })
   const questionId = id
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
