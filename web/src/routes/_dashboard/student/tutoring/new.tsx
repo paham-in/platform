@@ -23,6 +23,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { CalendarIcon, CheckCircle2, Phone, Search, Users, X } from "lucide-react"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { addWeeks, format } from "date-fns"
 import { id } from "date-fns/locale"
 import { useEffect, useState } from "react"
@@ -232,16 +233,18 @@ function NewBooking() {
           <h1 className="text-2xl font-bold tracking-tight">Booking Baru</h1>
           <p className="text-sm text-muted-foreground">Pilih mapel, tanggal & jam, nanti admin yang akan mencarikan guru untukmu.</p>
         </div>
-        <div className="flex max-w-lg flex-col items-start gap-3 rounded-xl border p-6">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-            <Phone className="h-5 w-5 text-muted-foreground" />
-          </span>
-          <p className="font-medium">Isi nomor WhatsApp dulu</p>
-          <p className="text-sm text-muted-foreground">
-            Admin perlu nomor yang bisa dihubungi sebelum mencarikan guru. Isi di halaman Pengaturan, lalu kembali ke sini.
-          </p>
-          <Button onClick={() => navigate({ to: "/settings" })}>Ke Pengaturan</Button>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon"><Phone /></EmptyMedia>
+            <EmptyTitle>Isi nomor WhatsApp dulu</EmptyTitle>
+            <EmptyDescription>
+              Admin perlu nomor yang bisa dihubungi sebelum mencarikan guru. Isi di halaman Pengaturan, lalu kembali ke sini.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button onClick={() => navigate({ to: "/settings" })}>Ke Pengaturan</Button>
+          </EmptyContent>
+        </Empty>
       </main>
     )
   }
