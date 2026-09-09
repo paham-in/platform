@@ -1,26 +1,15 @@
-﻿import { useEffect, useRef, useState } from "react"
-import { Controller, useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+﻿import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Field, FieldError, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group"
 import { Switch } from "@/components/ui/switch"
 import { useTheme } from "@/components/theme-provider"
-import {
-  getMeOptions,
-  getMeQueryKey,
-  patchMeMutation,
-} from "@/lib/api/@tanstack/react-query.gen"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Spinner } from "@/components/ui/spinner"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { postPushSubscribe } from "@/lib/api/sdk.gen"
 import { isPushSupported, subscribeNotifications } from "@/lib/subscribe-notification"
-import { Save } from "lucide-react"
 import { toast } from "sonner"
+import { ChevronRight } from "lucide-react"
 import { usePwaInstall } from "@/lib/hooks/use-pwa-install"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { format, parseISO } from "date-fns"
@@ -31,42 +20,13 @@ const settingsSearchSchema = z.object({
   modal: z.string().optional(),
 })
 
-// Form hanya menyimpan angka lokal (tanpa prefix); prefix +62 tetap di addon.
-const toRest = (phone?: string) => {
-  const t = (phone ?? "").trim()
-  if (t.startsWith("+62")) return t.slice(3)
-  if (t.startsWith("62")) return t.slice(2)
-  if (t.startsWith("0")) return t.slice(1)
-  return t
-}
-
 function SettingsPage() {
-  const qc = useQueryClient()
-  const { data: user, isLoading: userLoading } = useQuery(getMeOptions())
+  const navigate = useNavigate()
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
 
   const buildTime = import.meta.env.VITE_BUILD_TIME as string | undefined
   const commitSha = import.meta.env.VITE_COMMIT_SHA as string | undefined
-  const form = useForm<{ name: string; phone: string }>({
-    resolver: zodResolver(z.object({
-      name: z.string().trim().min(1, "Isi nama dulu"),
-      phone: z.string().refine((v) => {
-        const t = v.trim()
-        if (t === "") return true
-        return /^8\d{6,12}$/.test(t)
-      }, "Nomor tidak valid (cth: 812...)"),
-    })),
-    mode: "onTouched",
-    defaultValues: { name: "", phone: "" },
-  })
-  const initializedRef = useRef(false)
-  useEffect(() => {
-    if (user && !initializedRef.current) {
-      form.reset({ name: user.name ?? "", phone: toRest(user.phone) })
-      initializedRef.current = true
-    }
-  }, [user, form])
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">(
     typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
   )
@@ -132,37 +92,6 @@ function SettingsPage() {
       clearTimeout(timeout)
     }
   }, [])
-
-  const updateProfile = useMutation({
-    ...patchMeMutation(),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: getMeQueryKey() })
-      toast.success("Profil berhasil disimpan")
-    },
-    onError: () => {
-      toast.error("Gagal menyimpan profil")
-    },
-  })
-
-  if (userLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <Spinner />
-      </div>
-    )
-  }
-
-  const handleSave = (v: { name: string; phone: string }) => {
-    const rest = v.phone.trim()
-    const body: { name?: string; phone?: string } = {}
-    if (v.name !== user?.name) body.name = v.name
-    if (rest !== toRest(user?.phone)) body.phone = rest === "" ? "" : `+62${rest}`
-    if (Object.keys(body).length === 0) {
-      toast.info("Tidak ada perubahan")
-      return
-    }
-    updateProfile.mutate({ body })
-  }
 
   const enableNotifications = async () => {
     if (!isPushSupported()) {
@@ -265,7 +194,7 @@ function SettingsPage() {
 
   return (
     <main className="p-4 md:p-6">
-      <div className="mx-auto w-full max-w-3xl">
+      <div className="mx-auto w-full max-w-lg">
       <h1 className="mb-6 text-2xl font-bold tracking-tight">Pengaturan</h1>
 
       <div className="flex flex-col gap-4">
@@ -324,46 +253,18 @@ function SettingsPage() {
           Profil
         </h2>
         <Card className="gap-0 py-0">
-          <CardContent className="space-y-4 p-4">
-            <Controller
-              name="name"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="name">Nama</FieldLabel>
-                  <Input id="name" {...field} aria-invalid={fieldState.invalid} autoComplete="off"/>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-            <Controller
-              name="phone"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="phone">Nomor WhatsApp</FieldLabel>
-                  <InputGroup>
-                    <InputGroupAddon align="inline-start">
-                      <InputGroupText>+62</InputGroupText>
-                    </InputGroupAddon>
-                    <InputGroupInput id="phone" {...field} inputMode="tel" placeholder="812..." aria-invalid={fieldState.invalid} autoComplete="tel" />
-                  </InputGroup>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-            <Button
-              onClick={form.handleSubmit(handleSave)}
-              disabled={updateProfile.isPending}
-              className="w-full"
+          <CardContent className="p-0">
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/settings/profile" })}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
             >
-              {updateProfile.isPending ? (
-                <Spinner />
-              ) : (
-                <Save />
-              )}
-              Simpan
-            </Button>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">Profil Saya</p>
+                <p className="truncate text-xs text-muted-foreground">Ubah nama dan nomor WhatsApp</p>
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </button>
           </CardContent>
         </Card>
       </section>
@@ -465,20 +366,20 @@ function SettingsPage() {
         )}
         </div>
       </section>
-      </div>
 
-      <Card className="mt-4 gap-0 py-0">
-        <CardContent className="p-4">
-          <p className="text-sm font-medium">Versi aplikasi</p>
-          <p className="text-xs text-muted-foreground">
-            {buildTime
-              ? `Build ${format(parseISO(buildTime), "d MMM yyyy, HH:mm", { locale: id })}`
-              : "Development Mode"}
-            {buildTime && commitSha && " · "}
-            {commitSha && `Commit ${commitSha.slice(0, 7)}`}
-          </p>
-        </CardContent>
-      </Card>
+        <Card className="gap-0 py-0">
+          <CardContent className="p-4">
+            <p className="text-sm font-medium">Versi aplikasi</p>
+            <p className="text-xs text-muted-foreground">
+              {buildTime
+                ? `Build ${format(parseISO(buildTime), "d MMM yyyy, HH:mm", { locale: id })}`
+                : "Development Mode"}
+              {buildTime && commitSha && " · "}
+              {commitSha && `Commit ${commitSha.slice(0, 7)}`}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
       {modal === "notif-help" && (
         <Dialog open onOpenChange={(o) => !o && closeModal()}>
@@ -516,7 +417,7 @@ function shortSubscriptionLabel(endpoint: string): string {
   }
 }
 
-export const Route = createFileRoute("/_dashboard/settings")({
+export const Route = createFileRoute("/_dashboard/settings/")({
   component: SettingsPage,
   validateSearch: settingsSearchSchema,
 })

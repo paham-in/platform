@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardAccountRouteImport } from './routes/_dashboard/account'
-import { Route as DashboardSettingsRouteImport } from './routes/_dashboard/settings'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as DashboardAdminDashboardRouteImport } from './routes/_dashboard/admin/dashboard'
 import { Route as DashboardAdminDevResetRouteImport } from './routes/_dashboard/admin/dev-reset'
@@ -22,6 +21,8 @@ import { Route as DashboardAdminTeacherPermissionsRouteImport } from './routes/_
 import { Route as DashboardAdminTeacherSubjectsRouteImport } from './routes/_dashboard/admin/teacher-subjects'
 import { Route as DashboardAdminTutoringFeesRouteImport } from './routes/_dashboard/admin/tutoring-fees'
 import { Route as DashboardAdminUsersRouteImport } from './routes/_dashboard/admin/users'
+import { Route as DashboardSettingsIndexRouteImport } from './routes/_dashboard/settings/index'
+import { Route as DashboardSettingsProfileRouteImport } from './routes/_dashboard/settings/profile'
 import { Route as DashboardStudentCalendarRouteImport } from './routes/_dashboard/student/calendar'
 import { Route as DashboardStudentDashboardRouteImport } from './routes/_dashboard/student/dashboard'
 import { Route as DashboardStudentPaymentsRouteImport } from './routes/_dashboard/student/payments'
@@ -91,11 +92,6 @@ const DashboardAccountRoute = DashboardAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -139,6 +135,17 @@ const DashboardAdminUsersRoute = DashboardAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardSettingsIndexRoute = DashboardSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSettingsProfileRoute =
+  DashboardSettingsProfileRouteImport.update({
+    id: '/settings/profile',
+    path: '/settings/profile',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardStudentCalendarRoute =
   DashboardStudentCalendarRouteImport.update({
     id: '/student/calendar',
@@ -435,7 +442,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/account': typeof DashboardAccountRoute
-  '/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/admin/dev-reset': typeof DashboardAdminDevResetRoute
@@ -444,6 +450,7 @@ export interface FileRoutesByFullPath {
   '/admin/teacher-subjects': typeof DashboardAdminTeacherSubjectsRoute
   '/admin/tutoring-fees': typeof DashboardAdminTutoringFeesRoute
   '/admin/users': typeof DashboardAdminUsersRoute
+  '/settings/profile': typeof DashboardSettingsProfileRoute
   '/student/calendar': typeof DashboardStudentCalendarRoute
   '/student/dashboard': typeof DashboardStudentDashboardRoute
   '/student/payments': typeof DashboardStudentPaymentsRoute
@@ -453,6 +460,7 @@ export interface FileRoutesByFullPath {
   '/user/dashboard': typeof DashboardUserDashboardRoute
   '/user/materials': typeof DashboardUserMaterialsRouteWithChildren
   '/user/subscribe': typeof DashboardUserSubscribeRoute
+  '/settings/': typeof DashboardSettingsIndexRoute
   '/admin/bookings/$bookingId': typeof DashboardAdminBookingsBookingIdRoute
   '/admin/bookings/new': typeof DashboardAdminBookingsNewRoute
   '/admin/forum/$id': typeof DashboardAdminForumIdRoute
@@ -498,7 +506,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/account': typeof DashboardAccountRoute
-  '/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/admin/dev-reset': typeof DashboardAdminDevResetRoute
@@ -507,6 +514,7 @@ export interface FileRoutesByTo {
   '/admin/teacher-subjects': typeof DashboardAdminTeacherSubjectsRoute
   '/admin/tutoring-fees': typeof DashboardAdminTutoringFeesRoute
   '/admin/users': typeof DashboardAdminUsersRoute
+  '/settings/profile': typeof DashboardSettingsProfileRoute
   '/student/calendar': typeof DashboardStudentCalendarRoute
   '/student/dashboard': typeof DashboardStudentDashboardRoute
   '/student/payments': typeof DashboardStudentPaymentsRoute
@@ -516,6 +524,7 @@ export interface FileRoutesByTo {
   '/user/dashboard': typeof DashboardUserDashboardRoute
   '/user/materials': typeof DashboardUserMaterialsRouteWithChildren
   '/user/subscribe': typeof DashboardUserSubscribeRoute
+  '/settings': typeof DashboardSettingsIndexRoute
   '/admin/bookings/$bookingId': typeof DashboardAdminBookingsBookingIdRoute
   '/admin/bookings/new': typeof DashboardAdminBookingsNewRoute
   '/admin/forum/$id': typeof DashboardAdminForumIdRoute
@@ -563,7 +572,6 @@ export interface FileRoutesById {
   '/_dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/_dashboard/account': typeof DashboardAccountRoute
-  '/_dashboard/settings': typeof DashboardSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_dashboard/admin/dashboard': typeof DashboardAdminDashboardRoute
   '/_dashboard/admin/dev-reset': typeof DashboardAdminDevResetRoute
@@ -572,6 +580,7 @@ export interface FileRoutesById {
   '/_dashboard/admin/teacher-subjects': typeof DashboardAdminTeacherSubjectsRoute
   '/_dashboard/admin/tutoring-fees': typeof DashboardAdminTutoringFeesRoute
   '/_dashboard/admin/users': typeof DashboardAdminUsersRoute
+  '/_dashboard/settings/profile': typeof DashboardSettingsProfileRoute
   '/_dashboard/student/calendar': typeof DashboardStudentCalendarRoute
   '/_dashboard/student/dashboard': typeof DashboardStudentDashboardRoute
   '/_dashboard/student/payments': typeof DashboardStudentPaymentsRoute
@@ -581,6 +590,7 @@ export interface FileRoutesById {
   '/_dashboard/user/dashboard': typeof DashboardUserDashboardRoute
   '/_dashboard/user/materials': typeof DashboardUserMaterialsRouteWithChildren
   '/_dashboard/user/subscribe': typeof DashboardUserSubscribeRoute
+  '/_dashboard/settings/': typeof DashboardSettingsIndexRoute
   '/_dashboard/admin/bookings/$bookingId': typeof DashboardAdminBookingsBookingIdRoute
   '/_dashboard/admin/bookings/new': typeof DashboardAdminBookingsNewRoute
   '/_dashboard/admin/forum/$id': typeof DashboardAdminForumIdRoute
@@ -628,7 +638,6 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/account'
-    | '/settings'
     | '/auth/callback'
     | '/admin/dashboard'
     | '/admin/dev-reset'
@@ -637,6 +646,7 @@ export interface FileRouteTypes {
     | '/admin/teacher-subjects'
     | '/admin/tutoring-fees'
     | '/admin/users'
+    | '/settings/profile'
     | '/student/calendar'
     | '/student/dashboard'
     | '/student/payments'
@@ -646,6 +656,7 @@ export interface FileRouteTypes {
     | '/user/dashboard'
     | '/user/materials'
     | '/user/subscribe'
+    | '/settings/'
     | '/admin/bookings/$bookingId'
     | '/admin/bookings/new'
     | '/admin/forum/$id'
@@ -691,7 +702,6 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/account'
-    | '/settings'
     | '/auth/callback'
     | '/admin/dashboard'
     | '/admin/dev-reset'
@@ -700,6 +710,7 @@ export interface FileRouteTypes {
     | '/admin/teacher-subjects'
     | '/admin/tutoring-fees'
     | '/admin/users'
+    | '/settings/profile'
     | '/student/calendar'
     | '/student/dashboard'
     | '/student/payments'
@@ -709,6 +720,7 @@ export interface FileRouteTypes {
     | '/user/dashboard'
     | '/user/materials'
     | '/user/subscribe'
+    | '/settings'
     | '/admin/bookings/$bookingId'
     | '/admin/bookings/new'
     | '/admin/forum/$id'
@@ -755,7 +767,6 @@ export interface FileRouteTypes {
     | '/_dashboard'
     | '/login'
     | '/_dashboard/account'
-    | '/_dashboard/settings'
     | '/auth/callback'
     | '/_dashboard/admin/dashboard'
     | '/_dashboard/admin/dev-reset'
@@ -764,6 +775,7 @@ export interface FileRouteTypes {
     | '/_dashboard/admin/teacher-subjects'
     | '/_dashboard/admin/tutoring-fees'
     | '/_dashboard/admin/users'
+    | '/_dashboard/settings/profile'
     | '/_dashboard/student/calendar'
     | '/_dashboard/student/dashboard'
     | '/_dashboard/student/payments'
@@ -773,6 +785,7 @@ export interface FileRouteTypes {
     | '/_dashboard/user/dashboard'
     | '/_dashboard/user/materials'
     | '/_dashboard/user/subscribe'
+    | '/_dashboard/settings/'
     | '/_dashboard/admin/bookings/$bookingId'
     | '/_dashboard/admin/bookings/new'
     | '/_dashboard/admin/forum/$id'
@@ -852,13 +865,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAccountRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/settings': {
-      id: '/_dashboard/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof DashboardSettingsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -913,6 +919,20 @@ declare module '@tanstack/react-router' {
       path: '/admin/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof DashboardAdminUsersRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/settings/': {
+      id: '/_dashboard/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof DashboardSettingsIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/settings/profile': {
+      id: '/_dashboard/settings/profile'
+      path: '/settings/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof DashboardSettingsProfileRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/student/calendar': {
@@ -1278,7 +1298,6 @@ const DashboardUserMaterialsRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardAccountRoute: typeof DashboardAccountRoute
-  DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardAdminDashboardRoute: typeof DashboardAdminDashboardRoute
   DashboardAdminDevResetRoute: typeof DashboardAdminDevResetRoute
   DashboardAdminSubjectsRoute: typeof DashboardAdminSubjectsRoute
@@ -1286,6 +1305,7 @@ interface DashboardRouteChildren {
   DashboardAdminTeacherSubjectsRoute: typeof DashboardAdminTeacherSubjectsRoute
   DashboardAdminTutoringFeesRoute: typeof DashboardAdminTutoringFeesRoute
   DashboardAdminUsersRoute: typeof DashboardAdminUsersRoute
+  DashboardSettingsProfileRoute: typeof DashboardSettingsProfileRoute
   DashboardStudentCalendarRoute: typeof DashboardStudentCalendarRoute
   DashboardStudentDashboardRoute: typeof DashboardStudentDashboardRoute
   DashboardStudentPaymentsRoute: typeof DashboardStudentPaymentsRoute
@@ -1295,6 +1315,7 @@ interface DashboardRouteChildren {
   DashboardUserDashboardRoute: typeof DashboardUserDashboardRoute
   DashboardUserMaterialsRoute: typeof DashboardUserMaterialsRouteWithChildren
   DashboardUserSubscribeRoute: typeof DashboardUserSubscribeRoute
+  DashboardSettingsIndexRoute: typeof DashboardSettingsIndexRoute
   DashboardAdminBookingsBookingIdRoute: typeof DashboardAdminBookingsBookingIdRoute
   DashboardAdminBookingsNewRoute: typeof DashboardAdminBookingsNewRoute
   DashboardAdminForumIdRoute: typeof DashboardAdminForumIdRoute
@@ -1338,7 +1359,6 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAccountRoute: DashboardAccountRoute,
-  DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardAdminDashboardRoute: DashboardAdminDashboardRoute,
   DashboardAdminDevResetRoute: DashboardAdminDevResetRoute,
   DashboardAdminSubjectsRoute: DashboardAdminSubjectsRoute,
@@ -1346,6 +1366,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminTeacherSubjectsRoute: DashboardAdminTeacherSubjectsRoute,
   DashboardAdminTutoringFeesRoute: DashboardAdminTutoringFeesRoute,
   DashboardAdminUsersRoute: DashboardAdminUsersRoute,
+  DashboardSettingsProfileRoute: DashboardSettingsProfileRoute,
   DashboardStudentCalendarRoute: DashboardStudentCalendarRoute,
   DashboardStudentDashboardRoute: DashboardStudentDashboardRoute,
   DashboardStudentPaymentsRoute: DashboardStudentPaymentsRoute,
@@ -1355,6 +1376,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardUserDashboardRoute: DashboardUserDashboardRoute,
   DashboardUserMaterialsRoute: DashboardUserMaterialsRouteWithChildren,
   DashboardUserSubscribeRoute: DashboardUserSubscribeRoute,
+  DashboardSettingsIndexRoute: DashboardSettingsIndexRoute,
   DashboardAdminBookingsBookingIdRoute: DashboardAdminBookingsBookingIdRoute,
   DashboardAdminBookingsNewRoute: DashboardAdminBookingsNewRoute,
   DashboardAdminForumIdRoute: DashboardAdminForumIdRoute,
