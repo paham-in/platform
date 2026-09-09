@@ -273,80 +273,75 @@ function SettingsPage() {
         <h2 className="mb-1.5 px-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Lainnya
         </h2>
-        <div className="space-y-4">
         <Card className="gap-0 py-0">
-          <CardContent className="p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              {(() => {
-                if (notifPermission === "unsupported" || pushStatus === "unsupported") {
-                  return <p className="text-sm font-medium">Browser tidak mendukung notifikasi push</p>
-                }
-                if (notifPermission === "denied") {
-                  return (
-                    <>
-                      <p className="text-sm font-medium">Izin ditolak</p>
-                      <p className="text-xs text-muted-foreground">Ubah di pengaturan browser untuk mengaktifkan.</p>
-                    </>
-                  )
-                }
-                if (notifPermission !== "granted") {
+          <CardContent className="p-0">
+            <div className="flex items-center justify-between gap-3 px-4 py-3">
+              <div>
+                {(() => {
+                  if (notifPermission === "unsupported" || pushStatus === "unsupported") {
+                    return <p className="text-sm font-medium">Browser tidak mendukung notifikasi push</p>
+                  }
+                  if (notifPermission === "denied") {
+                    return (
+                      <>
+                        <p className="text-sm font-medium">Izin ditolak</p>
+                        <p className="text-xs text-muted-foreground">Ubah di pengaturan browser untuk mengaktifkan.</p>
+                      </>
+                    )
+                  }
+                  if (notifPermission !== "granted") {
+                    return (
+                      <>
+                        <p className="text-sm font-medium">Notifikasi nonaktif</p>
+                        <p className="text-xs text-muted-foreground">Belum diaktifkan.</p>
+                      </>
+                    )
+                  }
+                  if (pushStatus === "checking") {
+                    return (
+                      <>
+                        <p className="text-sm font-medium">Memeriksa status…</p>
+                      </>
+                    )
+                  }
+                  if (pushStatus === "subscribed") {
+                    return (
+                      <>
+                        <p className="text-sm font-medium text-green-600">Terhubung</p>
+                        {subLabel && <p className="text-xs text-muted-foreground">Subscribe: {subLabel}</p>}
+                      </>
+                    )
+                  }
                   return (
                     <>
                       <p className="text-sm font-medium">Notifikasi nonaktif</p>
                       <p className="text-xs text-muted-foreground">Belum diaktifkan.</p>
                     </>
                   )
-                }
-                if (pushStatus === "checking") {
-                  return (
-                    <>
-                      <p className="text-sm font-medium">Memeriksa status…</p>
-                    </>
-                  )
-                }
-                if (pushStatus === "subscribed") {
-                  return (
-                    <>
-                      <p className="text-sm font-medium text-green-600">Terhubung</p>
-                      {subLabel && <p className="text-xs text-muted-foreground">Subscribe: {subLabel}</p>}
-                    </>
-                  )
-                }
-                return (
-                  <>
-                    <p className="text-sm font-medium">Notifikasi nonaktif</p>
-                    <p className="text-xs text-muted-foreground">Belum diaktifkan.</p>
-                  </>
-                )
-              })()}
+                })()}
+              </div>
+              {notifPermission !== "unsupported" && pushStatus !== "unsupported" && (
+                <Button
+                  variant={notifPermission === "granted" && pushStatus === "subscribed" ? "outline" : "secondary"}
+                  size="sm"
+                  onClick={notifPermission === "denied" ? openBrowserSettings : enableNotifications}
+                  disabled={notifSubscribing || pushStatus === "checking"}
+                >
+                  {notifSubscribing ? (
+                    <Spinner />
+                  ) : notifPermission === "denied" ? (
+                    "Buka Pengaturan"
+                  ) : notifPermission === "granted" && pushStatus === "subscribed" ? (
+                    "Perbarui"
+                  ) : (
+                    "Aktifkan"
+                  )}
+                </Button>
+              )}
             </div>
-            {notifPermission !== "unsupported" && pushStatus !== "unsupported" && (
-              <Button
-                variant={notifPermission === "granted" && pushStatus === "subscribed" ? "outline" : "secondary"}
-                size="sm"
-                onClick={notifPermission === "denied" ? openBrowserSettings : enableNotifications}
-                disabled={notifSubscribing || pushStatus === "checking"}
-              >
-                {notifSubscribing ? (
-                  <Spinner />
-                ) : notifPermission === "denied" ? (
-                  "Buka Pengaturan"
-                ) : notifPermission === "granted" && pushStatus === "subscribed" ? (
-                  "Perbarui"
-                ) : (
-                  "Aktifkan"
-                )}
-              </Button>
-            )}
-          </div>
-          </CardContent>
-        </Card>
 
-        {!installed && (
-          <Card className="gap-0 py-0">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between gap-3">
+            {!installed && (
+              <div className="flex items-center justify-between gap-3 border-t px-4 py-3">
                 <div>
                   <p className="text-sm font-medium">Instal aplikasi Pahamin</p>
                   <p className="text-xs text-muted-foreground">
@@ -361,24 +356,21 @@ function SettingsPage() {
                   </Button>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        )}
-        </div>
-      </section>
+            )}
 
-        <Card className="gap-0 py-0">
-          <CardContent className="p-4">
-            <p className="text-sm font-medium">Versi aplikasi</p>
-            <p className="text-xs text-muted-foreground">
-              {buildTime
-                ? `Build ${format(parseISO(buildTime), "d MMM yyyy, HH:mm", { locale: id })}`
-                : "Development Mode"}
-              {buildTime && commitSha && " · "}
-              {commitSha && `Commit ${commitSha.slice(0, 7)}`}
-            </p>
+            <div className="border-t px-4 py-3">
+              <p className="text-sm font-medium">Versi aplikasi</p>
+              <p className="text-xs text-muted-foreground">
+                {buildTime
+                  ? `Build ${format(parseISO(buildTime), "d MMM yyyy, HH:mm", { locale: id })}`
+                  : "Development Mode"}
+                {buildTime && commitSha && " · "}
+                {commitSha && `Commit ${commitSha.slice(0, 7)}`}
+              </p>
+            </div>
           </CardContent>
         </Card>
+      </section>
       </div>
 
       {modal === "notif-help" && (
