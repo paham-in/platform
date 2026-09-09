@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { GetAdminUsersData, UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { Search, SearchX, MoreVertical, Shield, Plus, Trash2, ChevronLeft, ChevronRight, Funnel, X, Link2, UserX } from "lucide-react"
-import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -336,6 +336,13 @@ function AdminUsers() {
                           <EmptyTitle>
                             {hasActiveFilter ? "Tidak ada user yang cocok dengan filter" : showDeleted ? "Belum ada akun yang dihapus" : "Tidak ada user ditemukan"}
                           </EmptyTitle>
+                          <EmptyDescription>
+                            {hasActiveFilter
+                              ? "Coba ubah kata kunci atau bersihkan filter yang aktif."
+                              : showDeleted
+                                ? "Akun guru yang dinonaktifkan akan muncul di sini."
+                                : "Tambahkan user baru lewat tombol Tambah User."}
+                          </EmptyDescription>
                         </EmptyHeader>
                         {hasActiveFilter && (
                           <EmptyContent>
@@ -389,6 +396,13 @@ function AdminUsers() {
                   <EmptyTitle>
                     {hasActiveFilter ? "Tidak ada user yang cocok dengan filter" : showDeleted ? "Belum ada akun yang dihapus" : "Tidak ada user ditemukan"}
                   </EmptyTitle>
+                  <EmptyDescription>
+                    {hasActiveFilter
+                      ? "Coba ubah kata kunci atau bersihkan filter yang aktif."
+                      : showDeleted
+                        ? "Akun guru yang dinonaktifkan akan muncul di sini."
+                        : "Tambahkan user baru lewat tombol Tambah User."}
+                  </EmptyDescription>
                 </EmptyHeader>
                 {hasActiveFilter && (
                   <EmptyContent>
