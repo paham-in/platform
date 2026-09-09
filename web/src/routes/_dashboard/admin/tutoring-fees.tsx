@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
 import { School } from "lucide-react"
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldError } from "@/components/ui/field"
@@ -270,6 +270,7 @@ function AdminSettings() {
           <EmptyHeader>
             <EmptyMedia variant="icon"><School /></EmptyMedia>
             <EmptyTitle>Belum ada kelas</EmptyTitle>
+            <EmptyDescription>Tambahkan kelas lewat halaman Program & Kelas.</EmptyDescription>
           </EmptyHeader>
         </Empty>
       </TableCell>
@@ -460,6 +461,7 @@ function AdminSettings() {
                 <EmptyHeader>
                   <EmptyMedia variant="icon"><School /></EmptyMedia>
                   <EmptyTitle>Belum ada kelas</EmptyTitle>
+                  <EmptyDescription>Tambahkan kelas lewat halaman Program & Kelas.</EmptyDescription>
                 </EmptyHeader>
               </Empty>
             ) : (
@@ -616,6 +618,7 @@ function AdminSettings() {
                 <EmptyHeader>
                   <EmptyMedia variant="icon"><School /></EmptyMedia>
                   <EmptyTitle>Belum ada kelas</EmptyTitle>
+                  <EmptyDescription>Tambahkan kelas lewat halaman Program & Kelas.</EmptyDescription>
                 </EmptyHeader>
               </Empty>
             ) : (
