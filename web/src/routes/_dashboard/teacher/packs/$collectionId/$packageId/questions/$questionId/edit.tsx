@@ -11,7 +11,7 @@ import { TiptapEditor } from "@/components/ui/tiptap-editor";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAdminQuestionPackagesByIdQuestionsOptions, getAdminQuestionPackagesQueryKey, patchAdminQuestionPackagesByIdQuestionsByQidMutation } from "@/lib/api/@tanstack/react-query.gen";
 import type { QuestionbankQuestionResponse } from "@/lib/api/types.gen";
-import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams, useRouter } from "@tanstack/react-router";
 
 import { toast } from "sonner";
 import { isEmptyContent } from "@/lib/html";
@@ -44,6 +44,7 @@ function toFormDefaults(question: QuestionbankQuestionResponse): QuestionFormVal
 function EditQuestionForm({ question, packageId, collectionId }: { question: QuestionbankQuestionResponse; packageId: string; collectionId: string }) {
   const qc = useQueryClient()
   const navigate = useNavigate()
+  const router = useRouter()
   const form = useForm<QuestionFormValues>({
     resolver: zodResolver(questionFormSchema),
     mode: "onTouched",
@@ -58,7 +59,12 @@ function EditQuestionForm({ question, packageId, collectionId }: { question: Que
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getAdminQuestionPackagesQueryKey() })
       toast.success("Soal berhasil diubah")
-      navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId }, replace: true })
+      // pop supaya tidak ada entri kembar; fallback replace untuk deep link
+      if (window.history.length > 1) {
+        router.history.back()
+      } else {
+        navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId }, replace: true })
+      }
     },
     onError: (err: any) => toast.error(err?.error || "Gagal mengubah soal"),
   })
@@ -160,7 +166,13 @@ function EditQuestionForm({ question, packageId, collectionId }: { question: Que
       />
 
       <div className="flex justify-end gap-3 pt-4">
-        <Button variant="outline" onClick={() => navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId }, replace: true })}>Batal</Button>
+        <Button variant="outline" onClick={() => {
+          if (window.history.length > 1) {
+            router.history.back()
+          } else {
+            navigate({ to: "/teacher/packs/$collectionId/$packageId", params: { collectionId, packageId }, replace: true })
+          }
+        }}>Batal</Button>
         <Button
           onClick={form.handleSubmit(save)}
           disabled={isPending || uploadingEditors > 0}

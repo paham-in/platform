@@ -22,7 +22,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { ForumQuestionResponse } from "@/lib/api/types.gen"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, useParams, useRouter } from "@tanstack/react-router"
 import { toast } from "sonner"
 
 const forumQuestionSchema = z.object({
@@ -35,6 +35,7 @@ type ForumQuestionValues = z.infer<typeof forumQuestionSchema>
 function EditQuestionForm({ question, id }: { question: ForumQuestionResponse; id: string }) {
   const qc = useQueryClient()
   const navigate = useNavigate()
+  const router = useRouter()
   const { data: subjects = [] } = useQuery(getSubjectsOptions())
   const form = useForm<ForumQuestionValues>({
     resolver: zodResolver(forumQuestionSchema),
@@ -53,7 +54,12 @@ function EditQuestionForm({ question, id }: { question: ForumQuestionResponse; i
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: getQuestionsByIdQueryKey({ path: { id } }) })
       toast.success("Pertanyaan berhasil diperbarui")
-      navigate({ to: "/student/forum/$id", params: { id }, replace: true })
+      // pop supaya tidak ada entri detail kembar; fallback replace untuk deep link
+      if (window.history.length > 1) {
+        router.history.back()
+      } else {
+        navigate({ to: "/student/forum/$id", params: { id }, replace: true })
+      }
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal memperbarui pertanyaan")
@@ -110,7 +116,13 @@ function EditQuestionForm({ question, id }: { question: ForumQuestionResponse; i
       />
 
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => navigate({ to: "/student/forum/$id", params: { id }, replace: true })}>Batal</Button>
+        <Button variant="outline" onClick={() => {
+          if (window.history.length > 1) {
+            router.history.back()
+          } else {
+            navigate({ to: "/student/forum/$id", params: { id }, replace: true })
+          }
+        }}>Batal</Button>
         <Button onClick={form.handleSubmit(submit)} disabled={isPending || editorUploading}>
           {isPending && <Spinner />}
           {editorUploading ? "Mengupload gambar..." : "Simpan Perubahan"}

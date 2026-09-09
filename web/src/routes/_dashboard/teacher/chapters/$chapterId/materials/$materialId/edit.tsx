@@ -25,7 +25,7 @@ import {
   patchAdminMaterialsByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useParams, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import { FileText, Type, Video } from "lucide-react";
 import { toast } from "sonner";
@@ -71,6 +71,7 @@ function EditMaterial() {
   const { chapterId, materialId } = useParams({ from: "/_dashboard/teacher/chapters/$chapterId/materials/$materialId/edit" });
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const router = useRouter();
   const { modal } = Route.useSearch();
   const { openModal, closeModal } = useDialogBack();
   const { data: material, isLoading, isError } = useQuery(getAdminMaterialsByIdOptions({ path: { id: Number(materialId) } }))
@@ -136,7 +137,12 @@ function EditMaterial() {
       clear();
       qc.invalidateQueries({ queryKey: getAdminMaterialsQueryKey() });
       toast.success("Materi berhasil disimpan");
-      navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId }, replace: true });
+      // pop supaya tidak ada entri kembar; fallback replace untuk deep link
+      if (window.history.length > 1) {
+        router.history.back();
+      } else {
+        navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId }, replace: true });
+      }
     },
     onError: (err: any) => {
       toast.error(err?.error || err?.message || "Gagal menyimpan materi");
@@ -339,7 +345,13 @@ function EditMaterial() {
                 />
               )}
             <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" type="button" onClick={() => navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId }, replace: true })}>Batal</Button>
+              <Button variant="outline" type="button" onClick={() => {
+                if (window.history.length > 1) {
+                  router.history.back();
+                } else {
+                  navigate({ to: "/teacher/chapters/$chapterId/materials", params: { chapterId }, replace: true });
+                }
+              }}>Batal</Button>
               <Button onClick={form.handleSubmit(save)} disabled={isPending || editorUploading}>
                 {isPending && <Spinner />}
                 {editorUploading ? "Mengupload gambar..." : "Simpan"}
