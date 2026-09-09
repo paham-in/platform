@@ -68,10 +68,16 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 	// create new user + assign default role (student) + buat sesi login dalam
 	// satu transaksi, kalau satu langkah gagal, user tidak jadi tersimpan
 	// setengah (user tanpa role atau tanpa sesi).
+	// google_id kosong (userinfo Google tak lengkap) disimpan NULL supaya
+	// tak menempati slot unique.
+	var googleIDPtr *string
+	if googleID != "" {
+		googleIDPtr = &googleID
+	}
 	user = &models.User{
 		Name:      name,
 		Email:     email,
-		GoogleID:  googleID,
+		GoogleID:  googleIDPtr,
 		AvatarURL: avatarURL,
 	}
 	var token string
@@ -243,13 +249,13 @@ func (s *Service) MergeDummyUser(dummyID, targetID uint) (*AdminMergeUserRespons
 	if err != nil {
 		return nil, errors.New("akun Google tidak ditemukan")
 	}
-	if dummy.GoogleID != "" {
+	if dummy.HasGoogle() {
 		return nil, errors.New("akun yang dipilih sudah punya google_id")
 	}
 	if dummy.Password != nil {
 		return nil, errors.New("akun yang dipilih sudah punya password, bukan akun sementara")
 	}
-	if target.GoogleID == "" {
+	if !target.HasGoogle() {
 		return nil, errors.New("target harus akun yang sudah login Google")
 	}
 	if !slices.Contains(roleNames(*dummy), "student") {
