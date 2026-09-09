@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useState, useEffect } from "react"
 import { z } from "zod"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -12,8 +13,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { MoreVertical, ShieldCheck, UserX } from "lucide-react"
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { MoreVertical, Search, SearchX, ShieldCheck, UserX, X } from "lucide-react"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Badge } from "@/components/ui/badge"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
@@ -21,6 +22,7 @@ import { TeacherPermissionsDialog } from "@/components/admin/users"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 
 const teacherPermissionsSearchSchema = z.object({
+  search: z.string().optional(),
   modal: z.string().optional(),
 })
 
@@ -31,10 +33,23 @@ function PermBadge({ granted, label }: { granted: boolean; label: string }) {
 }
 
 function AdminTeacherPermissions() {
-  const { modal } = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const { search, modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
+  const [searchInput, setSearchInput] = useState(search ?? "")
+
+  useEffect(() => { setSearchInput(search ?? "") }, [search])
+
+  // Debounce: query ke BE (filter nama/email di database, bukan di FE)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate({ search: (prev) => ({ ...prev, search: searchInput || undefined }), replace: true })
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchInput])
+
   const { data: teachers = [], isLoading } = useQuery(
-    getAdminUsersOptions({ query: { role: "teacher" } })
+    getAdminUsersOptions({ query: { role: "teacher", search } })
   )
   const [editing, setEditing] = useState<UserAdminListUsersResponse | null>(null)
   const [page, setPage] = useState(1)
@@ -55,6 +70,29 @@ function AdminTeacherPermissions() {
           Atur guru mana yang boleh membuat, mengubah, dan menghapus materi & paket soal. Guru tanpa
           izin tidak bisa mengelola konten platform.
         </p>
+
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="relative w-full max-w-sm flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              aria-label="Cari guru"
+              placeholder="Cari nama atau email..."
+              className="pl-9 pr-9"
+              value={searchInput}
+              onChange={(e) => { setSearchInput(e.target.value); setPage(1) }}
+              autoComplete="off" />
+            {searchInput && (
+              <button
+                type="button"
+                aria-label="Bersihkan pencarian"
+                onClick={() => { setSearchInput(""); setPage(1) }}
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Desktop table */}
         <Card className="hidden gap-0 pt-0 pb-0 md:block">
@@ -119,9 +157,27 @@ function AdminTeacherPermissions() {
                     <TableCell colSpan={5}>
                       <Empty className="border-0 p-8">
                         <EmptyHeader>
-                          <EmptyMedia variant="icon"><UserX /></EmptyMedia>
-                          <EmptyTitle>Tidak ada guru ditemukan</EmptyTitle>
+                          <EmptyMedia variant="icon">{search ? <SearchX /> : <UserX />}</EmptyMedia>
+                          <EmptyTitle>
+                            {search ? "Tidak ada guru yang cocok dengan pencarian" : "Tidak ada guru ditemukan"}
+                          </EmptyTitle>
+                          <EmptyDescription>
+                            {search
+                              ? "Coba ubah kata kunci atau bersihkan pencarian."
+                              : "Tambahkan guru lewat halaman Kelola User."}
+                          </EmptyDescription>
                         </EmptyHeader>
+                        {search && (
+                          <EmptyContent>
+                            <Button variant="outline" size="sm" onClick={() => {
+                              setSearchInput("")
+                              navigate({ search: {}, replace: true })
+                              setPage(1)
+                            }}>
+                              <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                            </Button>
+                          </EmptyContent>
+                        )}
                       </Empty>
                     </TableCell>
                   </TableRow>
@@ -165,9 +221,27 @@ function AdminTeacherPermissions() {
             ) : paged.length === 0 ? (
               <Empty className="p-8">
                 <EmptyHeader>
-                  <EmptyMedia variant="icon"><UserX /></EmptyMedia>
-                  <EmptyTitle>Tidak ada guru ditemukan</EmptyTitle>
+                  <EmptyMedia variant="icon">{search ? <SearchX /> : <UserX />}</EmptyMedia>
+                  <EmptyTitle>
+                    {search ? "Tidak ada guru yang cocok dengan pencarian" : "Tidak ada guru ditemukan"}
+                  </EmptyTitle>
+                  <EmptyDescription>
+                    {search
+                      ? "Coba ubah kata kunci atau bersihkan pencarian."
+                      : "Tambahkan guru lewat halaman Kelola User."}
+                  </EmptyDescription>
                 </EmptyHeader>
+                {search && (
+                  <EmptyContent>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setSearchInput("")
+                      navigate({ search: {}, replace: true })
+                      setPage(1)
+                    }}>
+                      <X className="mr-1 h-4 w-4" /> Bersihkan pencarian
+                    </Button>
+                  </EmptyContent>
+                )}
               </Empty>
             ) : (
               <div className="divide-y">
