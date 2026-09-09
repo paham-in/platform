@@ -449,6 +449,52 @@ func newListSessionsResponse(v models.TutoringSession) ListSessionsResponse {
 	return ListSessionsResponse(buildSessionItem(v))
 }
 
+//, handler: AdminTeacherSchedule (GET /admin/tutoring/teachers/{id}/schedule)
+
+type AdminTeacherSessionResponse struct {
+	ID           uint   `json:"id"`
+	BookingID    uint   `json:"booking_id"`
+	Date         string `json:"date"`
+	StartTime    string `json:"start_time"`
+	EndTime      string `json:"end_time"`
+	Status       string `json:"status"`
+	Student      string `json:"student_name"`
+	Subject      string `json:"subject_name"`
+	Mode         string `json:"mode"`
+	IsSubstitute bool   `json:"is_substitute,omitempty"`
+}
+
+func newAdminTeacherSessionResponse(v models.TutoringSession) AdminTeacherSessionResponse {
+	studentName, subjectName, mode := "", "", ""
+	if v.Booking != nil {
+		if v.Booking.Student != nil {
+			studentName = v.Booking.Student.Name
+		}
+		if v.Booking.Subject != nil {
+			subjectName = v.Booking.Subject.Name
+		}
+		mode = v.Booking.Mode
+	}
+	return AdminTeacherSessionResponse{
+		ID:           v.ID,
+		BookingID:    v.BookingID,
+		Date:         v.Date,
+		StartTime:    v.StartTime,
+		EndTime:      v.EndTime,
+		Status:       v.Status,
+		Student:      studentName,
+		Subject:      subjectName,
+		Mode:         mode,
+		IsSubstitute: isSubstituteSession(v),
+	}
+}
+
+type AdminTeacherScheduleResponse struct {
+	Teacher         ListTeachersResponse         `json:"teacher"`
+	Sessions        []AdminTeacherSessionResponse `json:"sessions"`
+	PendingBookings []AdminListBookingsResponse   `json:"pending_bookings"`
+}
+
 //, handler: UpdateSession (PATCH /tutoring/sessions/:id)
 
 type UpdateSessionResponse struct {

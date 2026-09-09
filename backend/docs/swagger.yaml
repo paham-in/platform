@@ -1188,6 +1188,42 @@ definitions:
       teacher_name:
         type: string
     type: object
+  tutoring.AdminTeacherScheduleResponse:
+    properties:
+      pending_bookings:
+        items:
+          $ref: '#/definitions/tutoring.AdminListBookingsResponse'
+        type: array
+      sessions:
+        items:
+          $ref: '#/definitions/tutoring.AdminTeacherSessionResponse'
+        type: array
+      teacher:
+        $ref: '#/definitions/tutoring.ListTeachersResponse'
+    type: object
+  tutoring.AdminTeacherSessionResponse:
+    properties:
+      booking_id:
+        type: integer
+      date:
+        type: string
+      end_time:
+        type: string
+      id:
+        type: integer
+      is_substitute:
+        type: boolean
+      mode:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      student_name:
+        type: string
+      subject_name:
+        type: string
+    type: object
   tutoring.AdminToggleFeePaidResponse:
     properties:
       actual_end_time:
@@ -4187,6 +4223,42 @@ paths:
       security:
       - BearerAuth: []
       summary: Swap session teacher
+      tags:
+      - Admin Tutoring
+  /admin/tutoring/teachers/{id}/schedule:
+    get:
+      consumes:
+      - application/json
+      description: 'Jadwal mengajar satu guru: semua sesi konkret + booking pending
+        yang belum punya sesi. Dipakai halaman jadwal guru admin (read-only).'
+      parameters:
+      - description: Teacher user ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/tutoring.AdminTeacherScheduleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/tutoring.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Teacher schedule
       tags:
       - Admin Tutoring
   /admin/users:

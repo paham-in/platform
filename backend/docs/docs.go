@@ -3170,6 +3170,61 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/tutoring/teachers/{id}/schedule": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Jadwal mengajar satu guru: semua sesi konkret + booking pending yang belum punya sesi. Dipakai halaman jadwal guru admin (read-only).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "Teacher schedule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Teacher user ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.AdminTeacherScheduleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/users": {
             "get": {
                 "security": [
@@ -7601,6 +7656,61 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.AdminTeacherScheduleResponse": {
+            "type": "object",
+            "properties": {
+                "pending_bookings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tutoring.AdminListBookingsResponse"
+                    }
+                },
+                "sessions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tutoring.AdminTeacherSessionResponse"
+                    }
+                },
+                "teacher": {
+                    "$ref": "#/definitions/tutoring.ListTeachersResponse"
+                }
+            }
+        },
+        "tutoring.AdminTeacherSessionResponse": {
+            "type": "object",
+            "properties": {
+                "booking_id": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_substitute": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "student_name": {
+                    "type": "string"
+                },
+                "subject_name": {
                     "type": "string"
                 }
             }

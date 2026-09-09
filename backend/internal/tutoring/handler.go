@@ -757,6 +757,34 @@ func (h *Handler) AdminSwapSessionTeacher(c *fiber.Ctx) error {
 	return c.JSON(session)
 }
 
+// AdminTeacherSchedule mengembalikan jadwal mengajar satu guru (admin only)
+// @Summary      Teacher schedule
+// @Description  Jadwal mengajar satu guru: semua sesi konkret + booking pending yang belum punya sesi. Dipakai halaman jadwal guru admin (read-only).
+// @Tags         Admin Tutoring
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Teacher user ID"
+// @Success      200 {object} AdminTeacherScheduleResponse
+// @Failure      400 {object} ErrorResponse
+// @Failure      404 {object} ErrorResponse
+// @Failure      500 {object} ErrorResponse
+// @Router       /admin/tutoring/teachers/{id}/schedule [get]
+func (h *Handler) AdminTeacherSchedule(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	sched, err := h.svc.AdminTeacherSchedule(uint(id))
+	if err != nil {
+		if err.Error() == "guru tidak ditemukan" {
+			return c.Status(404).JSON(ErrorResponse{Error: err.Error()})
+		}
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(sched)
+}
+
 // AdminBookingSessions lists all sessions of one booking (admin only)
 // @Summary      List booking sessions
 // @Description  Mengembalikan semua sesi satu booking + nama guru per sesi. Dipakai halaman detail booking admin.
@@ -919,6 +947,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, store *storage.ObjectStorage, 
 	admin.Post("/tutoring/bookings/:id/extend", h.AdminExtendBooking)
 	admin.Patch("/tutoring/bookings/:id/reassign", h.AdminReassignTeacher)
 	admin.Get("/tutoring/bookings/:id/sessions", h.AdminBookingSessions)
+	admin.Get("/tutoring/teachers/:id/schedule", h.AdminTeacherSchedule)
 	admin.Patch("/tutoring/sessions/:id/teacher", h.AdminSwapSessionTeacher)
 	admin.Get("/tutoring/evidence", h.AdminListEvidence)
 	admin.Patch("/tutoring/evidence/:id", h.AdminReviewEvidence)

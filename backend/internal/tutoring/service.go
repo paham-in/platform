@@ -1810,6 +1810,42 @@ func (s *Service) ListTeacherSessions(teacherID uint) ([]ListSessionsResponse, e
 	return res, nil
 }
 
+// AdminTeacherSchedule mengembalikan jadwal mengajar satu guru (admin):
+// semua sesi konkret + booking pending yang belum punya sesi.
+func (s *Service) AdminTeacherSchedule(teacherID uint) (*AdminTeacherScheduleResponse, error) {
+	t, err := s.repo.GetTeacher(teacherID)
+	if err != nil {
+		return nil, errors.New("guru tidak ditemukan")
+	}
+	sessions, err := s.repo.ListSessionsByTeacher(teacherID)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]AdminTeacherSessionResponse, len(sessions))
+	for i, v := range sessions {
+		res[i] = newAdminTeacherSessionResponse(v)
+	}
+	bookings, err := s.repo.ListBookingsByTeacher(teacherID)
+	if err != nil {
+		return nil, err
+	}
+	var pending []AdminListBookingsResponse
+	for _, b := range bookings {
+		if b.Status != "pending" {
+			continue
+		}
+		pending = append(pending, newAdminListBookingsResponse(b))
+	}
+	if pending == nil {
+		pending = []AdminListBookingsResponse{}
+	}
+	return &AdminTeacherScheduleResponse{
+		Teacher:         newListTeachersResponse(*t),
+		Sessions:        res,
+		PendingBookings: pending,
+	}, nil
+}
+// Dipakai halaman detail booking admin: butuh guru per sesi + status sesi.
 // ListBookingSessions mengembalikan semua sesi satu booking (admin).
 // Dipakai halaman detail booking admin: butuh guru per sesi + status sesi.
 func (s *Service) ListBookingSessions(bookingID uint) ([]ListSessionsResponse, error) {

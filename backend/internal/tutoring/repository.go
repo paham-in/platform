@@ -32,6 +32,17 @@ func (r *Repository) ListTeachers() ([]models.User, error) {
 	return users, nil
 }
 
+// GetTeacher mengambil user ber-role teacher (untuk validasi endpoint jadwal guru admin).
+func (r *Repository) GetTeacher(id uint) (*models.User, error) {
+	var u models.User
+	if err := r.db.Preload("Subjects").
+		Where("EXISTS (SELECT 1 FROM user_roles JOIN roles ON roles.id = user_roles.role_id WHERE user_roles.user_id = users.id AND roles.name = 'teacher')").
+		First(&u, id).Error; err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
 // ListTeachersBySubject mengembalikan guru yang mengajar subject tertentu.
 func (r *Repository) ListTeachersBySubject(subjectID uint) ([]models.User, error) {
 	var users []models.User
@@ -287,6 +298,7 @@ func (r *Repository) ListSessionsByTeacher(teacherID uint) ([]models.TutoringSes
 		Preload("Teacher").
 		Preload("Booking.Student").
 		Preload("Booking.Teacher").
+		Preload("Booking.Subject").
 		Order("tutoring_sessions.date, tutoring_sessions.start_time").
 		Find(&sessions).Error; err != nil {
 		return nil, err

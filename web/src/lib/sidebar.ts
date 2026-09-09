@@ -92,6 +92,7 @@ export const sidebarGroups: SidebarGroup[] = [
         ],
       },
       { label: "Daftar Booking", icon: Calendar, to: "/admin/bookings" },
+      { label: "Jadwal Guru", icon: Calendar, to: "/admin/teacher-schedules" },
       { label: "Langganan Konten", icon: Sparkles, to: "/admin/subscriptions" },
       { label: "Forum", icon: MessageSquare, to: "/admin/forum" },
       { label: "Dev Tools", icon: DatabaseZap, to: "/admin/dev-reset", devOnly: true },
