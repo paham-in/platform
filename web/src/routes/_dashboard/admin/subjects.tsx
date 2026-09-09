@@ -31,7 +31,7 @@ import {
   SearchX,
   BookX,
 } from "lucide-react";
-import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { useState, useEffect, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -297,6 +297,11 @@ function AdminSubjects() {
                           <EmptyTitle>
                             {hasActiveFilter ? "Tidak ada mata pelajaran yang cocok dengan filter" : "Tidak ada mata pelajaran ditemukan"}
                           </EmptyTitle>
+                          <EmptyDescription>
+                            {hasActiveFilter
+                              ? "Coba ubah kata kunci atau bersihkan filter yang aktif."
+                              : "Tambahkan mata pelajaran baru lewat tombol Tambah."}
+                          </EmptyDescription>
                         </EmptyHeader>
                         {hasActiveFilter && (
                           <EmptyContent>
@@ -355,6 +360,11 @@ function AdminSubjects() {
                   <EmptyTitle>
                     {hasActiveFilter ? "Tidak ada mata pelajaran yang cocok dengan filter" : "Tidak ada mata pelajaran ditemukan"}
                   </EmptyTitle>
+                  <EmptyDescription>
+                    {hasActiveFilter
+                      ? "Coba ubah kata kunci atau bersihkan filter yang aktif."
+                      : "Tambahkan mata pelajaran baru lewat tombol Tambah."}
+                  </EmptyDescription>
                 </EmptyHeader>
                 {hasActiveFilter && (
                   <EmptyContent>
