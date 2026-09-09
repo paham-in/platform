@@ -53,6 +53,18 @@ func (s *Service) LoginOrCreateWithGoogle(googleID, email, name, avatarURL strin
 		return &AuthResponse{Token: token, User: newMeResponse(*user)}, nil
 	}
 
+	// akun soft-delete tetap menempati slot unique email/google_id tapi tak
+	// terlihat lookup scoped di atas. Tolak dengan pesan jelas sebelum INSERT
+	// menabrak unique index.
+	if googleID != "" {
+		if du, err := s.userRepo.GetByGoogleIDIncludingDeleted(googleID); err == nil && du.DeletedAt.Valid {
+			return nil, errAccountDeleted
+		}
+	}
+	if du, err := s.userRepo.GetByEmailIncludingDeleted(email); err == nil && du.DeletedAt.Valid {
+		return nil, errAccountDeleted
+	}
+
 	// create new user + assign default role (student) + buat sesi login dalam
 	// satu transaksi, kalau satu langkah gagal, user tidak jadi tersimpan
 	// setengah (user tanpa role atau tanpa sesi).
@@ -150,8 +162,8 @@ func roleNames(u models.User) []string {
 	return names
 }
 
-func (s *Service) ListUsers(search string, role string) ([]AdminListUsersResponse, error) {
-	users, err := s.userRepo.List(search, role)
+func (s *Service) ListUsers(search string, role string, onlyDeleted bool) ([]AdminListUsersResponse, error) {
+	users, err := s.userRepo.List(search, role, onlyDeleted)
 	if err != nil {
 		return nil, err
 	}
@@ -187,6 +199,11 @@ func (s *Service) AdminCreateStudent(input AdminCreateUserRequest) (*AdminCreate
 		return nil, errors.New("email wajib diisi")
 	}
 	if _, err := s.userRepo.GetByEmail(email); err == nil {
+		return nil, errEmailExists
+	}
+	// email milik akun soft-delete tak terlihat lookup di atas tapi tetap
+	// menempati slot unique, tolak dengan pesan yang sama sebelum INSERT meledak.
+	if du, err := s.userRepo.GetByEmailIncludingDeleted(email); err == nil && du.DeletedAt.Valid {
 		return nil, errEmailExists
 	}
 
@@ -259,6 +276,9 @@ func (s *Service) UpdateUserEmail(id uint, email string) error {
 		return errors.New("email wajib diisi")
 	}
 	if existing, err := s.userRepo.GetByEmail(email); err == nil && existing.ID != id {
+		return errEmailExists
+	}
+	if du, err := s.userRepo.GetByEmailIncludingDeleted(email); err == nil && du.ID != id && du.DeletedAt.Valid {
 		return errEmailExists
 	}
 	return s.userRepo.UpdateEmail(id, email)

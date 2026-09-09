@@ -42,14 +42,29 @@ func (r *UserRepository) Create(user *models.User) error {
 	return r.db.Create(user).Error
 }
 
+// GetByEmailIncludingDeleted mencari user termasuk yang sudah soft-delete.
+// Dipakai untuk mendeteksi tabrakan identitas sebelum INSERT menabrak unique index.
+func (r *UserRepository) GetByEmailIncludingDeleted(email string) (*models.User, error) {
+	var user models.User
+	if err := r.db.Unscoped().Preload("Roles").Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 // UpdateEmail mengganti email user (dipakai utk menghubungkan akun dummy
 // dengan email asli murid supaya login Google ter-link).
 func (r *UserRepository) UpdateEmail(id uint, email string) error {
 	return r.db.Model(&models.User{}).Where("id = ?", id).Update("email", email).Error
 }
 
-func (r *UserRepository) List(search string, role string) ([]models.User, error) {
+// List mengembalikan user aktif. onlyDeleted=true hanya mengembalikan yang
+// sudah soft-delete (dipakai admin untuk melihat akun guru yang dinonaktifkan).
+func (r *UserRepository) List(search string, role string, onlyDeleted bool) ([]models.User, error) {
 	query := r.db.Preload("Roles").Preload("Subjects").Preload("TeacherPermission").Order("created_at desc")
+	if onlyDeleted {
+		query = query.Unscoped().Where("users.deleted_at IS NOT NULL")
+	}
 
 	if search != "" {
 		like := "%" + search + "%"
@@ -110,6 +125,16 @@ func (r *UserRepository) GetByGoogleID(googleID string) (*models.User, error) {
 	return &user, nil
 }
 
+// GetByGoogleIDIncludingDeleted mencari user termasuk yang sudah soft-delete.
+// Dipakai untuk mendeteksi tabrakan identitas sebelum INSERT menabrak unique index.
+func (r *UserRepository) GetByGoogleIDIncludingDeleted(googleID string) (*models.User, error) {
+	var user models.User
+	if err := r.db.Unscoped().Preload("Roles").Where("google_id = ?", googleID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 // Delete menghapus user. Role teacher di-soft delete dulu (kebijakan belum final);
 // role lain (user/student) di-hard delete beserta semua data yang merujuk padanya.
 func (r *UserRepository) Delete(id uint) error {
@@ -119,7 +144,17 @@ func (r *UserRepository) Delete(id uint) error {
 	}
 	for _, role := range user.Roles {
 		if role.Name == "teacher" {
-			return r.db.Delete(&models.User{}, id).Error // soft delete
+			// soft delete, tapi cabut sesi + langganan push supaya langsung
+			// logout di semua perangkat dan tidak terima notif lagi.
+			return r.db.Transaction(func(tx *gorm.DB) error {
+				if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.Session{}).Error; err != nil {
+					return err
+				}
+				if err := tx.Unscoped().Where("user_id = ?", id).Delete(&models.PushSubscription{}).Error; err != nil {
+					return err
+				}
+				return tx.Delete(&models.User{}, id).Error
+			})
 		}
 	}
 	return r.hardDelete(id)

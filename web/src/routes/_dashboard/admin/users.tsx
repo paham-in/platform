@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState, useEffect, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
-import type { UserAdminListUsersResponse } from "@/lib/api/types.gen"
+import type { GetAdminUsersData, UserAdminListUsersResponse } from "@/lib/api/types.gen"
 import { Search, SearchX, MoreVertical, Shield, Plus, Trash2, ChevronLeft, ChevronRight, Funnel, X, Link2, UserX } from "lucide-react"
 import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
@@ -28,6 +28,7 @@ import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 const usersSearchSchema = z.object({
   role: z.enum(["student", "teacher", "admin"]).optional(),
   account: z.enum(["google", "dummy"]).optional(),
+  status: z.enum(["active", "deleted"]).optional(),
   search: z.string().optional(),
   modal: z.string().optional(),
 })
@@ -45,6 +46,11 @@ const accountOptions = [
   { label: "Sementara", value: "dummy" },
 ]
 
+const statusOptions = [
+  { label: "Aktif", value: "active" },
+  { label: "Dihapus", value: "deleted" },
+]
+
 // selaras badge di tabel: google = login Google, sementara = sisanya
 function matchAccount(u: UserAdminListUsersResponse, account?: "google" | "dummy") {
   if (!account) return true
@@ -58,6 +64,8 @@ function UserFilterMenu({
   onRoleChange,
   accountValue,
   onAccountChange,
+  statusValue,
+  onStatusChange,
   activeCount,
 }: {
   compact?: boolean;
@@ -65,6 +73,8 @@ function UserFilterMenu({
   onRoleChange: (v: string) => void;
   accountValue: string;
   onAccountChange: (v: string) => void;
+  statusValue: string;
+  onStatusChange: (v: string) => void;
   activeCount: number;
 }) {
   return (
@@ -104,6 +114,12 @@ function UserFilterMenu({
             <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
+        <DropdownMenuRadioGroup value={statusValue} onValueChange={(v) => { if (v) onStatusChange(v); }}>
+          <DropdownMenuLabel>Status Akun</DropdownMenuLabel>
+          {statusOptions.map((opt) => (
+            <DropdownMenuRadioItem key={opt.value} value={opt.value}>{opt.label}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -111,7 +127,7 @@ function UserFilterMenu({
 
 function AdminUsers() {
   const navigate = useNavigate({ from: Route.fullPath })
-  const { role: roleFilter, account: accountFilter, search, modal } = Route.useSearch()
+  const { role: roleFilter, account: accountFilter, status: statusFilter, search, modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
   const [searchInput, setSearchInput] = useState(search ?? "")
 
@@ -127,11 +143,17 @@ function AdminUsers() {
   }, [searchInput])
 
   const { data: users = [], isLoading } = useQuery(getAdminUsersOptions({
-    query: { search, role: roleFilter },
+    // `deleted` belum ada di tipe generated (regen SDK tertunda: generator crash di TS7)
+    query: {
+      search,
+      role: roleFilter,
+      ...(statusFilter === "deleted" ? { deleted: true } : {}),
+    } as GetAdminUsersData["query"],
   }))
 
+  const showDeleted = statusFilter === "deleted"
   const filtered = users.filter((u) => matchAccount(u, accountFilter))
-  const activeFilterCount = (roleFilter ? 1 : 0) + (accountFilter ? 1 : 0)
+  const activeFilterCount = (roleFilter ? 1 : 0) + (accountFilter ? 1 : 0) + (showDeleted ? 1 : 0)
   const hasActiveFilter = !!search || !!roleFilter || !!accountFilter
   const [editing, setEditing] = useState<UserAdminListUsersResponse | null>(null)
   const [page, setPage] = useState(1)
@@ -156,8 +178,14 @@ function AdminUsers() {
     setPage(1)
   }
 
+  const setStatus = (v: string) => {
+    navigate({ search: (prev) => ({ ...prev, status: v === "active" ? undefined : (v as "deleted") }), replace: true })
+    setPage(1)
+  }
+
   const roleFilterValue = roleFilter ?? "all"
   const accountFilterValue = accountFilter ?? "all"
+  const statusFilterValue = statusFilter ?? "active"
   const headerFilter = useMemo(
     () => (
       <UserFilterMenu
@@ -166,10 +194,12 @@ function AdminUsers() {
         onRoleChange={setRole}
         accountValue={accountFilterValue}
         onAccountChange={setAccount}
+        statusValue={statusFilterValue}
+        onStatusChange={setStatus}
         activeCount={activeFilterCount}
       />
     ),
-    [roleFilterValue, accountFilterValue, activeFilterCount]
+    [roleFilterValue, accountFilterValue, statusFilterValue, activeFilterCount]
   )
   usePageHeaderAction(headerFilter)
 
@@ -213,6 +243,8 @@ function AdminUsers() {
               onRoleChange={setRole}
               accountValue={accountFilterValue}
               onAccountChange={setAccount}
+              statusValue={statusFilterValue}
+              onStatusChange={setStatus}
               activeCount={activeFilterCount}
             />
           </div>
@@ -229,7 +261,7 @@ function AdminUsers() {
                   <TableHead>Nomor WA</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Tanggal Daftar</TableHead>
-                  <TableHead className="pr-6 text-right">Aksi</TableHead>
+                  {!showDeleted && <TableHead className="pr-6 text-right">Aksi</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -271,6 +303,7 @@ function AdminUsers() {
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{u.created_at}</TableCell>
+                    {!showDeleted && (
                     <TableCell className="pr-6 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
@@ -291,16 +324,17 @@ function AdminUsers() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
+                    )}
                   </TableRow>
                 ))}
                 {!isLoading && paged.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6}>
+                    <TableCell colSpan={showDeleted ? 5 : 6}>
                       <Empty className="border-0 p-8">
                         <EmptyHeader>
                           <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <UserX />}</EmptyMedia>
                           <EmptyTitle>
-                            {hasActiveFilter ? "Tidak ada user yang cocok dengan filter" : "Tidak ada user ditemukan"}
+                            {hasActiveFilter ? "Tidak ada user yang cocok dengan filter" : showDeleted ? "Belum ada akun yang dihapus" : "Tidak ada user ditemukan"}
                           </EmptyTitle>
                         </EmptyHeader>
                         {hasActiveFilter && (
@@ -353,7 +387,7 @@ function AdminUsers() {
                 <EmptyHeader>
                   <EmptyMedia variant="icon">{hasActiveFilter ? <SearchX /> : <UserX />}</EmptyMedia>
                   <EmptyTitle>
-                    {hasActiveFilter ? "Tidak ada user yang cocok dengan filter" : "Tidak ada user ditemukan"}
+                    {hasActiveFilter ? "Tidak ada user yang cocok dengan filter" : showDeleted ? "Belum ada akun yang dihapus" : "Tidak ada user ditemukan"}
                   </EmptyTitle>
                 </EmptyHeader>
                 {hasActiveFilter && (
@@ -391,6 +425,7 @@ function AdminUsers() {
                         {(u.roles ?? []).length === 0 && <span className="text-xs text-muted-foreground">-</span>}
                       </div>
                     </div>
+                    {!showDeleted && (
                     <DropdownMenu>
                       <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="shrink-0" />}>
                         <MoreVertical className="h-4 w-4" />
@@ -409,6 +444,7 @@ function AdminUsers() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    )}
                   </div>
                 ))}
               </div>

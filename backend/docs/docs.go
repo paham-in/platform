@@ -3200,6 +3200,12 @@ const docTemplate = `{
                         "description": "Filter by role (student/teacher/admin)",
                         "name": "role",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "true = hanya akun yang sudah dihapus (soft-delete)",
+                        "name": "deleted",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -3633,6 +3639,24 @@ const docTemplate = `{
                 "responses": {
                     "302": {
                         "description": "Found"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/user.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Akun dinonaktifkan (login?error=account_deleted)",
+                        "schema": {
+                            "$ref": "#/definitions/user.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/user.ErrorResponse"
+                        }
                     }
                 }
             }

@@ -1,4 +1,5 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
+import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -14,6 +15,7 @@ import type { GetMeResponse } from "@/lib/api/types.gen"
 
 function LoginPage() {
   const navigate = useNavigate()
+  const { error } = Route.useSearch()
   const googleLogin = () => {
     const baseUrl = client.getConfig().baseUrl || "http://localhost:8080/"
     window.location.href = `${baseUrl.replace(/\/+$/, "")}/auth/google`
@@ -32,6 +34,11 @@ function LoginPage() {
         </CardHeader>
 
         <CardContent>
+          {error === "account_deleted" && (
+            <p className="mb-3 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              Akun ini telah dinonaktifkan. Hubungi admin untuk mengaktifkannya kembali.
+            </p>
+          )}
           <Button
             onClick={googleLogin}
             className="w-full gap-3"
@@ -52,6 +59,7 @@ function LoginPage() {
 }
 
 export const Route = createFileRoute("/login")({
+  validateSearch: z.object({ error: z.string().optional() }),
   beforeLoad: async () => {
     if (!localStorage.getItem("token")) return
     let user: GetMeResponse | undefined

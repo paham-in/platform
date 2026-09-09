@@ -75,14 +75,16 @@ func (h *Handler) Me(c *fiber.Ctx) error {
 // @Security     BearerAuth
 // @Param        search query    string false "Filter by name or email"
 // @Param        role    query    string false "Filter by role (student/teacher/admin)"
+// @Param        deleted query    boolean false "true = hanya akun yang sudah dihapus (soft-delete)"
 // @Success      200 {array} AdminListUsersResponse
 // @Failure      500 {object} ErrorResponse
 // @Router       /admin/users [get]
 func (h *Handler) AdminListUsers(c *fiber.Ctx) error {
 	search := c.Query("search", "")
 	role := c.Query("role", "")
+	onlyDeleted := c.Query("deleted") == "true"
 
-	users, err := h.svc.ListUsers(search, role)
+	users, err := h.svc.ListUsers(search, role, onlyDeleted)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data user"})
 	}
@@ -100,7 +102,7 @@ func (h *Handler) AdminListUsers(c *fiber.Ctx) error {
 // @Failure      500 {object} ErrorResponse
 // @Router       /admin/students [get]
 func (h *Handler) AdminListStudents(c *fiber.Ctx) error {
-	users, err := h.svc.ListUsers("", "student")
+	users, err := h.svc.ListUsers("", "student", false)
 	if err != nil {
 		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data siswa"})
 	}

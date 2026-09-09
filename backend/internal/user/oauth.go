@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -86,6 +87,9 @@ func (h *Handler) GoogleLogin(c *fiber.Ctx) error {
 // @Description  Exchange code for token, get user info, create session
 // @Tags         Auth
 // @Success      302
+// @Failure      400 {object} ErrorResponse
+// @Failure      403 {object} ErrorResponse "Akun dinonaktifkan (login?error=account_deleted)"
+// @Failure      500 {object} ErrorResponse
 // @Router       /auth/google/callback [get]
 func (h *Handler) GoogleCallback(c *fiber.Ctx) error {
 	code := c.Query("code")
@@ -119,6 +123,11 @@ func (h *Handler) GoogleCallback(c *fiber.Ctx) error {
 	// login or create user
 	result, err := h.svc.LoginOrCreateWithGoogle(userInfo.ID, userInfo.Email, userInfo.Name, userInfo.Picture)
 	if err != nil {
+		// akun dinonaktifkan: kembalikan ke halaman login dengan kode error
+		// (bukan JSON mentah) supaya pesannya tampil ke user.
+		if errors.Is(err, errAccountDeleted) {
+			return c.Redirect(loginErrorURL(h.oauthCfg.AppURL, c.Cookies("oauth_redirect")), fiber.StatusFound)
+		}
 		return c.Status(500).JSON(ErrorResponse{Error: err.Error()})
 	}
 
@@ -129,6 +138,16 @@ func (h *Handler) GoogleCallback(c *fiber.Ctx) error {
 		c.ClearCookie("oauth_redirect")
 	}
 	return c.Redirect(target+"/auth/callback?token="+result.Token, fiber.StatusFound)
+}
+
+// loginErrorURL mengembalikan URL halaman login dengan kode error, memakai
+// target yang sama dengan alur sukses (web atau skema pahamin:// untuk mobile).
+func loginErrorURL(appURL, redirectCookie string) string {
+	target := appURL
+	if redirectCookie != "" {
+		target = redirectCookie
+	}
+	return strings.TrimSuffix(target, "/") + "/login?error=account_deleted"
 }
 
 func (h *Handler) exchangeCode(code string) (string, error) {
