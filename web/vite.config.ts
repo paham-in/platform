@@ -8,7 +8,7 @@ import { VitePWA } from "vite-plugin-pwa";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    tanstackRouter({ target: "react" }),
+    tanstackRouter({ target: "react", autoCodeSplitting: true }),
     react(),
     tailwindcss(),
     VitePWA({
@@ -19,8 +19,6 @@ export default defineConfig({
       filename: "sw.ts",
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2,woff,ttf}"],
-        // Bundle utama > 2 MiB (default limit Workbox), naikkan supaya app shell ter-precache.
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
       manifest: {
         name: "Pahamin",
