@@ -1984,7 +1984,6 @@ func (s *Service) reconcileBookingInvoice(tx *gorm.DB, bookingID uint, newlyCanc
 		return changed, nil // tidak ada invoice → tidak ada yang direkonsiliasi
 	}
 	perSession := s.perSessionPrice(booking.ClassID, booking.Mode)
-	refund := perSession * float64(cancelled)
 	updates := map[string]interface{}{}
 	if inv.Status == "pending" {
 		// Tagihan belum dibayar → koreksi nominalnya langsung, bukan refund.
@@ -2004,10 +2003,39 @@ func (s *Service) reconcileBookingInvoice(tx *gorm.DB, bookingID uint, newlyCanc
 			}
 			updates["note"] = note
 		}
-	} else if inv.RefundAmount != refund {
-		// Tagihan sudah lunas → uang sudah masuk, koreksi dicatat sebagai refund
-		// (penulisan absolut, idempotent).
-		updates["refund_amount"] = refund
+	} else if inv.Status == "paid" {
+		// Tagihan sudah lunas → tiap sesi batal melahirkan tepat satu klaim
+		// refund (find-or-create per session_id). Klaim tak pernah ditimpa,
+		// jadi flag done selalu jujur (tutup bug K5: angka ditimpa, done diam).
+		if perSession > 0 {
+			var have []uint
+			if err := tx.Model(&models.RefundClaim{}).
+				Where("booking_id = ? AND session_id IS NOT NULL", bookingID).
+				Pluck("session_id", &have).Error; err != nil {
+				return false, err
+			}
+			has := make(map[uint]bool, len(have))
+			for _, id := range have {
+				has[id] = true
+			}
+			for _, sess := range sessions {
+				if sess.Status != "cancelled" || has[sess.ID] {
+					continue
+				}
+				sid := sess.ID
+				claim := models.RefundClaim{
+					InvoiceID: inv.ID,
+					BookingID: bookingID,
+					SessionID: &sid,
+					Amount:    perSession,
+					Note:      fmt.Sprintf("Refund sesi %s %s-%s", sess.Date, sess.StartTime, sess.EndTime),
+				}
+				if err := tx.Create(&claim).Error; err != nil {
+					return false, err
+				}
+				changed = true
+			}
+		}
 	}
 	if active == 0 && inv.Status == "pending" {
 		updates["status"] = "batal"
@@ -2150,9 +2178,6 @@ func (s *Service) RestoreSession(sessionID, teacherID uint, isAdmin bool) (*Canc
 			}
 			return nil // tidak ada invoice → tidak ada uang yang dikembalikan
 		}
-		if inv.RefundDone {
-			return errors.New("refund invoice sudah ditransfer, tambah sesi baru saja")
-		}
 		perSession := s.perSessionPrice(booking.ClassID, booking.Mode)
 		updates := map[string]interface{}{}
 		switch inv.Status {
@@ -2167,16 +2192,21 @@ func (s *Service) RestoreSession(sessionID, teacherID uint, isAdmin bool) (*Canc
 			}
 			updates["note"] = note
 		case "paid":
-			// refund absolut dihitung ulang dari sisa sesi batal (idempotent,
-			// mengikuti gaya reconcileBookingInvoice).
-			var cancelled int64
-			if err := tx.Model(&models.TutoringSession{}).
-				Where("booking_id = ? AND status = ?", booking.ID, "cancelled").
-				Count(&cancelled).Error; err != nil {
-				return err
-			}
-			if refund := perSession * float64(cancelled); refund != inv.RefundAmount {
-				updates["refund_amount"] = refund
+			// kebalikan klaim saat cancel: klaim sesi ini yang sudah done
+			// (uang sudah keluar) memblokir pulih; yang belum done dihapus
+			// (soft, jejak audit tersisa) karena sesi jadi diadakan.
+			var claim models.RefundClaim
+			if err := tx.Where("session_id = ?", sessionID).First(&claim).Error; err != nil {
+				if !errors.Is(err, gorm.ErrRecordNotFound) {
+					return err
+				}
+			} else if claim.Done {
+				return errors.New("refund sesi ini sudah ditransfer, tambah sesi baru saja")
+			} else {
+				if err := tx.Delete(&claim).Error; err != nil {
+					return err
+				}
+				moneyChanged = true
 			}
 		}
 		if len(updates) == 0 {

@@ -842,10 +842,17 @@ func (s *Service) newAdminListReportResponse(b models.Booking) AdminListReportRe
 	}
 	rep.RefundAmount = 0
 	if b.Invoice != nil && b.Invoice.Status == "paid" {
-		// Uang sudah masuk → pembatalan berarti pengembalian dana.
+		// Uang sudah masuk → jumlahkan klaim refund sesi-sesi batal.
 		// Invoice pending dikoreksi nominalnya langsung (bukan refund),
 		// jadi estimasinya nol agar tidak double-counting.
-		rep.RefundAmount = float64(rep.CancelledCount) * perSession
+		for _, sess := range b.Sessions {
+			if sess.Status != "cancelled" {
+				continue
+			}
+			for _, c := range sess.Claims {
+				rep.RefundAmount += c.Amount
+			}
+		}
 	}
 	return rep
 }

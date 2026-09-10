@@ -20,7 +20,8 @@ type TutoringSession struct {
 	OvertimeMinutes int  `gorm:"default:0" json:"overtime_minutes"`              // kelebihan menit vs jadwal
 	ExtraSessions int    `gorm:"default:0" json:"extra_sessions"`                // blok 90-menit tambahan utk fee & tagihan
 	FeePaid    bool     `gorm:"default:false" json:"fee_paid"`                   // fee guru sudah dibayar?
-	FeeTaken   bool     `gorm:"default:false" json:"fee_taken"`                  // fee sudah diambil guru?
+	FeeTaken   bool     `gorm:"default:false" json:"fee_taken"`                   // fee sudah diambil guru?
+	Claims     []RefundClaim `gorm:"foreignKey:SessionID" json:"-"`               // klaim refund sesi ini (normalnya 0-1)
 }
 
 func (t *TutoringSession) BeforeCreate(tx *gorm.DB) error {

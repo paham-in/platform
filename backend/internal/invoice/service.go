@@ -202,17 +202,61 @@ func (s *Service) Delete(id uint) error {
 	return s.repo.Delete(id)
 }
 
-// SetRefundDone menandai refund invoice sudah ditransfer admin (atau
-// membatalkannya). Hanya untuk invoice yang punya nominal refund.
-func (s *Service) SetRefundDone(id uint, done bool) error {
-	invoice, err := s.repo.Get(id)
+// RefundClaimResponse adalah satu baris utang refund untuk dialog admin.
+type RefundClaimResponse struct {
+	ID        uint    `json:"id"`
+	InvoiceID uint    `json:"invoice_id"`
+	SessionID *uint   `json:"session_id,omitempty"`
+	Date      string  `json:"date"`
+	StartTime string  `json:"start_time"`
+	EndTime   string  `json:"end_time"`
+	Amount    float64 `json:"amount"`
+	Done      bool    `json:"done"`
+	Note      string  `json:"note"`
+}
+
+func newRefundClaimResponse(c models.RefundClaim) RefundClaimResponse {
+	r := RefundClaimResponse{
+		ID:        c.ID,
+		InvoiceID: c.InvoiceID,
+		SessionID: c.SessionID,
+		Amount:    c.Amount,
+		Done:      c.Done,
+		Note:      c.Note,
+	}
+	if c.Session != nil {
+		r.Date = c.Session.Date
+		r.StartTime = c.Session.StartTime
+		r.EndTime = c.Session.EndTime
+	}
+	return r
+}
+
+func (s *Service) ListRefundClaims(invoiceID uint) ([]RefundClaimResponse, error) {
+	claims, err := s.repo.ListClaimsByInvoice(invoiceID)
 	if err != nil {
-		return errors.New("invoice tidak ditemukan")
+		return nil, err
 	}
-	if invoice.RefundAmount <= 0 {
-		return errors.New("invoice ini tidak ada refund")
+	result := make([]RefundClaimResponse, len(claims))
+	for i, c := range claims {
+		result[i] = newRefundClaimResponse(c)
 	}
-	return s.repo.UpdateRefundDone(id, done)
+	return result, nil
+}
+
+// SetClaimDone menandai satu klaim refund sudah ditransfer admin (atau
+// membatalkannya). Pengganti SetRefundDone per-invoice yang pensiun.
+func (s *Service) SetClaimDone(id uint, done bool) (*RefundClaimResponse, error) {
+	claim, err := s.repo.GetClaim(id)
+	if err != nil {
+		return nil, errors.New("klaim refund tidak ditemukan")
+	}
+	if err := s.repo.UpdateClaimDone(id, done); err != nil {
+		return nil, err
+	}
+	claim.Done = done
+	r := newRefundClaimResponse(*claim)
+	return &r, nil
 }
 
 // StudentDeleteInvoice membatalkan invoice langganan milik murid sendiri.
@@ -263,13 +307,22 @@ func toResponse(i models.Invoice) InvoiceResponse {
 	if i.User != nil {
 		name = i.User.Name
 	}
+	// Kompat: kolom beku refund_amount/refund_done disajikan sebagai turunan
+	// klaim (total & lunas-semua) supaya pembaca lama tak berubah.
+	var refundTotal, refundOpen float64
+	for _, c := range i.Claims {
+		refundTotal += c.Amount
+		if !c.Done {
+			refundOpen += c.Amount
+		}
+	}
 	return InvoiceResponse{
 		ID:           i.ID,
 		UserID:       i.UserID,
 		UserName:     name,
 		Amount:       i.Amount,
-		RefundAmount: i.RefundAmount,
-		RefundDone:   i.RefundDone,
+		RefundAmount: refundTotal,
+		RefundDone:   refundTotal > 0 && refundOpen == 0,
 		StartDate:    i.StartDate,
 		EndDate:      i.EndDate,
 		Status:       i.Status,

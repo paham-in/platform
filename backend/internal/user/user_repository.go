@@ -205,6 +205,10 @@ func (r *UserRepository) hardDeleteTx(tx *gorm.DB, id uint) error {
 		return err
 	}
 	if len(bid) > 0 {
+		// klaim refund dulu (FK ke sesi), lalu sesi & invoice booking itu.
+		if err := tx.Unscoped().Where("booking_id IN ?", bid).Delete(&models.RefundClaim{}).Error; err != nil {
+			return err
+		}
 		if err := tx.Unscoped().Where("booking_id IN ?", bid).Delete(&models.TutoringSession{}).Error; err != nil {
 			return err
 		}

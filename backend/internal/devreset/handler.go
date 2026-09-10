@@ -76,6 +76,7 @@ var tables = []tableDef{
 	{name: "material_assets", label: "Asset Materi", desc: "Asset/gambar pada materi"},
 	{name: "notifications", label: "Notifikasi", desc: "Notifikasi in-app user"},
 	{name: "invoices", label: "Invoice", desc: "Tagihan pembayaran"},
+	{name: "refund_claims", label: "Klaim Refund", desc: "Utang refund per sesi"},
 	{name: "bookings", label: "Booking Les", desc: "Booking les privat"},
 	{name: "tutoring_sessions", label: "Sesi Les", desc: "Sesi les privat + bukti kehadiran"},
 	{name: "roles", label: "Role", desc: "Daftar role sistem", protected: true},

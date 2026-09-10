@@ -55,6 +55,7 @@ func cleanupUser(db *gorm.DB, id uint) {
 	var bookingIDs []uint
 	db.Unscoped().Model(&models.Booking{}).Where("student_id = ? OR teacher_id = ?", id, id).Pluck("id", &bookingIDs)
 	if len(bookingIDs) > 0 {
+		db.Unscoped().Where("booking_id IN ?", bookingIDs).Delete(&models.RefundClaim{})
 		db.Unscoped().Where("booking_id IN ?", bookingIDs).Delete(&models.TutoringSession{})
 		db.Unscoped().Where("booking_id IN ?", bookingIDs).Delete(&models.Invoice{})
 	}

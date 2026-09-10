@@ -826,14 +826,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/invoices/{id}/refund": {
-            "patch": {
+        "/admin/invoices/{id}/refund-claims": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Menandai refund invoice sudah ditransfer admin atau membatalkannya",
+                "description": "Daftar utang refund per sesi pada satu invoice + status transfernya. Dipakai dialog refund admin.",
                 "consumes": [
                     "application/json"
                 ],
@@ -843,7 +843,7 @@ const docTemplate = `{
                 "tags": [
                     "Admin"
                 ],
-                "summary": "Set refund done",
+                "summary": "List refund claims",
                 "parameters": [
                     {
                         "type": "integer",
@@ -851,26 +851,26 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Status refund",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/invoice.SetRefundDoneInput"
-                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/invoice.MessageResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/invoice.RefundClaimResponse"
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/invoice.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/invoice.ErrorResponse"
                         }
@@ -2157,6 +2157,58 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/forum.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/refund-claims/{id}/done": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Menandai satu baris utang refund sudah ditransfer admin atau membatalkannya",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Set refund claim done",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Refund claim ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Status refund",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/invoice.SetRefundDoneInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/invoice.RefundClaimResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/invoice.ErrorResponse"
                         }
                     }
                 }
@@ -6274,6 +6326,38 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "invoice.RefundClaimResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "done": {
+                    "type": "boolean"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_id": {
+                    "type": "integer"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "integer"
+                },
+                "start_time": {
                     "type": "string"
                 }
             }

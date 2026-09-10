@@ -283,6 +283,27 @@ definitions:
       message:
         type: string
     type: object
+  invoice.RefundClaimResponse:
+    properties:
+      amount:
+        type: number
+      date:
+        type: string
+      done:
+        type: boolean
+      end_time:
+        type: string
+      id:
+        type: integer
+      invoice_id:
+        type: integer
+      note:
+        type: string
+      session_id:
+        type: integer
+      start_time:
+        type: string
+    type: object
   invoice.SetRefundDoneInput:
     properties:
       done:
@@ -2725,37 +2746,38 @@ paths:
       summary: Delete invoice
       tags:
       - Admin
-  /admin/invoices/{id}/refund:
-    patch:
+  /admin/invoices/{id}/refund-claims:
+    get:
       consumes:
       - application/json
-      description: Menandai refund invoice sudah ditransfer admin atau membatalkannya
+      description: Daftar utang refund per sesi pada satu invoice + status transfernya.
+        Dipakai dialog refund admin.
       parameters:
       - description: Invoice ID
         in: path
         name: id
         required: true
         type: integer
-      - description: Status refund
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/invoice.SetRefundDoneInput'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/invoice.MessageResponse'
+            items:
+              $ref: '#/definitions/invoice.RefundClaimResponse'
+            type: array
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/invoice.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/invoice.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Set refund done
+      summary: List refund claims
       tags:
       - Admin
   /admin/invoices/{id}/toggle:
@@ -3576,6 +3598,39 @@ paths:
       summary: Admin list questions
       tags:
       - Admin
+      - Admin
+  /admin/refund-claims/{id}/done:
+    patch:
+      consumes:
+      - application/json
+      description: Menandai satu baris utang refund sudah ditransfer admin atau membatalkannya
+      parameters:
+      - description: Refund claim ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Status refund
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/invoice.SetRefundDoneInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/invoice.RefundClaimResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/invoice.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set refund claim done
+      tags:
       - Admin
   /admin/settings:
     get:

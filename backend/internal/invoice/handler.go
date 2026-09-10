@@ -181,19 +181,43 @@ func (h *Handler) DeleteMyInvoice(c *fiber.Ctx) error {
 	return c.JSON(MessageResponse{Message: "invoice berhasil dibatalkan"})
 }
 
-// AdminSetRefundDone menandai refund invoice sudah/belum ditransfer (admin)
-// @Summary      Set refund done
-// @Description  Menandai refund invoice sudah ditransfer admin atau membatalkannya
+// AdminListRefundClaims mengembalikan klaim refund satu invoice (admin)
+// @Summary      List refund claims
+// @Description  Daftar utang refund per sesi pada satu invoice + status transfernya. Dipakai dialog refund admin.
 // @Tags         Admin
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id path int true "Invoice ID"
-// @Param        body body SetRefundDoneInput true "Status refund"
-// @Success      200 {object} MessageResponse
+// @Success      200 {array} RefundClaimResponse
 // @Failure      400 {object} ErrorResponse
-// @Router       /admin/invoices/{id}/refund [patch]
-func (h *Handler) AdminSetRefundDone(c *fiber.Ctx) error {
+// @Failure      500 {object} ErrorResponse
+// @Router       /admin/invoices/{id}/refund-claims [get]
+func (h *Handler) AdminListRefundClaims(c *fiber.Ctx) error {
+	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
+	}
+	claims, err := h.svc.ListRefundClaims(uint(id))
+	if err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil data"})
+	}
+	return c.JSON(claims)
+}
+
+// AdminSetClaimDone menandai satu klaim refund sudah/belum ditransfer (admin)
+// @Summary      Set refund claim done
+// @Description  Menandai satu baris utang refund sudah ditransfer admin atau membatalkannya
+// @Tags         Admin
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path int true "Refund claim ID"
+// @Param        body body SetRefundDoneInput true "Status refund"
+// @Success      200 {object} RefundClaimResponse
+// @Failure      400 {object} ErrorResponse
+// @Router       /admin/refund-claims/{id}/done [patch]
+func (h *Handler) AdminSetClaimDone(c *fiber.Ctx) error {
 	id, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "id tidak valid"})
@@ -202,13 +226,11 @@ func (h *Handler) AdminSetRefundDone(c *fiber.Ctx) error {
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: "format data tidak valid"})
 	}
-	if err := h.svc.SetRefundDone(uint(id), input.Done); err != nil {
+	claim, err := h.svc.SetClaimDone(uint(id), input.Done)
+	if err != nil {
 		return c.Status(400).JSON(ErrorResponse{Error: err.Error()})
 	}
-	if input.Done {
-		return c.JSON(MessageResponse{Message: "refund ditandai sudah ditransfer"})
-	}
-	return c.JSON(MessageResponse{Message: "tanda refund dibatalkan"})
+	return c.JSON(claim)
 }
 
 // AdminDeleteInvoice menghapus invoice
@@ -254,6 +276,7 @@ func AdminRoutes(admin fiber.Router, db *gorm.DB, notifSvc *notification.Service
 	admin.Get("/invoices", h.AdminListInvoices)
 	admin.Post("/invoices", h.AdminCreateInvoice)
 	admin.Patch("/invoices/:id/toggle", h.AdminToggleInvoice)
-	admin.Patch("/invoices/:id/refund", h.AdminSetRefundDone)
+	admin.Get("/invoices/:id/refund-claims", h.AdminListRefundClaims)
+	admin.Patch("/refund-claims/:id/done", h.AdminSetClaimDone)
 	admin.Delete("/invoices/:id", h.AdminDeleteInvoice)
 }

@@ -8,8 +8,11 @@ type Invoice struct {
 	UserID    uint    `gorm:"not null;index" json:"user_id"`
 	User      *User   `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	Amount    float64 `gorm:"not null" json:"amount"`
-	RefundAmount float64 `gorm:"default:0" json:"refund_amount"` // potongan tercatat (sesi batal), nominal amount tidak diubah
-	RefundDone   bool    `gorm:"default:false" json:"refund_done"` // admin sudah mentransfer refund
+	// RefundAmount/RefundDone DIBEKUKAN (migrasi 000043): berhenti ditulis,
+	// tetap dibaca sebagai arsip. Sumber kebenaran = refund_claims.
+	RefundAmount float64 `gorm:"default:0" json:"refund_amount"` // BEKU, lihat refund_claims
+	RefundDone   bool    `gorm:"default:false" json:"refund_done"` // BEKU, lihat refund_claims
+	Claims    []RefundClaim `gorm:"foreignKey:InvoiceID" json:"-"`
 	StartDate string  `gorm:"size:10;not null" json:"start_date"`
 	EndDate   string  `gorm:"size:10;not null" json:"end_date"`
 	Status    string  `gorm:"size:20;default:pending" json:"status"`

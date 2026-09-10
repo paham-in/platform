@@ -214,14 +214,15 @@ func (r *Repository) ListBookingsByTeacherAndDate(teacherID uint, date string, s
 }
 
 // DeleteCancelledOlderThan menghapus permanen (hard delete) booking terminal
-// (cancelled/rejected) yang terakhir diubah sebelum cutoff, beserta sesi &
-// invoice terkait dalam satu transaksi. Booking yang masih punya refund belum
-// settled (refund_amount > 0 dan refund_done = false) dilewati supaya jejak
-// utang tidak musnah. Mengembalikan jumlah booking yang dihapus.
+// (cancelled/rejected) yang terakhir diubah sebelum cutoff, beserta sesi,
+// klaim refund & invoice terkait dalam satu transaksi. Booking yang masih
+// punya klaim refund belum settled (amount > 0 dan done = false, abaikan
+// yang soft-delete) dilewati supaya jejak utang tidak musnah.
+// Mengembalikan jumlah booking yang dihapus.
 func (r *Repository) DeleteCancelledOlderThan(cutoff time.Time) (int64, error) {
 	var ids []uint
 	if err := r.db.Model(&models.Booking{}).
-		Where("status IN ? AND updated_at < ? AND NOT EXISTS (SELECT 1 FROM invoices WHERE invoices.booking_id = bookings.id AND invoices.refund_amount > 0 AND invoices.refund_done = ?)", []string{"cancelled", "rejected"}, cutoff, false).
+		Where("status IN ? AND updated_at < ? AND NOT EXISTS (SELECT 1 FROM refund_claims WHERE refund_claims.booking_id = bookings.id AND refund_claims.amount > 0 AND refund_claims.done = ? AND refund_claims.deleted_at IS NULL)", []string{"cancelled", "rejected"}, cutoff, false).
 		Pluck("id", &ids).Error; err != nil {
 		return 0, err
 	}
@@ -231,6 +232,9 @@ func (r *Repository) DeleteCancelledOlderThan(cutoff time.Time) (int64, error) {
 	var deleted int64
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Unscoped().Where("booking_id IN ?", ids).Delete(&models.TutoringSession{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Unscoped().Where("booking_id IN ?", ids).Delete(&models.RefundClaim{}).Error; err != nil {
 			return err
 		}
 		if err := tx.Unscoped().Where("booking_id IN ?", ids).Delete(&models.Invoice{}).Error; err != nil {
@@ -352,6 +356,7 @@ func (r *Repository) ListAllBookingsWithSessions() ([]models.Booking, error) {
 		Preload("Teacher").
 		Preload("Student").
 		Preload("Sessions.Teacher").
+		Preload("Sessions.Claims").
 		Preload("Invoice").
 		Order("created_at desc").
 		Find(&bookings).Error; err != nil {
