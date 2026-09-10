@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery } from "@tanstack/react-query"
 import { getMeOptions, getQuestionsOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { FileText, MessageSquare, HelpCircle, Users, Plus, BookOpen, ChevronRight } from "lucide-react"
+import { FileText, MessageSquare, HelpCircle, Users, Plus, BookOpen, ChevronRight, TriangleAlert } from "lucide-react"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -20,6 +20,18 @@ function TeacherDashboard() {
           <div><h2 className="text-2xl font-bold tracking-tight">Dashboard Guru</h2><p className="text-muted-foreground">Kelola materi dan jawab pertanyaan siswa, {user?.name}.</p></div>
           <Button onClick={() => {}}><Plus className="mr-1 h-4 w-4" /> Buat Materi</Button>
         </div>
+        {user !== undefined && (user.subjects ?? []).length === 0 && (
+          <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4" role="alert">
+            <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <div>
+              <p className="font-semibold text-amber-900">Belum ada mata pelajaran</p>
+              <p className="mt-0.5 text-sm text-amber-800">
+                Anda belum memiliki mata pelajaran yang ditetapkan, sehingga tidak bisa menerima booking baru.
+                Mohon segera hubungi admin untuk penetapan mata pelajaran.
+              </p>
+            </div>
+          </div>
+        )}
         <div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { icon: FileText, label: "Materi Dibuat", value: "24", color: "text-blue-600 bg-blue-100" },
