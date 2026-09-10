@@ -21,7 +21,11 @@ func (s *Service) SetPushService(p *push.Service) {
 }
 
 // Notify membuat in-app notification + kirim push (best-effort).
+// Akun sementara (dummy, belum bisa login) tidak menerima notifikasi.
 func (s *Service) Notify(userID uint, title, body, notifType, url string) {
+	if s.isDummy(userID) {
+		return
+	}
 	n := models.Notification{
 		UserID: userID,
 		Title:  title,
@@ -41,11 +45,26 @@ func (s *Service) Notify(userID uint, title, body, notifType, url string) {
 }
 
 // NotifyBatch membuat in-app notification untuk banyak user sekaligus + push.
+// Akun sementara (dummy, belum bisa login) difilter keluar sekaligus.
 func (s *Service) NotifyBatch(userIDs []uint, title, body, notifType, url string) {
 	if len(userIDs) == 0 {
 		return
 	}
 
+	if dummies, err := s.repo.ListDummyIDs(userIDs); err != nil {
+		log.Printf("[notification] gagal cek dummy batch: %v", err)
+	} else if len(dummies) > 0 {
+		filtered := userIDs[:0]
+		for _, uid := range userIDs {
+			if !dummies[uid] {
+				filtered = append(filtered, uid)
+			}
+		}
+		userIDs = filtered
+		if len(userIDs) == 0 {
+			return
+		}
+	}
 	notifications := make([]models.Notification, len(userIDs))
 	for i, uid := range userIDs {
 		notifications[i] = models.Notification{
@@ -113,6 +132,17 @@ func (s *Service) MarkRead(userID, id uint) error {
 
 func (s *Service) MarkAllRead(userID uint) error {
 	return s.repo.MarkAllRead(userID)
+}
+
+// isDummy true bila user akun sementara (tanpa google_id dan password).
+// Gagal cek = dianggap bukan dummy (fail-open, notifikasi best-effort).
+func (s *Service) isDummy(userID uint) bool {
+	dummies, err := s.repo.ListDummyIDs([]uint{userID})
+	if err != nil {
+		log.Printf("[notification] gagal cek dummy user %d: %v", userID, err)
+		return false
+	}
+	return dummies[userID]
 }
 
 // Helper: ambil teacher IDs berdasarkan subject

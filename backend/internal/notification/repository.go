@@ -86,6 +86,26 @@ func (r *Repository) ListTeacherIDs() ([]uint, error) {
 	return userIDs, err
 }
 
+// ListDummyIDs mengembalikan subset userIDs yang akun sementara (dummy):
+// tanpa google_id dan tanpa password. Dipakai menahan notifikasi untuk
+// akun yang belum bisa login.
+func (r *Repository) ListDummyIDs(userIDs []uint) (map[uint]bool, error) {
+	set := map[uint]bool{}
+	if len(userIDs) == 0 {
+		return set, nil
+	}
+	var ids []uint
+	if err := r.db.Model(&models.User{}).
+		Where("id IN ? AND google_id IS NULL AND password IS NULL", userIDs).
+		Pluck("id", &ids).Error; err != nil {
+		return nil, err
+	}
+	for _, id := range ids {
+		set[id] = true
+	}
+	return set, nil
+}
+
 // DeleteReadOlderThan hard-deletes notifications that are read and older than cutoff.
 func (r *Repository) DeleteReadOlderThan(cutoff time.Time) (int64, error) {
 	result := r.db.Unscoped().
