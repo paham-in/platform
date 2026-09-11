@@ -253,7 +253,7 @@ navigate({ to: "/admin/bookings", replace: true })
   }, [subjects, subjectId, classId, setValue])
 
   return (
-    <main className="p-4 md:p-6">
+    <main className="mx-auto w-full max-w-lg p-4 md:p-6">
       <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Tambah Booking Manual</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -261,7 +261,7 @@ navigate({ to: "/admin/bookings", replace: true })
           </p>
         </div>
 
-      <div className="flex max-w-lg flex-col gap-4 md:gap-6">
+      <div className="flex flex-col gap-4 md:gap-6">
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="admin-booking-student">Murid</Label>
