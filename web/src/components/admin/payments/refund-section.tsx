@@ -90,15 +90,10 @@ export function RefundSection({ bookingId, modal, openModal, closeModal }: Refun
 
   if (!isLoading && claims.length === 0) return null
 
-  const unpaid = claims.filter((c) => !c.done).reduce((s, c) => s + (c.amount ?? 0), 0)
-
   return (
     <div className="mb-6">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-semibold">Refund</h2>
-        {!isLoading && (
-          <p className="text-sm text-muted-foreground">Sisa {fmtRp(unpaid)}</p>
-        )}
       </div>
 
       <Card className="hidden gap-0 pt-0 pb-0 md:block">
