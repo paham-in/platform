@@ -19,6 +19,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import { Spinner } from "@/components/ui/spinner"
+import { refundClaimsByBookingQueryKey } from "@/lib/refund-claims"
 
 interface CancelSessionDialogProps {
   session: TutoringListSessionsResponse
@@ -37,6 +38,7 @@ export function CancelSessionDialog({ session, onClose }: CancelSessionDialogPro
       qc.invalidateQueries({ queryKey: getAdminInvoicesQueryKey() })
       if (session.booking_id) {
         qc.invalidateQueries({ queryKey: getAdminTutoringBookingsByIdSessionsQueryKey({ path: { id: session.booking_id } }) })
+        qc.invalidateQueries({ queryKey: refundClaimsByBookingQueryKey(session.booking_id) })
       }
       onClose()
     },
