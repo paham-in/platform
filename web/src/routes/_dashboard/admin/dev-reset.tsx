@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
+import { client } from "@/lib/api/client.gen"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   AlertDialog,
@@ -36,12 +37,41 @@ const devResetSearchSchema = z.object({
   modal: z.string().optional(),
 })
 
+interface ServerTime {
+  server_time?: string;
+  server_zone?: string;
+  db_time?: string;
+  db_timezone?: string;
+}
+
+function fmtClock(iso?: string) {
+  if (!iso) return "—"
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "medium" })
+}
+
 function DevReset() {
   const qc = useQueryClient()
   const { modal } = Route.useSearch()
   const { openModal, closeModal } = useDialogBack()
   const { data, isLoading } = useQuery(getAdminDevTablesOptions())
   const [confirmTable, setConfirmTable] = useState<DevresetTableInfo | null>(null)
+
+  // Jam backend + database (manual: generator SDK rusak di TS7).
+  // Refetch otomatis saat tab kembali fokus.
+  const { data: clock } = useQuery({
+    queryKey: ["admin", "dev-time"],
+    queryFn: async ({ signal }) => {
+      const { data } = await client.get({
+        security: [{ name: "Authorization", type: "apiKey" }],
+        url: "/admin/dev/time",
+        signal,
+        throwOnError: true,
+      })
+      return data as ServerTime
+    },
+  })
 
   useEffect(() => {
     if (modal !== "reset") setConfirmTable(null)
@@ -119,6 +149,32 @@ function DevReset() {
           Utilitas development: trigger cron manual dan hapus data per tabel untuk pengujian E2E.
         </p>
       </div>
+
+      {clock && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Jam Server</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-xs text-muted-foreground">Backend (Go)</p>
+              <p className="mt-0.5 font-medium tabular-nums">{fmtClock(clock.server_time)}</p>
+              <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                <Badge variant="secondary">{clock.server_zone || "?"}</Badge>
+                <code>{clock.server_time}</code>
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Database</p>
+              <p className="mt-0.5 font-medium tabular-nums">{fmtClock(clock.db_time)}</p>
+              <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                <Badge variant="secondary">{clock.db_timezone || "?"}</Badge>
+                <code>{clock.db_time}</code>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {!isLoading && !enabled && (
         <Card className="border-destructive/50">

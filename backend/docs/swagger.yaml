@@ -162,6 +162,17 @@ definitions:
       message:
         type: string
     type: object
+  devreset.ServerTimeResponse:
+    properties:
+      db_time:
+        type: string
+      db_timezone:
+        type: string
+      server_time:
+        type: string
+      server_zone:
+        type: string
+    type: object
   devreset.TableInfo:
     properties:
       description:
@@ -2658,6 +2669,26 @@ paths:
       security:
       - BearerAuth: []
       summary: Reset table
+      tags:
+      - Dev
+  /admin/dev/time:
+    get:
+      description: Jam backend (Go, mengikuti TZ proses) + jam database (mengikuti
+        sesi)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/devreset.ServerTimeResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/devreset.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Server time
       tags:
       - Dev
   /admin/invoices:

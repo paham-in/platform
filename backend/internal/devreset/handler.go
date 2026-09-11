@@ -2,6 +2,7 @@
 
 import (
 	"fmt"
+	"time"
 
 	"bimbel2/backend/internal/config"
 	"bimbel2/backend/internal/jobs"
@@ -50,6 +51,13 @@ type RunJobResponse struct {
 	Job     string `json:"job"`
 	Deleted int64  `json:"deleted"`
 	Message string `json:"message"`
+}
+
+type ServerTimeResponse struct {
+	ServerTime string `json:"server_time"`
+	ServerZone string `json:"server_zone"`
+	DBTime     string `json:"db_time"`
+	DBTimezone string `json:"db_timezone"`
 }
 
 type tableDef struct {
@@ -344,11 +352,40 @@ func (h *Handler) RunCancelledBookingCleanup(c *fiber.Ctx) error {
 	})
 }
 
+// ServerTime mengembalikan jam backend (Go) + jam database (admin only).
+// Dipakai memastikan backend & DB berjalan di zona yang diharapkan (WIB).
+// @Summary      Server time
+// @Description  Jam backend (Go, mengikuti TZ proses) + jam database (mengikuti sesi)
+// @Tags         Dev
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} ServerTimeResponse
+// @Failure      500 {object} ErrorResponse
+// @Router       /admin/dev/time [get]
+func (h *Handler) ServerTime(c *fiber.Ctx) error {
+	now := time.Now()
+	zone, _ := now.Zone()
+	var db struct {
+		Now time.Time
+		TZ  string
+	}
+	if err := h.db.Raw("SELECT now() AS now, current_setting('TIMEZONE') AS tz").Scan(&db).Error; err != nil {
+		return c.Status(500).JSON(ErrorResponse{Error: "gagal mengambil jam database"})
+	}
+	return c.JSON(ServerTimeResponse{
+		ServerTime: now.Format(time.RFC3339),
+		ServerZone: zone,
+		DBTime:     db.Now.Format(time.RFC3339),
+		DBTimezone: db.TZ,
+	})
+}
+
 func AdminRoutes(admin fiber.Router, db *gorm.DB, cfg *config.Config, jobRunner *jobs.Runner) {
 	h := NewHandler(db, cfg, jobRunner)
 	// GET selalu diregistrasi (FE butuh flag enabled buat hide menu).
 	// DELETE/POST (yang menghapus/menjalankan) cuma ada kalau fitur dinyalakan.
 	admin.Get("/dev/tables", h.ListTables)
+	admin.Get("/dev/time", h.ServerTime)
 	if cfg.DevResetEnabled {
 		admin.Delete("/dev/tables/:table", h.ResetTable)
 		admin.Post("/dev/cron/session-cleanup", h.RunSessionCleanup)

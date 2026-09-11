@@ -689,6 +689,37 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/dev/time": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Jam backend (Go, mengikuti TZ proses) + jam database (mengikuti sesi)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dev"
+                ],
+                "summary": "Server time",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ServerTimeResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/devreset.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/invoices": {
             "get": {
                 "security": [
@@ -6140,6 +6171,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "devreset.ServerTimeResponse": {
+            "type": "object",
+            "properties": {
+                "db_time": {
+                    "type": "string"
+                },
+                "db_timezone": {
+                    "type": "string"
+                },
+                "server_time": {
+                    "type": "string"
+                },
+                "server_zone": {
                     "type": "string"
                 }
             }
