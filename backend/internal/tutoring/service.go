@@ -1846,6 +1846,23 @@ func (s *Service) AdminTeacherSchedule(teacherID uint) (*AdminTeacherScheduleRes
 	}, nil
 }
 // Dipakai halaman detail booking admin: butuh guru per sesi + status sesi.
+// ListBookingRefundClaims mengembalikan klaim refund satu booking (admin).
+// Dipakai section Refund di detail booking admin.
+func (s *Service) ListBookingRefundClaims(bookingID uint) ([]BookingRefundClaimResponse, error) {
+	if _, err := s.repo.GetBooking(bookingID); err != nil {
+		return nil, errors.New("booking tidak ditemukan")
+	}
+	claims, err := s.repo.ListRefundClaimsByBooking(bookingID)
+	if err != nil {
+		return nil, err
+	}
+	res := make([]BookingRefundClaimResponse, len(claims))
+	for i, c := range claims {
+		res[i] = newBookingRefundClaimResponse(c)
+	}
+	return res, nil
+}
+
 // ListBookingSessions mengembalikan semua sesi satu booking (admin).
 // Dipakai halaman detail booking admin: butuh guru per sesi + status sesi.
 func (s *Service) ListBookingSessions(bookingID uint) ([]ListSessionsResponse, error) {

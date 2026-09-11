@@ -253,6 +253,16 @@ func (r *Repository) DeleteCancelledOlderThan(cutoff time.Time) (int64, error) {
 	return deleted, nil
 }
 
+// ListRefundClaimsByBooking mengembalikan klaim refund satu booking + sesi
+// penyebabnya, urut lahir. Dipakai section Refund di detail booking admin.
+func (r *Repository) ListRefundClaimsByBooking(bookingID uint) ([]models.RefundClaim, error) {
+	var claims []models.RefundClaim
+	if err := r.db.Preload("Session").Where("booking_id = ?", bookingID).Order("created_at").Find(&claims).Error; err != nil {
+		return nil, err
+	}
+	return claims, nil
+}
+
 func (r *Repository) GetBooking(id uint) (*models.Booking, error) {
 	return r.GetBookingWithDB(r.db, id)
 }

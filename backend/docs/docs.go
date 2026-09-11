@@ -2861,6 +2861,64 @@ const docTemplate = `{
                 }
             }
         },
+        "/admin/tutoring/bookings/{id}/refund-claims": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Daftar utang refund per sesi satu booking + status transfernya. Dipakai section Refund di detail booking admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Tutoring"
+                ],
+                "summary": "List booking refund claims",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Booking ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/tutoring.BookingRefundClaimResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/tutoring.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/tutoring/bookings/{id}/reject": {
             "post": {
                 "security": [
@@ -7984,6 +8042,38 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "teacher_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "tutoring.BookingRefundClaimResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "done": {
+                    "type": "boolean"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "invoice_id": {
+                    "type": "integer"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "integer"
+                },
+                "start_time": {
                     "type": "string"
                 }
             }

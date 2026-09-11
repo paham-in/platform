@@ -26,7 +26,7 @@ import { useEffect, useState } from "react"
 import { SwapSessionTeacherDialog } from "@/components/admin/attendance/swap-session-teacher-dialog"
 import { ApproveEvidenceDialog, CancelSessionDialog, RejectEvidenceDialog, RestoreSessionDialog, ToggleFeeDialog } from "@/components/admin/attendance"
 import { ReassignTeacherDialog, ExtendBookingDialog } from "@/components/admin/tutoring"
-import { InvoiceSection } from "@/components/admin/payments"
+import { InvoiceSection, RefundSection } from "@/components/admin/payments"
 
 const adminBookingDetailSearchSchema = z.object({
   modal: z.string().optional(),
@@ -410,6 +410,14 @@ function AdminBookingDetail() {
         </CardContent>
       </Card>
       <div className="mt-6">
+        {!isLoading && booking && (
+          <RefundSection
+            bookingId={Number(bookingId)}
+            modal={modal}
+            openModal={openModal}
+            closeModal={closeModal}
+          />
+        )}
         <InvoiceSection
           title="Tagihan"
           invoices={bookingInvoiceList}

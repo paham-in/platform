@@ -449,6 +449,37 @@ func newListSessionsResponse(v models.TutoringSession) ListSessionsResponse {
 	return ListSessionsResponse(buildSessionItem(v))
 }
 
+//, handler: AdminBookingRefundClaims (GET /admin/tutoring/bookings/{id}/refund-claims)
+
+type BookingRefundClaimResponse struct {
+	ID        uint    `json:"id"`
+	InvoiceID uint    `json:"invoice_id"`
+	SessionID *uint   `json:"session_id,omitempty"`
+	Date      string  `json:"date"`
+	StartTime string  `json:"start_time"`
+	EndTime   string  `json:"end_time"`
+	Amount    float64 `json:"amount"`
+	Done      bool    `json:"done"`
+	Note      string  `json:"note"`
+}
+
+func newBookingRefundClaimResponse(c models.RefundClaim) BookingRefundClaimResponse {
+	r := BookingRefundClaimResponse{
+		ID:        c.ID,
+		InvoiceID: c.InvoiceID,
+		SessionID: c.SessionID,
+		Amount:    c.Amount,
+		Done:      c.Done,
+		Note:      c.Note,
+	}
+	if c.Session != nil {
+		r.Date = c.Session.Date
+		r.StartTime = c.Session.StartTime
+		r.EndTime = c.Session.EndTime
+	}
+	return r
+}
+
 //, handler: AdminTeacherSchedule (GET /admin/tutoring/teachers/{id}/schedule)
 
 type AdminTeacherSessionResponse struct {

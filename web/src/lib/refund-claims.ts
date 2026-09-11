@@ -24,7 +24,6 @@ export interface RefundClaim {
 
 export const refundClaimsQueryKey = (invoiceId: number) =>
   ["admin", "refund-claims", invoiceId] as const
-
 export const refundClaimsOptions = (invoiceId?: number) =>
   queryOptions({
     queryKey: refundClaimsQueryKey(invoiceId ?? 0),
@@ -33,6 +32,24 @@ export const refundClaimsOptions = (invoiceId?: number) =>
       const { data } = await client.get({
         security: [...authSecurity],
         url: `/admin/invoices/${invoiceId}/refund-claims`,
+        signal,
+        throwOnError: true,
+      })
+      return ((data as RefundClaim[] | undefined) ?? [])
+    },
+  })
+
+export const refundClaimsByBookingQueryKey = (bookingId: number) =>
+  ["admin", "booking-refund-claims", bookingId] as const
+
+export const refundClaimsByBookingOptions = (bookingId?: number) =>
+  queryOptions({
+    queryKey: refundClaimsByBookingQueryKey(bookingId ?? 0),
+    enabled: bookingId != null,
+    queryFn: async ({ signal }) => {
+      const { data } = await client.get({
+        security: [...authSecurity],
+        url: `/admin/tutoring/bookings/${bookingId}/refund-claims`,
         signal,
         throwOnError: true,
       })
