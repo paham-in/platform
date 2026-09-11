@@ -23,7 +23,12 @@ export function useDialogBack() {
 
   const openModal = useCallback(
     (name: string) => {
-      navigate({ search: (prev) => ({ ...(prev as Record<string, unknown>), modal: name }) as never })
+      // push ?modal= (back = tutup dialog) TAPI jangan reset scroll:
+      // router scrollRestoration:true akan scroll ke atas di tiap navigasi push.
+      navigate({
+        search: (prev) => ({ ...(prev as Record<string, unknown>), modal: name }) as never,
+        resetScroll: false,
+      })
     },
     [navigate],
   )
