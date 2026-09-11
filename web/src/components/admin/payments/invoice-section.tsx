@@ -34,8 +34,8 @@ function invoiceBadge(status?: string) {
 
 function periodLabel(inv: InvoiceInvoiceResponse) {
   if (!inv.start_date || !inv.end_date) return "—"
-  const f = (d: string) => format(parseISO(d), "dd MMM yyyy", { locale: id })
-  return `${f(inv.start_date)}, ${f(inv.end_date)}`
+  const f = (d: string) => format(parseISO(d), "EEEE, d MMMM yyyy", { locale: id })
+  return `${f(inv.start_date)} - ${f(inv.end_date)}`
 }
 
 const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
@@ -177,10 +177,8 @@ export function InvoiceSection({ title, invoices, isLoading, modal, openModal, c
               {invoices.map((inv) => (
                 <div key={inv.id} className="flex items-start gap-3 p-4">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="min-w-0 truncate font-medium">{periodLabel(inv)}</p>
-                      {invoiceBadge(inv.status)}
-                    </div>
+                    <p className="truncate font-medium">{periodLabel(inv)}</p>
+                    <div className="mt-1">{invoiceBadge(inv.status)}</div>
                       <div className="mt-2 space-y-1 text-sm tabular-nums">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-muted-foreground">Tagihan</span>

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -20,6 +21,8 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
 import { ArrowLeftRight, CalendarX2, Users, UserRound, MoreVertical, Check, X, CheckCircle2, XCircle, Plus, History } from "lucide-react"
+import { format } from "date-fns"
+import { id as localeId } from "date-fns/locale"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
 import { useEffect, useState } from "react"
@@ -59,6 +62,20 @@ function sessionStatusBadge(s?: string) {
 }
 
 const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
+
+// "2026-09-12" → "Jumat, 12 September 2026". Parse manual (bukan new Date)
+// supaya tidak geser hari karena zona waktu.
+function parseYMD(s?: string): Date | undefined {
+  if (!s) return undefined
+  const [y, m, d] = s.split("-").map(Number)
+  if (!y || !m || !d) return undefined
+  return new Date(y, m - 1, d)
+}
+
+function formatDay(s?: string) {
+  const d = parseYMD(s)
+  return d ? format(d, "EEEE, d MMMM yyyy", { locale: localeId }) : "—"
+}
 
 function feeBadge(paid?: boolean) {
   if (paid) return <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Sudah Dibayar</span>
@@ -115,9 +132,9 @@ function AdminBookingDetail() {
       )
     }
     return (
-      <span className="text-xs text-muted-foreground">
+      <Badge variant="outline" className="text-muted-foreground">
         {s.status === "done" ? "Tunggu invoice lunas" : s.status === "review" ? "Menunggu validasi" : "Belum terlaksana"}
-      </span>
+      </Badge>
     )
   }
 
@@ -167,7 +184,7 @@ function AdminBookingDetail() {
                 ? <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
                 : <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>}
               {statusBadge(booking.status!)}
-              <span>{booking.subject_name ?? "—"} · {booking.date} {booking.start_time}–{booking.end_time} · {booking.session_count ?? 1}×</span>
+              <span>{booking.subject_name ?? "—"} · {formatDay(booking.date)} {booking.start_time}–{booking.end_time} · {booking.session_count ?? 1}×</span>
             </p>
             <p className="mt-1 text-sm text-muted-foreground">Guru: {booking.teacher_name ?? "—"}</p>
           </div>
@@ -180,16 +197,28 @@ function AdminBookingDetail() {
       </div>
 
       {!isLoading && booking && (
-        <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
-          {summaryCards.map((s) => (
-            <Card key={s.label}>
-              <CardContent className="flex flex-col gap-0.5 py-3">
-                <span className="text-xs text-muted-foreground">{s.label}</span>
-                <span className={`text-lg font-bold tabular-nums ${s.className}`}>{s.value}</span>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <>
+          <div className="mb-4 hidden grid-cols-5 gap-3 lg:grid">
+            {summaryCards.map((s) => (
+              <Card key={s.label}>
+                <CardContent className="flex flex-col gap-0.5 py-3">
+                  <span className="text-xs text-muted-foreground">{s.label}</span>
+                  <span className={`text-lg font-bold tabular-nums ${s.className}`}>{s.value}</span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Card className="mb-4 gap-0 py-0 lg:hidden">
+            <CardContent className="divide-y p-0">
+              {summaryCards.map((s) => (
+                <div key={s.label} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                  <span className="text-sm text-muted-foreground">{s.label}</span>
+                  <span className={`font-bold tabular-nums ${s.className}`}>{s.value}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </>
       )}
 
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -240,7 +269,7 @@ function AdminBookingDetail() {
                 </TableRow>
               ) : sessions.map((s) => (
                 <TableRow key={s.id}>
-                  <TableCell className="pl-6 tabular-nums">{s.date}</TableCell>
+                  <TableCell className="pl-6 tabular-nums">{formatDay(s.date)}</TableCell>
                   <TableCell className="tabular-nums">
                     {s.start_time} - {s.end_time}
                     {(s.overtime_minutes ?? 0) > 0 && (
@@ -264,7 +293,7 @@ function AdminBookingDetail() {
                         <img src={s.evidence_url} alt="Bukti kehadiran" className="h-10 w-16 object-cover" />
                       </a>
                     ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
+                      <Badge variant="outline" className="text-muted-foreground">Belum ada</Badge>
                     )}
                   </TableCell>
                   <TableCell>
@@ -345,7 +374,7 @@ function AdminBookingDetail() {
                 <div key={s.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium tabular-nums">{s.date} · {s.start_time} - {s.end_time}</p>
+                      <p className="text-sm font-medium tabular-nums">{formatDay(s.date)} · {s.start_time} - {s.end_time}</p>
                       {(s.overtime_minutes ?? 0) > 0 && (
                         <p className="mt-1 text-xs font-medium text-amber-600">
                           +{s.overtime_minutes} mnt (s.d. {s.actual_end_time}) · +{s.extra_sessions ?? 0} sesi
@@ -358,10 +387,14 @@ function AdminBookingDetail() {
                         ) : null}
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">Guru: {s.teacher_name ?? "—"}</p>
-                      {s.evidence_url && (
+                      {s.evidence_url ? (
                         <a href={s.evidence_url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-primary hover:underline">
                           Lihat bukti
                         </a>
+                      ) : (
+                        <div className="mt-1">
+                          <Badge variant="outline" className="text-muted-foreground">Belum ada</Badge>
+                        </div>
                       )}
                       <div className="mt-1">{feeInfo(s)}</div>
                     </div>

@@ -24,6 +24,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { CheckCircle2, MoreVertical, XCircle } from "lucide-react"
+import { format } from "date-fns"
+import { id as localeId } from "date-fns/locale"
 import {
   getAdminInvoicesQueryKey,
   getAdminTutoringReportQueryKey,
@@ -44,6 +46,20 @@ interface RefundSectionProps {
 
 const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
 
+// "2026-09-12" → "Jumat, 12 September 2026". Parse manual (bukan new Date)
+// supaya tidak geser hari karena zona waktu.
+function parseYMD(s?: string): Date | undefined {
+  if (!s) return undefined
+  const [y, m, d] = s.split("-").map(Number)
+  if (!y || !m || !d) return undefined
+  return new Date(y, m - 1, d)
+}
+
+function formatDay(s?: string) {
+  const d = parseYMD(s)
+  return d ? format(d, "EEEE, d MMMM yyyy", { locale: localeId }) : "—"
+}
+
 function ClaimStatusBadge({ done }: { done?: boolean }) {
   if (done) {
     return <Badge variant="outline" className="border-transparent bg-green-100 text-green-700">Sudah transfer</Badge>
@@ -54,10 +70,13 @@ function ClaimStatusBadge({ done }: { done?: boolean }) {
 function ClaimRowCells({ c }: { c: RefundClaim }) {
   return (
     <>
-      <TableCell className="whitespace-nowrap tabular-nums">
-        {c.date ? `${c.date} ${c.start_time ?? ""}–${c.end_time ?? ""}` : (c.note || "—")}
+      <TableCell className="whitespace-nowrap pl-6 tabular-nums">
+        {c.date ? formatDay(c.date) : (c.note || "—")}
       </TableCell>
-      <TableCell className="font-medium tabular-nums text-amber-600">{fmtRp(c.amount)}</TableCell>
+      <TableCell className="whitespace-nowrap tabular-nums">
+        {c.date ? `${c.start_time ?? ""} - ${c.end_time ?? ""}` : "—"}
+      </TableCell>
+      <TableCell className="font-medium tabular-nums">{fmtRp(c.amount)}</TableCell>
       <TableCell><ClaimStatusBadge done={c.done} /></TableCell>
     </>
   )
@@ -99,14 +118,15 @@ export function RefundSection({ bookingId, modal, openModal, closeModal }: Refun
       <Card className="hidden gap-0 pt-0 pb-0 md:block">
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/30">
-                <TableHead className="pl-6">Sesi Batal</TableHead>
-                <TableHead>Nominal</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="pr-6 text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
+              <TableHeader>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="pl-6">Tanggal</TableHead>
+                  <TableHead>Jam</TableHead>
+                  <TableHead>Nominal</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="pr-6 text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {isLoading ? (
                 Array.from({ length: 2 }).map((_, i) => (
@@ -161,9 +181,14 @@ export function RefundSection({ bookingId, modal, openModal, closeModal }: Refun
                 <div key={c.id} className="flex items-center gap-3 p-4">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium tabular-nums">
-                      {c.date ? `${c.date} ${c.start_time ?? ""}–${c.end_time ?? ""}` : (c.note || "—")}
+                      {c.date ? formatDay(c.date) : (c.note || "—")}
                     </p>
-                    <p className="mt-0.5 text-sm font-medium tabular-nums text-amber-600">{fmtRp(c.amount)}</p>
+                    {c.date && (
+                      <p className="mt-0.5 text-sm tabular-nums text-muted-foreground">
+                        {c.start_time ?? ""} - {c.end_time ?? ""}
+                      </p>
+                    )}
+                    <p className="mt-0.5 text-sm font-medium tabular-nums">{fmtRp(c.amount)}</p>
                     <div className="mt-1"><ClaimStatusBadge done={c.done} /></div>
                   </div>
                   <DropdownMenu>
@@ -190,7 +215,7 @@ export function RefundSection({ bookingId, modal, openModal, closeModal }: Refun
             <AlertDialogHeader>
               <AlertDialogTitle>{confirm.done ? "Batalkan tanda klaim?" : "Tandai sudah ditransfer?"}</AlertDialogTitle>
               <AlertDialogDescription>
-                Refund {fmtRp(confirm.amount)} untuk sesi {confirm.date ?? ""} {confirm.start_time ?? ""}–{confirm.end_time ?? ""}
+                Refund {fmtRp(confirm.amount)} untuk sesi {formatDay(confirm.date)} {confirm.start_time ?? ""} - {confirm.end_time ?? ""}
                 {confirm.done ? " ditandai belum ditransfer." : ". Pastikan uang sudah ditransfer manual ke murid."}
               </AlertDialogDescription>
             </AlertDialogHeader>
