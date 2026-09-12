@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminTutoringBookingsOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
-import { CalendarX2, Search, X } from "lucide-react"
+import { CalendarDays, CalendarX2, ChevronRight, Clock, Search, X } from "lucide-react"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
 
@@ -231,22 +231,33 @@ function AdminTutoring() {
                   className="cursor-pointer p-4"
                   onClick={() => navigate({ to: "/admin/bookings/students/$userId", params: { userId: String(r.id) } })}
                 >
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{r.name}</p>
-                    <p className="mt-0.5 truncate text-sm text-muted-foreground">{r.email || "—"}</p>
-                    {r.unpaid > 0 && (
-                      <p className="mt-1">
-                        <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
-                          {r.unpaid} tagihan belum lunas
-                        </span>
-                      </p>
-                    )}
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {r.pending > 0
-                        ? <span className="font-medium text-amber-600">{r.pending} menunggu</span>
-                        : "Tidak ada antrean"}
-                      {" · "}{r.total} booking
+                  <div className="flex items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{r.name}</p>
+                      <p className="mt-0.5 truncate text-sm text-muted-foreground">{r.email || "—"}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </div>
+                  {r.unpaid > 0 && (
+                    <p className="mt-2">
+                      <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+                        {r.unpaid} tagihan belum lunas
+                      </span>
                     </p>
+                  )}
+                  <div className="mt-2 space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      {r.pending > 0 ? (
+                        <span className="font-medium text-amber-600">{r.pending} menunggu</span>
+                      ) : (
+                        <span className="text-muted-foreground">Tidak ada antrean</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                      <span className="tabular-nums">{r.total} booking</span>
+                    </div>
                   </div>
                 </div>
               ))}
