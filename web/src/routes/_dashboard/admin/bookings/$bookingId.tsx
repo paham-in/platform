@@ -178,7 +178,7 @@ function AdminBookingDetail() {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button variant="outline" size="icon-lg" aria-label="Aksi booking" />}>
-          <MoreVertical className="h-4 w-4" />
+          <MoreVertical className="size-5" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {canReassign && (

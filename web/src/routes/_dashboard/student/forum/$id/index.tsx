@@ -90,7 +90,7 @@ function ForumDetail() {
     () => (
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button variant="ghost" size="icon-lg" aria-label="Aksi pertanyaan" />}>
-          <MoreVertical className="h-4 w-4" />
+          <MoreVertical className="size-5" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => navigate({ to: "/student/forum/$id/edit", params: { id } })}>

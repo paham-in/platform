@@ -125,7 +125,7 @@ function ClassFilterMenu({
         render={compact ? <Button variant="outline" size="icon-lg" className="relative" /> : <Button variant="outline" />}
         aria-label="Filter kelas"
       >
-        <Funnel className="h-4 w-4" />
+        <Funnel className="size-5" />
         {compact ? (
           activeCount > 0 && (
             <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">

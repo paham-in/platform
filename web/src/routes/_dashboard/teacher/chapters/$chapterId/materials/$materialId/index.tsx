@@ -34,7 +34,7 @@ function MaterialDetail() {
     () => (
       <DropdownMenu>
         <DropdownMenuTrigger render={<Button variant="ghost" size="icon-lg" aria-label="Aksi materi" />}>
-          <MoreVertical className="h-4 w-4" />
+          <MoreVertical className="size-5" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={goEdit}>
