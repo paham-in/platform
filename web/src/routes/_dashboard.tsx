@@ -419,7 +419,7 @@ function DashboardLayout() {
             <div className="flex items-center rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5 empty:hidden">
               <HeaderNav />
             </div>
-            <div className="ml-auto flex items-center gap-0.5 rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5">
+            <div className="ml-auto flex items-center gap-1 rounded-full bg-card p-1 shadow-sm ring-1 ring-foreground/5">
               <NotificationBell size="icon-lg" />
               <MobileHeaderAction />
             </div>
