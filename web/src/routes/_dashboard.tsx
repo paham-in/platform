@@ -317,7 +317,7 @@ function HeaderNav() {
     if (isMobile) {
       return (
         <Button variant="ghost" size="icon-lg" aria-label="Kembali" onClick={goBack}>
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="size-5" />
         </Button>
       );
     }
