@@ -20,7 +20,7 @@ import {
   getAdminTutoringReportOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
-import { ArrowLeftRight, CalendarX2, Users, UserRound, MoreVertical, Check, X, CheckCircle2, XCircle, Plus, History } from "lucide-react"
+import { ArrowLeftRight, BookOpen, CalendarDays, CalendarX2, Users, UserRound, GraduationCap, MoreVertical, Check, X, CheckCircle2, XCircle, Plus, History, Repeat } from "lucide-react"
 import { format } from "date-fns"
 import { id as localeId } from "date-fns/locale"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -206,16 +206,32 @@ function AdminBookingDetail() {
             <Skeleton className="mt-2 h-4 w-56" />
           </div>
         ) : (
-          <div>
+          <div className="min-w-0">
             <h1 className="text-2xl font-bold tracking-tight">{booking.student_name}</h1>
-            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               {booking.mode === "group"
                 ? <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
                 : <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>}
               {statusBadge(booking.status!)}
-              <span>{booking.subject_name ?? "—"} · {formatDay(booking.date)} {booking.start_time}–{booking.end_time} · {booking.session_count ?? 1}×</span>
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">Guru: {booking.teacher_name ?? "—"}</p>
+            </div>
+            <div className="mt-2 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <BookOpen className="h-3.5 w-3.5 shrink-0" />
+                <span>{booking.subject_name ?? "—"}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                <span className="tabular-nums">{formatDay(booking.date)}, {booking.start_time} - {booking.end_time}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Repeat className="h-3.5 w-3.5 shrink-0" />
+                <span className="tabular-nums">{booking.session_count ?? 1}× pertemuan</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <GraduationCap className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{booking.teacher_name ?? "Belum ada guru"}</span>
+              </div>
+            </div>
           </div>
         )}
         {!isLoading && booking?.status === "confirmed" && !sessions.some((s) => s.evidence_url) && (
