@@ -25,7 +25,8 @@ import { format } from "date-fns"
 import { id as localeId } from "date-fns/locale"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
-import { useEffect, useState } from "react"
+import { usePageHeaderAction } from "@/components/page-title"
+import { useEffect, useMemo, useState } from "react"
 import { SwapSessionTeacherDialog } from "@/components/admin/attendance/swap-session-teacher-dialog"
 import { ApproveEvidenceDialog, CancelSessionDialog, RejectEvidenceDialog, RestoreSessionDialog, ToggleFeeDialog } from "@/components/admin/attendance"
 import { ReassignTeacherDialog, ExtendBookingDialog } from "@/components/admin/tutoring"
@@ -168,6 +169,34 @@ function AdminBookingDetail() {
     { label: "Sesi Selesai", value: `${doneSessions}/${totalSessions}`, className: "text-foreground" },
   ]
 
+  // Aksi halaman di header mobile (dropdown hemat tempat). Versi inline di
+  // bawah hanya tampil di desktop.
+  const canReassign = !isLoading && booking?.status === "confirmed" && !sessions.some((s) => s.evidence_url)
+  const canExtend = !isLoading && booking?.status === "confirmed"
+  const headerAction = useMemo(() => {
+    if (!canReassign && !canExtend) return null
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="outline" size="icon-lg" aria-label="Aksi booking" />}>
+          <MoreVertical className="h-4 w-4" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {canReassign && (
+            <DropdownMenuItem onClick={() => { setReassignActive(true); openModal("reassign") }}>
+              <ArrowLeftRight className="h-4 w-4" /> Ganti Guru
+            </DropdownMenuItem>
+          )}
+          {canExtend && (
+            <DropdownMenuItem onClick={() => { setExtendActive(true); openModal("extend") }}>
+              <Plus className="h-4 w-4" /> Tambah Sesi
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  }, [canReassign, canExtend])
+  usePageHeaderAction(headerAction)
+
   return (
     <main className="p-4 md:p-6">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -190,7 +219,7 @@ function AdminBookingDetail() {
           </div>
         )}
         {!isLoading && booking?.status === "confirmed" && !sessions.some((s) => s.evidence_url) && (
-          <Button variant="outline" onClick={() => { setReassignActive(true); openModal("reassign") }}>
+          <Button variant="outline" className="hidden md:inline-flex" onClick={() => { setReassignActive(true); openModal("reassign") }}>
             <ArrowLeftRight className="mr-1 h-4 w-4" /> Ganti Guru
           </Button>
         )}
@@ -224,7 +253,7 @@ function AdminBookingDetail() {
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold">Daftar Sesi</h2>
         {!isLoading && booking?.status === "confirmed" && (
-          <Button variant="outline" size="sm" onClick={() => { setExtendActive(true); openModal("extend") }}>
+          <Button variant="outline" size="sm" className="hidden md:inline-flex" onClick={() => { setExtendActive(true); openModal("extend") }}>
             <Plus className="mr-1 h-4 w-4" /> Tambah Sesi
           </Button>
         )}
