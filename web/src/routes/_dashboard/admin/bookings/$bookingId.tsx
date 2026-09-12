@@ -162,11 +162,11 @@ function AdminBookingDetail() {
   const totalSessions = booking?.session_count ?? sessions.length
 
   const summaryCards = [
-    { label: "Total Tagihan", value: fmtRp(invoiceTotal), className: "text-foreground" },
-    { label: "Sudah Dibayar", value: fmtRp(invoicePaid), className: "text-green-600" },
-    { label: "Estimasi Refund", value: fmtRp(report?.refund_amount), className: "text-red-600" },
-    { label: "Fee Belum Dibayar", value: fmtRp(report?.fee_unpaid_total), className: "text-amber-600" },
-    { label: "Sesi Selesai", value: `${doneSessions}/${totalSessions}`, className: "text-foreground" },
+    { label: "Total Tagihan", value: fmtRp(invoiceTotal) },
+    { label: "Sudah Dibayar", value: fmtRp(invoicePaid) },
+    { label: "Estimasi Refund", value: fmtRp(report?.refund_amount) },
+    { label: "Fee Belum Dibayar", value: fmtRp(report?.fee_unpaid_total) },
+    { label: "Sesi Selesai", value: `${doneSessions}/${totalSessions}` },
   ]
 
   // Aksi halaman di header mobile (dropdown hemat tempat). Versi inline di
@@ -248,7 +248,7 @@ function AdminBookingDetail() {
               <Card key={s.label}>
                 <CardContent className="flex flex-col gap-0.5 py-3">
                   <span className="text-xs text-muted-foreground">{s.label}</span>
-                  <span className={`text-lg font-bold tabular-nums ${s.className}`}>{s.value}</span>
+                  <span className="text-lg font-bold tabular-nums">{s.value}</span>
                 </CardContent>
               </Card>
             ))}
@@ -258,7 +258,7 @@ function AdminBookingDetail() {
               {summaryCards.map((s) => (
                 <div key={s.label} className="flex items-center justify-between gap-3 px-4 py-2.5">
                   <span className="text-sm text-muted-foreground">{s.label}</span>
-                  <span className={`font-bold tabular-nums ${s.className}`}>{s.value}</span>
+                  <span className="font-bold tabular-nums">{s.value}</span>
                 </div>
               ))}
             </CardContent>
