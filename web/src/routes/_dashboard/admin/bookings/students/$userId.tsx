@@ -13,7 +13,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminTutoringBookingsOptions, getAdminTutoringReportOptions, getAdminUsersOptions } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListBookingsResponse } from "@/lib/api/types.gen"
-import { UserRound, Users, CalendarX2, CalendarClock, XCircle, MoreVertical, UserPlus, Plus } from "lucide-react"
+import { UserRound, Users, CalendarDays, CalendarX2, CalendarClock, CheckCircle2, Clock, GraduationCap, Repeat, XCircle, MoreVertical, UserPlus, Plus } from "lucide-react"
+import { format } from "date-fns"
+import { id as localeId } from "date-fns/locale"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { useState, useEffect } from "react"
 import { useDialogBack } from "@/lib/hooks/use-dialog-back"
@@ -41,6 +43,39 @@ function modeBadge(mode?: string) {
     return <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
   }
   return <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
+}
+
+// "2026-09-12" → "Sabtu, 12 September 2026". Parse manual (bukan new Date)
+// supaya tidak geser hari karena zona waktu.
+function parseYMD(s?: string): Date | undefined {
+  if (!s) return undefined
+  const [y, m, d] = s.split("-").map(Number)
+  if (!y || !m || !d) return undefined
+  return new Date(y, m - 1, d)
+}
+
+function formatDay(s?: string) {
+  const d = parseYMD(s)
+  return d ? format(d, "EEEE, d MMMM yyyy", { locale: localeId }) : "—"
+}
+
+const statusTextClass: Record<string, string> = {
+  pending: "text-amber-600",
+  confirmed: "text-green-600",
+  rejected: "text-red-600",
+  cancelled: "text-gray-500",
+}
+
+const statusTextLabel: Record<string, string> = {
+  pending: "Menunggu", confirmed: "Disetujui", rejected: "Ditolak", cancelled: "Dibatalkan",
+}
+
+function StatusIcon({ s }: { s?: string }) {
+  const cls = "h-3.5 w-3.5 shrink-0"
+  if (s === "confirmed") return <CheckCircle2 className={`${cls} text-green-600`} />
+  if (s === "rejected") return <XCircle className={`${cls} text-red-600`} />
+  if (s === "cancelled") return <XCircle className={`${cls} text-gray-500`} />
+  return <Clock className={`${cls} text-amber-600`} />
 }
 
 function AdminTutoringDetail() {
@@ -235,19 +270,39 @@ function AdminTutoringDetail() {
                   className={clickable ? "flex cursor-pointer items-start justify-between gap-3 p-4" : "flex items-start justify-between gap-3 p-4"}
                   onClick={clickable ? () => navigate({ to: "/admin/bookings/$bookingId", params: { bookingId: String(b.id) } }) : undefined}
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{b.subject_name ?? "—"}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                      {modeBadge(b.mode)}
-                      {statusBadge(b.status!)}
+                    <div className="mt-2 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        {b.mode === "group"
+                          ? <Users className="h-3.5 w-3.5 shrink-0" />
+                          : <UserRound className="h-3.5 w-3.5 shrink-0" />}
+                        <span>{b.mode === "group" ? "Kelompok" : "Private"}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                        <span className="tabular-nums">{formatDay(b.date)}, {b.start_time} - {b.end_time}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Repeat className="h-3.5 w-3.5 shrink-0" />
+                        <span className="tabular-nums">
+                          {b.session_count ?? 1}× pertemuan
+                          {(() => {
+                            const p = progressOf(b)
+                            if (!p) return null
+                            return <span> ({p.done}/{p.total} selesai{p.cancelled > 0 ? `, ${p.cancelled} batal` : ""})</span>
+                          })()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <GraduationCap className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{b.teacher_name ?? "Belum ada guru"}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <StatusIcon s={b.status} />
+                        <span className={`font-medium ${statusTextClass[b.status!] ?? ""}`}>{statusTextLabel[b.status!] ?? b.status}</span>
+                      </div>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {b.teacher_name ?? "—"} · {b.date} {b.start_time}–{b.end_time} · {b.session_count ?? 1}×
-                    </p>
-                    {(() => {
-                      const label = progressText(b)
-                      return label ? <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{label}</p> : null
-                    })()}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     {(b.status === "pending" || b.status === "confirmed") ? (
