@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getQuestionPackageCollectionsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { FolderOpen, Sparkles, Layers } from "lucide-react"
@@ -67,11 +68,11 @@ function PackagesPage() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                       <FolderOpen className="h-5 w-5 text-primary" />
                     </div>
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                    <Badge variant="secondary" className={
                       collection.is_free ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                    }`}>
+                    }>
                       {collection.is_free ? "Gratis" : "Premium"}
-                    </span>
+                    </Badge>
                   </div>
                   <h3 className="mt-3 font-semibold">{collection.name}</h3>
                   <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">

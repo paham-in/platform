@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -113,11 +114,11 @@ function AdminForum() {
                     <TableCell className="pl-6 font-medium">{q.plain_content?.slice(0, 80)}</TableCell>
                     <TableCell className="text-muted-foreground">{q.user_name}</TableCell>
                     <TableCell>
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      <Badge variant="secondary" className={
                         (q.answer_count ?? 0) > 0 ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
-                      }`}>
+                      }>
                         {(q.answer_count ?? 0) > 0 ? "Terjawab" : "Terbuka"}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{q.created_at}</TableCell>
                     <TableCell className="pr-6 text-right">
@@ -197,11 +198,11 @@ function AdminForum() {
                   <p className="truncate font-medium">{q.plain_content?.slice(0, 80)}</p>
                   <p className="mt-0.5 text-sm text-muted-foreground">{q.user_name}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    <Badge variant="secondary" className={
                       (q.answer_count ?? 0) > 0 ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
-                    }`}>
+                    }>
                       {(q.answer_count ?? 0) > 0 ? "Terjawab" : "Terbuka"}
-                    </span>
+                    </Badge>
                     <span className="text-xs text-muted-foreground">{q.created_at}</span>
                   </div>
                 </div>

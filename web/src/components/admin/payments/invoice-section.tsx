@@ -3,6 +3,7 @@ import { format, parseISO } from "date-fns"
 import { id } from "date-fns/locale"
 import { MoreVertical, CheckCircle2, XCircle, Trash2, Receipt } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
@@ -24,12 +25,12 @@ function canDelete(inv: InvoiceInvoiceResponse) {
 
 function invoiceBadge(status?: string) {
   if (status === "paid") {
-    return <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Lunas</span>
+    return <Badge variant="secondary" className="bg-green-100 text-green-700">Lunas</Badge>
   }
   if (status === "batal") {
-    return <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">Batal</span>
+    return <Badge variant="secondary" className="bg-gray-100 text-gray-700">Batal</Badge>
   }
-  return <span className="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">Pending</span>
+  return <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">Pending</Badge>
 }
 
 function periodLabel(inv: InvoiceInvoiceResponse) {

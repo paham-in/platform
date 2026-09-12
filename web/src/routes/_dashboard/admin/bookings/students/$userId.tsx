@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   DropdownMenu,
@@ -35,14 +36,14 @@ function statusBadge(s: string) {
   const labels: Record<string, string> = {
     pending: "Menunggu", confirmed: "Disetujui", rejected: "Ditolak", cancelled: "Dibatalkan",
   }
-  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[s] || ""}`}>{labels[s] || s}</span>
+  return <Badge variant="secondary" className={styles[s] || ""}>{labels[s] || s}</Badge>
 }
 
 function modeBadge(mode?: string) {
   if (mode === "group") {
-    return <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
+    return <Badge variant="secondary" className="bg-blue-100 text-blue-700"><Users className="h-3 w-3" /> Kelompok</Badge>
   }
-  return <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
+  return <Badge variant="secondary" className="bg-purple-100 text-purple-700"><UserRound className="h-3 w-3" /> Private</Badge>
 }
 
 // "2026-09-12" → "Sabtu, 12 September 2026". Parse manual (bukan new Date)

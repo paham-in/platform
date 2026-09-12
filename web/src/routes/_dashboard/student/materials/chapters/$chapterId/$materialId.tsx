@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen"
 import { createFileRoute, useParams } from "@tanstack/react-router"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
 import { RichContent } from "@/components/ui/rich-content"
 
 function extractYoutubeId(url: string): string {
@@ -55,9 +56,9 @@ function MaterialDetail() {
         <h1 className="text-3xl font-bold tracking-tight">{material.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {cls?.name ?? "-"} • {sub?.name ?? "-"}
-          <span className="ml-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">
+          <Badge variant="secondary" className="ml-2 bg-green-100 text-green-700">
             {material.status === "published" ? "Published" : "Draft"}
-          </span>
+          </Badge>
         </p>
       </div>
 

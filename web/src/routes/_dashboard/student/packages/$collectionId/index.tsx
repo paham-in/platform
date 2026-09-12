@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Outlet, useNavigate, useParams } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getQuestionPackageCollectionsByIdOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { FileText, Layers, Sparkles, ChevronRight } from "lucide-react"
@@ -49,11 +50,11 @@ function CollectionDetail() {
         <h1 className="text-3xl font-bold tracking-tight">{collection.name}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {collection.class_name} • {collection.package_count ?? 0} paket • {totalQ} soal
-          <span className={`ml-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+          <Badge variant="secondary" className={`ml-2 ${
             collection.is_free ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
           }`}>
             {collection.is_free ? "Gratis" : "Premium"}
-          </span>
+          </Badge>
         </p>
         {collection.description ? <p className="mt-2 text-sm text-muted-foreground">{collection.description}</p> : null}
       </div>

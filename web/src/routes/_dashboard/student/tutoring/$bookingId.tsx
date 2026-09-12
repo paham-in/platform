@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
@@ -29,7 +30,7 @@ function statusBadge(s: string) {
   const labels: Record<string, string> = {
     pending: "Menunggu", confirmed: "Disetujui", rejected: "Ditolak", cancelled: "Dibatalkan",
   }
-  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[s] || ""}`}>{labels[s] || s}</span>
+  return <Badge variant="secondary" className={styles[s] || ""}>{labels[s] || s}</Badge>
 }
 
 function sessionStatusBadge(s?: string) {
@@ -42,7 +43,7 @@ function sessionStatusBadge(s?: string) {
   const labels: Record<string, string> = {
     scheduled: "Terjadwal", done: "Selesai", cancelled: "Dibatalkan", review: "Menunggu Validasi",
   }
-  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[s || ""] || ""}`}>{labels[s || ""] || s}</span>
+  return <Badge variant="secondary" className={styles[s || ""] || ""}>{labels[s || ""] || s}</Badge>
 }
 
 // canCancel: murid hanya bisa batal saat pending (guru belum di-assign admin).

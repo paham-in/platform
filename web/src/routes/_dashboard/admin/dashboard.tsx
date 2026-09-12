@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { useQuery } from "@tanstack/react-query"
 import { getAdminUsersOptions, getAdminMaterialsOptions, getSubjectsOptions } from "@/lib/api/@tanstack/react-query.gen"
 import { Users, GraduationCap, BookOpen, FileText, BookMarked, ChevronRight, Calendar } from "lucide-react"
@@ -51,7 +52,7 @@ function AdminDashboard() {
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">{u.name?.[0]}</div>
                   <div><p className="text-sm font-medium">{u.name}</p><p className="text-xs text-muted-foreground">{u.email}</p></div>
                 </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${(u.roles ?? []).includes("teacher") ? "bg-blue-100 text-blue-700" : (u.roles ?? []).includes("admin") ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}`}>{(u.roles ?? []).includes("teacher") ? "Guru" : (u.roles ?? []).includes("admin") ? "Admin" : "Murid"}</span>
+                <Badge variant="secondary" className={(u.roles ?? []).includes("teacher") ? "bg-blue-100 text-blue-700" : (u.roles ?? []).includes("admin") ? "bg-purple-100 text-purple-700" : "bg-green-100 text-green-700"}>{(u.roles ?? []).includes("teacher") ? "Guru" : (u.roles ?? []).includes("admin") ? "Admin" : "Murid"}</Badge>
               </div>
             ))}
             {allUsers.length > 5 && <p className="pt-2 text-center text-xs text-muted-foreground">...dan {allUsers.length - 5} lainnya</p>}

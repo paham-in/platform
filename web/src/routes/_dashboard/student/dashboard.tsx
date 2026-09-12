@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery } from "@tanstack/react-query"
 import { getMeOptions, getStudentClassEnrollmentsOptions } from "@/lib/api/@tanstack/react-query.gen"
@@ -88,13 +89,14 @@ function StudentDashboard() {
                             <div className="text-xs text-muted-foreground">Kadaluarsa {sp.expiry ?? "—"}</div>
                           </div>
                         </div>
-                        <span
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        <Badge
+                          variant="secondary"
+                          className={
                             expired ? "bg-muted text-muted-foreground" : "bg-green-100 text-green-700"
-                          }`}
+                          }
                         >
                           {expired ? "Kadaluarsa" : "Aktif"}
-                        </span>
+                        </Badge>
                       </div>
                     )
                   })}

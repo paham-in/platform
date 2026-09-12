@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery } from "@tanstack/react-query"
 import { getMeOptions, getQuestionsOptions } from "@/lib/api/@tanstack/react-query.gen"
@@ -81,7 +82,7 @@ function TeacherDashboard() {
             {[{ title: "Trigonometri Dasar", subject: "Matematika", status: "Published" }, { title: "Hukum Newton", subject: "Fisika", status: "Draft" }].map((m, i) => (
               <div key={i} className="flex items-center justify-between border-b py-3 last:border-0">
                 <div><p className="text-sm font-medium">{m.title}</p><p className="text-xs text-muted-foreground">{m.subject}</p></div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${m.status === "Published" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{m.status}</span>
+                <Badge variant="secondary" className={m.status === "Published" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}>{m.status}</Badge>
               </div>
             ))}
           </CardContent></Card>

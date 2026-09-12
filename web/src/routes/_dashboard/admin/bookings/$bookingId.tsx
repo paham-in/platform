@@ -20,7 +20,7 @@ import {
   getAdminTutoringReportOptions,
 } from "@/lib/api/@tanstack/react-query.gen"
 import type { TutoringListSessionsResponse } from "@/lib/api/types.gen"
-import { ArrowLeftRight, BookOpen, CalendarDays, CalendarX2, Users, UserRound, GraduationCap, MoreVertical, Check, X, CheckCircle2, XCircle, Plus, History, Repeat } from "lucide-react"
+import { ArrowLeftRight, BookOpen, CalendarDays, CalendarX2, Clock, Users, UserRound, GraduationCap, MoreVertical, Check, X, CheckCircle2, XCircle, Plus, History, Repeat } from "lucide-react"
 import { format } from "date-fns"
 import { id as localeId } from "date-fns/locale"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -46,7 +46,7 @@ function statusBadge(s: string) {
   const labels: Record<string, string> = {
     pending: "Menunggu", confirmed: "Disetujui", rejected: "Ditolak", cancelled: "Dibatalkan",
   }
-  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[s] || ""}`}>{labels[s] || s}</span>
+  return <Badge variant="secondary" className={styles[s] || ""}>{labels[s] || s}</Badge>
 }
 
 function sessionStatusBadge(s?: string) {
@@ -59,7 +59,7 @@ function sessionStatusBadge(s?: string) {
   const labels: Record<string, string> = {
     scheduled: "Terjadwal", done: "Selesai", cancelled: "Dibatalkan", review: "Menunggu Validasi",
   }
-  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[s || ""] || ""}`}>{labels[s || ""] || s}</span>
+  return <Badge variant="secondary" className={styles[s || ""] || ""}>{labels[s || ""] || s}</Badge>
 }
 
 const fmtRp = (n?: number) => `Rp ${(n ?? 0).toLocaleString("id-ID")}`
@@ -79,8 +79,8 @@ function formatDay(s?: string) {
 }
 
 function feeBadge(paid?: boolean) {
-  if (paid) return <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">Sudah Dibayar</span>
-  return <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">Belum Dibayar</span>
+  if (paid) return <Badge variant="secondary" className="bg-green-100 text-green-700">Sudah Dibayar</Badge>
+  return <Badge variant="secondary" className="bg-amber-100 text-amber-700">Belum Dibayar</Badge>
 }
 
 function AdminBookingDetail() {
@@ -210,8 +210,8 @@ function AdminBookingDetail() {
             <h1 className="text-2xl font-bold tracking-tight">{booking.student_name}</h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               {booking.mode === "group"
-                ? <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
-                : <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>}
+                ? <Badge variant="secondary" className="bg-blue-100 text-blue-700"><Users className="h-3 w-3" /> Kelompok</Badge>
+                : <Badge variant="secondary" className="bg-purple-100 text-purple-700"><UserRound className="h-3 w-3" /> Private</Badge>}
               {statusBadge(booking.status!)}
             </div>
             <div className="mt-2 space-y-1.5">
@@ -327,7 +327,7 @@ function AdminBookingDetail() {
                     <div className="flex flex-wrap items-center gap-1.5">
                       {sessionStatusBadge(s.status)}
                       {s.is_substitute ? (
-                        <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[11px] font-medium text-cyan-700">Pengganti</span>
+                        <Badge variant="secondary" className="bg-cyan-100 text-[11px] text-cyan-700">Pengganti</Badge>
                       ) : null}
                     </div>
                   </TableCell>
@@ -419,29 +419,36 @@ function AdminBookingDetail() {
                 <div key={s.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium tabular-nums">{formatDay(s.date)} · {s.start_time} - {s.end_time}</p>
-                      {(s.overtime_minutes ?? 0) > 0 && (
-                        <p className="mt-1 text-xs font-medium text-amber-600">
-                          +{s.overtime_minutes} mnt (s.d. {s.actual_end_time}) · +{s.extra_sessions ?? 0} sesi
-                        </p>
-                      )}
-                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <div className="mb-1 flex flex-wrap items-center gap-1.5">
                         {sessionStatusBadge(s.status)}
                         {s.is_substitute ? (
                           <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[11px] font-medium text-cyan-700">Pengganti</span>
                         ) : null}
                       </div>
-                      <p className="mt-1 text-xs text-muted-foreground">Guru: {s.teacher_name ?? "—"}</p>
-                      {s.evidence_url ? (
-                        <a href={s.evidence_url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-primary hover:underline">
-                          Lihat bukti
-                        </a>
-                      ) : (
-                        <div className="mt-1">
-                          <Badge variant="outline" className="text-muted-foreground">Belum ada</Badge>
-                        </div>
+                      <p className="text-sm font-medium tabular-nums">{formatDay(s.date)}</p>
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5 shrink-0" />
+                        <span className="tabular-nums">{s.start_time} - {s.end_time}</span>
+                      </div>
+                      {(s.overtime_minutes ?? 0) > 0 && (
+                        <p className="mt-1 text-xs font-medium text-amber-600">
+                          +{s.overtime_minutes} mnt (s.d. {s.actual_end_time}) · +{s.extra_sessions ?? 0} sesi
+                        </p>
                       )}
-                      <div className="mt-1">{feeInfo(s)}</div>
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <GraduationCap className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{s.teacher_name ?? "Belum ada guru"}</span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                        {s.evidence_url ? (
+                          <a href={s.evidence_url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
+                            Lihat bukti
+                          </a>
+                        ) : (
+                          <Badge variant="outline" className="text-muted-foreground">Belum ada</Badge>
+                        )}
+                        {feeInfo(s)}
+                      </div>
                     </div>
                     {hasActions(s) && (
                     <DropdownMenu>

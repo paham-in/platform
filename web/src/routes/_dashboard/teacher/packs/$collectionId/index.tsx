@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -137,9 +138,9 @@ function CollectionPackages() {
                     <TableCell className="max-w-[300px] truncate text-muted-foreground">{pkg.description || "-"}</TableCell>
                     <TableCell className="text-muted-foreground">{pkg.questions?.length ?? 0}</TableCell>
                     <TableCell>
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[pkg.status === "published" ? "published" : "draft"]}`}>
+                      <Badge variant="secondary" className={statusStyles[pkg.status === "published" ? "published" : "draft"]}>
                         {statusLabels[pkg.status === "published" ? "published" : "draft"]}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{pkg.created_at}</TableCell>
                     <TableCell className="pr-6 text-right">
@@ -215,9 +216,9 @@ function CollectionPackages() {
                       <p className="mt-0.5 text-sm text-muted-foreground">{pkg.subject_name || "-"}</p>
                       {pkg.description && <p className="mt-0.5 truncate text-sm text-muted-foreground">{pkg.description}</p>}
                       <div className="mt-1 flex flex-wrap items-center gap-1">
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[pkg.status === "published" ? "published" : "draft"]}`}>
+                        <Badge variant="secondary" className={statusStyles[pkg.status === "published" ? "published" : "draft"]}>
                           {statusLabels[pkg.status === "published" ? "published" : "draft"]}
-                        </span>
+                        </Badge>
                         <span className="text-sm text-muted-foreground">{pkg.questions?.length ?? 0} soal</span>
                       </div>
                       {pkg.created_at && <p className="mt-0.5 text-xs text-muted-foreground">{pkg.created_at}</p>}

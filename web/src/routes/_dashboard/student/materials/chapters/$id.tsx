@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   getMaterialsOptions,
@@ -70,11 +71,11 @@ function ChapterDetail() {
                       </div>
                       <div>
                         <h3 className="font-medium">{m.title}</h3>
-                        <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                        <Badge variant="secondary" className={`mt-1 ${
                           m.status === "published" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
                         }`}>
                           {m.status === "published" ? "Published" : "Draft"}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
                   </CardContent>

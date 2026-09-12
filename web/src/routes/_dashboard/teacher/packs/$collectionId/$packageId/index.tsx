@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { z } from "zod"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -73,13 +74,13 @@ function PackageQuestions() {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight">{pkg?.name ?? "Paket Soal"}</h1>
               {pkg && (
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                <Badge variant="secondary" className={
                   pkg.status === "published"
                     ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
                     : "bg-amber-500/15 text-amber-700 dark:text-amber-400"
-                }`}>
+                }>
                   {pkg.status === "published" ? "Tayang" : "Draf"}
-                </span>
+                </Badge>
               )}
             </div>
             {pkg && (

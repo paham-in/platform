@@ -1,5 +1,6 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -424,20 +425,20 @@ function ChapterMaterials() {
                   >
                     <TableCell className="max-w-xs truncate pl-6 font-medium" title={m.title}>{m.title}</TableCell>
                     <TableCell>
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${typeStyles[m.type ?? "text"]}`}>
+                      <Badge variant="secondary" className={typeStyles[m.type ?? "text"]}>
                         {m.type === "video" ? "Video" : "Teks"}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${accessStyles[m.is_free ? "free" : "paid"]}`}>
+                      <Badge variant="secondary" className={`gap-1.5 ${accessStyles[m.is_free ? "free" : "paid"]}`}>
                         {m.is_free ? <Gift className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
                         {m.is_free ? "Gratis" : "Berbayar"}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell>
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[m.status === "published" ? "published" : "draft"]}`}>
+                      <Badge variant="secondary" className={statusStyles[m.status === "published" ? "published" : "draft"]}>
                         {statusLabels[m.status === "published" ? "published" : "draft"]}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
                       {canManage && canEdit(m) && (
@@ -558,16 +559,16 @@ function ChapterMaterials() {
                     <div className="min-w-0">
                       <p className="truncate font-medium" title={m.title}>{m.title}</p>
                       <div className="mt-1 flex flex-wrap items-center gap-1">
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${typeStyles[m.type ?? "text"]}`}>
+                        <Badge variant="secondary" className={typeStyles[m.type ?? "text"]}>
                           {m.type === "video" ? "Video" : "Teks"}
-                        </span>
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${accessStyles[m.is_free ? "free" : "paid"]}`}>
+                        </Badge>
+                        <Badge variant="secondary" className={`gap-1.5 ${accessStyles[m.is_free ? "free" : "paid"]}`}>
                           {m.is_free ? <Gift className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
                           {m.is_free ? "Gratis" : "Berbayar"}
-                        </span>
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[m.status === "published" ? "published" : "draft"]}`}>
+                        </Badge>
+                        <Badge variant="secondary" className={statusStyles[m.status === "published" ? "published" : "draft"]}>
                           {statusLabels[m.status === "published" ? "published" : "draft"]}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
                     {canManage && canEdit(m) && (

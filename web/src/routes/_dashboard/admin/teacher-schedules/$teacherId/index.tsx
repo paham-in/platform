@@ -46,17 +46,17 @@ const statusStyles: Record<string, string> = {
 function SessionStatusBadge({ status }: { status?: string }) {
   const s = status ?? ""
   return (
-    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[s] ?? "bg-muted text-muted-foreground"}`}>
+    <Badge variant="secondary" className={statusStyles[s] ?? "bg-muted text-muted-foreground"}>
       {statusLabels[s] ?? s}
-    </span>
+    </Badge>
   )
 }
 
 function ModeBadge({ mode }: { mode?: string }) {
   if (mode === "group") {
-    return <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700"><Users className="h-3 w-3" /> Kelompok</span>
+    return <Badge variant="secondary" className="bg-blue-100 text-blue-700"><Users className="h-3 w-3" /> Kelompok</Badge>
   }
-  return <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-700"><UserRound className="h-3 w-3" /> Private</span>
+  return <Badge variant="secondary" className="bg-purple-100 text-purple-700"><UserRound className="h-3 w-3" /> Private</Badge>
 }
 
 function parseYMD(s?: string): Date | undefined {

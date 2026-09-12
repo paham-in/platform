@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -93,11 +94,11 @@ function CollectionsPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{collection.class_name || "-"}</TableCell>
                     <TableCell>
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                      <Badge variant="secondary" className={
                         collection.is_free ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                      }`}>
+                      }>
                         {collection.is_free ? TIER_LABEL.free : TIER_LABEL.premium}
-                      </span>
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {collection.package_count ?? 0} paket
@@ -164,11 +165,11 @@ function CollectionsPage() {
                         {collection.name}
                       </p>
                       <div className="mt-1 space-y-1">
-                        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                        <Badge variant="secondary" className={
                           collection.is_free ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                        }`}>
+                        }>
                           {collection.is_free ? TIER_LABEL.free : TIER_LABEL.premium}
-                        </span>
+                        </Badge>
                         <p className="text-sm text-muted-foreground">
                           {collection.class_name || "-"} <span className="mx-1">•</span> {collection.package_count ?? 0} paket
                         </p>

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -211,11 +212,11 @@ function TeacherForum() {
                   <TableCell className="text-muted-foreground">{q.user_name}</TableCell>
                   <TableCell className="text-muted-foreground">{q.subject_name || "-"}</TableCell>
                   <TableCell>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      (q.answer_count ?? 0) > 0 ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
-                    }`}>
-                      {(q.answer_count ?? 0) > 0 ? "Terjawab" : "Terbuka"}
-                    </span>
+                      <Badge variant="secondary" className={
+                        (q.answer_count ?? 0) > 0 ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+                      }>
+                        {(q.answer_count ?? 0) > 0 ? "Terjawab" : "Terbuka"}
+                      </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">{q.created_at}</TableCell>
                   <TableCell className="pr-6 text-right">
@@ -305,11 +306,11 @@ function TeacherForum() {
                       <p className="mt-1 text-xs text-muted-foreground">{q.user_name}{q.subject_name ? ` · ${q.subject_name}` : ""}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">{q.created_at}</p>
                     </div>
-                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                    <Badge variant="secondary" className={`shrink-0 ${
                       (q.answer_count ?? 0) > 0 ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
                     }`}>
                       {(q.answer_count ?? 0) > 0 ? "Terjawab" : "Terbuka"}
-                    </span>
+                    </Badge>
                   </button>
                 ))}
               </div>
